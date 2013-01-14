@@ -12,7 +12,7 @@ How To Use
 1. pip install -r requirements.txt
 1. cp config.py.example config.py
 1. add twitter api credentials to config.py
-1. ./archive.py aaronsw
+1. ./twarc.py aaronsw
 1. cat aaronsw.json
 1. :-(
 
