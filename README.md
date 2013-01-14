@@ -1,10 +1,11 @@
 twar
 ====
 
-A very stupid command line tool for archiving the tweets in a Twitter
-search result. Twitter search results live for a week or so, and are highly
-volatile. Results are stored as line-oriented JSON (each line is a
+A very stupid, hastily composed command line tool for archiving the tweets in a 
+Twitter search result. Twitter search results live for a week or so, and are 
+highly volatile. Results are stored as line-oriented JSON (each line is a
 complete JSON document), and is exactly what is received from the Twitter API. 
+It handles rate limiting and paging through large result sets.
 
 How To Use
 ----------
