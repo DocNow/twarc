@@ -1,1 +1,1 @@
-tweepy
+oauth2
