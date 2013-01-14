@@ -30,8 +30,21 @@ def search(q, url=None, rate_limit_remaining=None, rate_limit_reset=None):
     if not url:
         url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % q
 
-    logging.info("fetching %s", url)
-    resp, content = client.request(url)
+    # twitter search api sometimes throws a 500, try 5 times and then give up
+    count = 0
+    while count <= 5:
+        logging.info("fetching %s", url)
+        resp, content = client.request(url)
+        if resp.status == 200:
+            break
+        count += 1
+        secs = count * 2
+        logging.error("got error when fetching %s sleeping %s secs", url, secs)
+        time.sleep(count * 2)
+
+    if resp.status != 200:
+        logging.fatal("couldn't get search results for %s" % url)
+        sys.exit(1)
 
     # set rate limit info if not known
     if rate_limit_remaining == None:
@@ -42,6 +55,9 @@ def search(q, url=None, rate_limit_remaining=None, rate_limit_reset=None):
 
     # return an generator for each result
     results = json.loads(content)
+
+    if not results.has_key("statuses"):
+        print json.dumps(results, indent=2)
     for status in results["statuses"]:
         yield status
    
