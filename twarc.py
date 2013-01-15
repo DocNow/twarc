@@ -8,68 +8,80 @@ import config
 import oauth2
 import logging
 
+consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
+token = oauth2.Token(config.access_token, config.access_token_secret)
+client = oauth2.Client(consumer, token)
 
-def sleep_till(t):
-    now = time.time()
-    if now > t:
-        return 
-    secs = t - now + 5 # padded with 5 seconds to be safe
-    logging.info("sleeping %s seconds for rate limiting" % secs)
-    time.sleep(secs)
+class Search:
 
-def search(q, max_id=None, rate_limit_remaining=None, rate_limit_reset=None):
-    consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
-    token = oauth2.Token(config.access_token, config.access_token_secret)
-    client = oauth2.Client(consumer, token)
+    def __init__(self, q, max_id=None):
+        self.q = q
+        self.max_id = max_id
+        self.rate_limit_remaining = None
+        self.rate_limit_reset = None
 
-    if rate_limit_remaining != None and rate_limit_remaining == 0:
-        sleep_till(rate_limit_reset)
-        rate_limit_remaining = None
-        rate_limit_reset = None
+    def run(self):
+        found = True
+        while found:
+            found = False
+            for status in self._do_search():
+                found = True
+                yield status
 
-    # figure out the search API call
-    url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % q
-    if max_id:
-        url += "&max_id=%s" % max_id
+    def _do_search(self):
+        """returns a page of search results from Twitter
+        """
+        logging.info("starting search for %s with max_id of %s" % (self.q, self.max_id))
+        self.check_rate_limit()
 
-    # twitter search api sometimes throws a 500, try 5 times, while
-    # backing off and then give up
+        # do the api call
+        url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % self.q
+        if self.max_id:
+            url += "&max_id=%s" % self.max_id
+        resp, content = self.fetch(url)
 
-    count = 0
-    while count <= 5:
-        logging.info("fetching %s", url)
-        resp, content = client.request(url)
-        if resp.status == 200:
-            break
-        count += 1
-        secs = count * 2
-        logging.error("got error when fetching %s sleeping %s secs", url, secs)
-        time.sleep(count * 2)
+        # set rate limit info if not known, or decrement our counter
+        if self.rate_limit_remaining == None:
+            self.rate_limit_remaining = int(resp["x-rate-limit-remaining"])
+            self.rate_limit_reset = int(resp["x-rate-limit-reset"])
+        else:
+            self.rate_limit_remaining -= 1
+       
+        # set max_id appropriately for the next search results
+        # and return page of results
+        statuses = json.loads(content)["statuses"]
+        self.max_id = int(statuses[-1]["id_str"]) + 1
 
-    if resp.status != 200:
-        logging.fatal("couldn't get search results for %s" % url)
-        sys.exit(1)
+        return statuses
 
-    # set rate limit info if not known
-    if rate_limit_remaining == None:
-        rate_limit_remaining = int(resp["x-rate-limit-remaining"])
-        rate_limit_reset = int(resp["x-rate-limit-reset"])
-    else:
-        rate_limit_remaining -= 1
+    def check_rate_limit(self):
+       if self.rate_limit_remaining != None and self.rate_limit_remaining == 0:
+           now = time.time()
+           if now < self.rate_limit_reset:
+               # padded with 5 seconds to be safe
+               secs = self.rate_limit_reset - now + 5 
+               logging.info("sleeping %s seconds for rate limiting" % secs)
+               time.sleep(secs)
+           self.rate_limit_remaining = None
+           self.rate_limit_reset = None
 
-    # return an generator for each result
-    results = json.loads(content)
+    def fetch(self, url, tries=5):
+        count = 0
+        while count <= tries:
+            logging.info("fetching %s", url)
+            resp, content = client.request(url)
 
-    if not results.has_key("statuses"):
-        print json.dumps(results, indent=2)
-    for status in results["statuses"]:
-        yield status
-   
-    # look for the next set of results
-    if status:
-        max_id = status["id_str"]
-        for status in search(q, max_id, rate_limit_remaining, rate_limit_reset):
-            yield status
+            if resp.status == 200:
+                return resp, content
+
+            count += 1
+            secs = count * 2
+            logging.error("got error when fetching %s sleeping %s secs", url, secs)
+            time.sleep(count * 2)
+
+        if resp.status != 200:
+            logging.fatal("couldn't get search results for %s" % url)
+            sys.exit(1)
 
 def archive(statuses, filename):
     logging.info("writing tweets to %s" % filename)
@@ -80,19 +92,23 @@ def archive(statuses, filename):
         fh.write(json.dumps(status))
         fh.write("\n")
 
+def last_id(archive_filename):
+    max_id = None
+    if os.path.isfile(archive_filename):
+        # skip to the end of the file
+        for line in open(archive_filename):
+            pass
+        if line:
+            max_id = int(json.loads(line)["id_str"]) + 1
+    return max_id
+
 if __name__ == "__main__":
     q = sys.argv[1]
     log_filename = "%s.log" % q
-    archive_filename = "%s.json" % q
     logging.basicConfig(filename=log_filename, level=logging.INFO)
 
-    # try to pick up where we left off, by reading last tweet id
-    # from the archive file
-    max_id = None
-    if os.path.isfile(archive_filename):
-        for line in open(archive_filename):
-            pass
-        max_id = json.loads(line)["id_str"]
-        logging.info("picking up where we left off with max_id=%s" % max_id)
+    archive_filename = "%s.json" % q
+    max_id = last_id(archive_filename)
 
-    archive(search(q, max_id=max_id), archive_filename)
+    search = Search(q, max_id)
+    archive(search.run(), archive_filename)
