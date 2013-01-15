@@ -9,10 +9,6 @@ import oauth2
 import logging
 
 
-consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
-token = oauth2.Token(config.access_token, config.access_token_secret)
-client = oauth2.Client(consumer, token)
-
 def sleep_till(t):
     now = time.time()
     if now > t:
@@ -22,6 +18,10 @@ def sleep_till(t):
     time.sleep(secs)
 
 def search(q, max_id=None, rate_limit_remaining=None, rate_limit_reset=None):
+    consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
+    token = oauth2.Token(config.access_token, config.access_token_secret)
+    client = oauth2.Client(consumer, token)
+
     if rate_limit_remaining != None and rate_limit_remaining == 0:
         sleep_till(rate_limit_reset)
         rate_limit_remaining = None
