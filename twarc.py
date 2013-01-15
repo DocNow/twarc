@@ -6,6 +6,7 @@ import json
 import time
 import config
 import oauth2
+import urllib
 import logging
 
 consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
@@ -35,7 +36,7 @@ class Search:
         self.check_rate_limit()
 
         # do the api call
-        url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % self.q
+        url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % urllib.quote(self.q)
         if self.max_id:
             url += "&max_id=%s" % self.max_id
         resp, content = self.fetch(url)
@@ -50,8 +51,14 @@ class Search:
         # set max_id appropriately for the next search results
         # and return page of results
         statuses = json.loads(content)["statuses"]
-        self.max_id = int(statuses[-1]["id_str"]) + 1
 
+        # if we didn't get any new tweets return empty list
+        new_max_id = int(statuses[-1]["id_str"]) + 1
+        if self.max_id == new_max_id:
+            logging.info("no new tweets with id < %s", self.max_id)
+            return []
+
+        self.max_id = new_max_id
         return statuses
 
     def check_rate_limit(self):
