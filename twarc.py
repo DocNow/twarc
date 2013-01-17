@@ -14,86 +14,79 @@ consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secre
 token = oauth2.Token(config.access_token, config.access_token_secret)
 client = oauth2.Client(consumer, token)
 
-class Search:
+class RateLimiter:
 
-    def __init__(self, q, since_id=None, max_id=None):
-        self.q = q
-        self.since_id = since_id
-        self.max_id = max_id
-        self.rate_limit_remaining = None
-        self.rate_limit_reset = None
+    def __init__(self):
+        self._ping()
 
-    def run(self):
-        found = True
-        while found:
-            found = False
-            for status in self._do_search():
-                found = True
-                yield status
+    def check(self):
+        if self.remaining == 0:
+            now = time.time()
+            if now < self.reset:
+                # padded with 5 seconds just to be on the safe side
+                secs = self.reset - now + 5 
+                logging.info("sleeping %s seconds for rate limiting" % secs)
+                time.sleep(secs)
+        self._ping()
 
-    def _do_search(self):
-        """returns a page of search results from Twitter
+    def _ping(self):
+        """fetches latest rate limits from Twitter
         """
-        logging.info("starting search for %s with max_id of %s" % (self.q, self.max_id))
-        self.check_rate_limit()
+        url = "https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search"
+        response, content = client.request(url)
+        result = json.loads(content)["resources"]["search"]["/search/tweets"]
+        self.reset = result["reset"]
+        self.remaining = result["remaining"]
 
-        # do the api call
-        url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % urllib.quote(self.q)
-        if self.since_id:
-            url += "&since_id=%s" % self.since_id
-        if self.max_id:
-            url += "&max_id=%s" % self.max_id
-        resp, content = self.fetch(url)
+def search(q, since_id=None, max_id=None):
+    """returns a generator for *all* search results.
+    """
+    logging.info("starting search for %s with since_id=%s and max_id of %s" % (q, since_id, max_id))
+    while True:
+        results, max_id = search_result(q, since_id, max_id)
+        if len(results) == 0:
+            break
+        for status in results:
+            yield status
 
-        # set rate limit info if not known, or decrement our counter
-        if self.rate_limit_remaining == None:
-            self.rate_limit_remaining = int(resp["x-rate-limit-remaining"])
-            self.rate_limit_reset = int(resp["x-rate-limit-reset"])
-        else:
-            self.rate_limit_remaining -= 1
-       
-        # set max_id appropriately for the next search results
-        # and return page of results
-        statuses = json.loads(content)["statuses"]
+def search_result(q, since_id=None, max_id=None):
+    """returns a single page of search results
+    """
+    # do the api call
+    url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % urllib.quote(q)
+    if since_id:
+        url += "&since_id=%s" % since_id
+    if max_id:
+        url += "&max_id=%s" % max_id
+    resp, content = fetch(url)
 
-        # if we didn't get any new tweets return empty list
-        new_max_id = int(statuses[-1]["id_str"]) + 1
-        if self.max_id == new_max_id:
-            logging.info("no new tweets with id < %s", self.max_id)
-            return []
+    statuses = json.loads(content)["statuses"]
 
-        self.max_id = new_max_id
-        return statuses
+    new_max_id = int(statuses[-1]["id_str"]) + 1
+    if max_id == new_max_id:
+        logging.info("no new tweets with id < %s", max_id)
+        return [], max_id
 
-    def check_rate_limit(self):
-       if self.rate_limit_remaining != None and self.rate_limit_remaining == 0:
-           now = time.time()
-           if now < self.rate_limit_reset:
-               # padded with 5 seconds to be safe
-               secs = self.rate_limit_reset - now + 5 
-               logging.info("sleeping %s seconds for rate limiting" % secs)
-               time.sleep(secs)
-           self.rate_limit_remaining = None
-           self.rate_limit_reset = None
+    return statuses, new_max_id
 
-    def fetch(self, url, tries=5):
-        count = 0
-        while count <= tries:
-            logging.info("fetching %s", url)
-            resp, content = client.request(url)
+def fetch(url, tries=5):
+    if tries == 0:
+        logging.error("unable to fetch %s - too many tries!", url)
+        return None
 
-            if resp.status == 200:
-                return resp, content
+    rate_limiter.check()
+    logging.info("fetching %s", url)
+    resp, content = client.request(url)
 
-            count += 1
-            secs = count * 2
-            logging.error("got error when fetching %s sleeping %s secs", url, secs)
-            time.sleep(count * 2)
+    if resp.status == 200:
+        return resp, content
 
-        if resp.status != 200:
-            logging.fatal("couldn't get search results for %s" % url)
-            sys.exit(1)
+    secs =  (6 - tries) * 2
+    logging.error("got error when fetching %s sleeping %s secs", url, secs)
+    time.sleep(count * 2)
 
+    return fetch(url, tries - 1)
+ 
 def most_recent_id(q):
     last_archive_file = last_archive(q)
     if not last_archive_file:
@@ -110,7 +103,7 @@ def last_archive(q):
         return other_archive_files[-1]
     return None
 
-def archive(statuses, q):
+def archive(q, statuses):
     t = time.strftime("%Y%m%d%H%M%S", time.localtime())
     archive_filename = "%s-%s.json" % (q, t)
     logging.info("writing tweets to %s" % archive_filename)
@@ -122,9 +115,10 @@ def archive(statuses, q):
         fh.write(json.dumps(status))
         fh.write("\n")
 
+rate_limiter = RateLimiter()
+
 if __name__ == "__main__":
     q = sys.argv[1]
     logging.basicConfig(filename="%s.log" % q, level=logging.INFO)
     since_id = most_recent_id(q)
-    search = Search(q, since_id)
-    archive(search.run(), q) 
+    archive(q, search(q, since_id)) 
