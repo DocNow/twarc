@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import re
 import sys
 import json
 import time
@@ -15,8 +16,9 @@ client = oauth2.Client(consumer, token)
 
 class Search:
 
-    def __init__(self, q, max_id=None):
+    def __init__(self, q, since_id=None, max_id=None):
         self.q = q
+        self.since_id = since_id
         self.max_id = max_id
         self.rate_limit_remaining = None
         self.rate_limit_reset = None
@@ -37,6 +39,8 @@ class Search:
 
         # do the api call
         url = "https://api.twitter.com/1.1/search/tweets.json?q=%s" % urllib.quote(self.q)
+        if self.since_id:
+            url += "&since_id=%s" % self.since_id
         if self.max_id:
             url += "&max_id=%s" % self.max_id
         resp, content = self.fetch(url)
@@ -90,32 +94,37 @@ class Search:
             logging.fatal("couldn't get search results for %s" % url)
             sys.exit(1)
 
-def archive(statuses, filename):
-    logging.info("writing tweets to %s" % filename)
-    fh = open(filename, "a")
+def most_recent_id(q):
+    last_archive_file = last_archive(q)
+    if not last_archive_file:
+        return None
+    return json.loads(open(last_archive_file).readline())["id_str"]
+
+def last_archive(q):
+    other_archive_files = []
+    for filename in os.listdir("."):
+        if re.match("^%s-\d+\.json$" % q, filename):
+            other_archive_files.append(filename)
+    other_archive_files.sort()
+    if len(other_archive_files) > 0:
+        return other_archive_files[-1]
+    return None
+
+def archive(statuses, q):
+    t = time.strftime("%Y%m%d%H%M%S", time.localtime())
+    archive_filename = "%s-%s.json" % (q, t)
+    logging.info("writing tweets to %s" % archive_filename)
+
+    fh = open(archive_filename, "w")
     for status in statuses:
         url = "http://twitter.com/%s/status/%s" % (status["user"]["screen_name"], status["id_str"])
         logging.info("archived %s", url)
         fh.write(json.dumps(status))
         fh.write("\n")
 
-def last_id(archive_filename):
-    max_id = None
-    if os.path.isfile(archive_filename):
-        # skip to the end of the file
-        for line in open(archive_filename):
-            pass
-        if line:
-            max_id = int(json.loads(line)["id_str"]) + 1
-    return max_id
-
 if __name__ == "__main__":
     q = sys.argv[1]
-    log_filename = "%s.log" % q
-    logging.basicConfig(filename=log_filename, level=logging.INFO)
-
-    archive_filename = "%s.json" % q
-    max_id = last_id(archive_filename)
-
-    search = Search(q, max_id)
-    archive(search.run(), archive_filename)
+    logging.basicConfig(filename="%s.log" % q, level=logging.INFO)
+    since_id = most_recent_id(q)
+    search = Search(q, since_id)
+    archive(search.run(), q) 
