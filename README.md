@@ -1,5 +1,5 @@
-twar
-====
+twarc
+=====
 
 A very stupid, hastily composed, command line tool for archiving the tweets in 
 a Twitter search result. Twitter search results live for a week or so, and are 
