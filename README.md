@@ -1,11 +1,15 @@
 twarc
 =====
 
-twarc is a very hastily composed, command line tool for archiving the tweets in 
-a Twitter search result. Twitter search results live for a week or so, and are 
-highly volatile. Results are stored as line-oriented JSON (each line is a
-complete JSON document), and are exactly what is received from the Twitter API. 
-It handles rate limiting and paging through large result sets.
+twarc is command line tool for archiving the tweets in a Twitter search result.
+Twitter search results live for a week or so, and are highly volatile. Results 
+are stored as line-oriented JSON (each line is a complete JSON document), and 
+are exactly what is received from the Twitter API.  twarc handles rate limiting 
+and paging through large result sets. It also handles repeated runs of the same
+query, by using the most recent tweet in the last run to determine when to 
+stop.
+
+twarc was originally created to save [tweets related to Aaron Swartz](http://archive.org/details/AaronswRelatedTweets).
 
 How To Use
 ----------
