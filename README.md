@@ -22,8 +22,8 @@ Utils
 
 In the utils directory there are some simple command line utilities for 
 working with the json dumps like printing out the archived tweets as text 
-or html, extracting the usernames, referenced urls, and the like in utils. 
-If you create one please send me a pull request :-)
+or html, extracting the usernames, referenced urls, and the like.  If you 
+create a script that is handy please send me a pull request :-)
 
 License
 -------
