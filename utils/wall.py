@@ -16,6 +16,7 @@ print """<!doctype html>
 <html>
 
 <head>
+  <meta charset="utf-8">
   <title>congrats @dancohen</title>
   <style>
     body {
