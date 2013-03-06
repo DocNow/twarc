@@ -29,6 +29,11 @@ working with the json dumps like printing out the archived tweets as text
 or html, extracting the usernames, referenced urls, and the like.  If you 
 create a script that is handy please send me a pull request :-)
 
+For example lets say you want to create a wall of tweets that mention 'nasa':
+
+    % twarc.py nasa
+    % utils/wall.py nasa-20130306102105.json > nasa.html
+
 License
 -------
 
