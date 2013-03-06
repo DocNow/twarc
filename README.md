@@ -31,7 +31,7 @@ create a script that is handy please send me a pull request :-)
 
 For example lets say you want to create a wall of tweets that mention 'nasa':
 
-    % twarc.py nasa
+    % ./twarc.py nasa
     % utils/wall.py nasa-20130306102105.json > nasa.html
 
 License
