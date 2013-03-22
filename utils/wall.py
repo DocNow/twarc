@@ -72,7 +72,7 @@ print """<!doctype html>
 
 <body>
 
-<h1>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a>
+<h1>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a></h1>
 
 <div id="tweets">
 """

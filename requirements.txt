@@ -1,2 +1,3 @@
 oauth2
 python-dateutil
+git+git://github.com/bmuller/genderator.git
