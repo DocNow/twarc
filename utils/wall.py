@@ -17,7 +17,7 @@ print """<!doctype html>
 
 <head>
   <meta charset="utf-8">
-  <title>congrats @dancohen</title>
+  <title>twarc wall</title>
   <style>
     body {
       font-size: 12pt;
