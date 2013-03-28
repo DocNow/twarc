@@ -34,6 +34,17 @@ For example lets say you want to create a wall of tweets that mention 'nasa':
     % ./twarc.py nasa
     % utils/wall.py nasa-20130306102105.json > nasa.html
 
+Or you want to create a word cloud of tweets you collected about nasa:
+
+   % ./twarc.py nasa
+   % utils/wordcloud.py nasa-20130306102105.json > nasa-wordcloud.html
+
+Or if you want to filter out all the tweets that look like they were from 
+women, and create a wordcloud from them:
+
+   % ./twarc.py nasa
+   % utils/gender.py nasa-20130306102105.json | utils/wordcloud.py > nasa-female.html
+
 License
 -------
 
