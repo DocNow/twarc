@@ -40,7 +40,7 @@ Or you want to create a word cloud of tweets you collected about nasa:
     % utils/wordcloud.py nasa-20130306102105.json > nasa-wordcloud.html
 
 Or if you want to filter out all the tweets that look like they were from 
-women, and create a wordcloud from them:
+women, and create a word cloud from them:
 
     % ./twarc.py nasa
     % utils/gender.py nasa-20130306102105.json | utils/wordcloud.py > nasa-female.html
