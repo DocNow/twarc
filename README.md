@@ -43,7 +43,7 @@ Or if you want to filter out all the tweets that look like they were from
 women, and create a word cloud from them:
 
     % ./twarc.py nasa
-    % utils/gender.py nasa-20130306102105.json | utils/wordcloud.py > nasa-female.html
+    % utils/gender.py --gender female nasa-20130306102105.json | utils/wordcloud.py > nasa-female.html
 
 License
 -------
