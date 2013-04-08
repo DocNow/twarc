@@ -157,7 +157,7 @@ def scrape_tweets(query, max_id=None, sleep=1):
     for tweet_id in scrape_tweet_ids(query, sleep=5):
         rate_limiter.check()
         url = "https://api.twitter.com/1.1/statuses/show.json?id=%s" % tweet_id
-        content = fetch(url)
+        resp, content = fetch(url)
         yield json.loads(content)
 
 def scrape_tweet_ids(query, max_id=None, sleep=1):
@@ -177,7 +177,7 @@ def scrape_tweet_ids(query, max_id=None, sleep=1):
             q["max_id"] = max_id
 
         r = requests.get(url, params=q, headers={'User-agent': USER_AGENT})
-        s = r.json()
+        s = json.loads(r.content)
 
         html = s["items_html"]
         tweet_ids = re.findall(r'<a href=\"/.+/status/(\d+)', html)
