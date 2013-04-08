@@ -9,6 +9,10 @@ import config
 import oauth2
 import urllib
 import logging
+import argparse
+import requests
+
+USER_AGENT = "twarc (http://twitter.com/edsu/twarc)"
 
 consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
 token = oauth2.Token(config.access_token, config.access_token_secret)
@@ -55,8 +59,10 @@ class RateLimiter:
 
         logging.info("new rate limit remaining=%s and reset=%s", self.remaining, self.reset)
 
-def search(q, since_id=None, max_id=None):
-    """returns a generator for *all* search results.
+def search(q, since_id=None, max_id=None, scrape=True):
+    """returns a generator for *all* search results. If you supply scrape, 
+    twarc will attemp to dig back further in time by scraping search.twitter.com
+    and looking up individual tweets.
     """
     logging.info("starting search for %s with since_id=%s and max_id=%s" % (q, since_id, max_id))
     while True:
@@ -64,6 +70,10 @@ def search(q, since_id=None, max_id=None):
         if len(results) == 0:
             break
         for status in results:
+            yield status
+
+    if scrape: 
+        for status in scrape_tweets(q, max_id=max_id):
             yield status
 
 def search_result(q, since_id=None, max_id=None):
@@ -78,8 +88,12 @@ def search_result(q, since_id=None, max_id=None):
     resp, content = fetch(url)
 
     statuses = json.loads(content)["statuses"]
+    
+    if len(statuses) > 0:
+        new_max_id = int(statuses[-1]["id_str"]) + 1
+    else:
+        new_max_id = max_id
 
-    new_max_id = int(statuses[-1]["id_str"]) + 1
     if max_id == new_max_id:
         logging.info("no new tweets with id < %s", max_id)
         return [], max_id
@@ -135,20 +149,63 @@ def archive(q, statuses):
         fh.write(json.dumps(status))
         fh.write("\n")
 
+def scrape_tweets(query, max_id=None, sleep=1):
+    """
+    A kinda sneaky and slow way to retrieve older tweets, now that search on 
+    the Twitter website extends back in time.
+    """
+    for tweet_id in scrape_tweet_ids(query, sleep=5):
+        rate_limiter.check()
+        url = "https://api.twitter.com/1.1/statuses/show.json?id=%s" % tweet_id
+        content = fetch(url)
+        yield json.loads(content)
+
+def scrape_tweet_ids(query, max_id=None, sleep=1):
+    url = 'https://twitter.com/i/search/timeline?'
+    q = {
+        "type": "recent",
+        "src": "typd",
+        "include_available_features": 1,
+        "include_entities": 1,
+        "type": "recent",
+        "q": query
+    }
+
+    while True:
+        logging.info("scraping tweets with id < %s", max_id)
+        if max_id:
+            q["max_id"] = max_id
+
+        r = requests.get(url, params=q, headers={'User-agent': USER_AGENT})
+        s = r.json()
+
+        html = s["items_html"]
+        tweet_ids = re.findall(r'<a href=\"/.+/status/(\d+)', html)
+
+        if len(tweet_ids) == 0:
+            raise StopIteration
+
+        # don't repeat the max_id
+        if max_id and max_id == tweet_ids[0]:
+            tweet_ids.pop(0)
+
+        for tweet_id in tweet_ids:
+            yield tweet_id
+
+        time.sleep(sleep)
+        max_id = tweet_ids[-1]
+
 logging.basicConfig(filename="twarc.log", level=logging.INFO)
 rate_limiter = RateLimiter()
 
 if __name__ == "__main__":
-    q = sys.argv[1]
+    parser = argparse.ArgumentParser("twarc")
+    parser.add_argument("--scrape", dest="scrape", action="store_true", help='attempt to scrape tweets from search.twitter.com for tweets not available via Twitter\'s search REST API')
+    parser.add_argument("--maxid", dest="maxid", action="store", help="maximum tweet id to fetch")
+    parser.add_argument("query")
+    args = parser.parse_args()
 
-    since_id = most_recent_id(q)
+    since_id = most_recent_id(args.query)
     max_id = None
 
-    # an optional id to start with and work backwards from can be usefu in 
-    # situations where an archive process is killed before it is complete 
-
-    if len(sys.argv) > 2:
-        max_id = sys.argv[2]
-        since_id = None
-
-    archive(q, search(q, since_id, max_id)) 
+    archive(args.query, search(args.query, since_id=since_id, max_id=args.maxid, scrape=args.scrape)) 
