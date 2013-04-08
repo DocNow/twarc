@@ -25,7 +25,9 @@ Scrape Mode
 -----------
 
 If you pass the --scrape option to twarc it will use [search.twitter.com](http://search.twitter.com)
-to discover tweet ids, and then using the Twitter REST API to fetch the JSON. 
+to discover tweet ids, and then use the Twitter REST API to fetch the JSON for
+each tweet.
+
 The [Twitter Search](http://search.twitter.com) webapp [now supports](http://blog.twitter.com/2013/02/now-showing-older-tweets-in-search.html) 
 drilling backwards in time, past the week cutoff of the REST API. Since
 individual tweets are still retrieved with the REST API, rate limits apply--
