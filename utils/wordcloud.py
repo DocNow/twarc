@@ -37,9 +37,12 @@ for word in top_words:
     })
 
 print """<!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="https://raw.github.com/jasondavies/d3-cloud/master/d3.layout.cloud.js"></script>
+</head>
 <body>
 <script>
   var fill = d3.scale.category20();
