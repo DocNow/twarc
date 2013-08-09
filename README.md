@@ -43,6 +43,10 @@ For example lets say you want to create a wall of tweets that mention 'nasa':
     % ./twarc.py nasa
     % utils/wall.py nasa-20130306102105.json > nasa.html
 
+If you want the tweets ordered from oldest to latest:
+
+    % tail -r nasa-20130306102105.json | utils/wall.py > nasa.html
+
 Or you want to create a word cloud of tweets you collected about nasa:
 
     % ./twarc.py nasa
