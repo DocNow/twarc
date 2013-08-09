@@ -54,6 +54,7 @@ class RateLimiter:
             self.reset = json.loads(content)["resources"]["search"]["/search/tweets"]["reset"]
             self.remaining = json.loads(content)["resources"]["search"]["/search/tweets"]["remaining"]
         else:
+            print content
             self.reset = response["x-rate-limit-reset"]
             self.remaining = response["x-rate-limit-remaining"]
 
@@ -113,7 +114,7 @@ def fetch(url, tries=5):
         return resp, content
 
     secs =  (6 - tries) * 2
-    logging.error("got error when fetching %s sleeping %s secs: %s", url, secs, resp)
+    logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
     time.sleep(secs)
 
     return fetch(url, tries - 1)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """
 Feed wall.py your JSON and get a wall of tweets as HTML. If you want to get the
@@ -8,6 +9,7 @@ wall in chronological order, a handy trick is:
 
 """
 
+import re
 import json
 import fileinput
 import dateutil.parser
@@ -54,6 +56,10 @@ print """<!doctype html>
       left: 10px;
     }
 
+    .tweet a {
+      text-decoration: none;
+    }
+
     time { 
       font-size: small;
     }
@@ -67,15 +73,26 @@ print """<!doctype html>
       font-weight: heavy;
     }
 
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
   </style>
 </head>
 
 <body>
 
-<h1>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a></h1>
+  <header>
+  <h1>Title Here</h1>
+  <em>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a></em>
+  </header>
 
-<div id="tweets">
+  <div id="tweets">
 """
+
+# http://daringfireball.net/2010/07/improved_regex_for_matching_urls
+url_pattern = re.compile(r'''(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))''')
 
 for line in fileinput.input():
     tweet = json.loads(line)
@@ -88,6 +105,10 @@ for line in fileinput.input():
         "avatar": tweet["user"]["profile_image_url"],
         "url": "http://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
     }
+
+    t['text'] = url_pattern.sub('<a href="\g<1>">\g<1></a>', t['text'])
+    t['text'] = re.sub('@([^ ]+)', '<a href="http://twitter.com/\g<1>">@\g<1></a>', t['text'])
+    t['text'] = re.sub('#([^ ]+)', '<a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
 
     html = """
     <article class="tweet">
