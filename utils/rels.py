@@ -42,13 +42,17 @@ for line in fileinput.input():
 #    	if not retweet in nodes:
 #    		nodes.append(retweet)
     	#print ("%s %s %s" % (user, "retweets", retweet)).encode('utf-8')
-#print ("")
-#print ("Nodes:")
 
-for node in nodes:
-	print(node)
+
+print ("{\"nodes\":")
+print json.dumps(nodes)
+print ("},\"links\":")
+linksoutput = []
 for subject in links.iterkeys():
 	for object in links[subject].iterkeys():
 		strength = links[subject][object]
-		print("%s, %s, %d" % (subject, object, strength)).encode('utf-8')
-    	
+		linksoutput.append({"source": subject, "target": object, "value": strength})
+#		print("%s, %s, %d" % (subject, object, strength)).encode('utf-8')
+
+print json.dumps(linksoutput)
+print ("}")    	
