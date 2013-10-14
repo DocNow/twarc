@@ -44,14 +44,17 @@ for line in fileinput.input():
     	#print ("%s %s %s" % (user, "retweets", retweet)).encode('utf-8')
 
 
+nodesoutput = []
+for node in nodes:
+	nodesoutput.append({"name": node, "group":1})
 print ("{\"nodes\":")
-print json.dumps(nodes)
-print ("},\"links\":")
+print json.dumps(nodesoutput)
+print (",\"links\":")
 linksoutput = []
 for subject in links.iterkeys():
 	for object in links[subject].iterkeys():
 		strength = links[subject][object]
-		linksoutput.append({"source": subject, "target": object, "value": strength})
+		linksoutput.append({"source": nodes.index(subject), "target": nodes.index(object), "value": strength})
 #		print("%s, %s, %d" % (subject, object, strength)).encode('utf-8')
 
 print json.dumps(linksoutput)
