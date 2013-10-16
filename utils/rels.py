@@ -3,6 +3,8 @@
 import json
 import fileinput
 import dateutil.parser
+import math
+import random
 
 nodes = [];
 links = {};
@@ -43,18 +45,33 @@ for line in fileinput.input():
 #    		nodes.append(retweet)
     	#print ("%s %s %s" % (user, "retweets", retweet)).encode('utf-8')
 
+maxlinks = 0
 
-nodesoutput = []
+nodecounts = {}
 for node in nodes:
-	nodesoutput.append({"name": node, "group":1})
-print ("{\"nodes\":")
-print json.dumps(nodesoutput)
-print (",\"links\":")
+	nodecounts[node] = 0;
+
 linksoutput = []
 for subject in links.iterkeys():
 	for object in links[subject].iterkeys():
 		strength = links[subject][object]
 		linksoutput.append({"source": nodes.index(subject), "target": nodes.index(object), "value": strength})
+		nodecounts[subject] = nodecounts[subject] + strength
+		nodecounts[object] = nodecounts[object] + strength
+		if nodecounts[subject] > maxlinks:
+			maxlinks = nodecounts[subject]
+		if nodecounts[object] > maxlinks:
+			maxlinks = nodecounts[object]
+
+#print json.dumps(nodecounts)
+
+nodesoutput = []
+for node in nodes:
+	nodesoutput.append({"name": node, "group": int(round(nodecounts[node]/maxlinks * 8))})
+	#nodesoutput.append({"name": node, "group": random.randint(1,8)})
+print ("{\"nodes\":")
+print json.dumps(nodesoutput)
+print (",\"links\":")
 #		print("%s, %s, %d" % (subject, object, strength)).encode('utf-8')
 
 print json.dumps(linksoutput)
