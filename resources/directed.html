@@ -24,6 +24,16 @@ path.link.resolved {
   stroke-dasharray: 0,2 1;
 }
 
+path.link.highlightout {
+	stroke: red;
+	z-index: 1000;
+}
+path.link.highlightin {
+	stroke: green;
+	z-index: 1000;
+}
+
+
 circle {
   fill: #ccc;
   stroke: #333;
@@ -93,7 +103,7 @@ svg.append("svg:defs").selectAll("marker")
 var path = svg.append("svg:g").selectAll("path")
     .data(force.links())
   .enter().append("svg:path")
-    .attr("class", function(d) { return "link " + d.type; })
+    .attr("class", function(d) { return "link " + d.type + " out_" + d.source.name + " in_" + d.target.name; })
     .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
 
 var circle = svg.append("svg:g").selectAll("circle")
@@ -101,6 +111,8 @@ var circle = svg.append("svg:g").selectAll("circle")
   .enter().append("svg:circle")
     .attr("r", 6)
     .attr("id", function(d) {return d.name;})
+   .on("mouseover", function(d) {d3.selectAll(".out_" + d.name).classed("highlightout", true); d3.selectAll(".in_" + d.name).classed("highlightin", true)})
+   .on("mouseout", function(d) {d3.selectAll(".out_" + d.name).classed("highlightout", false); d3.selectAll(".in_" + d.name).classed("highlightin", false)})
    .call(force.drag);
 
 var text = svg.append("svg:g").selectAll("g")
