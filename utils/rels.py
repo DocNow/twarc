@@ -3,6 +3,16 @@
 import json
 import fileinput
 import math
+import sys
+
+# parse command-line args
+mode="retweets"
+# if args include -m, get mode and remove first two args, leaving file name(s) (if any) in args
+if len(sys.argv) > 1:
+	if sys.argv[1] == "-m":
+		mode=sys.argv[2]
+		del sys.argv[0]
+		del sys.argv[0]
 
 nodes = [];
 links = {};
@@ -27,21 +37,25 @@ for line in fileinput.input():
     if not user in links:
     	links[user] = {}
     userlink = links[user]
-    if "user_mentions" in tweet["entities"]:
-	    for mention in tweet["entities"]["user_mentions"]:
-	    	mentionuser = str(mention["screen_name"])
-    		if not mentionuser in nodes:
-    			nodes.append(mentionuser)
-    		if mentionuser in userlink:
-    			userlink[mentionuser] = userlink[mentionuser] + 1;
+    if mode == 'mentions':
+	    if "user_mentions" in tweet["entities"]:
+		    for mention in tweet["entities"]["user_mentions"]:
+	    		mentionuser = str(mention["screen_name"])
+    			if not mentionuser in nodes:
+    				nodes.append(mentionuser)
+	    		if mentionuser in userlink:
+    				userlink[mentionuser] = userlink[mentionuser] + 1;
+    			else:
+    				userlink[mentionuser] = 1;
+    else:
+	    if "retweeted_status" in tweet:
+    		retweet = tweet["retweeted_status"]["user"]["screen_name"]
+    		if not retweet in nodes:
+    			nodes.append(retweet)
+	    	if retweet in userlink:
+    			userlink[retweet] = userlink[retweet] + 1;
     		else:
-    			userlink[mentionuser] = 1;
-    		#print ("%s %s %s" % (user, "mentions", mentionuser)).encode('utf-8')
-#    if "retweeted_status" in tweet:
-#    	retweet = tweet["retweeted_status"]["user"]["screen_name"]
-#    	if not retweet in nodes:
-#    		nodes.append(retweet)
-    	#print ("%s %s %s" % (user, "retweets", retweet)).encode('utf-8')
+    			userlink[retweet] = 1;
 
 maxlinks = 0
 

@@ -5,6 +5,14 @@ import fileinput
 import math
 import os, sys
 
+# parse command-line args
+mode="retweets"
+# if args include -m, get mode and remove first two args, leaving file name(s) (if any) in args
+if len(sys.argv) > 1:
+	if sys.argv[1] == "-m":
+		mode=sys.argv[2]
+		del sys.argv[0]
+		del sys.argv[0]
 
 threshold = 1
 links = {}
@@ -23,16 +31,25 @@ links = {}
 
 for line in fileinput.input():
     tweet = json.loads(line)
-    if "retweeted_status" in tweet:
-    	source = tweet["user"]["screen_name"]
-    	if not source in links:
-    		links[source] = {}
-    	sourcelink = links[source]
-    	target = tweet["retweeted_status"]["user"]["screen_name"]
-    	if target in sourcelink:
-    		sourcelink[target] = sourcelink[target] + 1;
-    	else:
-    		sourcelink[target] = 1;
+    source = tweet["user"]["screen_name"]
+    if not source in links:
+    	links[source] = {}
+    userlink = links[source]
+    if mode == 'mentions':
+	    if "user_mentions" in tweet["entities"]:
+		    for mention in tweet["entities"]["user_mentions"]:
+	    		mentionuser = str(mention["screen_name"])
+	    		if mentionuser in userlink:
+    				userlink[mentionuser] = userlink[mentionuser] + 1;
+    			else:
+    				userlink[mentionuser] = 1;
+    else:
+	    if "retweeted_status" in tweet:
+    		target = tweet["retweeted_status"]["user"]["screen_name"]
+    		if target in userlink:
+    			userlink[target] = userlink[target] + 1;
+    		else:
+    			userlink[target] = 1;
 
 
 # generate links json
