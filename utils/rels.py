@@ -2,9 +2,7 @@
 
 import json
 import fileinput
-import dateutil.parser
 import math
-import random
 
 nodes = [];
 links = {};
@@ -68,11 +66,12 @@ for subject in links.iterkeys():
 nodesoutput = []
 for node in nodes:
 	nodesoutput.append({"name": node, "group": int(round(nodecounts[node]/maxlinks * 8))})
-	#nodesoutput.append({"name": node, "group": random.randint(1,8)})
-print ("{\"nodes\":")
-print json.dumps(nodesoutput)
-print (",\"links\":")
-#		print("%s, %s, %d" % (subject, object, strength)).encode('utf-8')
+	
+	
+nodes = json.dumps(nodesoutput)
+links = json.dumps(linksoutput)
 
-print json.dumps(linksoutput)
-print ("}")    	
+# generate html by replacing token
+with open ("resources/rels.html", "r") as template:
+	print template.read().replace('$LINKS$', links).replace('$NODES$', nodes)
+

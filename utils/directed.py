@@ -3,6 +3,7 @@
 import json
 import fileinput
 import math
+import os, sys
 
 
 threshold = 1
@@ -34,7 +35,7 @@ for line in fileinput.input():
     		sourcelink[target] = 1;
 
 
-
+# generate links json
 linksoutput = []
 for source in links.iterkeys():
 	for target in links[source].iterkeys():
@@ -42,5 +43,8 @@ for source in links.iterkeys():
 		if value >= threshold:
 			linksoutput.append({"source": target, "target": source, "value": value, "type": "suit"})
 
+links = json.dumps(linksoutput)
 
-print json.dumps(linksoutput)
+# generate html by replacing token
+with open ("resources/directed.html", "r") as template:
+	print template.read().replace('$LINKS$', links)

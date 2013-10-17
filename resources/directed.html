@@ -2,10 +2,8 @@
 <html>
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <title>Mobile Patent Suits</title>
-    <script type="text/javascript" src="../../d3.v3.js"></script>
-<!--    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.geom.js?1.29.1"></script>
-    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.layout.js?1.29.1"></script>-->
+    <title>twarc Directed Graph of Retweets</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
     <style type="text/css">
 
 path.link {
@@ -43,19 +41,12 @@ text.shadow {
   stroke-opacity: .8;
 }
 
-/* special nodes */
-circle#LukaszukMLA {
-	fill: #f00;
-}
-
     </style>
   </head>
   <body>
     <script type="text/javascript">
 
-	links = [];
-	d3.json("directed.json", function(data) {
-		links = data;
+	links = $LINKS$;
 
 var nodes = {};
 
@@ -73,6 +64,8 @@ var win = window,
     w = win.innerWidth || e.clientWidth || g.clientWidth,
     h = win.innerHeight|| e.clientHeight|| g.clientHeight;
 
+// no, on second thought, make the window really really big
+// TODO set bounding box to keep everything visible in regular-sized window
 w = 2000;
 h = 2000;
 
@@ -149,7 +142,7 @@ function tick() {
     return "translate(" + d.x + "," + d.y + ")";
   });
 }
-	});
+//	});
 
     </script>
   </body>
