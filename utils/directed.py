@@ -16,7 +16,7 @@ if len(sys.argv) > 1:
 
 threshold = 1
 links = {}
-
+users = {}
 
 # nodes will end up as ["userA", "userB", ...]
 # links will end up as 
@@ -34,6 +34,10 @@ for line in fileinput.input():
     source = tweet["user"]["screen_name"]
     if not source in links:
     	links[source] = {}
+    if not source in users:
+    	users[source] = {"source": 0, "target": 1}
+    else:
+    	users[source]["target"] = users[source]["target"] + 1
     userlink = links[source]
     if mode == 'mentions':
 	    if "user_mentions" in tweet["entities"]:
@@ -43,6 +47,10 @@ for line in fileinput.input():
     				userlink[mentionuser] = userlink[mentionuser] + 1;
     			else:
     				userlink[mentionuser] = 1;
+    			if mentionuser in users:
+    				users[mentionuser]["source"] = users[mentionuser]["source"] + 1
+    			else:
+    				users[mentionuser] = {"source": 1, "target": 0}
     else:
 	    if "retweeted_status" in tweet:
     		target = tweet["retweeted_status"]["user"]["screen_name"]
@@ -50,7 +58,20 @@ for line in fileinput.input():
     			userlink[target] = userlink[target] + 1;
     		else:
     			userlink[target] = 1;
+    		if target in users:
+    			users[target]["source"] = users[target]["source"] + 1
+    		else:
+    			users[target] = {"source": 1, "target": 0}
 
+# generate nodes json
+nodesoutput = []
+usernames = []
+for u in users.iterkeys():
+	node = users[u]
+	usernames.append(u)
+	nodesoutput.append({"name": u, "title": str(u + " (" + str(node["source"]) + "/" + str(node["target"]) + ")")})
+	
+nodes = json.dumps(nodesoutput)
 
 # generate links json
 linksoutput = []
@@ -58,10 +79,10 @@ for source in links.iterkeys():
 	for target in links[source].iterkeys():
 		value = links[source][target]
 		if value >= threshold:
-			linksoutput.append({"source": target, "target": source, "value": value, "type": "suit"})
+			linksoutput.append({"source": usernames.index(target), "target": usernames.index(source), "value": value, "type": "suit"})
 
 links = json.dumps(linksoutput)
 
 # generate html by replacing token
 with open ("resources/directed.html", "r") as template:
-	print template.read().replace('$LINKS$', links)
+	print template.read().replace('$LINKS$', links).replace('$NODES$', nodes)

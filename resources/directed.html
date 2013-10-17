@@ -46,15 +46,9 @@ text.shadow {
   <body>
     <script type="text/javascript">
 
-	links = $LINKS$;
+	var links = $LINKS$;
 
-var nodes = {};
-
-// Compute the distinct nodes from the links.
-links.forEach(function(link) {
-  link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
-  link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
-});
+	var nodes = $NODES$;
 
 // set box size to window size
 var win = window,
@@ -107,7 +101,7 @@ var circle = svg.append("svg:g").selectAll("circle")
   .enter().append("svg:circle")
     .attr("r", 6)
     .attr("id", function(d) {return d.name;})
-    .call(force.drag);
+   .call(force.drag);
 
 var text = svg.append("svg:g").selectAll("g")
     .data(force.nodes())
@@ -124,6 +118,10 @@ text.append("svg:text")
     .attr("x", 8)
     .attr("y", ".31em")
     .text(function(d) { return d.name; });
+
+// tooltips
+ circle.append("title")
+      .text(function(d) { return d.title; });
 
 // Use elliptical arc path segments to doubly-encode directionality.
 function tick() {
