@@ -7,9 +7,9 @@ import os, sys
 
 # parse command-line args
 mode="retweets"
-# if args include -m, get mode and remove first two args, leaving file name(s) (if any) in args
+# if args include --mode, get mode and remove first two args, leaving file name(s) (if any) in args
 if len(sys.argv) > 1:
-	if sys.argv[1] == "-m":
+	if sys.argv[1] == "--mode":
 		mode=sys.argv[2]
 		del sys.argv[0]
 		del sys.argv[0]
