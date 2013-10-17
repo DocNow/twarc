@@ -2,3 +2,4 @@
 config.py
 *.json
 *.log
+*.html
