@@ -24,11 +24,11 @@ path.link.resolved {
   stroke-dasharray: 0,2 1;
 }
 
-path.link.highlightout {
+path.link.hlOut {
 	stroke: #0f0;
 	stroke-width: 2px;
 }
-path.link.highlightin {
+path.link.hlIn {
 	stroke: #00f;
 	stroke-width: 2px;
 }
@@ -39,19 +39,19 @@ circle {
   stroke: #333;
   stroke-width: 1.5px;
 }
-circle.highlightroot {
+circle.hl {
 	stroke: #f00;
 	fill: #f00;
 }
-circle.highlightbranchin {
+circle.hlIn {
 	stroke: #0f0;
 	fill: #cfc;
 }
-circle.highlightbranchout {
+circle.hlOut {
 	stroke: #66f;
 	fill: #ccf;
 }
-circle.highlightbranchout.highlightbranchin {
+circle.hlout.hlIn {
 	stroke: #66f;
 	fill: #cfc;
 }
@@ -61,13 +61,19 @@ text {
   pointer-events: none;
 }
 
-text.shadow {
+text.shad {
   stroke: #fff;
   stroke-width: 3px;
   stroke-opacity: .8;
 }
-text.shadowhighlight {
+text.hl {
 	stroke: #fcc;
+}
+text.hlIn {
+	stroke: #cfc;
+}
+text.hlOut {
+	stroke: #ccf;
 }
     </style>
   </head>
@@ -141,24 +147,29 @@ var circle = svg.append("svg:g").selectAll("circle")
     //  {"name": "RobertCBinkley", "title": "RobertCBinkley (1/1)"}
     //  path:
     //        <path d="M952.2..." marker-end="url(#suit)" in="pabinkley" out="RobertCBinkley" 
-    //			class="link suit out_RobertCBinkley in_pabinkley highlightout"/>
+    //			class="link suit out_RobertCBinkley in_pabinkley hlOut"/>
          
    		root = d3.select(this);
    		name = d.name;
    		// clear previous selections
-   		d3.selectAll(".highlightroot").classed("highlightroot", false);
-   		d3.selectAll(".highlightbranchin").classed("highlightbranchin", false);
-   		d3.selectAll(".highlightbranchout").classed("highlightbranchout", false);
-   		// highlight paths
-   		d3.selectAll(".highlightout").classed("highlightout", false);
-   		d3.selectAll(".highlightin").classed("highlightin", false);
-		// highlight current node, paths, branch nodes
-   		root.classed("highlightroot", true);   		
-   		d3.selectAll(".out_" + name).classed("highlightout", true).each(function(d){
-   			if (d.target.name != name) d3.select("#" + d.target.name).classed("highlightbranchin", true);
+   		d3.selectAll(".hl").classed("hl", false);
+   		d3.selectAll(".hlIn").classed("hlIn", false);
+   		d3.selectAll(".hlOut").classed("hlOut", false);
+		// hl current node, paths, branch nodes
+   		root.classed("hl", true);
+   		d3.select("#sh_" + name).classed("hl", true);
+   		// hl paths
+   		d3.selectAll("path.out_" + name).classed("hlOut", true).each(function(d){
+   			if (d.target.name != name) {
+   				d3.select("#" + d.target.name).classed("hlIn", true); 
+   				d3.select("#sh_" + d.target.name).classed("hlIn", true)
+   			};
    		});
-   		d3.selectAll(".in_" + name).classed("highlightin", true).each(function(d){
-   			if (d.source.name != name) d3.select("#" + d.source.name).classed("highlightbranchout", true);
+   		d3.selectAll("path.in_" + name).classed("hlIn", true).each(function(d){
+   			if (d.source.name != name) {
+   				d3.select("#" + d.source.name).classed("hlOut", true); 
+   				d3.select("#sh_" + d.source.name).classed("hlOut", true)
+   			};
    		});
    		})
    .call(force.drag);
@@ -171,7 +182,8 @@ var text = svg.append("svg:g").selectAll("g")
 text.append("svg:text")
     .attr("x", 8)
     .attr("y", ".31em")
-    .attr("class", "shadow")
+    .attr("class", "shad")
+    .attr("id", function(d) {return "sh_" + d.name;})
     .text(function(d) { return d.name; });
 
 text.append("svg:text")
