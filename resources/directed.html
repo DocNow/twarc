@@ -25,12 +25,14 @@ path.link.resolved {
 }
 
 path.link.highlightout {
-	stroke: red;
+	stroke: #f00;
 	z-index: 1000;
+	stroke-width: 2px;
 }
 path.link.highlightin {
-	stroke: green;
+	stroke: #f99;
 	z-index: 1000;
+	stroke-width: 2px;
 }
 
 
@@ -38,6 +40,12 @@ circle {
   fill: #ccc;
   stroke: #333;
   stroke-width: 1.5px;
+}
+circle.highlightroot {
+	fill: #f00;
+}
+circle.highlightbranch {
+	fill: #f99;
 }
 
 text {
@@ -50,7 +58,9 @@ text.shadow {
   stroke-width: 3px;
   stroke-opacity: .8;
 }
-
+text.shadowhighlight {
+	stroke: #fcc;
+}
     </style>
   </head>
   <body>
@@ -104,6 +114,8 @@ var path = svg.append("svg:g").selectAll("path")
     .data(force.links())
   .enter().append("svg:path")
     .attr("class", function(d) { return "link " + d.type + " out_" + d.source.name + " in_" + d.target.name; })
+    .attr("out", function(d) { return d.source.name; })
+    .attr("in", function(d) { return d.target.name; })
     .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
 
 var circle = svg.append("svg:g").selectAll("circle")
@@ -111,8 +123,36 @@ var circle = svg.append("svg:g").selectAll("circle")
   .enter().append("svg:circle")
     .attr("r", 6)
     .attr("id", function(d) {return d.name;})
-   .on("mouseover", function(d) {d3.selectAll(".out_" + d.name).classed("highlightout", true); d3.selectAll(".in_" + d.name).classed("highlightin", true)})
-   .on("mouseout", function(d) {d3.selectAll(".out_" + d.name).classed("highlightout", false); d3.selectAll(".in_" + d.name).classed("highlightin", false)})
+   .on("click", function(d) {
+   	// working with:
+   	//	this:
+   	//	<circle class="" transform="translate(974.0229211897631,951.403518091633)" id="RobertCBinkley" r="6">
+    //     <title>RobertCBinkley (1/1)</title>
+    //  </circle>
+    //  d:
+    //  {"name": "RobertCBinkley", "title": "RobertCBinkley (1/1)"}
+    //  path:
+    //        <path d="M952.2..." marker-end="url(#suit)" in="pabinkley" out="RobertCBinkley" 
+    //			class="link suit out_RobertCBinkley in_pabinkley highlightout"/>
+         
+   		root = d3.select(this);
+   		name = d.name;
+   		// clear previous selections
+   		d3.selectAll(".highlightroot").classed("highlightroot", false);
+   		d3.selectAll(".highlightbranch").classed("highlightbranch", false);
+   		d3.selectAll(".highlightout").classed("highlightout", false);
+   		d3.selectAll(".highlightin").classed("highlightin", false);
+		// highlight current node, paths, branch nodes
+   		root.classed("highlightroot", true);   		
+   		d3.selectAll(".out_" + name).classed("highlightout", true).each(function(d){
+   			if (d.source.name != name) d3.select("#" + d.source.name).classed("highlightbranch", true);
+   			if (d.target.name != name) d3.select("#" + d.target.name).classed("highlightbranch", true);
+   		});
+   		d3.selectAll(".in_" + name).classed("highlightin", true).each(function(d){
+   			if (d.source.name != name) d3.select("#" + d.source.name).classed("highlightbranch", true);
+   			if (d.target.name != name) d3.select("#" + d.target.name).classed("highlightbranch", true);
+   		});
+   		})
    .call(force.drag);
 
 var text = svg.append("svg:g").selectAll("g")
