@@ -3,3 +3,6 @@ config.py
 *.json
 *.log
 *.html
+json
+html
+custom
