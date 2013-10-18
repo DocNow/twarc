@@ -25,13 +25,11 @@ path.link.resolved {
 }
 
 path.link.highlightout {
-	stroke: #f00;
-	z-index: 1000;
+	stroke: #0f0;
 	stroke-width: 2px;
 }
 path.link.highlightin {
-	stroke: #f99;
-	z-index: 1000;
+	stroke: #00f;
 	stroke-width: 2px;
 }
 
@@ -42,10 +40,16 @@ circle {
   stroke-width: 1.5px;
 }
 circle.highlightroot {
+	stroke: #f00;
 	fill: #f00;
 }
-circle.highlightbranch {
-	fill: #f99;
+circle.highlightbranchin {
+	stroke: #0f0;
+	fill: #cfc;
+}
+circle.highlightbranchout {
+	stroke: #66f;
+	fill: #ccf;
 }
 
 text {
@@ -139,18 +143,18 @@ var circle = svg.append("svg:g").selectAll("circle")
    		name = d.name;
    		// clear previous selections
    		d3.selectAll(".highlightroot").classed("highlightroot", false);
-   		d3.selectAll(".highlightbranch").classed("highlightbranch", false);
+   		d3.selectAll(".highlightbranchin").classed("highlightbranchin", false);
+   		d3.selectAll(".highlightbranchout").classed("highlightbranchout", false);
+   		// highlight paths
    		d3.selectAll(".highlightout").classed("highlightout", false);
    		d3.selectAll(".highlightin").classed("highlightin", false);
 		// highlight current node, paths, branch nodes
    		root.classed("highlightroot", true);   		
    		d3.selectAll(".out_" + name).classed("highlightout", true).each(function(d){
-   			if (d.source.name != name) d3.select("#" + d.source.name).classed("highlightbranch", true);
-   			if (d.target.name != name) d3.select("#" + d.target.name).classed("highlightbranch", true);
+   			if (d.target.name != name) d3.select("#" + d.target.name).classed("highlightbranchin", true);
    		});
    		d3.selectAll(".in_" + name).classed("highlightin", true).each(function(d){
-   			if (d.source.name != name) d3.select("#" + d.source.name).classed("highlightbranch", true);
-   			if (d.target.name != name) d3.select("#" + d.target.name).classed("highlightbranch", true);
+   			if (d.source.name != name) d3.select("#" + d.source.name).classed("highlightbranchout", true);
    		});
    		})
    .call(force.drag);
