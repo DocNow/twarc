@@ -6,6 +6,28 @@
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <style type="text/css">
 
+div#sidebar {
+	position:fixed;
+	top:0px;
+	left:0px;
+	width: 250px;
+	height:400px;
+	overflow:scroll;
+
+	border: 1px solid black;
+	background: #eee;
+	padding: 5px;
+	}
+
+div#sidebar_lists {
+	font-size: 75%;
+}
+
+div.sidebar_list {
+	width: 50%;
+	float:left;
+}
+
 path.link {
   fill: none;
   stroke: #666;
@@ -35,7 +57,7 @@ path.link.hlIn {
 
 
 circle {
-  fill: #ccc;
+  fill: #eee;
   stroke: #333;
   stroke-width: 1.5px;
 }
@@ -68,21 +90,51 @@ text.shad {
 }
 g.hl text.shad {
 	stroke: #fcc;
+  	stroke-opacity: 1;
 }
 g.hlIn text.shad {
 	stroke: #cfc;
+  	stroke-opacity: 1;
 }
 g.hlOut text.shad {
 	stroke: #ddf;
+  	stroke-opacity: 1;
 }
     </style>
   </head>
   <body>
+  
+    <div id="sidebar">
+    	<h2 id="sidebar_user"></h2>
+    	<div id="sidebar_lists">
+	    	<div class="sidebar_list" id="sidebar_inlist"></div>
+    		<div class="sidebar_list" id="sidebar_outlist"></div>
+    	</div
+    </div>
+    
+    
+
+  
     <script type="text/javascript">
 
 	var links = $LINKS$;
 
 	var nodes = $NODES$;
+	
+	
+	
+	function twitterlink(n) {
+		return "<a href='https://twitter.com/" + n + "'>" + n + "</n>";
+	}
+	
+	function listhtml(l) {
+		var html = "<ul>";
+		for (var a = 0; a < l.length; a++) {
+			html += "<li>" + twitterlink(l[a].split(" ")[1]) + "</li>";
+		}
+		html += "</ul>";
+		return html;
+	}
 
 // set box size to window size
 var win = window,
@@ -92,8 +144,10 @@ var win = window,
     w = win.innerWidth || e.clientWidth || g.clientWidth,
     h = win.innerHeight|| e.clientHeight|| g.clientHeight;
 
+// set sidebar to height of window
+d3.select("#sidebar").style.height = h + 'px'; 
+    
 // no, on second thought, make the window really really big
-// TODO set bounding box to keep everything visible in regular-sized window
 w = 2000;
 h = 2000;
 
@@ -155,17 +209,22 @@ var circle = svg.append("svg:g")
          
    		root = d3.select(this);
    		name = d.name;
+   		// show selected user in sidebar
+   		d3.select("#sidebar_user").html(twitterlink(name));
+
+   		
    		pathsfg = d3.select("#paths-fg");
    		circlesfg = d3.select("#circles-fg");
    		textsfg = d3.select("#texts-fg");
    		paths = d3.select("#paths");
    		circles = d3.select("#circles");
    		texts = d3.select("#texts");
+   		
    		// clear previous selections
    		d3.selectAll(".hl").classed("hl", false);
    		d3.selectAll(".hlIn").classed("hlIn", false);
    		d3.selectAll(".hlOut").classed("hlOut", false);
-   		// put foregrounded paths (if any) back in background
+   		// put foregrounded paths etc. (if any) back in background
    		var p = pathsfg.selectAll("path");
    		if (p.size() > 0)
    			d3.select("#paths").each(function() {
@@ -190,25 +249,34 @@ var circle = svg.append("svg:g")
 	   				f.appendChild(this) 
 	   			});
     		})
-
    		
-		// hl current node, paths, branch nodes
+		// highlight current node, paths, branch nodes
    		root.classed("hl", true);
    		d3.select("#text_" + name).classed("hl", true);
-   		// hl paths
+   		// highlight paths
+   		var inlist = [];
+   		var outlist = [];
    		d3.selectAll("path.out_" + name).classed("hlOut", true).each(function(d){
    			if (d.target.name != name) {
+   				// prepend lowercase version, for sorting
+   				outlist.push(d.target.name.toLowerCase() + " " + d.target.name);
    				d3.select("#" + d.target.name).classed("hlIn", true); 
    				d3.select("#text_" + d.target.name).classed("hlIn", true)
    			};
    		});
    		d3.selectAll("path.in_" + name).classed("hlIn", true).each(function(d){
    			if (d.source.name != name) {
+   				inlist.push(d.source.name.toLowerCase() + " " + d.source.name);
    				d3.select("#" + d.source.name).classed("hlOut", true); 
    				d3.select("#text_" + d.source.name).classed("hlOut", true)
    			};
    		});
 
+		inlist = inlist.sort();
+		outlist = outlist.sort();
+		
+		d3.select("#sidebar_inlist").html("<h3>Retweeted</h3>" + listhtml(inlist));
+		d3.select("#sidebar_outlist").html("<h3>Retweeted by</h3>" + listhtml(outlist));
 
 		// move path to a different group: based on https://groups.google.com/forum/#!topic/d3-js/KEiqiUPZHUs
    		var p = paths.selectAll("path.out_" + name +", path.in_" + name);
@@ -264,7 +332,7 @@ text.append("svg:text")
     .attr("y", ".31em")
     .text(function(d) { return d.name; });
 
-// foreground groups
+// foreground groups: we move highlighted objects here, to bring them in front of the rest
 var pathsfg = svg.append("svg:g")
 	.attr("id", "paths-fg");
 var circlesfg = svg.append("svg:g")
@@ -292,5 +360,6 @@ function tick() {
 //	});
 
     </script>
+    
   </body>
 </html>
