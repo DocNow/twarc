@@ -105,6 +105,8 @@ g.hlOut text.shad {
   <body>
   
     <div id="sidebar">
+    	<div id="sidebar_selectdiv">
+    	</div>
     	<h2 id="sidebar_user"></h2>
     	<div id="sidebar_lists">
 	    	<div class="sidebar_list" id="sidebar_inlist"></div>
@@ -130,12 +132,36 @@ g.hlOut text.shad {
 	function selectlink(n) {
 		return "<a href='javascript:userselect(\"" + n + "\")'>" + n + "</n>";
 	}
+	
+	function listsort(l) {
+		sortl = [];
+		for (var a = 0; a < l.length; a++) {
+			sortl.push(l[a].toLowerCase() + " " + l[a]);
+		}
+		sortl = sortl.sort();
+		for (var a = 0; a < sortl.length; a++) {
+			sortl[a] = sortl[a].split(" ")[1];
+		}
+		return sortl;
+	}
+	
 	function listhtml(l) {
+		l = listsort(l);
 		var html = "<ul>";
 		for (var a = 0; a < l.length; a++) {
-			html += "<li>" + selectlink(l[a].split(" ")[1]) + "</li>";
+			html += "<li>" + selectlink(l[a]) + "</li>";
 		}
 		html += "</ul>";
+		return html;
+	}
+	
+	function selecthtml(l) {
+		l = listsort(l);
+		html = "<select onchange='userselect(this.value)'>";
+		for (var a = 0; a < l.length; a++) {
+			html += "<option>" + l[a] + "</option>";
+		}
+		html += "</select>";	
 		return html;
 	}
 	
@@ -202,22 +228,19 @@ g.hlOut text.shad {
    		d3.selectAll("path.out_" + name).classed("hlOut", true).each(function(d){
    			if (d.target.name != name) {
    				// prepend lowercase version, for sorting
-   				outlist.push(d.target.name.toLowerCase() + " " + d.target.name);
+   				outlist.push(d.target.name);
    				d3.select("#circle_" + d.target.name).classed("hlIn", true); 
    				d3.select("#text_" + d.target.name).classed("hlIn", true)
    			};
    		});
    		d3.selectAll("path.in_" + name).classed("hlIn", true).each(function(d){
    			if (d.source.name != name) {
-   				inlist.push(d.source.name.toLowerCase() + " " + d.source.name);
+   				inlist.push(d.source.name);
    				d3.select("#circle_" + d.source.name).classed("hlOut", true); 
    				d3.select("#text_" + d.source.name).classed("hlOut", true)
    			};
    		});
 
-		inlist = inlist.sort();
-		outlist = outlist.sort();
-		
 		d3.select("#sidebar_inlist").html("<h3>Retweeted</h3>" + listhtml(inlist));
 		d3.select("#sidebar_outlist").html("<h3>Retweeted by</h3>" + listhtml(outlist));
 
@@ -261,6 +284,13 @@ var win = window,
 
 // set sidebar to height of window
 d3.select("#sidebar").style.height = h + 'px'; 
+
+var users = [];
+for (var a = 0; a < nodes.length; a++) {
+	users.push(nodes[a]["name"]);
+}
+
+d3.select("#sidebar_selectdiv").html(selecthtml(users));
     
 // no, on second thought, make the window really really big
 w = 2000;
