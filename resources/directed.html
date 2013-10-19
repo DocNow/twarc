@@ -127,14 +127,129 @@ g.hlOut text.shad {
 		return "<a href='https://twitter.com/" + n + "'>" + n + "</n>";
 	}
 	
+	function selectlink(n) {
+		return "<a href='javascript:userselect(\"" + n + "\")'>" + n + "</n>";
+	}
 	function listhtml(l) {
 		var html = "<ul>";
 		for (var a = 0; a < l.length; a++) {
-			html += "<li>" + twitterlink(l[a].split(" ")[1]) + "</li>";
+			html += "<li>" + selectlink(l[a].split(" ")[1]) + "</li>";
 		}
 		html += "</ul>";
 		return html;
 	}
+	
+	function userselect(name) {
+	   	// working with:
+   	//	this:
+   	//	<circle class="" transform="translate(974.0229211897631,951.403518091633)" id="circle_RobertCBinkley" r="6">
+    //     <title>RobertCBinkley (1/1)</title>
+    //  </circle>
+    //  d:
+    //  {"name": "RobertCBinkley", "title": "RobertCBinkley (1/1)"}
+    //  path:
+    //        <path d="M952.2..." marker-end="url(#suit)" in="pabinkley" out="RobertCBinkley" 
+    //			class="link suit out_RobertCBinkley in_pabinkley hlOut"/>
+         
+   		root = d3.select("#circle_" + name);
+   		// show selected user in sidebar
+   		d3.select("#sidebar_user").html(twitterlink(name));
+
+   		
+   		pathsfg = d3.select("#paths-fg");
+   		circlesfg = d3.select("#circles-fg");
+   		textsfg = d3.select("#texts-fg");
+   		paths = d3.select("#paths");
+   		circles = d3.select("#circles");
+   		texts = d3.select("#texts");
+   		
+   		// clear previous selections
+   		d3.selectAll(".hl").classed("hl", false);
+   		d3.selectAll(".hlIn").classed("hlIn", false);
+   		d3.selectAll(".hlOut").classed("hlOut", false);
+   		// put foregrounded paths etc. (if any) back in background
+   		var p = pathsfg.selectAll("path");
+   		if (p.size() > 0)
+   			d3.select("#paths").each(function() {
+	   			f = this;
+	   			p.each(function() { 
+	   				f.appendChild(this) 
+	   			});
+    		})
+   		var p = circlesfg.selectAll("circle");
+   		if (p.size() > 0)
+   			d3.select("#circles").each(function() {
+	   			f = this;
+	   			p.each(function() { 
+	   				f.appendChild(this) 
+	   			});
+    		})
+   		var p = textsfg.selectAll("g");
+   		if (p.size() > 0)
+   			d3.select("#texts").each(function() {
+	   			f = this;
+	   			p.each(function() { 
+	   				f.appendChild(this) 
+	   			});
+    		})
+   		
+		// highlight current node, paths, branch nodes
+   		root.classed("hl", true);
+   		d3.select("#text_" + name).classed("hl", true);
+   		// highlight paths
+   		var inlist = [];
+   		var outlist = [];
+   		d3.selectAll("path.out_" + name).classed("hlOut", true).each(function(d){
+   			if (d.target.name != name) {
+   				// prepend lowercase version, for sorting
+   				outlist.push(d.target.name.toLowerCase() + " " + d.target.name);
+   				d3.select("#circle_" + d.target.name).classed("hlIn", true); 
+   				d3.select("#text_" + d.target.name).classed("hlIn", true)
+   			};
+   		});
+   		d3.selectAll("path.in_" + name).classed("hlIn", true).each(function(d){
+   			if (d.source.name != name) {
+   				inlist.push(d.source.name.toLowerCase() + " " + d.source.name);
+   				d3.select("#circle_" + d.source.name).classed("hlOut", true); 
+   				d3.select("#text_" + d.source.name).classed("hlOut", true)
+   			};
+   		});
+
+		inlist = inlist.sort();
+		outlist = outlist.sort();
+		
+		d3.select("#sidebar_inlist").html("<h3>Retweeted</h3>" + listhtml(inlist));
+		d3.select("#sidebar_outlist").html("<h3>Retweeted by</h3>" + listhtml(outlist));
+
+		// move path to a different group: based on https://groups.google.com/forum/#!topic/d3-js/KEiqiUPZHUs
+   		var p = paths.selectAll("path.out_" + name +", path.in_" + name);
+   		if (p.size() > 0)
+   			d3.select("#paths-fg").each(function() {
+	   			f = this;
+	   			p.each(function() { 
+	   				f.appendChild(this) 
+	   			});
+    		})
+   		var p = circles.selectAll(".hl, .hlIn, .hlOut");
+   		if (p.size() > 0)
+   			d3.select("#circles-fg").each(function() {
+	   			f = this;
+	   			p.each(function() { 
+	   				f.appendChild(this) 
+	   			});
+    		})
+   		var p = texts.selectAll(".hl, .hlIn, .hlOut");
+   		if (p.size() > 0)
+   			d3.select("#texts-fg").each(function() {
+	   			f = this;
+	   			p.each(function() { 
+	   				f.appendChild(this) 
+	   			});
+    		})
+
+
+	}
+	
 
 // set box size to window size
 var win = window,
@@ -194,117 +309,9 @@ var circle = svg.append("svg:g")
     .data(force.nodes())
   .enter().append("svg:circle")
     .attr("r", 6)
-    .attr("id", function(d) {return d.name;})
+    .attr("id", function(d) {return "circle_" + d.name;})
    .on("click", function(d) {
-   	// working with:
-   	//	this:
-   	//	<circle class="" transform="translate(974.0229211897631,951.403518091633)" id="RobertCBinkley" r="6">
-    //     <title>RobertCBinkley (1/1)</title>
-    //  </circle>
-    //  d:
-    //  {"name": "RobertCBinkley", "title": "RobertCBinkley (1/1)"}
-    //  path:
-    //        <path d="M952.2..." marker-end="url(#suit)" in="pabinkley" out="RobertCBinkley" 
-    //			class="link suit out_RobertCBinkley in_pabinkley hlOut"/>
-         
-   		root = d3.select(this);
-   		name = d.name;
-   		// show selected user in sidebar
-   		d3.select("#sidebar_user").html(twitterlink(name));
-
-   		
-   		pathsfg = d3.select("#paths-fg");
-   		circlesfg = d3.select("#circles-fg");
-   		textsfg = d3.select("#texts-fg");
-   		paths = d3.select("#paths");
-   		circles = d3.select("#circles");
-   		texts = d3.select("#texts");
-   		
-   		// clear previous selections
-   		d3.selectAll(".hl").classed("hl", false);
-   		d3.selectAll(".hlIn").classed("hlIn", false);
-   		d3.selectAll(".hlOut").classed("hlOut", false);
-   		// put foregrounded paths etc. (if any) back in background
-   		var p = pathsfg.selectAll("path");
-   		if (p.size() > 0)
-   			d3.select("#paths").each(function() {
-	   			f = this;
-	   			p.each(function() { 
-	   				f.appendChild(this) 
-	   			});
-    		})
-   		var p = circlesfg.selectAll("circle");
-   		if (p.size() > 0)
-   			d3.select("#circles").each(function() {
-	   			f = this;
-	   			p.each(function() { 
-	   				f.appendChild(this) 
-	   			});
-    		})
-   		var p = textsfg.selectAll("g");
-   		if (p.size() > 0)
-   			d3.select("#texts").each(function() {
-	   			f = this;
-	   			p.each(function() { 
-	   				f.appendChild(this) 
-	   			});
-    		})
-   		
-		// highlight current node, paths, branch nodes
-   		root.classed("hl", true);
-   		d3.select("#text_" + name).classed("hl", true);
-   		// highlight paths
-   		var inlist = [];
-   		var outlist = [];
-   		d3.selectAll("path.out_" + name).classed("hlOut", true).each(function(d){
-   			if (d.target.name != name) {
-   				// prepend lowercase version, for sorting
-   				outlist.push(d.target.name.toLowerCase() + " " + d.target.name);
-   				d3.select("#" + d.target.name).classed("hlIn", true); 
-   				d3.select("#text_" + d.target.name).classed("hlIn", true)
-   			};
-   		});
-   		d3.selectAll("path.in_" + name).classed("hlIn", true).each(function(d){
-   			if (d.source.name != name) {
-   				inlist.push(d.source.name.toLowerCase() + " " + d.source.name);
-   				d3.select("#" + d.source.name).classed("hlOut", true); 
-   				d3.select("#text_" + d.source.name).classed("hlOut", true)
-   			};
-   		});
-
-		inlist = inlist.sort();
-		outlist = outlist.sort();
-		
-		d3.select("#sidebar_inlist").html("<h3>Retweeted</h3>" + listhtml(inlist));
-		d3.select("#sidebar_outlist").html("<h3>Retweeted by</h3>" + listhtml(outlist));
-
-		// move path to a different group: based on https://groups.google.com/forum/#!topic/d3-js/KEiqiUPZHUs
-   		var p = paths.selectAll("path.out_" + name +", path.in_" + name);
-   		if (p.size() > 0)
-   			d3.select("#paths-fg").each(function() {
-	   			f = this;
-	   			p.each(function() { 
-	   				f.appendChild(this) 
-	   			});
-    		})
-   		var p = circles.selectAll(".hl, .hlIn, .hlOut");
-   		if (p.size() > 0)
-   			d3.select("#circles-fg").each(function() {
-	   			f = this;
-	   			p.each(function() { 
-	   				f.appendChild(this) 
-	   			});
-    		})
-   		var p = texts.selectAll(".hl, .hlIn, .hlOut");
-   		if (p.size() > 0)
-   			d3.select("#texts-fg").each(function() {
-	   			f = this;
-	   			p.each(function() { 
-	   				f.appendChild(this) 
-	   			});
-    		})
-
-
+		userselect(d.name);
    		})
    .call(force.drag);
 
