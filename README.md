@@ -59,8 +59,8 @@ women, and create a word cloud from them:
     % utils/gender.py --gender female nasa-20130306102105.json | utils/wordcloud.py > nasa-female.html
     
 Or if you want to create a [D3](http://d3js.org/) directed graph of mentions
-or retweets, in which nodes are users and arrows point from the original user to the
-user who mentions or retweets them:
+or retweets, in which nodes are users and arrows point from the original user 
+to the user who mentions or retweets them:
 	
 	% ./twarc.py nasa
 	% utils/directed.py --mode mentions nasa-20130306102105.json > nasa-directed-mentions.html
