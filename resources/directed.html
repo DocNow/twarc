@@ -34,16 +34,16 @@ path.link {
   stroke-width: 1.5px;
 }
 
-marker#licensing {
-  fill: green;
+marker#plain {
+  fill: #666;
 }
 
-path.link.licensing {
-  stroke: green;
+marker#in {
+  fill: #44f;
 }
 
-path.link.resolved {
-  stroke-dasharray: 0,2 1;
+marker#out {
+  fill: #0f0;
 }
 
 path.link.hlOut {
@@ -177,7 +177,7 @@ ul { margin: 0; padding: 0; list-style-type: none;}
     //  d:
     //  {"name": "RobertCBinkley", "title": "RobertCBinkley (1/1)"}
     //  path:
-    //        <path d="M952.2..." marker-end="url(#suit)" in="pabinkley" out="RobertCBinkley" 
+    //        <path d="M952.2..." marker-end="url(#plain)" in="pabinkley" out="RobertCBinkley" 
     //			class="link suit out_RobertCBinkley in_pabinkley hlOut"/>
          
    		root = d3.select("#circle_" + name);
@@ -197,7 +197,7 @@ ul { margin: 0; padding: 0; list-style-type: none;}
    		d3.selectAll(".hlIn").classed("hlIn", false);
    		d3.selectAll(".hlOut").classed("hlOut", false);
    		// put foregrounded paths etc. (if any) back in background
-   		var p = pathsfg.selectAll("path");
+   		var p = pathsfg.selectAll("path").attr("marker-end", "url(#plain)");
    		if (p.size() > 0)
    			d3.select("#paths").each(function() {
 	   			f = this;
@@ -228,19 +228,19 @@ ul { margin: 0; padding: 0; list-style-type: none;}
    		// highlight paths
    		var inlist = [];
    		var outlist = [];
-   		d3.selectAll("path.out_" + name).classed("hlOut", true).each(function(d){
+   		d3.selectAll("path.out_" + name).classed("hlOut", true).attr("marker-end", "url(#out)").each(function(d){
    			if (d.target.name != name) {
-   				// prepend lowercase version, for sorting
    				outlist.push(d.target.name);
    				d3.select("#circle_" + d.target.name).classed("hlIn", true); 
-   				d3.select("#text_" + d.target.name).classed("hlIn", true)
+   				d3.select("#text_" + d.target.name).classed("hlIn", true);
    			};
    		});
-   		d3.selectAll("path.in_" + name).classed("hlIn", true).each(function(d){
+   		d3.selectAll("path.in_" + name).classed("hlIn", true).attr("marker-end", "url(#in)").each(function(d){
    			if (d.source.name != name) {
    				inlist.push(d.source.name);
    				d3.select("#circle_" + d.source.name).classed("hlOut", true); 
    				d3.select("#text_" + d.source.name).classed("hlOut", true)
+   				this["marker-end"] = "url(#out)";
    			};
    		});
 
@@ -314,7 +314,7 @@ var svg = d3.select("body").append("svg:svg")
 
 // Per-type markers, as they don't inherit styles.
 svg.append("svg:defs").selectAll("marker")
-    .data(["suit", "licensing", "resolved"])
+    .data(["plain", "in", "out"])
   .enter().append("svg:marker")
     .attr("id", String)
     .attr("viewBox", "0 -5 10 10")
@@ -334,7 +334,7 @@ var path = svg.append("svg:g")
     .attr("class", function(d) { return "link " + d.type + " out_" + d.source.name + " in_" + d.target.name; })
     .attr("out", function(d) { return d.source.name; })
     .attr("in", function(d) { return d.target.name; })
-    .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
+    .attr("marker-end", "url(#plain)");
 
 var circle = svg.append("svg:g")
 	.attr("id", "circles")

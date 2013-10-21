@@ -79,7 +79,7 @@ for source in links.iterkeys():
 	for target in links[source].iterkeys():
 		value = links[source][target]
 		if value >= threshold:
-			linksoutput.append({"source": usernames.index(target), "target": usernames.index(source), "value": value, "type": "suit"})
+			linksoutput.append({"source": usernames.index(target), "target": usernames.index(source), "value": value})
 
 links = json.dumps(linksoutput)
 
