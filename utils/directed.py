@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
+import os
+import sys
 import json
-import fileinput
 import math
-import os, sys
+import fileinput
 
 # parse command-line args
 mode="retweets"
@@ -84,5 +85,6 @@ for source in links.iterkeys():
 links = json.dumps(linksoutput)
 
 # generate html by replacing token
-with open ("resources/directed.html", "r") as template:
+template_file = os.path.join(os.path.dirname(__file__), "templates", "directed.html")
+with open (template_file, "r") as template:
 	print template.read().replace('$LINKS$', links).replace('$NODES$', nodes)
