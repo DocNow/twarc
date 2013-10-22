@@ -65,6 +65,7 @@ to the user who mentions or retweets them:
 	% ./twarc.py nasa
 	% utils/directed.py --mode mentions nasa-20130306102105.json > nasa-directed-mentions.html
 	% utils/directed.py --mode retweets nasa-20130306102105.json > nasa-directed-retweets.html
+	% utils/directed.py --mode replies nasa-20130306102105.json > nasa-directed-replies.html
 
 License
 -------
