@@ -122,6 +122,8 @@ ul { margin: 0; padding: 0; list-style-type: none;}
   
     <script type="text/javascript">
 
+	var mode = "$MODE$";
+	
 	var links = $LINKS$;
 
 	var nodes = $NODES$;
@@ -243,9 +245,10 @@ ul { margin: 0; padding: 0; list-style-type: none;}
    				this["marker-end"] = "url(#out)";
    			};
    		});
-
-		d3.select("#sidebar_inlist").html("<h3>Retweeted</h3>" + listhtml(inlist));
-		d3.select("#sidebar_outlist").html("<h3>Retweeted by</h3>" + listhtml(outlist));
+		var inlabel = {"retweets": "Retweeted by", "replies": "Replies to this", "mentions": "Mentioned"};
+		var outlabel = {"retweets": "Retweeted", "replies": "Replies from this", "mentions": "Mentioned by"};
+		d3.select("#sidebar_inlist").html("<h3>" + inlabel[mode] + "</h3>" + listhtml(inlist));
+		d3.select("#sidebar_outlist").html("<h3>" + outlabel[mode] + "</h3>" + listhtml(outlist));
 
 		// move path to a different group: based on https://groups.google.com/forum/#!topic/d3-js/KEiqiUPZHUs
    		var p = paths.selectAll("path.out_" + name +", path.in_" + name);
