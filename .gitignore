@@ -4,5 +4,6 @@ config.py
 *.log
 *.html
 json
+geojson
 html
 custom
