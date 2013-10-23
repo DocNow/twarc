@@ -67,10 +67,11 @@ to the user who mentions or retweets them:
 	% utils/directed.py --mode retweets nasa-20130306102105.json > nasa-directed-retweets.html
 	% utils/directed.py --mode replies nasa-20130306102105.json > nasa-directed-replies.html
 
-Or if you want to output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are availabe:
+Or if you want to output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
 
-  % ./twarc.py nasa
-  % utils/geojson.py nasa-20130306102105.json > nasa-20130306102105.geojson
+    % ./twarc.py nasa
+    % utils/geojson.py nasa-20130306102105.json > nasa-20130306102105.geojson
+
 
 License
 -------
