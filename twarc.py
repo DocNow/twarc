@@ -133,8 +133,10 @@ def last_archive(q):
         if re.match("^%s-\d+\.json$" % q, filename):
             other_archive_files.append(filename)
     other_archive_files.sort()
-    if len(other_archive_files) > 0:
-        return other_archive_files[-1]
+    while len(other_archive_files) != 0:
+        f = other_archive_files.pop()
+        if os.path.getsize(f) > 0:
+            return f
     return None
 
 def archive(q, statuses):
