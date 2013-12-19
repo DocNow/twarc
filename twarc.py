@@ -18,6 +18,7 @@ consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secre
 token = oauth2.Token(config.access_token, config.access_token_secret)
 client = oauth2.Client(consumer, token)
 
+
 class RateLimiter:
 
     def __init__(self):
@@ -59,7 +60,8 @@ class RateLimiter:
 
         logging.info("new rate limit remaining=%s and reset=%s", self.remaining, self.reset)
 
-def search(q, since_id=None, max_id=None, scrape=True):
+
+def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
     """returns a generator for *all* search results. If you supply scrape, 
     twarc will attemp to dig back further in time by scraping search.twitter.com
     and looking up individual tweets.
@@ -72,9 +74,10 @@ def search(q, since_id=None, max_id=None, scrape=True):
         for status in results:
             yield status
 
-    if scrape: 
+    if scrape and not since_id:
         for status in scrape_tweets(q, max_id=max_id):
             yield status
+
 
 def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
@@ -100,6 +103,7 @@ def search_result(q, since_id=None, max_id=None):
 
     return statuses, new_max_id
 
+
 def fetch(url, tries=5):
     logging.info("fetching %s", url)
     if tries == 0:
@@ -117,7 +121,8 @@ def fetch(url, tries=5):
     time.sleep(secs)
 
     return fetch(url, tries - 1)
- 
+
+
 def most_recent_id(q):
     since_id = None
     last_archive_file = last_archive(q)
@@ -126,6 +131,7 @@ def most_recent_id(q):
         if line:
             since_id = json.loads(line)["id_str"]
     return since_id
+
 
 def last_archive(q):
     other_archive_files = []
@@ -139,6 +145,7 @@ def last_archive(q):
             return f
     return None
 
+
 def archive(q, statuses):
     t = time.strftime("%Y%m%d%H%M%S", time.localtime())
     archive_filename = "%s-%s.json" % (q, t)
@@ -151,33 +158,39 @@ def archive(q, statuses):
         fh.write(json.dumps(status))
         fh.write("\n")
 
+
 def scrape_tweets(query, max_id=None, sleep=1):
     """
     A kinda sneaky and slow way to retrieve older tweets, now that search on 
     the Twitter website extends back in time.
     """
-    for tweet_id in scrape_tweet_ids(query, sleep=5):
+    for tweet_id in scrape_tweet_ids(query, max_id, sleep=1):
         rate_limiter.check()
         url = "https://api.twitter.com/1.1/statuses/show.json?id=%s" % tweet_id
         resp, content = fetch(url)
         yield json.loads(content)
 
-def scrape_tweet_ids(query, max_id=None, sleep=1):
+
+def scrape_tweet_ids(query, max_id, sleep=1):
+    cursor = None
     url = 'https://twitter.com/i/search/timeline?'
     q = {
-        "type": "recent",
-        "src": "typd",
+        "q": query,
+        'f': 'realtime',
         "include_available_features": 1,
         "include_entities": 1,
-        "type": "recent",
-        "q": query
+        "last_note_ts": 0,
+        "oldest_unread_id": 0
     }
+
+#https://twitter.com/i/search/timeline?q=edsu%20dchud&f=realtime&include_available_features=1&include_entities=1&last_note_ts=0&oldest_unread_id=0&scroll_cursor=TWEET-390334032648884224-413331703495929856
 
     while True:
         logging.info("scraping tweets with id < %s", max_id)
-        if max_id:
-            q["max_id"] = max_id
+        if cursor:
+            q["scroll_cursor"] = cursor
 
+        logging.info("scraping %s", url + "?" + urllib.urlencode(q))
         r = requests.get(url, params=q, headers={'User-agent': USER_AGENT})
         s = json.loads(r.content)
 
@@ -187,15 +200,14 @@ def scrape_tweet_ids(query, max_id=None, sleep=1):
         if len(tweet_ids) == 0:
             raise StopIteration
 
-        # don't repeat the max_id
-        if max_id and max_id == tweet_ids[0]:
-            tweet_ids.pop(0)
-
         for tweet_id in tweet_ids:
             yield tweet_id
 
+        if not s['has_more_items']:
+            raise StopIteration
+
         time.sleep(sleep)
-        max_id = tweet_ids[-1]
+        cursor = s['scroll_cursor']
 
 logging.basicConfig(filename="twarc.log", level=logging.INFO)
 rate_limiter = RateLimiter()
@@ -210,4 +222,4 @@ if __name__ == "__main__":
     since_id = most_recent_id(args.query)
     max_id = None
 
-    archive(args.query, search(args.query, since_id=since_id, max_id=args.maxid, scrape=args.scrape)) 
+    archive(args.query, search(args.query, since_id=since_id, max_id=args.maxid, scrape=args.scrape))
