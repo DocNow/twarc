@@ -182,9 +182,6 @@ def scrape_tweet_ids(query, max_id, sleep=1):
         "last_note_ts": 0,
         "oldest_unread_id": 0
     }
-
-#https://twitter.com/i/search/timeline?q=edsu%20dchud&f=realtime&include_available_features=1&include_entities=1&last_note_ts=0&oldest_unread_id=0&scroll_cursor=TWEET-390334032648884224-413331703495929856
-
     while True:
         logging.info("scraping tweets with id < %s", max_id)
         if cursor:
