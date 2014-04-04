@@ -4,8 +4,8 @@
 Unfortunately the "expanded_url" as supplied by Twitter aren't fully 
 expanded past t.co.
 
-unshorten.py will attempt to unshorten URLs and add them as the "unshortened" 
-key to each url, and emit the tweet as JSON again on stdout. 
+unshorten.py will attempt to unshorten URLs and add them as the 
+"unshortened_url" key to each url, and emit the tweet as JSON again on stdout. 
 """
 
 import json
