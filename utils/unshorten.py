@@ -60,7 +60,7 @@ for line in fileinput.input():
             unshortened_url = url
 
         cache[url] = unshortened_url            
-        logging.info("unshorted %s to %s", url, unshortened_url)
+        logging.info("unshortened %s to %s", url, unshortened_url)
         url_dict['unshortened_url'] = unshortened_url
 
     print json.dumps(tweet).encode('utf8')
