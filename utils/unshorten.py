@@ -9,9 +9,12 @@ key to each url, and emit the tweet as JSON again on stdout.
 """
 
 import json
+import logging
 import requests
 import fileinput
 import urlparse
+
+logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
 # TODO: add more shortener hosts as needed and send a pull-request plz!
 
@@ -41,18 +44,23 @@ for line in fileinput.input():
             unshortened_url = cache[url]
         elif u.netloc in shorteners:
             # for some reason goo.gl blocks when you try a HEAD request
-            if u.netloc == "goo.gl":
-                resp = requests.get(url)
-            else:
-                resp = requests.head(url)
-            if "Location" in resp.headers:
-                unshortened_url = resp.headers["Location"]
-            else:
-                unshortened_url = url
+            try:
+                logging.info("looking up %s", url)
+                if u.netloc == "goo.gl":
+                    resp = requests.get(url)
+                else:
+                    resp = requests.head(url)
+                if "Location" in resp.headers:
+                    unshortened_url = resp.headers["Location"]
+                else:
+                    unshortened_url = url
+            except Exception as e:
+                logging.error("lookup failed for %s: %s", url, e)
         else:
             unshortened_url = url
 
         cache[url] = unshortened_url            
+        logging.info("unshorted %s to %s", url, unshortened_url)
         url_dict['unshortened_url'] = unshortened_url
 
     print json.dumps(tweet).encode('utf8')
