@@ -7,16 +7,16 @@ import argparse
 import csv
 import copy
 
-#Class object for attribute parser.
 class attriObject:
+    """Class object for attribute parser."""
     def __init__(self,raw, entity, user, text):
         self.raw = raw
         self.user = user
         self.entity = entity
         self.text = text
 
-#iterates over json files in path.
 def tweets_files(string, path):
+    """Iterates over json files in path."""
     for filename in os.listdir(path):
         if re.match(string, filename) and re.match(".*\.json", filename):
             yield path + filename
@@ -53,9 +53,10 @@ def parse(args):
                     count += extract(json_object, args, csv_writer)
                         
         print("Searched", len(tweets), "tweets and recorded", count, "items.")
+        print("largest id:", max(tweets))
 
-#extracts everything else.
 def extract(json_object, args, csv_writer):
+    """Extract and write found attributes."""
     found = [[]]
     for attribute in args.attributes:
         try:
@@ -102,7 +103,6 @@ if __name__ == "__main__":
     
     if args.path[-1] != "/":
         args.path = args.path + "/"
-    
     if args.start:
         args.start = datetime.strptime(args.start, '%m:%d:%Y')
     else:
