@@ -12,7 +12,7 @@ for line in fileinput.input():
     for url in tweet["entities"]["urls"]:
         if 'unshortened_url' in url:
             print url['unshortened_url']
-        elif "expanded_url" in url_dict:
+        elif "expanded_url" in url:
             print url['expanded_url']
         else:
             print url['url']
