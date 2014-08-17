@@ -203,7 +203,8 @@ def scrape_tweet_ids(query, max_id, sleep=1):
         if not s['has_more_items']:
             raise StopIteration
 
-        time.sleep(sleep)
+        if sleep:
+            time.sleep(sleep)
         cursor = s['scroll_cursor']
 
 logging.basicConfig(filename="twarc.log", level=logging.INFO)
