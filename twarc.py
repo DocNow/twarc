@@ -52,11 +52,11 @@ class RateLimiter:
         # happen when we are rate limited from checking the rate limits :)
 
         if "resources" in result:
-            self.reset = json.loads(content)["resources"]["search"]["/search/tweets"]["reset"]
-            self.remaining = json.loads(content)["resources"]["search"]["/search/tweets"]["remaining"]
+            self.reset = int(json.loads(content)["resources"]["search"]["/search/tweets"]["reset"])
+            self.remaining = int(json.loads(content)["resources"]["search"]["/search/tweets"]["remaining"])
         else:
-            self.reset = response["x-rate-limit-reset"]
-            self.remaining = response["x-rate-limit-remaining"]
+            self.reset = int(response["x-rate-limit-reset"])
+            self.remaining = int(response["x-rate-limit-remaining"])
 
         logging.info("new rate limit remaining=%s and reset=%s", self.remaining, self.reset)
 
