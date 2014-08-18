@@ -27,23 +27,26 @@ class RateLimiter:
         self._ping()
 
     def check(self):
-        logging.info("rate limit remaining %s" % self.remaining)
-        if self.remaining <= 1:
+        logging.debug("rate limit remaining %s" % self.remaining)
+        while self.remaining <= 1:
             now = time.time()
+            logging.debug("rate limit < 1, now=%s and reset=%s", now, self.reset)
             if now < self.reset:
                 # padded with 5 seconds just to be on the safe side
                 secs = self.reset - now + 5 
-                logging.info("sleeping %s seconds for rate limiting" % secs)
+                logging.debug("sleeping %s seconds for rate limiting" % secs)
                 time.sleep(secs)
+            else:
+                # sleep a second before checking again for new rate limit
+                time.sleep(1)
             # get the latest limit
             self._ping()
-            return self.check()
         self.remaining -= 1
 
     def _ping(self):
         """fetches latest rate limits from Twitter
         """
-        logging.info("checking for rate limit info")
+        logging.debug("checking for rate limit info")
         url = "https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search"
         response, content = client.request(url)
         result = json.loads(content)
@@ -58,7 +61,7 @@ class RateLimiter:
             self.reset = int(response["x-rate-limit-reset"])
             self.remaining = int(response["x-rate-limit-remaining"])
 
-        logging.info("new rate limit remaining=%s and reset=%s", self.remaining, self.reset)
+        logging.debug("new rate limit remaining=%s and reset=%s", self.remaining, self.reset)
 
 
 def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
@@ -105,22 +108,27 @@ def search_result(q, since_id=None, max_id=None):
 
 
 def fetch(url, tries=5):
-    logging.info("fetching %s", url)
+    logging.debug("fetching %s", url)
     if tries == 0:
         logging.error("unable to fetch %s - too many tries!", url)
         sys.exit(1)
 
     rate_limiter.check()
-    resp, content = client.request(url)
+    try:
+        resp, content = client.request(url)
 
-    if resp.status == 200:
-        return resp, content
+        if resp.status == 200:
+            return resp, content
 
-    secs =  (6 - tries) * 2
-    logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
-    time.sleep(secs)
+        secs =  (6 - tries) * 2
+        logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
+        time.sleep(secs)
 
-    return fetch(url, tries - 1)
+        return fetch(url, tries - 1)
+
+    except Exception as e:
+        logging.error("got error when fetching %s", url, e)
+        return fetch(url, tries - 1)
 
 
 def most_recent_id(q):
@@ -207,7 +215,11 @@ def scrape_tweet_ids(query, max_id, sleep=1):
             time.sleep(sleep)
         cursor = s['scroll_cursor']
 
-logging.basicConfig(filename="twarc.log", level=logging.INFO)
+logging.basicConfig(
+    filename="twarc.log",
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
 rate_limiter = RateLimiter()
 
 if __name__ == "__main__":
