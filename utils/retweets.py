@@ -12,7 +12,7 @@ import fileinput
 def main():
     retweets = []
     parser = optparse.OptionParser()
-    parser.add_option("-r", "--results", dest="results", default=10, 
+    parser.add_option("-r", "--results", dest="results", default=10, type="int",
                       help="number of top retweets to find")
     options, argv = parser.parse_args()
 
