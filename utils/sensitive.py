@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+Filter out tweets or retweets that Twitter thinks are sensitive (mostly porn).
+"""
+
 import json
 import fileinput
 import dateutil.parser

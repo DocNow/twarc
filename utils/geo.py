@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+Filter tweets/retweets that have geocoding.
+"""
+
 import json
 import fileinput
 import dateutil.parser
