@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Run this where you have a bunch of twarc JSON files and it will 
-print out the start, end ranges for them.
+Pass in paths to twarc JSON files and get out summary information about them
+including start/end times & ids.
 """
 
 import sys
