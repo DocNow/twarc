@@ -133,6 +133,9 @@ def fetch(url, tries=5):
 
 
 def most_recent_id(q):
+    """
+    infer most recent id based on snapshots available in current directory
+    """
     since_id = None
     last_archive_file = last_archive(q)
     if last_archive_file:
@@ -226,11 +229,14 @@ rate_limiter = RateLimiter()
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument("--scrape", dest="scrape", action="store_true", help='attempt to scrape tweets from search.twitter.com for tweets not available via Twitter\'s search REST API')
-    parser.add_argument("--maxid", dest="maxid", action="store", help="maximum tweet id to fetch")
+    parser.add_argument("--max_id", dest="max_id", action="store", help="maximum tweet id to fetch")
+    parser.add_argument("--since_id", dest="since_id", action="store", help="smallest id to fetch")
     parser.add_argument("query")
     args = parser.parse_args()
 
-    since_id = most_recent_id(args.query)
-    max_id = None
+    if args.since_id:
+        since_id = args.since_id
+    else:
+        since_id = most_recent_id(args.query)
 
-    archive(args.query, search(args.query, since_id=since_id, max_id=args.maxid, scrape=args.scrape))
+    archive(args.query, search(args.query, since_id=since_id, max_id=args.max_id, scrape=args.scrape))
