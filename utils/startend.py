@@ -5,7 +5,7 @@ Run this where you have a bunch of twarc JSON files and it will
 print out the start, end ranges for them.
 """
 
-import os
+import sys
 import json
 
 def first_last(filename):
@@ -18,7 +18,7 @@ def first_last(filename):
     last = json.loads(line)
     return first, last, count
 
-for filename in os.listdir("."):
+for filename in sys.argv[1:]:
     if filename.endswith('.json'):
         # note: tweets are in reverse chronological order
         # so the first tweet is the latest ...
