@@ -1,48 +1,54 @@
 #!/usr/bin/env python
 
+"""
+Reads a stream of twitter data and writes out data for the top 10 retweets. 
+Use the --results option to change the number of results.
+"""
+
 import json
+import optparse
 import fileinput
 
-num_results = 100
-min_rt = 0
-tweets = []
+def main():
+    retweets = []
+    parser = optparse.OptionParser()
+    parser.add_option("-r", "--results", dest="results", default=10, 
+                      help="number of top retweets to find")
+    options, argv = parser.parse_args()
 
-def insert(tweet):
-    global tweets
+    min_rt = 0
+    # TODO: maybe this index should be on disk berkeleydb or something?
+    seen = set()
+    for line in fileinput.input(argv):
+        tweet = json.loads(line)
+        if 'retweeted_status' not in tweet:
+            continue
+        if tweet['retweeted_status']['id_str'] in seen:
+            # TODO: make this work for data that is not reverse-chrono?
+            continue
+        rt = tweet['retweeted_status']
+        if rt['retweet_count'] > min_rt:
+            seen.add(rt['id_str'])
+            insert(rt, retweets, options.results)
+            min_rt = retweets[-1]['retweet_count']
 
-    if len(tweets) == 0:
-        tweets.append(tweet)
+    for rt in retweets:
+        print json.dumps(rt)
+
+def insert(rt, retweets, num_results):
+    if len(retweets) == 0:
+        retweets.append(rt)
         return
 
-    for i in range(0, len(tweets)):
-        t = tweets[i]
-        if tweet['retweet_count'] > t['retweet_count']:
-            tweets.insert(i, tweet)
-
-    # remove dupes
-    seen = set()
-    new_tweets = []
-    for tweet in tweets:
-        tweet_id = tweet['retweeted_status']['id_str']
-        if tweet_id in seen:
-            continue
-        else:
-            seen.add(tweet_id)
-            new_tweets.append(tweet)
-    tweets = new_tweets
+    # there's a more efficient way of doing this
+    for i in range(0, len(retweets)):
+        if rt['retweet_count'] > retweets[i]['retweet_count']:
+            retweets.insert(i, rt)
+            break
 
     # trim less popular ones
-    while len(tweets) > num_results:
-        tweets.pop()
+    while len(retweets) > num_results:
+        retweets.pop()
 
-for line in fileinput.input():
-    tweet = json.loads(line)
-    if not tweet.has_key('retweeted_status'):
-        continue
-
-    rt = tweet['retweet_count']
-    if rt > min_rt:
-        insert(tweet)
-        min_rt = tweets[-1]['retweet_count']
-
-print json.dumps(tweets, indent=2)
+if __name__ == "__main__":
+    main()
