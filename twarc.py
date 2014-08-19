@@ -128,7 +128,7 @@ def fetch(url, tries=5):
         return fetch(url, tries - 1)
 
     except Exception as e:
-        logging.error("got error when fetching %s", url, e)
+        logging.error("unable to fetch %s: %s", url, e)
         return fetch(url, tries - 1)
 
 
