@@ -16,7 +16,7 @@ USER_AGENT = "twarc (http://twitter.com/edsu/twarc)"
 
 consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
 token = oauth2.Token(config.access_token, config.access_token_secret)
-client = oauth2.Client(consumer, token)
+client = oauth2.Client(consumer, token, timeout=60)
 
 
 class RateLimiter:
@@ -113,6 +113,7 @@ def fetch(url, tries=5):
         logging.error("unable to fetch %s - too many tries!", url)
         sys.exit(1)
 
+    time.sleep(1)
     rate_limiter.check()
     try:
         resp, content = client.request(url)
