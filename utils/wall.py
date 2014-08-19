@@ -35,7 +35,7 @@ print """<!doctype html>
       margin: 10px;
       width: 270px;
       padding: 10px;
-      height: 160px;
+      height: 170px;
     }
 
     .name {
@@ -54,14 +54,11 @@ print """<!doctype html>
       position: absolute;
       bottom: 5px;
       left: 10px;
+      font-size: smaller;
     }
 
     .tweet a {
       text-decoration: none;
-    }
-
-    time { 
-      font-size: small;
     }
 
     footer#page {
@@ -91,11 +88,9 @@ print """<!doctype html>
   <div id="tweets">
 """
 
-# http://daringfireball.net/2010/07/improved_regex_for_matching_urls
-url_pattern = re.compile(r'''(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))''')
-
 for line in fileinput.input():
     tweet = json.loads(line)
+
     t = {
         "created_at": tweet["created_at"],
         "name": tweet["user"]["name"],
@@ -106,9 +101,18 @@ for line in fileinput.input():
         "url": "http://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
     }
 
-    t['text'] = url_pattern.sub('<a href="\g<1>">\g<1></a>', t['text'])
-    t['text'] = re.sub('@([^ ]+)', '<a href="http://twitter.com/\g<1>">@\g<1></a>', t['text'])
-    t['text'] = re.sub('#([^ ]+)', '<a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
+    if 'retweet_status' in tweet:
+        t['retweet_count'] = tweet['retweet_status'].get('retweet_count', 0)
+    else:
+        t['retweet_count'] = tweet.get('retweet_count', 0)
+
+    for url in tweet['entities']['urls']:
+        a = '<a href="%(expanded_url)s">%(url)s</a>' % url
+        start, end = url['indices']
+        t['text'] = t['text'][0:start] + a + tweet['text'][end:]
+
+    t['text'] = re.sub(' @([^ ]+)', ' <a href="http://twitter.com/\g<1>">@\g<1></a>', t['text'])
+    t['text'] = re.sub(' #([^ ]+)', ' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
 
     html = """
     <article class="tweet">
@@ -118,6 +122,7 @@ for line in fileinput.input():
       <br>
       <span class="text">%(text)s</span><br>
       <footer>
+      %(retweet_count)s Retweets<br> 
       <a href="%(url)s"><time>%(created_at)s</time></a>
       </footer>
     </article>
