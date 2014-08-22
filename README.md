@@ -13,18 +13,28 @@ stop.
 
 twarc was originally created to save [tweets related to Aaron Swartz](http://archive.org/details/AaronswRelatedTweets).
 
-How To Use
-----------
+## How To Use
 
-1. pip install -r requirements.txt
-1. cp config.py.example config.py
-1. add twitter api credentials to config.py
-1. ./twarc.py aaronsw
-1. cat aaronsw.json
-1. :-(
+1. pip install twarc
+1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET
+1. twarc.py aaronsw
+1. cat aaronsw*.json
 
-Scrape Mode
------------
+## Use as a Library
+
+If you want you can use twarc to get a stream of tweets from a search as JSON 
+and do something else with them. It will handle paging through results and
+quotas:
+
+```python
+
+import twarc
+
+for tweet in twarc.search("aaronsw"):
+    print tweet["text"]
+```
+
+## Scrape Mode
 
 The first time you fetch tweets for a query if you pass the --scrape option 
 it will use [search.twitter.com](http://search.twitter.com) to discover tweet 
@@ -34,8 +44,7 @@ as a request against your quota.
 
 [Twitter Search](http://search.twitter.com) [now supports](http://blog.twitter.com/2013/02/now-showing-older-tweets-in-search.html) drilling backwards in time, past the week cutoff of the REST API. Since individual tweets are still retrieved with the REST API, rate limits apply--so this is quite a slow process. Still, if you are willing to let it run for a while it can be useful to query for older tweets, until the official search REST API supports a more historical perspective.
 
-Utils
------
+## Utils
 
 In the utils directory there are some simple command line utilities for 
 working with the json dumps like printing out the archived tweets as text 
