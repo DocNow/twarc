@@ -39,8 +39,8 @@ for tweet in twarc.search("aaronsw"):
 The first time you fetch tweets for a query if you pass the --scrape option 
 it will use [search.twitter.com](http://search.twitter.com) to discover tweet 
 ids, and then use the Twitter REST API to fetch the JSON for each tweet. This
-is an expensive because each ID needs to be fetched from the API which counts
-as a request against your quota.
+is an expensive operation because each ID needs to be fetched from the API 
+which counts as a request against your quota.
 
 [Twitter Search](http://search.twitter.com) [now supports](http://blog.twitter.com/2013/02/now-showing-older-tweets-in-search.html) drilling backwards in time, past the week cutoff of the REST API. Since individual tweets are still retrieved with the REST API, rate limits apply--so this is quite a slow process. Still, if you are willing to let it run for a while it can be useful to query for older tweets, until the official search REST API supports a more historical perspective.
 
