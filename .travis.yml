@@ -1,0 +1,9 @@
+python:
+- '2.7'
+language: python
+env:
+  global:
+  - secure: Y/ewo8nlTIZ38vYSY8/l2OsOhngjQOZps2W4gbY4b2EM1HaW7Ja9bRZbT/N6Q4HuhXsqVAawCrBJgaQrhU4KosEeajXLTMr2yXCb/EHFQIFI0FFY2ZOX2vJsUfpFpg9cCRhpr3CeGXPullFmrDUzF1BoEyrvthgqzRfuTXEcYqo=
+  - secure: YPzuqzsoz5bXJaEsL3D3uwaWxjbnxVyfvzJy2R/LQJFvpoN6Blxuoxoy5I/qP3OolHMJqFxfjRZi/HL3H07fpLDNnkc/fbyt0YfP6v7THM9H8bEXSwBWGnc79dbDxfYQGVhrbR+P4CjG5Zn4ZzR6L7v694paDUKKSGuVQ9uhiVE=
+  - secure: O1ADNvqKb5qvr/vxT/mEB3UdtX1tN8n96MYcofxoBUaMnkWjZIK5LvtrRyFpamSw+aMvM/NDrJoUg2Wms6Aye7WeDi+pf27rZUaqryMCEREFIYMHsJhsrdDkaqB39U4GY7lmi8zfhK4+b9ciQXLglNrK7HKdwUvJ3WCKVSdIjzk=
+  - secure: JvABQW/6e/qzAOjbZmqp4qJev91gSfztfWImj+IZcwR0GV9sxWzAcCanlyMbAIcO58YmPWVJF0pq8/QT3yWu6ShF4Dr5X9H5JvP9f+GiRY4AJ8g5QxpqAYsdl38c1Ls9f0x9fYSlWByhcynqflrr2hTLUU73CDtQOg7SbK6qMkg=

@@ -1,4 +1,5 @@
 oauth2
+pytest
 requests
 python-dateutil
 git+git://github.com/bmuller/genderator.git

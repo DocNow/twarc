@@ -1,6 +1,8 @@
 twarc
 =====
 
+[![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc)
+
 twarc is command line tool for archiving the tweets in a Twitter search result.
 Twitter search results live for a week or so, and are highly volatile. Results 
 are stored as line-oriented JSON (each line is a complete JSON document), and 

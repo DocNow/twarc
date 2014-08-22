@@ -5,33 +5,72 @@ import re
 import sys
 import json
 import time
-import config
 import oauth2
 import urllib
 import logging
 import argparse
 import requests
 
-USER_AGENT = "twarc (http://twitter.com/edsu/twarc)"
 
-consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
-token = oauth2.Token(config.access_token, config.access_token_secret)
-client = oauth2.Client(consumer, token, timeout=60)
-
-
-class RateLimiter:
+class TwitterClient:
+    """
+    A class that manages authentication and quota management for 
+    the Twitter API.
+    """
 
     def __init__(self):
+        ck = os.environ.get('CONSUMER_KEY')
+        cks = os.environ.get('CONSUMER_SECRET')
+        at = os.environ.get('ACCESS_TOKEN')
+        ats = os.environ.get("ACCESS_TOKEN_SECRET")
+
+        if not ck and cks and at and ats:
+            print "Please make sure CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set."
+            sys.exit(1)
+
+        consumer = oauth2.Consumer(key=ck, secret=cks)
+        token = oauth2.Token(at, ats)
+        self.client = oauth2.Client(consumer, token, timeout=60)
+
         self.remaining = 0
-        self.reset = time.time() + 800
-        self._ping()
+        self.reset = None
+        self.ping()
+
+    def fetch(self, url, tries=5):
+        logging.debug("fetching %s", url)
+        if tries == 0:
+            msg = "unable to fetch %s - too many tries!" % url
+            logging.error(msg)
+            raise Exception(msg)
+
+        time.sleep(1)
+        self.check()
+        try:
+            resp, content = self.client.request(url)
+
+            if resp.status == 200:
+                return resp, content
+
+            secs =  (6 - tries) * 2
+            logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
+            time.sleep(secs)
+
+            return self.fetch(url, tries - 1)
+
+        except Exception as e:
+            logging.error("unable to fetch %s: %s", url, e)
+            return self.fetch(url, tries - 1)
 
     def check(self):
+        """
+        Blocks until Twitter quota allows for API calls, or returns
+        immediately if we're able to make calls.
+        """
         logging.debug("rate limit remaining %s" % self.remaining)
         while self.remaining <= 1:
             now = time.time()
             logging.debug("rate limit < 1, now=%s and reset=%s", now, self.reset)
-            if now < self.reset:
+            if self.reset and now < self.reset:
                 # padded with 5 seconds just to be on the safe side
                 secs = self.reset - now + 5 
                 logging.debug("sleeping %s seconds for rate limiting" % secs)
@@ -40,15 +79,15 @@ class RateLimiter:
                 # sleep a second before checking again for new rate limit
                 time.sleep(1)
             # get the latest limit
-            self._ping()
+            self.ping()
         self.remaining -= 1
 
-    def _ping(self):
+    def ping(self):
         """fetches latest rate limits from Twitter
         """
         logging.debug("checking for rate limit info")
         url = "https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search"
-        response, content = client.request(url)
+        response, content = self.client.request(url)
         result = json.loads(content)
 
         # look for limits in the json or the http headers, which can 
@@ -85,13 +124,13 @@ def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
 def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
     """
-    # do the api call
+    client = TwitterClient()
     url = "https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" % urllib.quote(q)
     if since_id:
         url += "&since_id=%s" % since_id
     if max_id:
         url += "&max_id=%s" % max_id
-    resp, content = fetch(url)
+    resp, content = client.fetch(url)
 
     statuses = json.loads(content)["statuses"]
     
@@ -105,32 +144,6 @@ def search_result(q, since_id=None, max_id=None):
         return [], max_id
 
     return statuses, new_max_id
-
-
-def fetch(url, tries=5):
-    logging.debug("fetching %s", url)
-    if tries == 0:
-        logging.error("unable to fetch %s - too many tries!", url)
-        sys.exit(1)
-
-    time.sleep(1)
-    rate_limiter.check()
-    try:
-        resp, content = client.request(url)
-
-        if resp.status == 200:
-            return resp, content
-
-        secs =  (6 - tries) * 2
-        logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
-        time.sleep(secs)
-
-        return fetch(url, tries - 1)
-
-    except Exception as e:
-        logging.error("unable to fetch %s: %s", url, e)
-        return fetch(url, tries - 1)
-
 
 def most_recent_id(q):
     """
@@ -176,10 +189,10 @@ def scrape_tweets(query, max_id=None, sleep=1):
     A kinda sneaky and slow way to retrieve older tweets, now that search on 
     the Twitter website extends back in time.
     """
+    client = TwitterClient()
     for tweet_id in scrape_tweet_ids(query, max_id, sleep=1):
-        rate_limiter.check()
         url = "https://api.twitter.com/1.1/statuses/show.json?id=%s" % tweet_id
-        resp, content = fetch(url)
+        resp, content = client.fetch(url)
         yield json.loads(content)
 
 
@@ -194,13 +207,14 @@ def scrape_tweet_ids(query, max_id, sleep=1):
         "last_note_ts": 0,
         "oldest_unread_id": 0
     }
+
     while True:
         logging.info("scraping tweets with id < %s", max_id)
         if cursor:
             q["scroll_cursor"] = cursor
 
         logging.info("scraping %s", url + "?" + urllib.urlencode(q))
-        r = requests.get(url, params=q, headers={'User-agent': USER_AGENT})
+        r = requests.get(url, params=q)
         s = json.loads(r.content)
 
         html = s["items_html"]
@@ -219,14 +233,14 @@ def scrape_tweet_ids(query, max_id, sleep=1):
             time.sleep(sleep)
         cursor = s['scroll_cursor']
 
-logging.basicConfig(
-    filename="twarc.log",
-    level=logging.DEBUG,
-    format="%(asctime)s %(levelname)s %(message)s"
-)
-rate_limiter = RateLimiter()
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        filename="twarc.log",
+        level=logging.DEBUG,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
+
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument("--scrape", dest="scrape", action="store_true", help='attempt to scrape tweets from search.twitter.com for tweets not available via Twitter\'s search REST API')
     parser.add_argument("--max_id", dest="max_id", action="store", help="maximum tweet id to fetch")
