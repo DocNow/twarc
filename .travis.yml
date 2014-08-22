@@ -1,6 +1,7 @@
 python:
 - '2.7'
 language: python
+script: py.test test.py
 env:
   global:
   - secure: Y/ewo8nlTIZ38vYSY8/l2OsOhngjQOZps2W4gbY4b2EM1HaW7Ja9bRZbT/N6Q4HuhXsqVAawCrBJgaQrhU4KosEeajXLTMr2yXCb/EHFQIFI0FFY2ZOX2vJsUfpFpg9cCRhpr3CeGXPullFmrDUzF1BoEyrvthgqzRfuTXEcYqo=
