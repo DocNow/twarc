@@ -24,7 +24,7 @@ class TwitterClient:
         at = os.environ.get('ACCESS_TOKEN')
         ats = os.environ.get("ACCESS_TOKEN_SECRET")
 
-        if not ck and cks and at and ats:
+        if not (ck and cks and at and ats):
             print "Please make sure CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set."
             sys.exit(1)
 
