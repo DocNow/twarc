@@ -21,7 +21,6 @@ POOL_SIZE = 10
 logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
 cache = {}
-
 def unshorten(url):
     if url in cache:
         return cache[url]
@@ -51,7 +50,7 @@ def rewrite_line(line):
 
 def main():
     pool = multiprocessing.Pool(POOL_SIZE)
-    for tweet in pool.imap(rewrite_line, fileinput.input()):
+    for tweet in pool.imap_unordered(rewrite_line, fileinput.input()):
         print json.dumps(tweet).encode('utf8')
 
 if __name__ == "__main__":
