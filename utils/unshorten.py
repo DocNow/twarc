@@ -6,46 +6,62 @@ expanded past t.co.
 
 unshorten.py will attempt to unshorten URLs and add them as the 
 "unshortened_url" key to each url, and emit the tweet as JSON again on stdout. 
+
+You'll need to `pip install leveldb` to get it to work since it creates a little
+database of unshortened url mappings to prevent looking up the same short url
+repeatedly.
 """
 
 import json
+import urllib
+import leveldb
 import logging
-import requests
-import fileinput
+import urllib2
 import urlparse
+import fileinput
 import multiprocessing
 
 # number of urls to look up in parallel
 POOL_SIZE = 10
 
 logging.basicConfig(filename="unshorten.log", level=logging.INFO)
+db = leveldb.LevelDB('unshorten.db')
 
-cache = {}
 def unshorten(url):
-    if url in cache:
-        return cache[url]
+    unshortened_url = None
     try:
-        # let requests handle redirects
-        resp = requests.get(url, timeout=5)
-        cache[url] = resp.url
-        return unshorten(resp.url)
+        return db.Get(url)
+    except KeyError:
+        try:
+            resp = urllib2.urlopen(url, timeout=60)
+            unshortened_url = resp.url.encode('utf8')
+            db.Put(url, unshortened_url)
+        except Exception as e:
+            logging.error("lookup failed for %s: %s", url, e)
     except Exception as e:
-        logging.error("lookup failed for %s: %s", url, e)
-        return url
+        logging.error("leveldb Get error: %s", e)
+
+    return unshortened_url
 
 def rewrite_line(line):
     tweet = json.loads(line)
+
+    # don't do the same work again
+    if 'unshortened_url' in tweet:
+        return tweet
+
     for url_dict in tweet["entities"]["urls"]:
         if "expanded_url" in url_dict:
             url = url_dict["expanded_url"]
         else:
             url = url_dict['url']
 
-        unshortened_url = unshorten(url)
-        logging.info("unshortened %s to %s", url, unshortened_url)
+        unshortened_url = unshorten(url.encode('utf8'))
 
         # add new key to the json
-        url_dict['unshortened_url'] = unshortened_url
+        if unshortened_url:
+            url_dict['unshortened_url'] = unshortened_url
+
     return tweet
 
 def main():
