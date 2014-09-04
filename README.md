@@ -16,7 +16,7 @@ twarc was originally created to save [tweets related to Aaron Swartz](http://arc
 ## How To Use
 
 1. pip install twarc
-1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET
+1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET in your environment.
 1. twarc.py aaronsw
 1. cat aaronsw*.json
 
