@@ -136,7 +136,11 @@ def stream(q):
     headers = {'accept-encoding': 'deflate, gzip'}
     r = client.client.post(url, params, headers=headers, stream=True)
     for line in r.iter_lines():
-        yield json.loads(line)
+        try:
+            yield json.loads(line)
+        except:
+            logging.warn("no json on stream: %s", line)
+
 
 def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
