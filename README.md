@@ -20,6 +20,14 @@ twarc was originally created to save [tweets related to Aaron Swartz](http://arc
 1. twarc.py aaronsw
 1. cat aaronsw*.json
 
+## Stream Mode
+
+By default twarc will search backwards in time as far as it can go. But if
+you would like to start capturing tweets that match a query from the live
+stream you can run in stream mode:
+
+    twarc.py --stream aaronsw
+
 ## Use as a Library
 
 If you want you can use twarc to get a stream of tweets from a search as JSON 

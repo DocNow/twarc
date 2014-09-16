@@ -9,7 +9,7 @@ import oauth2
 import urllib
 import logging
 import argparse
-import requests
+from requests_oauthlib import OAuth1Session
 
 
 class TwitterClient:
@@ -28,9 +28,12 @@ class TwitterClient:
             print "Please make sure CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set."
             sys.exit(1)
 
-        consumer = oauth2.Consumer(key=ck, secret=cks)
-        token = oauth2.Token(at, ats)
-        self.client = oauth2.Client(consumer, token, timeout=60)
+        self.client = OAuth1Session(
+            ck,
+            client_secret=cks,
+            resource_owner_key=at,
+            resource_owner_secret=ats
+        )
 
         self.remaining = 0
         self.reset = None
@@ -46,10 +49,10 @@ class TwitterClient:
         time.sleep(1)
         self.check()
         try:
-            resp, content = self.client.request(url)
+            resp = self.client.get(url)
 
-            if resp.status == 200:
-                return resp, content
+            if resp.status_code == 200:
+                return resp.json()
 
             secs =  (6 - tries) * 2
             logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
@@ -87,18 +90,18 @@ class TwitterClient:
         """
         logging.debug("checking for rate limit info")
         url = "https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search"
-        response, content = self.client.request(url)
-        result = json.loads(content)
+        response = self.client.get(url)
+        result = response.json()
 
         # look for limits in the json or the http headers, which can 
         # happen when we are rate limited from checking the rate limits :)
 
         if "resources" in result:
-            self.reset = int(json.loads(content)["resources"]["search"]["/search/tweets"]["reset"])
-            self.remaining = int(json.loads(content)["resources"]["search"]["/search/tweets"]["remaining"])
+            self.reset = int(result["resources"]["search"]["/search/tweets"]["reset"])
+            self.remaining = int(result["resources"]["search"]["/search/tweets"]["remaining"])
         else:
-            self.reset = int(response["x-rate-limit-reset"])
-            self.remaining = int(response["x-rate-limit-remaining"])
+            self.reset = int(response.headers["x-rate-limit-reset"])
+            self.remaining = int(response.headers["x-rate-limit-remaining"])
 
         logging.debug("new rate limit remaining=%s and reset=%s", self.remaining, self.reset)
 
@@ -121,6 +124,20 @@ def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
             yield status
 
 
+def stream(q):
+    """Will return a generator for tweets that match a given query from 
+    the livestream.
+    """
+    logging.info("starting stream filter for %s", q)
+    client = TwitterClient()
+    
+    url = 'https://stream.twitter.com/1.1/statuses/filter.json'
+    params = {"track": q}
+    headers = {'accept-encoding': 'deflate, gzip'}
+    r = client.client.post(url, params, headers=headers, stream=True)
+    for line in r.iter_lines():
+        yield json.loads(line)
+
 def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
     """
@@ -130,9 +147,9 @@ def search_result(q, since_id=None, max_id=None):
         url += "&since_id=%s" % since_id
     if max_id:
         url += "&max_id=%s" % max_id
-    resp, content = client.fetch(url)
+    resp = client.fetch(url)
 
-    statuses = json.loads(content)["statuses"]
+    statuses = resp["statuses"]
     
     if len(statuses) > 0:
         new_max_id = int(statuses[-1]["id_str"]) + 1
@@ -192,8 +209,7 @@ def scrape_tweets(query, max_id=None, sleep=1):
     client = TwitterClient()
     for tweet_id in scrape_tweet_ids(query, max_id, sleep=1):
         url = "https://api.twitter.com/1.1/statuses/show.json?id=%s" % tweet_id
-        resp, content = client.fetch(url)
-        yield json.loads(content)
+        yield client.fetch(url)
 
 
 def scrape_tweet_ids(query, max_id, sleep=1):
@@ -245,6 +261,7 @@ if __name__ == "__main__":
     parser.add_argument("--scrape", dest="scrape", action="store_true", help='attempt to scrape tweets from search.twitter.com for tweets not available via Twitter\'s search REST API')
     parser.add_argument("--max_id", dest="max_id", action="store", help="maximum tweet id to fetch")
     parser.add_argument("--since_id", dest="since_id", action="store", help="smallest id to fetch")
+    parser.add_argument("--stream", dest="stream", action="store_true", help="stream current tweets instead of doing a search")
     parser.add_argument("query")
     args = parser.parse_args()
 
@@ -253,4 +270,14 @@ if __name__ == "__main__":
     else:
         since_id = most_recent_id(args.query)
 
-    archive(args.query, search(args.query, since_id=since_id, max_id=args.max_id, scrape=args.scrape))
+    if args.stream: 
+        tweets = stream(args.query)
+    else:
+        tweets = search(
+            args.query, 
+            since_id=since_id, 
+            max_id=args.max_id, 
+            scrape=args.scrape
+        )
+
+    archive(args.query, tweets)
