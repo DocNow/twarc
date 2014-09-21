@@ -1,3 +1,4 @@
 pytest
 python-dateutil
+requests
 requests_oauthlib
