@@ -5,7 +5,6 @@ import re
 import sys
 import json
 import time
-import oauth2
 import urllib
 import logging
 import argparse
