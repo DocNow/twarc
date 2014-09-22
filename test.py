@@ -77,3 +77,11 @@ def test_paging():
             break
     assert count == 500
  
+def test_scape():
+    # TODO: should try to get test w/ max_id working
+    count = 0
+    for tweet in twarc.scrape_tweets("twttr"):
+        count += 1
+        if count == 10: break
+    assert count == 10
+

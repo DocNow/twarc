@@ -23,6 +23,6 @@ setup(
     scripts = ['twarc.py'],
     description = 'command line utility to archive Twitter search results as line-oriented-json', 
     cmdclass = {'test': PyTest},
-    install_requires = ['oauth2', 'python-dateutil', 'requests', 'requests_oauthlib'],
+    install_requires = ['oauth2', 'python-dateutil', 'requests_oauthlib'],
     tests_require=['pytest']
 )
