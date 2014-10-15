@@ -134,9 +134,14 @@ def stream(q):
     url = 'https://stream.twitter.com/1.1/statuses/filter.json'
     params = {"track": q}
     headers = {'accept-encoding': 'deflate, gzip'}
-    r = client.client.post(url, params, headers=headers, stream=True)
-    for line in r.iter_lines():
-        yield json.loads(line)
+    while True:
+        logging.info("connecting to filter stream for %s", q)
+        r = client.client.post(url, params, headers=headers, stream=True)
+        for line in r.iter_lines():
+            try:
+                yield json.loads(line)
+            except Exception as e:
+                logging.error("json parse error: %s - %s", e, line)
 
 def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
@@ -253,7 +258,7 @@ def scrape_tweet_ids(query, max_id, sleep=1):
 if __name__ == "__main__":
     logging.basicConfig(
         filename="twarc.log",
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
