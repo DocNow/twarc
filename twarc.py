@@ -8,7 +8,9 @@ import time
 import oauth2
 import urllib
 import logging
+import requests
 import argparse
+import calendar
 from requests_oauthlib import OAuth1Session
 
 
@@ -63,6 +65,15 @@ class TwitterClient:
         except Exception as e:
             logging.error("unable to fetch %s: %s", url, e)
             return self.fetch(url, tries - 1)
+
+    def hydrate(self, ids):
+        self.check()
+        url = "https://api.twitter.com/1.1/statuses/lookup.json"
+        ids = ','.join(ids)
+        logging.info("hydrating: %s", ids)
+        resp = self.client.post(url, data={"id": ids})
+        for tweet in resp.json():
+            yield tweet
 
     def check(self):
         """
@@ -209,49 +220,58 @@ def archive(q, statuses):
 def scrape_tweets(query, max_id=None, sleep=1):
     """
     A kinda sneaky and slow way to retrieve older tweets, now that search on 
-    the Twitter website extends back in time.
+    the Twitter website extends back in time, even if the API does not.
     """
     client = TwitterClient()
-    for tweet_id in scrape_tweet_ids(query, max_id, sleep=1):
-        url = "https://api.twitter.com/1.1/statuses/show.json?id=%s" % tweet_id
-        yield client.fetch(url)
+    tweet_ids = []
+    for tweet_id in scrape_tweet_ids(query, max_id):
+        tweet_ids.append(tweet_id)
+        if len(tweet_ids) >= 80:
+            for tweet in client.hydrate(tweet_ids):
+                yield tweet
+            tweet_ids = []
+    if len(tweet_ids) > 0:
+        for tweet in client.hydrate(tweet_ids):
+            yield tweet
 
-
-def scrape_tweet_ids(query, max_id, sleep=1):
+def scrape_tweet_ids(query, max_id):
     cursor = None
     url = 'https://twitter.com/i/search/timeline?'
     q = {
         "q": query,
         'f': 'realtime',
+        "src": "typd",
         "include_available_features": 1,
         "include_entities": 1,
-        "last_note_ts": 0,
         "oldest_unread_id": 0
     }
 
     while True:
         logging.info("scraping tweets with id < %s", max_id)
+        q["last_note_ts"] = calendar.timegm(time.gmtime())
         if cursor:
             q["scroll_cursor"] = cursor
 
-        logging.info("scraping %s", url + "?" + urllib.urlencode(q))
-        r = requests.get(url, params=q)
+        logging.debug("scraping %s", url + "?" + urllib.urlencode(q))
+        r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"}, params=q)
         s = json.loads(r.content)
 
         html = s["items_html"]
         tweet_ids = re.findall(r'<a href=\"/.+/status/(\d+)', html)
+        logging.info("scraped tweet ids: %s", tweet_ids)
 
         if len(tweet_ids) == 0:
+            logging.debug("no more tweet ids: %s", html)
             raise StopIteration
 
         for tweet_id in tweet_ids:
+            max_id = tweet_id
             yield tweet_id
 
-        if not s['has_more_items']:
-            raise StopIteration
-
         if sleep:
-            time.sleep(sleep)
+            logging.debug("sleeping for %s" % sleep)
+            # seems to fetch more tweets when we sleep a random amount of time?
+            time.sleep(random.randint(3,8))
         cursor = s['scroll_cursor']
 
 
