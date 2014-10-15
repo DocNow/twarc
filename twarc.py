@@ -5,6 +5,7 @@ import re
 import sys
 import json
 import time
+import random
 import urllib
 import logging
 import requests
@@ -268,10 +269,11 @@ def scrape_tweet_ids(query, max_id):
             max_id = tweet_id
             yield tweet_id
 
-        if sleep:
-            logging.debug("sleeping for %s" % sleep)
-            # seems to fetch more tweets when we sleep a random amount of time?
-            time.sleep(random.randint(3,8))
+        # seems to fetch more tweets when we sleep a random amount of time?
+        seconds = random.randint(3,8)
+        logging.debug("sleeping for %s" % seconds)
+        time.sleep(seconds)
+
         cursor = s['scroll_cursor']
 
 
