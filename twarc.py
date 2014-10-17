@@ -159,7 +159,7 @@ def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
     """
     client = TwitterClient()
-    url = "https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" % urllib.quote(q)
+    url = "https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" % urllib.quote(q, safe='')
     if since_id:
         url += "&since_id=%s" % since_id
     if max_id:
@@ -207,7 +207,7 @@ def last_archive(q):
 
 def archive(q, statuses):
     t = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    archive_filename = "%s-%s.json" % (q, t)
+    archive_filename = "%s-%s.json" % (urllib.quote(q, safe=''), t)
     logging.info("writing tweets to %s" % archive_filename)
 
     fh = open(archive_filename, "w")
