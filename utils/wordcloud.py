@@ -2,6 +2,7 @@
 
 import re
 import json
+import urllib
 import fileinput
 import dateutil.parser
 
@@ -11,16 +12,20 @@ word_counts = {}
 stop_words = set(["a","able","about","across","after","all","almost","also","am","among","an","and","any","are","as","at","be","because","been","but","by","can","cannot","could","dear","did","do","does","either","else","ever","every","for","from","get","got","had","has","have","he","her","hers","him","his","how","however","i","if","in","into","is","it","its","just","least","let","like","likely","may","me","might","most","must","my","neither","no","nor","not","of","off","often","on","only","or","other","our","own","rather","said","say","says","she","should","since","so","some","than","that","the","their","them","then","there","these","they","this","tis","to","too","twas","us","wants","was","we","were","what","when","where","which","while","who","whom","why","will","with","would","yet","you","your"])
 
 for line in fileinput.input():
-    tweet = json.loads(line)
+    try:
+        tweet = json.loads(line)
+    except:
+        pass
     for word in tweet['text'].split(' '):
         word = word.lower()
         word = word.replace(".", "")
-        if len(word) == 0 or len(word) == 1: continue
+        if len(word) < 3: continue
+        if len(word) > 15: continue
         if word in stop_words: continue
         if word[0] in ["@", "#"]: continue
-        if word.startswith("http://"): continue
+        if re.match('https?', word): continue
         if word.startswith("rt"): continue
-        if not re.match('^[a-z]', word): continue
+        if not re.match('^[a-z]', word, re.IGNORECASE): continue
         word_counts[word] = word_counts.get(word, 0) + 1
 
 sorted_words = word_counts.keys()
@@ -29,12 +34,15 @@ top_words = sorted_words[0:MAX_WORDS]
 
 words = []
 count_range = word_counts[top_words[0]] - word_counts[top_words[-1]]
-size_ratio = 200.0 / count_range
+size_ratio = 100.0 / count_range
 for word in top_words:
+    size = int(word_counts[word] * size_ratio) + 15 
     words.append({
         "text": word, 
-        "size": int(word_counts[word] * size_ratio)
+        "size": size
     })
+
+wordcloud_js = urllib.urlopen('https://raw.githubusercontent.com/jasondavies/d3-cloud/master/d3.layout.cloud.js').read()
 
 print """<!DOCTYPE html>
 <html>
@@ -45,6 +53,10 @@ print """<!DOCTYPE html>
 </head>
 <body>
 <script>
+
+  // embed Jason Davies' d3-cloud since it's not available in a CDN
+  %s
+
   var fill = d3.scale.category20();
   var words = %s
 
@@ -77,4 +89,4 @@ print """<!DOCTYPE html>
 </script>
 </body>
 </html>
-""" % json.dumps(words)
+""" % (wordcloud_js, json.dumps(words, indent=2))
