@@ -40,9 +40,9 @@ for line in fileinput.input():
         print(json.dumps(tweet))
         # fh.write(json.dumps(tweet))
         # fh.write("\n")
-        kept += 1
-    else:
-        discarded += 1
+        # kept += 1
+    # else:
+        # discarded += 1
 
 # print("Kept", kept, "tweets and discarded", discarded)
 
