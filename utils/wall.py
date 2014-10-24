@@ -25,6 +25,7 @@ print """<!doctype html>
   <title>twarc wall</title>
   <style>
     body {
+      font-family: Arial, Helvetica, sans-serif;
       font-size: 12pt;
       margin-left: auto;
       margin-right: auto;
