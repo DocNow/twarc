@@ -9,10 +9,13 @@ wall in chronological order, a handy trick is:
 
 """
 
+import os
 import re
 import json
+import wget  # pip install wget
 import fileinput
-import dateutil.parser
+
+AVATAR_DIR = "img"
 
 print """<!doctype html>
 <html>
@@ -88,8 +91,19 @@ print """<!doctype html>
   <div id="tweets">
 """
 
+# Make avatar directory
+if not os.path.isdir(AVATAR_DIR):
+    os.makedirs(AVATAR_DIR)
+
 for line in fileinput.input():
     tweet = json.loads(line)
+
+    # Download avatar
+    url = tweet["user"]["profile_image_url"]
+    filename = wget.filename_from_url(url)
+    outfile = os.path.join(AVATAR_DIR, filename)
+    if not os.path.isfile(outfile):
+        wget.download(url, out=outfile)
 
     t = {
         "created_at": tweet["created_at"],
@@ -97,7 +111,7 @@ for line in fileinput.input():
         "username": tweet["user"]["screen_name"],
         "user_url": "http://twitter.com/" + tweet["user"]["screen_name"],
         "text": tweet["text"],
-        "avatar": tweet["user"]["profile_image_url"],
+        "avatar": AVATAR_DIR + "/" + filename,
         "url": "http://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
     }
 
@@ -122,7 +136,7 @@ for line in fileinput.input():
       <br>
       <span class="text">%(text)s</span><br>
       <footer>
-      %(retweet_count)s Retweets<br> 
+      %(retweet_count)s Retweets<br>
       <a href="%(url)s"><time>%(created_at)s</time></a>
       </footer>
     </article>
