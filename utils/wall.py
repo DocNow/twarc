@@ -10,6 +10,7 @@ wall in chronological order, a handy trick is:
 """
 
 import re
+import sys
 import json
 import fileinput
 import dateutil.parser
@@ -88,7 +89,24 @@ print """<!doctype html>
   <div id="tweets">
 """
 
-for line in fileinput.input():
+# Parse command-line args
+reverse = False
+# If args include --reverse, remove first it,
+# leaving file name(s) (if any) in args
+if len(sys.argv) > 1:
+    if sys.argv[1] == "--reverse" or sys.argv[1] == "-r":
+        reverse = True
+        del sys.argv[0]
+
+lines = fileinput.input()
+if reverse:
+    buffered_lines = []
+    for line in lines:
+        buffered_lines.append(line)
+    # Reverse list using slice
+    lines = buffered_lines[::-1]
+
+for line in lines:
     tweet = json.loads(line)
 
     t = {
@@ -122,7 +140,7 @@ for line in fileinput.input():
       <br>
       <span class="text">%(text)s</span><br>
       <footer>
-      %(retweet_count)s Retweets<br> 
+      %(retweet_count)s Retweets<br>
       <a href="%(url)s"><time>%(created_at)s</time></a>
       </footer>
     </article>
