@@ -103,6 +103,11 @@ Or if you want to sort by ID, which is analogous to sorting by time:
     % ./twarc.py --scrape nasa
     % utils/sort_by_id.py nasa-20130306102105.json > sorted.json
 
+Or if you want to filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
+
+    % ./twarc.py --scrape #somehashtag
+    % utils/filter_date.py --mindate 1-may-2014 %23somehashtag-20141020122149.json > filtered.json
+
 License
 -------
 
