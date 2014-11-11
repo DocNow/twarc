@@ -13,10 +13,25 @@ import os
 import re
 import sys
 import json
-import wget  # pip install wget
+import requests
 import fileinput
 
 AVATAR_DIR = "img"
+
+
+def download_file(url):
+    local_filename = url.split('/')[-1]
+    # NOTE the stream=True parameter
+    r = requests.get(url, stream=True)
+    outfile = os.path.join(AVATAR_DIR, local_filename)
+    if not os.path.isfile(outfile):
+        with open(outfile, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:  # filter out keep-alive new chunks
+                    f.write(chunk)
+                    f.flush()
+    return local_filename
+
 
 print """<!doctype html>
 <html>
@@ -119,10 +134,7 @@ for line in lines:
 
     # Download avatar
     url = tweet["user"]["profile_image_url"]
-    filename = wget.filename_from_url(url)
-    outfile = os.path.join(AVATAR_DIR, filename)
-    if not os.path.isfile(outfile):
-        wget.download(url, out=outfile)
+    filename = download_file(url)
 
     t = {
         "created_at": tweet["created_at"],
