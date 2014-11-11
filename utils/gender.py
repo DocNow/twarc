@@ -7,7 +7,7 @@ filters tweets based on a guess about the users gender
 import json
 import optparse
 import fileinput
-from genderator.detector import Detector, MALE, FEMALE
+from genderator.detector import Detector, MALE, FEMALE, ANDROGYNOUS
 
 usage = "usage: gender.py --gender [male|female|unknown] tweet_file *"
 opt_parser = optparse.OptionParser(usage=usage)
