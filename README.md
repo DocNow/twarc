@@ -1,7 +1,7 @@
 twarc
 =====
 
-[![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc)
+[![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc) [![Coverage Status](https://coveralls.io/repos/edsu/twarc/badge.png)](https://coveralls.io/r/edsu/twarc)
 
 twarc is command line tool for archiving the tweets in a Twitter search result.
 Twitter search results live for a week or so, and are highly volatile. Results
