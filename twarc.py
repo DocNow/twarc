@@ -1,23 +1,31 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import re
 import sys
 import json
 import time
 import random
-import urllib
 import logging
-import requests
 import argparse
 import calendar
 import requests
 from requests_oauthlib import OAuth1Session
 
+try:
+    # Python 3
+    from urllib.parse import quote
+    from urllib.parse import urlencode
+except ImportError:
+    # Python 2
+    from urllib import quote
+    from urllib import urlencode
+
 
 class TwitterClient:
     """
-    A class that manages authentication and quota management for 
+    A class that manages authentication and quota management for
     the Twitter API.
     """
 
@@ -28,7 +36,9 @@ class TwitterClient:
         ats = os.environ.get("ACCESS_TOKEN_SECRET")
 
         if not (ck and cks and at and ats):
-            print "Please make sure CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set."
+            print("Please make sure CONSUMER_KEY, CONSUMER_SECRET, "
+                  "ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment "
+                  "variables are set.")
             sys.exit(1)
 
         self.client = OAuth1Session(
@@ -57,8 +67,8 @@ class TwitterClient:
             if resp.status_code == 200:
                 return resp.json()
 
-            secs =  (6 - tries) * 2
-            logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
+            secs = (6 - tries) * 2
+            logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp)
             time.sleep(secs)
 
             return self.fetch(url, tries - 1)
@@ -84,10 +94,11 @@ class TwitterClient:
         logging.debug("rate limit remaining %s" % self.remaining)
         while self.remaining <= 1:
             now = time.time()
-            logging.debug("rate limit < 1, now=%s and reset=%s", now, self.reset)
+            logging.debug("rate limit < 1, now=%s and reset=%s", now,
+                          self.reset)
             if self.reset and now < self.reset:
                 # padded with 5 seconds just to be on the safe side
-                secs = self.reset - now + 5 
+                secs = self.reset - now + 5
                 logging.debug("sleeping %s seconds for rate limiting" % secs)
                 time.sleep(secs)
             else:
@@ -105,7 +116,7 @@ class TwitterClient:
         response = self.client.get(url)
         result = response.json()
 
-        # look for limits in the json or the http headers, which can 
+        # look for limits in the json or the http headers, which can
         # happen when we are rate limited from checking the rate limits :)
 
         if "resources" in result:
@@ -115,15 +126,17 @@ class TwitterClient:
             self.reset = int(response.headers["x-rate-limit-reset"])
             self.remaining = int(response.headers["x-rate-limit-remaining"])
 
-        logging.debug("new rate limit remaining=%s and reset=%s", self.remaining, self.reset)
+        logging.debug("new rate limit remaining=%s and reset=%s",
+                      self.remaining, self.reset)
 
 
 def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
-    """returns a generator for *all* search results. If you supply scrape, 
-    twarc will attemp to dig back further in time by scraping search.twitter.com
-    and looking up individual tweets.
+    """returns a generator for *all* search results. If you supply scrape,
+    twarc will attemp to dig back further in time by scraping
+    search.twitter.com and looking up individual tweets.
     """
-    logging.info("starting search for %s with since_id=%s and max_id=%s" % (q, since_id, max_id))
+    logging.info("starting search for %s with since_id=%s and max_id=%s" %
+                 (q, since_id, max_id))
     while True:
         results, max_id = search_result(q, since_id, max_id)
         if len(results) == 0:
@@ -137,12 +150,12 @@ def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
 
 
 def stream(q):
-    """Will return a generator for tweets that match a given query from 
+    """Will return a generator for tweets that match a given query from
     the livestream.
     """
     logging.info("starting stream filter for %s", q)
     client = TwitterClient()
-    
+
     url = 'https://stream.twitter.com/1.1/statuses/filter.json'
     params = {"track": q}
     headers = {'accept-encoding': 'deflate, gzip'}
@@ -155,11 +168,13 @@ def stream(q):
             except Exception as e:
                 logging.error("json parse error: %s - %s", e, line)
 
+
 def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
     """
     client = TwitterClient()
-    url = "https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" % urllib.quote(q, safe='')
+    url = ("https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" %
+           quote(q, safe=''))
     if since_id:
         url += "&since_id=%s" % since_id
     if max_id:
@@ -167,7 +182,7 @@ def search_result(q, since_id=None, max_id=None):
     resp = client.fetch(url)
 
     statuses = resp["statuses"]
-    
+
     if len(statuses) > 0:
         new_max_id = int(statuses[-1]["id_str"]) + 1
     else:
@@ -178,6 +193,7 @@ def search_result(q, since_id=None, max_id=None):
         return [], max_id
 
     return statuses, new_max_id
+
 
 def most_recent_id(q):
     """
@@ -207,7 +223,7 @@ def last_archive(q):
 
 def archive(q, statuses):
     t = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    archive_filename = "%s-%s.json" % (urllib.quote(q, safe=''), t)
+    archive_filename = "%s-%s.json" % (quote(q, safe=''), t)
     logging.info("writing tweets to %s" % archive_filename)
 
     fh = open(archive_filename, "w")
@@ -220,7 +236,7 @@ def archive(q, statuses):
 
 def scrape_tweets(query, max_id=None, sleep=1):
     """
-    A kinda sneaky and slow way to retrieve older tweets, now that search on 
+    A kinda sneaky and slow way to retrieve older tweets, now that search on
     the Twitter website extends back in time, even if the API does not.
     """
     client = TwitterClient()
@@ -234,6 +250,7 @@ def scrape_tweets(query, max_id=None, sleep=1):
     if len(tweet_ids) > 0:
         for tweet in client.hydrate(tweet_ids):
             yield tweet
+
 
 def scrape_tweet_ids(query, max_id):
     cursor = None
@@ -253,7 +270,7 @@ def scrape_tweet_ids(query, max_id):
         if cursor:
             q["scroll_cursor"] = cursor
 
-        logging.debug("scraping %s", url + "?" + urllib.urlencode(q))
+        logging.debug("scraping %s", url + "?" + urlencode(q))
         r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"}, params=q)
         s = json.loads(r.content)
 
@@ -270,7 +287,7 @@ def scrape_tweet_ids(query, max_id):
             yield tweet_id
 
         # seems to fetch more tweets when we sleep a random amount of time?
-        seconds = random.randint(3,8)
+        seconds = random.randint(3, 8)
         logging.debug("sleeping for %s" % seconds)
         time.sleep(seconds)
 
@@ -285,10 +302,16 @@ if __name__ == "__main__":
     )
 
     parser = argparse.ArgumentParser("twarc")
-    parser.add_argument("--scrape", dest="scrape", action="store_true", help='attempt to scrape tweets from search.twitter.com for tweets not available via Twitter\'s search REST API')
-    parser.add_argument("--max_id", dest="max_id", action="store", help="maximum tweet id to fetch")
-    parser.add_argument("--since_id", dest="since_id", action="store", help="smallest id to fetch")
-    parser.add_argument("--stream", dest="stream", action="store_true", help="stream current tweets instead of doing a search")
+    parser.add_argument("--scrape", dest="scrape", action="store_true",
+                        help='attempt to scrape tweets from '
+                        'search.twitter.com for tweets not available via'
+                        'Twitter\'s search REST API')
+    parser.add_argument("--max_id", dest="max_id", action="store",
+                        help="maximum tweet id to fetch")
+    parser.add_argument("--since_id", dest="since_id", action="store",
+                        help="smallest id to fetch")
+    parser.add_argument("--stream", dest="stream", action="store_true",
+                        help="stream current tweets instead of doing a search")
     parser.add_argument("query")
     args = parser.parse_args()
 
@@ -297,13 +320,13 @@ if __name__ == "__main__":
     else:
         since_id = most_recent_id(args.query)
 
-    if args.stream: 
+    if args.stream:
         tweets = stream(args.query)
     else:
         tweets = search(
-            args.query, 
-            since_id=since_id, 
-            max_id=args.max_id, 
+            args.query,
+            since_id=since_id,
+            max_id=args.max_id,
             scrape=args.scrape
         )
 
