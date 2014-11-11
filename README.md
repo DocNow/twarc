@@ -1,5 +1,6 @@
 twarc
 =====
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/edsu/twarc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc) [![Coverage Status](https://coveralls.io/repos/edsu/twarc/badge.png)](https://coveralls.io/r/edsu/twarc)
 
