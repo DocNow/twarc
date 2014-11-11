@@ -8,7 +8,6 @@ import json
 import time
 import random
 import logging
-import requests
 import argparse
 import calendar
 import requests
@@ -16,11 +15,12 @@ from requests_oauthlib import OAuth1Session
 
 try:
     # Python 3
-    import urllib.parse.quote as urllib.quote
-    import urllib.parse.urlencode as urllib.urlencode
+    from urllib.parse import quote
+    from urllib.parse import urlencode
 except ImportError:
     # Python 2
-    import urllib
+    from urllib import quote
+    from urllib import urlencode
 
 
 class TwitterClient:
@@ -66,7 +66,7 @@ class TwitterClient:
                 return resp.json()
 
             secs =  (6 - tries) * 2
-            logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp, content)
+            logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp)
             time.sleep(secs)
 
             return self.fetch(url, tries - 1)
@@ -167,7 +167,8 @@ def search_result(q, since_id=None, max_id=None):
     """returns a single page of search results
     """
     client = TwitterClient()
-    url = "https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" % urllib.quote(q, safe='')
+    url = ("https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" %
+           quote(q, safe=''))
     if since_id:
         url += "&since_id=%s" % since_id
     if max_id:
@@ -215,7 +216,7 @@ def last_archive(q):
 
 def archive(q, statuses):
     t = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    archive_filename = "%s-%s.json" % (urllib.quote(q, safe=''), t)
+    archive_filename = "%s-%s.json" % (quote(q, safe=''), t)
     logging.info("writing tweets to %s" % archive_filename)
 
     fh = open(archive_filename, "w")
@@ -261,7 +262,7 @@ def scrape_tweet_ids(query, max_id):
         if cursor:
             q["scroll_cursor"] = cursor
 
-        logging.debug("scraping %s", url + "?" + urllib.urlencode(q))
+        logging.debug("scraping %s", url + "?" + urlencode(q))
         r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"}, params=q)
         s = json.loads(r.content)
 

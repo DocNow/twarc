@@ -1,6 +1,5 @@
 import time
 import twarc
-import pytest
 import logging
 
 """
@@ -50,7 +49,7 @@ def test_max_id():
 def test_max_id_bug():
     pass
 
- 
+
 
 def test_max_and_since_ids():
     max_id = since_id = None
@@ -76,7 +75,7 @@ def test_paging():
         if count == 500:
             break
     assert count == 500
- 
+
 def test_scape():
     # TODO: should try to get test w/ max_id working
     count = 0
