@@ -9,11 +9,29 @@ wall in chronological order, a handy trick is:
 
 """
 
+import os
 import re
 import sys
 import json
+import requests
 import fileinput
-import dateutil.parser
+
+AVATAR_DIR = "img"
+
+
+def download_file(url):
+    local_filename = url.split('/')[-1]
+    # NOTE the stream=True parameter
+    r = requests.get(url, stream=True)
+    outfile = os.path.join(AVATAR_DIR, local_filename)
+    if not os.path.isfile(outfile):
+        with open(outfile, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:  # filter out keep-alive new chunks
+                    f.write(chunk)
+                    f.flush()
+    return local_filename
+
 
 print """<!doctype html>
 <html>
@@ -23,6 +41,7 @@ print """<!doctype html>
   <title>twarc wall</title>
   <style>
     body {
+      font-family: Arial, Helvetica, sans-serif;
       font-size: 12pt;
       margin-left: auto;
       margin-right: auto;
@@ -89,6 +108,10 @@ print """<!doctype html>
   <div id="tweets">
 """
 
+# Make avatar directory
+if not os.path.isdir(AVATAR_DIR):
+    os.makedirs(AVATAR_DIR)
+
 # Parse command-line args
 reverse = False
 # If args include --reverse, remove first it,
@@ -109,13 +132,17 @@ if reverse:
 for line in lines:
     tweet = json.loads(line)
 
+    # Download avatar
+    url = tweet["user"]["profile_image_url"]
+    filename = download_file(url)
+
     t = {
         "created_at": tweet["created_at"],
         "name": tweet["user"]["name"],
         "username": tweet["user"]["screen_name"],
         "user_url": "http://twitter.com/" + tweet["user"]["screen_name"],
         "text": tweet["text"],
-        "avatar": tweet["user"]["profile_image_url"],
+        "avatar": AVATAR_DIR + "/" + filename,
         "url": "http://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
     }
 
