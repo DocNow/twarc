@@ -7,13 +7,20 @@ import sys
 import json
 import time
 import random
-import urllib
 import logging
 import requests
 import argparse
 import calendar
 import requests
 from requests_oauthlib import OAuth1Session
+
+try:
+    # Python 3
+    import urllib.parse.quote as urllib.quote
+    import urllib.parse.urlencode as urllib.urlencode
+except ImportError:
+    # Python 2
+    import urllib
 
 
 class TwitterClient:
