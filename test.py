@@ -15,14 +15,16 @@ You will need to have these environment variables set to run these tests:
 
 logging.basicConfig(filename="test.log", level=logging.DEBUG)
 
+
 def test_search():
     count = 0
     for tweet in twarc.search('obama'):
         assert tweet['id_str']
-        count +=1
+        count += 1
         if count == 10:
             break
     assert count == 10
+
 
 def test_since_id():
     for tweet in twarc.search('obama'):
@@ -32,6 +34,7 @@ def test_since_id():
     time.sleep(5)
     for tweet in twarc.search('obama', since_id=id):
         assert tweet['id_str'] > id
+
 
 def test_max_id():
     for tweet in twarc.search('obama'):
@@ -46,9 +49,9 @@ def test_max_id():
         if count > 100:
             break
 
+
 def test_max_id_bug():
     pass
-
 
 
 def test_max_and_since_ids():
@@ -67,6 +70,7 @@ def test_max_and_since_ids():
         assert tweet['id_str'] <= max_id
         assert tweet['id_str'] > since_id
 
+
 def test_paging():
     # pages are 100 tweets big so if we can get 500 paging is working
     count = 0
@@ -76,11 +80,12 @@ def test_paging():
             break
     assert count == 500
 
+
 def test_scape():
     # TODO: should try to get test w/ max_id working
     count = 0
     for tweet in twarc.scrape_tweets("twttr"):
         count += 1
-        if count == 10: break
+        if count == 10:
+            break
     assert count == 10
-
