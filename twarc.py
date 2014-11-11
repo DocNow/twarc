@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import re
 import sys
@@ -17,7 +18,7 @@ from requests_oauthlib import OAuth1Session
 
 class TwitterClient:
     """
-    A class that manages authentication and quota management for 
+    A class that manages authentication and quota management for
     the Twitter API.
     """
 
@@ -28,7 +29,7 @@ class TwitterClient:
         ats = os.environ.get("ACCESS_TOKEN_SECRET")
 
         if not (ck and cks and at and ats):
-            print "Please make sure CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set."
+            print("Please make sure CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set.")
             sys.exit(1)
 
         self.client = OAuth1Session(
@@ -87,7 +88,7 @@ class TwitterClient:
             logging.debug("rate limit < 1, now=%s and reset=%s", now, self.reset)
             if self.reset and now < self.reset:
                 # padded with 5 seconds just to be on the safe side
-                secs = self.reset - now + 5 
+                secs = self.reset - now + 5
                 logging.debug("sleeping %s seconds for rate limiting" % secs)
                 time.sleep(secs)
             else:
@@ -105,7 +106,7 @@ class TwitterClient:
         response = self.client.get(url)
         result = response.json()
 
-        # look for limits in the json or the http headers, which can 
+        # look for limits in the json or the http headers, which can
         # happen when we are rate limited from checking the rate limits :)
 
         if "resources" in result:
@@ -119,7 +120,7 @@ class TwitterClient:
 
 
 def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
-    """returns a generator for *all* search results. If you supply scrape, 
+    """returns a generator for *all* search results. If you supply scrape,
     twarc will attemp to dig back further in time by scraping search.twitter.com
     and looking up individual tweets.
     """
@@ -137,12 +138,12 @@ def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
 
 
 def stream(q):
-    """Will return a generator for tweets that match a given query from 
+    """Will return a generator for tweets that match a given query from
     the livestream.
     """
     logging.info("starting stream filter for %s", q)
     client = TwitterClient()
-    
+
     url = 'https://stream.twitter.com/1.1/statuses/filter.json'
     params = {"track": q}
     headers = {'accept-encoding': 'deflate, gzip'}
@@ -167,7 +168,7 @@ def search_result(q, since_id=None, max_id=None):
     resp = client.fetch(url)
 
     statuses = resp["statuses"]
-    
+
     if len(statuses) > 0:
         new_max_id = int(statuses[-1]["id_str"]) + 1
     else:
@@ -220,7 +221,7 @@ def archive(q, statuses):
 
 def scrape_tweets(query, max_id=None, sleep=1):
     """
-    A kinda sneaky and slow way to retrieve older tweets, now that search on 
+    A kinda sneaky and slow way to retrieve older tweets, now that search on
     the Twitter website extends back in time, even if the API does not.
     """
     client = TwitterClient()
@@ -297,13 +298,13 @@ if __name__ == "__main__":
     else:
         since_id = most_recent_id(args.query)
 
-    if args.stream: 
+    if args.stream:
         tweets = stream(args.query)
     else:
         tweets = search(
-            args.query, 
-            since_id=since_id, 
-            max_id=args.max_id, 
+            args.query,
+            since_id=since_id,
+            max_id=args.max_id,
             scrape=args.scrape
         )
 
