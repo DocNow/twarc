@@ -333,6 +333,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    if args.query is None and args.hydrate is None:
+        parser.print_usage()
+        sys.exit(1)
+
     if args.since_id:
         since_id = args.since_id
     else:
