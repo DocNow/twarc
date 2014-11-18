@@ -91,7 +91,7 @@ class TwitterClient:
         Blocks until Twitter quota allows for API calls, or returns
         immediately if we're able to make calls.
         """
-        logging.debug("rate limit remaining %s" % self.remaining)
+        logging.info("rate limit remaining %s" % self.remaining)
         while self.remaining <= 1:
             now = time.time()
             logging.debug("rate limit < 1, now=%s and reset=%s", now,
@@ -99,7 +99,7 @@ class TwitterClient:
             if self.reset and now < self.reset:
                 # padded with 5 seconds just to be on the safe side
                 secs = self.reset - now + 5
-                logging.debug("sleeping %s seconds for rate limiting" % secs)
+                logging.info("sleeping %s seconds for rate limiting" % secs)
                 time.sleep(secs)
             else:
                 # sleep a second before checking again for new rate limit
@@ -126,7 +126,7 @@ class TwitterClient:
             self.reset = int(response.headers["x-rate-limit-reset"])
             self.remaining = int(response.headers["x-rate-limit-remaining"])
 
-        logging.debug("new rate limit remaining=%s and reset=%s",
+        logging.info("new rate limit remaining=%s and reset=%s",
                       self.remaining, self.reset)
 
 
