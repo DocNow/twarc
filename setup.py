@@ -19,7 +19,7 @@ class PyTest(Command):
 
 setup(
     name='twarc',
-    version='0.0.8',
+    version='0.0.9',
     url='http://github.com/edsu/twarc',
     author='Ed Summers',
     author_email='ehs@pobox.com',
