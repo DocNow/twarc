@@ -6,10 +6,14 @@ twarc
 twarc is command line tool for archiving the tweets in a Twitter search result.
 Twitter search results live for a week or so, and are highly volatile. Results
 are stored as line-oriented JSON (each line is a complete JSON document), and
-are exactly what is received from the Twitter API.  twarc handles rate limiting
-and paging through large result sets. It also handles repeated runs of the same
-query, by using the most recent tweet in the last run to determine when to
-stop.
+are exactly what is received from the Twitter API.  
+
+twarc handles rate limiting and paging through large result sets. It also 
+handles repeated runs of the same query, by using the most recent tweet in 
+the last run to determine when to stop.
+
+You can also use twarc to archive a filter stream of tweets, and also hydrate a
+list of Tweet IDs.
 
 twarc was originally created to save [tweets related to Aaron Swartz](http://archive.org/details/AaronswRelatedTweets).
 
@@ -17,18 +21,35 @@ twarc was originally created to save [tweets related to Aaron Swartz](http://arc
 
 1. pip install twarc
 1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET in your environment.
-1. twarc.py aaronsw
+1. twarc.py --query aaronsw
 1. cat aaronsw*.json
 
-## Stream Mode
+### Stream Mode
 
 By default twarc will search backwards in time as far as it can go. But if
 you would like to start capturing tweets that match a query from the live
 stream you can run in stream mode:
 
-    twarc.py --stream aaronsw
+    twarc.py --query aaronsw --stream
 
-## Use as a Library
+### Hydrate
+
+Twitter's Terms of Service frown on sharing the bulk JSON, and encourage people
+to share Twitter IDs instead. You can use twarc to "hydrate" them:
+
+    twarc.py --rehydrate ids.txt > tweets.json
+
+### Scrape Mode
+
+The first time you fetch tweets for a query if you pass the --scrape option
+it will use [search.twitter.com](http://search.twitter.com) to discover tweet
+ids, and then use the Twitter REST API to fetch the JSON for each tweet. This
+is an expensive operation because each ID needs to be fetched from the API
+which counts as a request against your quota.
+
+[Twitter Search](http://search.twitter.com) [now supports](http://blog.twitter.com/2013/02/now-showing-older-tweets-in-search.html) drilling backwards in time, past the week cutoff of the REST API. Since individual tweets are still retrieved with the REST API, rate limits apply--so this is quite a slow process. Still, if you are willing to let it run for a while it can be useful to query for older tweets, until the official search REST API supports a more historical perspective.
+
+### Use as a Library
 
 If you want you can use twarc to get a stream of tweets from a search as JSON
 and do something else with them. It will handle paging through results and
@@ -41,16 +62,6 @@ import twarc
 for tweet in twarc.search("aaronsw"):
     print tweet["text"]
 ```
-
-## Scrape Mode
-
-The first time you fetch tweets for a query if you pass the --scrape option
-it will use [search.twitter.com](http://search.twitter.com) to discover tweet
-ids, and then use the Twitter REST API to fetch the JSON for each tweet. This
-is an expensive operation because each ID needs to be fetched from the API
-which counts as a request against your quota.
-
-[Twitter Search](http://search.twitter.com) [now supports](http://blog.twitter.com/2013/02/now-showing-older-tweets-in-search.html) drilling backwards in time, past the week cutoff of the REST API. Since individual tweets are still retrieved with the REST API, rate limits apply--so this is quite a slow process. Still, if you are willing to let it run for a while it can be useful to query for older tweets, until the official search REST API supports a more historical perspective.
 
 ## Utils
 

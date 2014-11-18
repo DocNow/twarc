@@ -239,17 +239,8 @@ def scrape_tweets(query, max_id=None, sleep=1):
     A kinda sneaky and slow way to retrieve older tweets, now that search on
     the Twitter website extends back in time, even if the API does not.
     """
-    client = TwitterClient()
-    tweet_ids = []
-    for tweet_id in scrape_tweet_ids(query, max_id):
-        tweet_ids.append(tweet_id)
-        if len(tweet_ids) >= 80:
-            for tweet in client.hydrate(tweet_ids):
-                yield tweet
-            tweet_ids = []
-    if len(tweet_ids) > 0:
-        for tweet in client.hydrate(tweet_ids):
-            yield tweet
+    for tweet in hydrate(scrape_tweet_ids(query, max_id)):
+        yield tweet
 
 
 def scrape_tweet_ids(query, max_id):
@@ -294,6 +285,29 @@ def scrape_tweet_ids(query, max_id):
         cursor = s['scroll_cursor']
 
 
+def hydrate(tweet_ids):
+    """
+    Give hydrate a list or generator of Twitter IDs and you get back 
+    a generator of line-oriented JSON for the rehydrated data.
+    """
+    ids = []
+    client = TwitterClient()
+
+    # rehydrate every 100 twitter IDs with one request
+    for tweet_id in tweet_ids:
+        tweet_id = tweet_id.strip() # remove new line if present
+        ids.append(tweet_id)
+        if len(ids) == 100:
+            for tweet in client.hydrate(ids):
+                yield tweet
+            ids = []
+
+    # hydrate remaining ones
+    if len(ids) > 0:
+        for tweet in client.hydrate(ids):
+            yield tweet
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         filename="twarc.log",
@@ -302,6 +316,8 @@ if __name__ == "__main__":
     )
 
     parser = argparse.ArgumentParser("twarc")
+    parser.add_argument("--query", dest="query", action="store",
+                        help="query to use to filter Twitter results")
     parser.add_argument("--scrape", dest="scrape", action="store_true",
                         help='attempt to scrape tweets from '
                         'search.twitter.com for tweets not available via'
@@ -312,7 +328,9 @@ if __name__ == "__main__":
                         help="smallest id to fetch")
     parser.add_argument("--stream", dest="stream", action="store_true",
                         help="stream current tweets instead of doing a search")
-    parser.add_argument("query")
+    parser.add_argument("--hydrate", dest="hydrate", action="store",
+                        help="rehydrate tweets from a file of tweet ids")
+
     args = parser.parse_args()
 
     if args.since_id:
@@ -322,6 +340,8 @@ if __name__ == "__main__":
 
     if args.stream:
         tweets = stream(args.query)
+    if args.hydrate:
+        tweets = hydrate(open(args.hydrate))
     else:
         tweets = search(
             args.query,
@@ -330,4 +350,8 @@ if __name__ == "__main__":
             scrape=args.scrape
         )
 
-    archive(args.query, tweets)
+    if args.query:
+        archive(args.query, tweets)
+    else:
+        for tweet in tweets:
+            print(json.dumps(tweet))
