@@ -234,7 +234,7 @@ def archive(q, statuses):
         fh.write("\n")
 
 
-def scrape_tweets(query, max_id=None, sleep=1):
+def scrape_tweets(query, max_id=None):
     """
     A kinda sneaky and slow way to retrieve older tweets, now that search on
     the Twitter website extends back in time, even if the API does not.
