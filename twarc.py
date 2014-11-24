@@ -344,7 +344,7 @@ if __name__ == "__main__":
 
     if args.stream:
         tweets = stream(args.query)
-    if args.hydrate:
+    elif args.hydrate:
         tweets = hydrate(open(args.hydrate))
     else:
         tweets = search(
