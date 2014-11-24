@@ -37,7 +37,7 @@ stream you can run in stream mode:
 Twitter's Terms of Service frown on sharing the bulk JSON, and encourage people
 to share Twitter IDs instead. You can use twarc to "hydrate" them:
 
-    twarc.py --rehydrate ids.txt > tweets.json
+    twarc.py --hydrate ids.txt > tweets.json
 
 ### Scrape Mode
 
