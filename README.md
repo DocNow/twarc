@@ -111,7 +111,7 @@ Or if you have duplicate tweets in your JSON, deduplicate using:
 
 Or if you want to sort by ID, which is analogous to sorting by time:
 
-    % ./twarc.py --scrape nasa
+    % ./twarc.py --scrape --query nasa
     % utils/sort_by_id.py nasa-20130306102105.json > sorted.json
 
 Or if you want to filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
