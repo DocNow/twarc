@@ -72,7 +72,7 @@ create a script that is handy please send me a pull request :-)
 
 For example lets say you want to create a wall of tweets that mention 'nasa':
 
-    % ./twarc.py nasa
+    % ./twarc.py --query nasa
     % utils/wall.py nasa-20130306102105.json > nasa.html
 
 If you want the tweets ordered from oldest to latest:
@@ -81,42 +81,42 @@ If you want the tweets ordered from oldest to latest:
 
 Or you want to create a word cloud of tweets you collected about nasa:
 
-    % ./twarc.py nasa
+    % ./twarc.py --query nasa
     % utils/wordcloud.py nasa-20130306102105.json > nasa-wordcloud.html
 
 Or if you want to filter out all the tweets that look like they were from
 women, and create a word cloud from them:
 
-    % ./twarc.py nasa
+    % ./twarc.py --query nasa
     % utils/gender.py --gender female nasa-20130306102105.json | utils/wordcloud.py > nasa-female.html
 
 Or if you want to create a [D3](http://d3js.org/) directed graph of mentions
 or retweets, in which nodes are users and arrows point from the original user
 to the user who mentions or retweets them:
 
-	% ./twarc.py nasa
+	% ./twarc.py --query nasa
 	% utils/directed.py --mode mentions nasa-20130306102105.json > nasa-directed-mentions.html
 	% utils/directed.py --mode retweets nasa-20130306102105.json > nasa-directed-retweets.html
 	% utils/directed.py --mode replies nasa-20130306102105.json > nasa-directed-replies.html
 
 Or if you want to output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
 
-    % ./twarc.py nasa
+    % ./twarc.py --query nasa
     % utils/geojson.py nasa-20130306102105.json > nasa-20130306102105.geojson
 
 Or if you have duplicate tweets in your JSON, deduplicate using:
 
-    % ./twarc.py --scrape nasa
+    % ./twarc.py --scrape --query nasa
     % utils/deduplicate.py nasa-20130306102105.json > deduped.json
 
 Or if you want to sort by ID, which is analogous to sorting by time:
 
-    % ./twarc.py --scrape nasa
+    % ./twarc.py --scrape --query nasa
     % utils/sort_by_id.py nasa-20130306102105.json > sorted.json
 
 Or if you want to filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
 
-    % ./twarc.py --scrape #somehashtag
+    % ./twarc.py --scrape --query "#somehashtag"
     % utils/filter_date.py --mindate 1-may-2014 %23somehashtag-20141020122149.json > filtered.json
 
 License
