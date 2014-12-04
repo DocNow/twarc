@@ -108,7 +108,7 @@ class TwitterClient:
             self.ping()
         self.remaining -= 1
 
-    def ping(self):
+    def ping(self, times=10):
         """fetches latest rate limits from Twitter
         """
         logging.debug("checking for rate limit info")
@@ -122,9 +122,19 @@ class TwitterClient:
         if "resources" in result:
             self.reset = int(result["resources"]["search"]["/search/tweets"]["reset"])
             self.remaining = int(result["resources"]["search"]["/search/tweets"]["remaining"])
-        else:
+        elif 'x-rate-limit-reset' in response.headers:
             self.reset = int(response.headers["x-rate-limit-reset"])
             self.remaining = int(response.headers["x-rate-limit-remaining"])
+        else:
+            logging.error("missing x-rate-limit-reset in headers: %s", response.headers)
+            if times == 0:
+                logging.error("ping isn't working :(")
+                raise Exception("unable to ping")
+            else:
+                times -= 1
+                time.sleep(1)
+                logging.info("trying to ping again: %s", times)
+                return self.ping(times)
 
         logging.info("new rate limit remaining=%s and reset=%s",
                       self.remaining, self.reset)
@@ -228,8 +238,7 @@ def archive(q, statuses):
 
     fh = open(archive_filename, "w")
     for status in statuses:
-        url = "http://twitter.com/%s/status/%s" % (status["user"]["screen_name"], status["id_str"])
-        logging.info("archived %s", url)
+        logging.info("archived %s", status["id_str"])
         fh.write(json.dumps(status))
         fh.write("\n")
 
@@ -278,7 +287,7 @@ def scrape_tweet_ids(query, max_id):
             yield tweet_id
 
         # seems to fetch more tweets when we sleep a random amount of time?
-        seconds = random.randint(3, 8)
+        seconds = random.randint(0, 3)
         logging.debug("sleeping for %s" % seconds)
         time.sleep(seconds)
 
@@ -344,7 +353,7 @@ if __name__ == "__main__":
 
     if args.stream:
         tweets = stream(args.query)
-    if args.hydrate:
+    elif args.hydrate:
         tweets = hydrate(open(args.hydrate))
     else:
         tweets = search(
