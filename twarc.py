@@ -140,10 +140,8 @@ class TwitterClient:
                       self.remaining, self.reset)
 
 
-def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
-    """returns a generator for *all* search results. If you supply scrape,
-    twarc will attemp to dig back further in time by scraping
-    search.twitter.com and looking up individual tweets.
+def search(q, since_id=None, max_id=None, only_ids=False):
+    """returns a generator for *all* search results. 
     """
     logging.info("starting search for %s with since_id=%s and max_id=%s" %
                  (q, since_id, max_id))
@@ -152,10 +150,6 @@ def search(q, since_id=None, max_id=None, scrape=True, only_ids=False):
         if len(results) == 0:
             break
         for status in results:
-            yield status
-
-    if scrape and not since_id:
-        for status in scrape_tweets(q, max_id=max_id):
             yield status
 
 
@@ -243,58 +237,6 @@ def archive(q, statuses):
         fh.write("\n")
 
 
-def scrape_tweets(query, max_id=None):
-    """
-    A kinda sneaky and slow way to retrieve older tweets, now that search on
-    the Twitter website extends back in time, even if the API does not.
-    """
-    for tweet in hydrate(scrape_tweet_ids(query, max_id)):
-        yield tweet
-
-
-def scrape_tweet_ids(query, max_id):
-    cursor = None
-    url = 'https://twitter.com/i/search/timeline?'
-    q = {
-        "q": query,
-        'f': 'realtime',
-        "src": "typd",
-        "include_available_features": 1,
-        "include_entities": 1,
-        "oldest_unread_id": max_id
-    }
-
-    while True:
-        logging.info("scraping tweets with id < %s", max_id)
-        q["last_note_ts"] = calendar.timegm(time.gmtime())
-        if cursor:
-            q["oldest_unread_id"] = 0
-            q["scroll_cursor"] = cursor
-
-        logging.debug("scraping %s", url + "?" + urlencode(q))
-        r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"}, params=q)
-        s = json.loads(r.content)
-
-        html = s["items_html"]
-        tweet_ids = re.findall(r'<a href=\"/.+/status/(\d+)', html)
-        logging.info("scraped tweet ids: %s", tweet_ids)
-
-        if len(tweet_ids) == 0:
-            logging.debug("no more tweet ids: %s", html)
-            raise StopIteration
-
-        for tweet_id in tweet_ids:
-            max_id = tweet_id
-            yield tweet_id
-
-        # seems to fetch more tweets when we sleep a random amount of time?
-        seconds = random.randint(0, 3)
-        logging.debug("sleeping for %s" % seconds)
-        time.sleep(seconds)
-
-        cursor = s['scroll_cursor']
-
-
 def hydrate(tweet_ids):
     """
     Give hydrate a list or generator of Twitter IDs and you get back 
@@ -328,10 +270,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument("--query", dest="query", action="store",
                         help="query to use to filter Twitter results")
-    parser.add_argument("--scrape", dest="scrape", action="store_true",
-                        help='attempt to scrape tweets from '
-                        'search.twitter.com for tweets not available via'
-                        'Twitter\'s search REST API')
     parser.add_argument("--max_id", dest="max_id", action="store",
                         help="maximum tweet id to fetch")
     parser.add_argument("--since_id", dest="since_id", action="store",
@@ -361,7 +299,6 @@ if __name__ == "__main__":
             args.query,
             since_id=since_id,
             max_id=args.max_id,
-            scrape=args.scrape
         )
 
     if args.query:

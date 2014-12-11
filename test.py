@@ -81,15 +81,6 @@ def test_paging():
     assert count == 500
 
 
-def test_scape():
-    # TODO: should try to get test w/ max_id working
-    count = 0
-    for tweet in twarc.scrape_tweets("twttr"):
-        count += 1
-        if count == 10:
-            break
-    assert count == 10
-
 def test_hydrate():
     ids = [
         "501064188211765249", "501064196642340864", "501064197632167936",

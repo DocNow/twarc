@@ -39,16 +39,6 @@ to share Twitter IDs instead. You can use twarc to "hydrate" them:
 
     twarc.py --hydrate ids.txt > tweets.json
 
-### Scrape Mode
-
-The first time you fetch tweets for a query if you pass the --scrape option
-it will use [search.twitter.com](http://search.twitter.com) to discover tweet
-IDs, and then use the Twitter REST API to fetch the JSON for each tweet. This
-is an expensive operation because each ID needs to be fetched from the API
-which counts as a request against your quota.
-
-[Twitter Search](http://search.twitter.com) [now supports](http://blog.twitter.com/2013/02/now-showing-older-tweets-in-search.html) drilling backwards in time, past the week cutoff of the REST API. Since individual tweets are still retrieved with the REST API, rate limits apply--so this is quite a slow process. Still, if you are willing to let it run for a while it can be useful to query for older tweets, until the official search REST API supports a more historical perspective.
-
 ### Use as a Library
 
 If you want you can use twarc to get a stream of tweets from a search as JSON
@@ -106,17 +96,17 @@ Or if you want to output [GeoJSON](http://geojson.org/) from tweets where geo co
 
 Or if you have duplicate tweets in your JSON, deduplicate using:
 
-    % ./twarc.py --scrape --query nasa
+    % ./twarc.py --query nasa
     % utils/deduplicate.py nasa-20130306102105.json > deduped.json
 
 Or if you want to sort by ID, which is analogous to sorting by time:
 
-    % ./twarc.py --scrape --query nasa
+    % ./twarc.py --query nasa
     % utils/sort_by_id.py nasa-20130306102105.json > sorted.json
 
 Or if you want to filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
 
-    % ./twarc.py --scrape --query "#somehashtag"
+    % ./twarc.py --query "#somehashtag"
     % utils/filter_date.py --mindate 1-may-2014 %23somehashtag-20141020122149.json > filtered.json
 
 Or if you want an HTML list of the clients used:
