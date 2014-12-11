@@ -68,7 +68,7 @@ class TwitterClient:
                 return resp.json()
 
             secs = (6 - tries) * 2
-            logging.error("got error when fetching %s sleeping %s secs: %s - %s", url, secs, resp)
+            logging.error("got error when fetching %s sleeping %s secs: %s", url, secs, resp)
             time.sleep(secs)
 
             return self.fetch(url, tries - 1)
@@ -261,13 +261,14 @@ def scrape_tweet_ids(query, max_id):
         "src": "typd",
         "include_available_features": 1,
         "include_entities": 1,
-        "oldest_unread_id": 0
+        "oldest_unread_id": max_id
     }
 
     while True:
         logging.info("scraping tweets with id < %s", max_id)
         q["last_note_ts"] = calendar.timegm(time.gmtime())
         if cursor:
+            q["oldest_unread_id"] = 0
             q["scroll_cursor"] = cursor
 
         logging.debug("scraping %s", url + "?" + urlencode(q))
