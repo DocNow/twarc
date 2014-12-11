@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Given a JSON file, remove any retweets.
+Util to count which clients are most used.
 
 Example usage:
-utils/summary.py tweets.json > sources.html
+utils/source.py tweets.json > sources.html
 """
 from __future__ import print_function
 import json
@@ -25,7 +25,7 @@ print("""<!doctype html>
 
 <head>
   <meta charset="utf-8">
-  <title>twarc wall</title>
+  <title>Twitter client sources</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
@@ -55,7 +55,7 @@ print("""<!doctype html>
 <body>
 
   <header>
-  <h1>Title Here</h1>
+  <h1>Twitter client sources</h1>
   <em>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a></em>
   </header>
 
