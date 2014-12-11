@@ -6,10 +6,10 @@ twarc
 twarc is command line tool for archiving the tweets in a Twitter search result.
 Twitter search results live for a week or so, and are highly volatile. Results
 are stored as line-oriented JSON (each line is a complete JSON document), and
-are exactly what is received from the Twitter API.  
+are exactly what is received from the Twitter API.
 
-twarc handles rate limiting and paging through large result sets. It also 
-handles repeated runs of the same query, by using the most recent tweet in 
+twarc handles rate limiting and paging through large result sets. It also
+handles repeated runs of the same query, by using the most recent tweet in
 the last run to determine when to stop.
 
 You can also use twarc to archive a filter stream of tweets, and also hydrate a
@@ -43,7 +43,7 @@ to share Twitter IDs instead. You can use twarc to "hydrate" them:
 
 The first time you fetch tweets for a query if you pass the --scrape option
 it will use [search.twitter.com](http://search.twitter.com) to discover tweet
-ids, and then use the Twitter REST API to fetch the JSON for each tweet. This
+IDs, and then use the Twitter REST API to fetch the JSON for each tweet. This
 is an expensive operation because each ID needs to be fetched from the API
 which counts as a request against your quota.
 
@@ -66,8 +66,8 @@ for tweet in twarc.search("aaronsw"):
 ## Utils
 
 In the utils directory there are some simple command line utilities for
-working with the json dumps like printing out the archived tweets as text
-or html, extracting the usernames, referenced urls, and the like.  If you
+working with the JSON dumps like printing out the archived tweets as text
+or html, extracting the usernames, referenced URLs, and the like.  If you
 create a script that is handy please send me a pull request :-)
 
 For example lets say you want to create a wall of tweets that mention 'nasa':
@@ -94,10 +94,10 @@ Or if you want to create a [D3](http://d3js.org/) directed graph of mentions
 or retweets, in which nodes are users and arrows point from the original user
 to the user who mentions or retweets them:
 
-	% ./twarc.py --query nasa
-	% utils/directed.py --mode mentions nasa-20130306102105.json > nasa-directed-mentions.html
-	% utils/directed.py --mode retweets nasa-20130306102105.json > nasa-directed-retweets.html
-	% utils/directed.py --mode replies nasa-20130306102105.json > nasa-directed-replies.html
+    % ./twarc.py --query nasa
+    % utils/directed.py --mode mentions nasa-20130306102105.json > nasa-directed-mentions.html
+    % utils/directed.py --mode retweets nasa-20130306102105.json > nasa-directed-retweets.html
+    % utils/directed.py --mode replies nasa-20130306102105.json > nasa-directed-replies.html
 
 Or if you want to output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
 
@@ -118,6 +118,16 @@ Or if you want to filter out all tweets before a certain date (for example, if a
 
     % ./twarc.py --scrape --query "#somehashtag"
     % utils/filter_date.py --mindate 1-may-2014 %23somehashtag-20141020122149.json > filtered.json
+
+Or if you want an HTML list of the clients used:
+
+    % ./twarc.py --query nasa
+    % utils/source.py nasa-20130306102105.json > nasa-sources.html
+
+Or remove retweets:
+
+    % ./twarc.py --query nasa
+    % utils/noretweets.py nasa-20130306102105.json > tweets_noretweets.json
 
 License
 -------
