@@ -50,10 +50,6 @@ def test_max_id():
             break
 
 
-def test_max_id_bug():
-    pass
-
-
 def test_max_and_since_ids():
     max_id = since_id = None
     count = 0
