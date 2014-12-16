@@ -14,7 +14,7 @@ seen = OrderedDict()
 for line in fileinput.input():
     tweet = json.loads(line)
 
-    if not 'retweeted_status' in tweet
+    if not 'retweeted_status' in tweet:
         id = tweet['id']
         seen[id] = tweet
 
