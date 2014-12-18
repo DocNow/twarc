@@ -8,7 +8,7 @@ in files as line-oriented JSON data, where each line is a complete JSON document
 for the tweet. The JSON is exactly what was returned from the Twitter API. It 
 runs in three modes: search, stream and hydrate. When running in each mode
 twarc will stop and resume activity in order to respect the Twitter API's [rate
-limits](https://dev.twitter.com/rest/public/rate-limiting),
+limits](https://dev.twitter.com/rest/public/rate-limiting).
 
 ### Search
 
