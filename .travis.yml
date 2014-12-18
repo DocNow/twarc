@@ -27,6 +27,9 @@ after_script:
 - pep8 --statistics --count *.py
 - pyflakes *.py | tee >(wc -l)
 
+after_failure:
+- cat test.log
+
 env:
   global:
   - secure: Y/ewo8nlTIZ38vYSY8/l2OsOhngjQOZps2W4gbY4b2EM1HaW7Ja9bRZbT/N6Q4HuhXsqVAawCrBJgaQrhU4KosEeajXLTMr2yXCb/EHFQIFI0FFY2ZOX2vJsUfpFpg9cCRhpr3CeGXPullFmrDUzF1BoEyrvthgqzRfuTXEcYqo=
