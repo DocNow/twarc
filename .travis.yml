@@ -9,6 +9,8 @@ python:
 
 language: python
 
+sudo: false
+
 install:
 - pip install -r requirements.txt
 - pip install coverage
