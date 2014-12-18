@@ -24,6 +24,10 @@ last weeks worth of Tweets available via its search API, so time is of the
 essence if you are trying to collect tweets for something that has already 
 happened. 
 
+If you run a query job, and then decide to run it again later twarc will use the
+last file to determine when it can stop. This makes it fairly easy to repeatedly
+look for new results from cron.
+
 ### Stream
 
 In stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
