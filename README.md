@@ -36,6 +36,8 @@ the tweets to a file.
 
     twarc.py --stream --query Ferguson
 
+Note the syntax for the Twitter's filter queries is slightly different than what queries in their search API. So please consult the [documentation](https://dev.twitter.com/streaming/overview/request-parameters#track) on how best to express the filter.
+
 ### Hydrate
 
 The Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)
