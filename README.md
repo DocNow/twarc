@@ -68,16 +68,30 @@ This is an example of using twarc in search mode:
 
 ## Use as a Library
 
-If you want you can use twarc to get a stream of tweets from a search as JSON
-and do something else with them. It will handle paging through results and
+If you want you can use twarc to get an iterator for tweets from a search as 
+JSON and do something else with them. It will handle paging through results and
 quotas:
 
 ```python
-
 import twarc
 
 for tweet in twarc.search("aaronsw"):
     print tweet["text"]
+```
+
+You can do the same for a stream of new tweets:
+
+```python
+for tweet in twarc.stream("aaronsw"):
+    print tweet["text"]
+```
+
+Similarly you can hydrate tweet identifiers by passing in a list of ids or 
+or a generator:
+
+```python
+for tweet in twarc.hydrate(ids):
+  print tweet["text"]
 ```
 
 ## Utilities
