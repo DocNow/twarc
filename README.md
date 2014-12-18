@@ -78,7 +78,7 @@ for tweet in twarc.search("aaronsw"):
     print tweet["text"]
 ```
 
-## Utils
+## Utilities
 
 In the utils directory there are some simple command line utilities for
 working with the line-oriented JSON, like printing out the archived tweets as 
