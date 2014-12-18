@@ -3,43 +3,64 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc) [![Coverage Status](https://coveralls.io/repos/edsu/twarc/badge.png)](https://coveralls.io/r/edsu/twarc) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/edsu/twarc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-twarc is command line tool for archiving the tweets in a Twitter search result.
-Twitter search results live for a week or so, and are highly volatile. Results
-are stored as line-oriented JSON (each line is a complete JSON document), and
-are exactly what is received from the Twitter API.
+twarc is a command line tool for archiving Twitter JSON data. Data is stored
+in files as line-oriented JSON data, where each line is a complete JSON document
+for the tweet. The JSON is exactly what was returned from the Twitter API. It 
+runs in three modes: search, stream and hydrate. When running in each mode
+twarc will stop and resume activity in order to respect the Twitter API's [rate
+limits](https://dev.twitter.com/rest/public/rate-limiting),
 
-twarc handles rate limiting and paging through large result sets. It also
-handles repeated runs of the same query, by using the most recent tweet in
-the last run to determine when to stop.
+### Search
 
-You can also use twarc to archive a filter stream of tweets, and also hydrate a
-list of Tweet IDs.
+When running in search mode twarc will use Twitter's [search API](https://dev.twitter.com/rest/reference/get/search/tweets) to retrieve
+tweets that match a particular query. So for example, to collect all the 
+tweets mentioning the keyword Ferguson you would:
 
-twarc was originally created to save [tweets related to Aaron Swartz](http://archive.org/details/AaronswRelatedTweets).
+    twarc.py --query Ferguson
 
-## How To Use
+This command would will walk through each page of the search results and save
+them to a distinct file. Twitter's search API only makes (roughly) the
+last weeks worth of Tweets available via its search API, so time is of the 
+essence if you are trying to collect tweets for something that has already 
+happened. 
+
+### Stream
+
+In stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
+tweets that match a particular filter. Similar to search mode twarc will save 
+the tweets to a file.
+
+    twarc.py --stream --query Ferguson
+
+### Hydrate
+
+The Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)
+prevent people from making large amounts of raw Twitter data available on the
+Web. The data can be used for research and archived for local use, but not
+shared with the world. Twitter does allow files of tweet identifiers to be 
+shared, which can be useful when you would like to make a dataset of tweets 
+available. You can then use Twitter's API to *hydrate* the data, or to retrieve
+the full JSON for each identifier. This is particularly important for
+[verification](https://en.wikipedia.org/wiki/Reproducibility) of social media
+research.
+
+In hydrate mode twarc will read a file of tweet identifiers and use Twitter's 
+[lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API to 
+fetch the full JSON for each tweet and output each one as line-oriented JSON:
+
+
+    twarc.py --hydrate ids.txt > tweets.json
+
+## Install
+
+This is an example of using twarc in search mode: 
 
 1. pip install twarc
 1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET in your environment.
 1. twarc.py --query aaronsw
 1. cat aaronsw*.json
 
-### Stream Mode
-
-By default twarc will search backwards in time as far as it can go. But if
-you would like to start capturing tweets that match a query from the live
-stream you can run in stream mode:
-
-    twarc.py --query aaronsw --stream
-
-### Hydrate
-
-Twitter's Terms of Service frown on sharing the bulk JSON, and encourage people
-to share Twitter IDs instead. You can use twarc to "hydrate" them:
-
-    twarc.py --hydrate ids.txt > tweets.json
-
-### Use as a Library
+## Use as a Library
 
 If you want you can use twarc to get a stream of tweets from a search as JSON
 and do something else with them. It will handle paging through results and
@@ -56,9 +77,9 @@ for tweet in twarc.search("aaronsw"):
 ## Utils
 
 In the utils directory there are some simple command line utilities for
-working with the JSON dumps like printing out the archived tweets as text
-or html, extracting the usernames, referenced URLs, and the like.  If you
-create a script that is handy please send me a pull request :-)
+working with the line-oriented JSON, like printing out the archived tweets as 
+text or html, extracting the usernames, referenced URLs, etc.  If you
+create a script that is handy please send a pull request.
 
 For example lets say you want to create a wall of tweets that mention 'nasa':
 
