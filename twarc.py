@@ -232,10 +232,12 @@ def archive(q, statuses):
 
     fh = open(archive_filename, "w")
     for status in statuses:
-        logging.info("archived %s", status["id_str"])
-        fh.write(json.dumps(status))
-        fh.write("\n")
-
+        try:
+            logging.info("archived %s", status["id_str"])
+            fh.write(json.dumps(status))
+            fh.write("\n")
+        except Exception, e:
+            logging.exception("unable to archive status: %s", status)
 
 def hydrate(tweet_ids):
     """
