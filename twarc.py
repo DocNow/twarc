@@ -215,7 +215,7 @@ def most_recent_id(q):
 def last_archive(q):
     other_archive_files = []
     for filename in os.listdir("."):
-        if re.match("^%s-\d+\.json$" % q, filename):
+        if re.match("^%s-\d+\.json$" % quote(q, safe=''), filename):
             other_archive_files.append(filename)
     other_archive_files.sort()
     while len(other_archive_files) != 0:
