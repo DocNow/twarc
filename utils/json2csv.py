@@ -131,13 +131,15 @@ def tweet_url(t):
 
 def user_urls(t):
     u = t.get('user')
-    urls = []
     if not u:
         return None
+    urls = []
     if 'entities' in u and 'url' in u['entities'] and 'urls' in u['entities']['url']:
         for url in u['entities']['url']['urls']:
-            urls.append(url['expanded_url'])
+            if url['expanded_url']:
+                urls.append(url['expanded_url'])
     return ' '.join(urls)
+
 
 if __name__ == "__main__":
     main()
