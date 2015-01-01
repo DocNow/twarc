@@ -5,16 +5,13 @@ import sys
 import json
 import math
 import re
+import optparse
 import fileinput
 
-# parse command-line args
-mode="retweets"
-# if args include --mode, get mode and remove first two args, leaving file name(s) (if any) in args
-if len(sys.argv) > 1:
-	if sys.argv[1] == "--mode":
-		mode=sys.argv[2]
-		del sys.argv[0]
-		del sys.argv[0]
+opt_parser = optparse.OptionParser()
+opt_parser.add_option("-m", "--mode", dest="mode", help="retweets (default) | mentions | replies",
+    default='retweets')
+opts, args = opt_parser.parse_args()
 
 threshold = 1
 links = {}
@@ -50,20 +47,23 @@ def addlink(fromtoken, totoken):
 # Meaning that userA mentions userB 3 times, and userB mentions userA once.
 
 
-for line in fileinput.input():
-    tweet = json.loads(line)
-    source = tweet["user"]["screen_name"]
-    if mode == 'mentions':
-	    if "user_mentions" in tweet["entities"]:
-		    for mention in tweet["entities"]["user_mentions"]:
-	    		mentionuser = str(mention["screen_name"])
-	    		addlink(source, mentionuser)
-    elif mode == 'replies':
-    	if not(tweet["in_reply_to_screen_name"] == None):
-    		addlink(tweet["in_reply_to_screen_name"], source)
-    else: # default mode: retweets
-	    if "retweeted_status" in tweet:
-    		addlink(source, tweet["retweeted_status"]["user"]["screen_name"])
+for line in fileinput.input(args):
+    try:
+		tweet = json.loads(line)
+		source = tweet["user"]["screen_name"]
+		if opts.mode == 'mentions':
+			if "user_mentions" in tweet["entities"]:
+				for mention in tweet["entities"]["user_mentions"]:
+					mentionuser = str(mention["screen_name"])
+					addlink(source, mentionuser)
+		elif opts.mode == 'replies':
+			if not(tweet["in_reply_to_screen_name"] == None):
+				addlink(tweet["in_reply_to_screen_name"], source)
+		else: # default mode: retweets
+			if "retweeted_status" in tweet:
+				addlink(source, tweet["retweeted_status"]["user"]["screen_name"])
+    except ValueError as e:
+        sys.stderr.write("uhoh: %s\n" % e)
 
 # generate nodes json
 nodesoutput = []
@@ -88,4 +88,4 @@ links = json.dumps(linksoutput)
 # generate html by replacing token
 template_file = os.path.join(os.path.dirname(__file__), "templates", "directed.html")
 with open (template_file, "r") as template:
-	print template.read().replace('$LINKS$', links).replace('$NODES$', nodes).replace('$MODE$', mode)
+	print template.read().replace('$LINKS$', links).replace('$NODES$', nodes).replace('$MODE$', opts.mode)
