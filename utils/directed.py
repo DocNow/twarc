@@ -15,6 +15,11 @@ opt_parser.add_option("-m", "--mode", dest="mode", help="retweets (default) | me
     default='retweets')
 opt_parser.add_option("-t", "--threshold", dest="threshold", type="int", 
 	help="minimum links to qualify for inclusion (default: 1)", default=1)
+opt_parser.add_option("-o", "--output", dest="output", type="str", 
+	help="embed | json (default: embed)", default="embed")
+opt_parser.add_option("-p", "--template", dest="template", type="str", 
+	help="name of template in utils/template (default: directed.html)", default="directed.html")
+	
 opts, args = opt_parser.parse_args()
 
 # prepare to serialize opts and args as json
@@ -76,4 +81,8 @@ for line in fileinput.input(args):
         sys.stderr.write("uhoh: %s\n" % e)
 
 json = d3json.nodeslinktrees(nodes, links, optsdict, argsdict)
-d3json.embed("directed.html", json)
+
+if opts.output == "json":
+	print json
+else:
+	d3json.embed(opts.template, json)
