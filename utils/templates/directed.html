@@ -121,14 +121,11 @@ ul { margin: 0; padding: 0; list-style-type: none;}
 
   
     <script type="text/javascript">
-
-	var mode = "$MODE$";
+	var json = $JSON$;
 	
-	var links = $LINKS$;
-
-	var nodes = $NODES$;
-	
-	
+	var mode = json["opts"]["mode"];
+	var links = json["links"];
+	var nodes = json["nodes"];
 	
 	function twitterlink(n) {
 		return "<a href='https://twitter.com/" + n + "'>" + n + "</n>";
