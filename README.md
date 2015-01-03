@@ -129,6 +129,9 @@ to the user who mentions or retweets them:
     % utils/directed.py --mode mentions nasa-20130306102105.json > nasa-directed-mentions.html
     % utils/directed.py --mode retweets nasa-20130306102105.json > nasa-directed-retweets.html
     % utils/directed.py --mode replies nasa-20130306102105.json > nasa-directed-replies.html
+    
+(Use "--output json" to output the nodes/links data for use with other D3 examples, or "--help" for 
+other options.)
 
 Or if you want to output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
 
