@@ -215,7 +215,7 @@ def most_recent_id(q):
 def last_archive(q):
     other_archive_files = []
     for filename in os.listdir("."):
-        if re.match("^%s-\d+\.json$" % q, filename):
+        if re.match("^%s-\d+\.json$" % quote(q, safe=''), filename):
             other_archive_files.append(filename)
     other_archive_files.sort()
     while len(other_archive_files) != 0:
@@ -232,10 +232,12 @@ def archive(q, statuses):
 
     fh = open(archive_filename, "w")
     for status in statuses:
-        logging.info("archived %s", status["id_str"])
-        fh.write(json.dumps(status))
-        fh.write("\n")
-
+        try:
+            logging.info("archived %s", status["id_str"])
+            fh.write(json.dumps(status))
+            fh.write("\n")
+        except Exception, e:
+            logging.exception("unable to archive status: %s", status)
 
 def hydrate(tweet_ids):
     """
