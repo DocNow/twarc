@@ -28,6 +28,13 @@ div.sidebar_list {
 	float:left;
 }
 
+div#argsopts {
+	float: right;
+}
+div.metadata {
+	font-size: 75%;
+}
+
 path.link {
   fill: none;
   stroke: #666;
@@ -121,14 +128,12 @@ ul { margin: 0; padding: 0; list-style-type: none;}
 
   
     <script type="text/javascript">
-
-	var mode = "$MODE$";
+	var json = $JSON$;
 	
-	var links = $LINKS$;
-
-	var nodes = $NODES$;
-	
-	
+	var mode = json["opts"]["mode"];
+	var threshold = json["opts"]["threshold"];
+	var links = json["links"];
+	var nodes = json["nodes"];
 	
 	function twitterlink(n) {
 		return "<a href='https://twitter.com/" + n + "'>" + n + "</n>";
@@ -162,11 +167,14 @@ ul { margin: 0; padding: 0; list-style-type: none;}
 	
 	function selecthtml(l) {
 		l = listsort(l);
-		html = "<select onchange='userselect(this.value)'>";
+		// show threshold
+		html = "<div id='filename' class='metadata'>" + json["args"][0] + "</div>"
+		html += "<div id='argsopts' class='metadata'>Threshold: " + threshold + "<br/>Mode: " + mode + "</div>";
+		html += "<select onchange='userselect(this.value)'>";
 		for (var a = 0; a < l.length; a++) {
 			html += "<option>" + l[a] + "</option>";
 		}
-		html += "</select>";	
+		html += "</select>";
 		return html;
 	}
 	
