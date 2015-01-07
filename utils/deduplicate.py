@@ -7,10 +7,11 @@ Given a JSON file, remove any tweets with duplicate IDs.
 Example usage:
 utils/deduplicate.py tweets.json > tweets_deduped.json
 """
+
+from __future__ import print_function
 import json
 import fileinput
 
-from __future__ import print_function
 
 seen = {}
 for line in fileinput.input():
