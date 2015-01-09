@@ -163,6 +163,18 @@ Or remove retweets:
     % ./twarc.py --query nasa
     % utils/noretweets.py nasa-20130306102105.json > tweets_noretweets.json
 
+Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
+
+    % ./twarc.py --query "#JeSuisCharlie"
+    % cat %23JeSuisCharlie*json | utils/unshorten.py > %23JeSuisCharlie-ushortened.json
+
+Or get a ranked list of most tweeted URLs:
+    
+    % ./twarc.py --query "#JeSuisCharlie"
+    % cat %23JeSuisCharlie*json | utils/unshorten.py > %23JeSuisCharlie-ushortened.json
+    % cat %23JeSuisCharlie-ushortened.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
+
+
 License
 -------
 
