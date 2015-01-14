@@ -287,21 +287,22 @@ if __name__ == "__main__":
         parser.print_usage()
         sys.exit(1)
 
-    if args.since_id:
-        since_id = args.since_id
-    else:
-        since_id = most_recent_id(args.query)
-
     if args.stream:
         tweets = stream(args.query)
     elif args.hydrate:
         tweets = hydrate(open(args.hydrate))
     else:
+        if args.since_id:
+            since_id = args.since_id
+        else:
+            since_id = most_recent_id(args.query)
         tweets = search(
             args.query,
             since_id=since_id,
             max_id=args.max_id,
         )
+
+    # TODO: add option to control where the data goes
 
     if args.query:
         archive(args.query, tweets)
