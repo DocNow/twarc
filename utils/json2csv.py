@@ -20,7 +20,7 @@ def main():
 def get_headings():
     return [
       'coordinates',
-      'created_at'
+      'created_at',
       'text',
       'hashtags',
       'media',

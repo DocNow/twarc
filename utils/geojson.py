@@ -7,7 +7,7 @@ features = []
 
 for line in fileinput.input():
     tweet = json.loads(line)
-    if tweet["geo"]:
+    if tweet["geo"] and any(tweet["geo"]["coordinates"]):
         features.append({
             "type": "Feature",
             "geometry": {
