@@ -121,18 +121,6 @@ women, and create a word cloud from them:
     % ./twarc.py --query nasa
     % utils/gender.py --gender female nasa-20130306102105.json | utils/wordcloud.py > nasa-female.html
 
-Or if you want to create a [D3](http://d3js.org/) directed graph of mentions
-or retweets, in which nodes are users and arrows point from the original user
-to the user who mentions or retweets them:
-
-    % ./twarc.py --query nasa
-    % utils/directed.py --mode mentions nasa-20130306102105.json > nasa-directed-mentions.html
-    % utils/directed.py --mode retweets nasa-20130306102105.json > nasa-directed-retweets.html
-    % utils/directed.py --mode replies nasa-20130306102105.json > nasa-directed-replies.html
-    
-(Use "--output json" to output the nodes/links data for use with other D3 examples, or "--help" for 
-other options.)
-
 Or if you want to output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
 
     % ./twarc.py --query nasa
@@ -174,6 +162,16 @@ Or get a ranked list of most tweeted URLs:
     % cat %23JeSuisCharlie*json | utils/unshorten.py > %23JeSuisCharlie-ushortened.json
     % cat %23JeSuisCharlie-ushortened.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
 
+## twarc-report
+
+Some further utility scripts to generate csv or json output suitable for
+use with [D3.js](http://d3js.org/) visualizations are found in the
+[twarc-report](https://github.com/pbinkley/twarc-report) project. The
+util directed.py, formerly part of twarc, has moved to twarc-report as d3graph.py.
+Each script can also generate an html demo of a D3 visualization, e.g.
+[timelines](https://wallandbinkley.com/twarc/bill10/) or a [directed
+graph of
+retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
 License
 -------
