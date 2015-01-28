@@ -6,10 +6,8 @@ import re
 import sys
 import json
 import time
-import random
 import logging
 import argparse
-import calendar
 import requests
 from requests_oauthlib import OAuth1Session
 
