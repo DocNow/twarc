@@ -48,8 +48,9 @@ class TwitterClient:
             resource_owner_secret=ats
         )
 
-        self.remaining = 0
-        self.reset = None
+        self.remaining = {'search': 0, 'lookup': 0}
+        self.reset = {'search': None, 'lookup': None}
+
         self.ping()
 
     def fetch(self, url, tries=5):
@@ -60,7 +61,7 @@ class TwitterClient:
             raise Exception(msg)
 
         time.sleep(1)
-        self.check()
+        self.check_search()
         try:
             resp = self.client.get(url)
 
@@ -78,7 +79,7 @@ class TwitterClient:
             return self.fetch(url, tries - 1)
 
     def hydrate(self, ids):
-        self.check()
+        self.check_lookup()
         url = "https://api.twitter.com/1.1/statuses/lookup.json"
         ids = ','.join(ids)
         logging.info("hydrating: %s", ids)
@@ -86,47 +87,60 @@ class TwitterClient:
         for tweet in resp.json():
             yield tweet
 
-    def check(self):
+    def check_search(self):
+        """
+        Blocks until Twitter API allows us to search.
+        """
+        return self.check('search')
+
+    def check_lookup(self):
+        """
+        Blocks until Twitter API allows us to lookup tweets.
+        """
+        return self.check('lookup')
+
+    def check(self, resource_type):
         """
         Blocks until Twitter quota allows for API calls, or returns
         immediately if we're able to make calls.
         """
-        logging.info("rate limit remaining %s" % self.remaining)
-        while self.remaining <= 1:
+        if resource_type not in ["search", "lookup"]:
+            raise Exception("unknown resource type: %s", resource_type)
+        remaining = self.remaining[resource_type]
+        reset = self.reset[resource_type]
+
+        logging.info("%s rate limit remaining %s", resource_type, remaining)
+        while remaining <= 1:
             now = time.time()
-            logging.debug("rate limit < 1, now=%s and reset=%s", now,
-                          self.reset)
-            if self.reset and now < self.reset:
+            logging.debug("rate limit < 1, now=%s and reset=%s", now, reset)
+            if reset and now < reset:
                 # padded with 5 seconds just to be on the safe side
-                secs = self.reset - now + 5
-                logging.info("sleeping %s seconds for rate limiting" % secs)
+                secs = reset - now + 5
+                logging.info("sleeping %s for %s limit", secs, resource_type)
                 time.sleep(secs)
             else:
                 # sleep a second before checking again for new rate limit
                 time.sleep(1)
             # get the latest limit
             self.ping()
-        self.remaining -= 1
+
+        self.remaining[resource_type] -= 1
 
     def ping(self, times=10):
         """fetches latest rate limits from Twitter
         """
         logging.debug("checking for rate limit info")
-        url = "https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search"
+        url = "https://api.twitter.com/1.1/application/rate_limit_status.json?resources=search,statuses"
         response = self.client.get(url)
         result = response.json()
 
-        # look for limits in the json or the http headers, which can
-        # happen when we are rate limited from checking the rate limits :)
-
         if "resources" in result:
-            self.reset = int(result["resources"]["search"]["/search/tweets"]["reset"])
-            self.remaining = int(result["resources"]["search"]["/search/tweets"]["remaining"])
-        elif 'x-rate-limit-reset' in response.headers:
-            self.reset = int(response.headers["x-rate-limit-reset"])
-            self.remaining = int(response.headers["x-rate-limit-remaining"])
+            self.reset['search'] = int(result["resources"]["search"]["/search/tweets"]["reset"])
+            self.remaining['search'] = int(result["resources"]["search"]["/search/tweets"]["remaining"])
+            self.reset['lookup'] = int(result["resources"]["statuses"]["/statuses/lookup"]["reset"])
+            self.remaining['lookup'] = int(result["resources"]["statuses"]["/statuses/lookup"]["remaining"])
         else:
-            logging.error("missing x-rate-limit-reset in headers: %s", response.headers)
+            logging.error("unable to fetch rate limits")
             if times == 0:
                 logging.error("ping isn't working :(")
                 raise Exception("unable to ping")
@@ -136,8 +150,9 @@ class TwitterClient:
                 logging.info("trying to ping again: %s", times)
                 return self.ping(times)
 
-        logging.info("new rate limit remaining=%s and reset=%s",
-                      self.remaining, self.reset)
+        logging.info("new rate limits: search: %s/%s ; lookup: %s/%s",
+                self.remaining['search'], self.reset['search'],
+                self.remaining['lookup'], self.reset['lookup'])
 
 
 def search(q, since_id=None, max_id=None, only_ids=False):
@@ -238,6 +253,7 @@ def archive(q, statuses):
             fh.write("\n")
         except Exception, e:
             logging.exception("unable to archive status: %s", status)
+
 
 def hydrate(tweet_ids):
     """
