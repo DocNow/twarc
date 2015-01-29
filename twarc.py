@@ -27,7 +27,7 @@ def main():
                         help="maximum tweet id to search for")
     parser.add_argument("--since_id", dest="since_id", action="store",
                         help="smallest id to search for")
-    parser.add_argument("--filter", dest="filter", action="store_true",
+    parser.add_argument("--filter", dest="filter", action="store",
                         help="filter current tweets")
     parser.add_argument("--hydrate", dest="hydrate", action="store",
                         help="rehydrate tweets from a file of tweet ids")

@@ -3,12 +3,11 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc) [![Coverage Status](https://coveralls.io/repos/edsu/twarc/badge.png)](https://coveralls.io/r/edsu/twarc) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/edsu/twarc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-twarc is a command line tool for archiving Twitter JSON data. Data is stored
-in files as line-oriented JSON data, where each line is a complete JSON document
-for the tweet. The JSON is exactly what was returned from the Twitter API. It 
-runs in three modes: search, stream and hydrate. When running in each mode
-twarc will stop and resume activity in order to respect the Twitter API's [rate
-limits](https://dev.twitter.com/rest/public/rate-limiting).
+twarc is a command line tool and Python library for archiving Twitter JSON 
+data. Each tweet is represented as a JSON object which is exactly what was 
+returned from the Twitter API. It runs in three modes: search, filter and 
+hydrate. When running in each mode twarc will stop and resume activity in 
+order to respect the Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
 
 ### Search
 
