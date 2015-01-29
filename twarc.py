@@ -118,7 +118,7 @@ class Twarc(object):
 
     def filter(self, query):
         """
-        Returns an iterator or tweets that match a given filter query from
+        Returns an iterator for tweets that match a given filter query from
         the livestream of tweets happening right now.
         """
         logging.info("starting stream filter for %s", query)
