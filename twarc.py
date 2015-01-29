@@ -27,7 +27,7 @@ def main():
                         help="maximum tweet id to search for")
     parser.add_argument("--since_id", dest="since_id", action="store",
                         help="smallest id to search for")
-    parser.add_argument("--filter", dest="stream", action="store_true",
+    parser.add_argument("--filter", dest="filter", action="store_true",
                         help="filter current tweets")
     parser.add_argument("--hydrate", dest="hydrate", action="store",
                         help="rehydrate tweets from a file of tweet ids")
@@ -150,7 +150,6 @@ class Twarc(object):
             if len(ids) == 100:
                 resp = self.client.post(url, data={"id": ','.join(ids)})
                 for tweet in resp.json():
-                    print("yielding %s" % tweet)
                     yield tweet
                 ids = []
 
