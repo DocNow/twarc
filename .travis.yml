@@ -7,6 +7,10 @@ python:
 - '3.4'
 - 'pypy3'
 
+branches:
+  only:
+    - master
+
 language: python
 
 sudo: false

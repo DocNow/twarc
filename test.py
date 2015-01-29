@@ -1,6 +1,7 @@
 import time
-import twarc
 import logging
+
+from twarc import Twarc
 
 """
 
@@ -18,7 +19,8 @@ logging.basicConfig(filename="test.log", level=logging.DEBUG)
 
 def test_search():
     count = 0
-    for tweet in twarc.search('obama'):
+    t = Twarc()
+    for tweet in t.search('obama'):
         assert tweet['id_str']
         count += 1
         if count == 10:
@@ -27,23 +29,25 @@ def test_search():
 
 
 def test_since_id():
-    for tweet in twarc.search('obama'):
+    t = Twarc()
+    for tweet in t.search('obama'):
         id = tweet['id_str']
         break
     assert id
     time.sleep(5)
-    for tweet in twarc.search('obama', since_id=id):
+    for tweet in t.search('obama', since_id=id):
         assert tweet['id_str'] > id
 
 
 def test_max_id():
-    for tweet in twarc.search('obama'):
+    t = Twarc()
+    for tweet in t.search('obama'):
         id = tweet['id_str']
         break
     assert id
     time.sleep(5)
     count = 0
-    for tweet in twarc.search('obama', max_id=id):
+    for tweet in t.search('obama', max_id=id):
         count += 1
         assert tweet['id_str'] <= id
         if count > 100:
@@ -51,9 +55,10 @@ def test_max_id():
 
 
 def test_max_and_since_ids():
+    t = Twarc()
     max_id = since_id = None
     count = 0
-    for tweet in twarc.search('obama'):
+    for tweet in t.search('obama'):
         count += 1
         if not max_id:
             max_id = tweet['id_str']
@@ -61,7 +66,7 @@ def test_max_and_since_ids():
         if count > 500:
             break
     count = 0
-    for tweet in twarc.search('obama', max_id=max_id, since_id=since_id):
+    for tweet in t.search('obama', max_id=max_id, since_id=since_id):
         count += 1
         assert tweet['id_str'] <= max_id
         assert tweet['id_str'] > since_id
@@ -69,8 +74,9 @@ def test_max_and_since_ids():
 
 def test_paging():
     # pages are 100 tweets big so if we can get 500 paging is working
+    t = Twarc()
     count = 0
-    for tweet in twarc.search('obama'):
+    for tweet in t.search('obama'):
         count += 1
         if count == 500:
             break
@@ -120,8 +126,9 @@ def test_hydrate():
         "501064233438568450", "501064233774510081", "501064235107897344",
         "501064235175399425", "501064235456401410",
     ]
+    t = Twarc()
     count = 0
-    for tweet in twarc.hydrate(ids):
+    for tweet in t.hydrate(ids):
         assert tweet['id_str']
         count += 1
     assert count > 100 # may need to adjust as these might get deleted
