@@ -11,10 +11,57 @@ import argparse
 import requests
 from requests_oauthlib import OAuth1Session
 
+def main():
+    """
+    The twarc command line.
+    """
+    logging.basicConfig(
+        filename="twarc.log",
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
+    parser = argparse.ArgumentParser("twarc")
+    parser.add_argument("--search", dest="search", action="store",
+                        help="search for tweets matching a query")
+    parser.add_argument("--max_id", dest="max_id", action="store",
+                        help="maximum tweet id to search for")
+    parser.add_argument("--since_id", dest="since_id", action="store",
+                        help="smallest id to search for")
+    parser.add_argument("--filter", dest="stream", action="store_true",
+                        help="filter current tweets")
+    parser.add_argument("--hydrate", dest="hydrate", action="store",
+                        help="rehydrate tweets from a file of tweet ids")
+
+    args = parser.parse_args()
+    t = Twarc()
+
+    if args.search:
+        tweets = t.search(
+            args.search, 
+            since_id=args.since_id, 
+            max_id=args.max_id
+        )
+    elif args.filter:
+        tweets = t.filter(args.filter)
+    elif args.hydrate:
+        tweets = t.lookup(open(args.hydrate))
+    else:
+        raise argparse.ArgumentTypeError("must supply one of: --search --filter or --hydrate")
+
+    for tweet in tweets:
+        print(json.dumps(tweet))
+
 
 class Twarc(object):
     """
-    Your friendly neighborhood Twitter archiving class.
+    Your friendly neighborhood Twitter archiving class. Twarc allows
+    you to search for existing tweets, filter the livestream and lookup
+    (hdyrate) a list of tweet ids. 
+    
+    Each method search, filter and lookup returns a tweet iterator which allows
+    you to do what you want with the data. Twarc handles rate limiting in the 
+    API, so it will go to sleep when Twitter tells it to, and wake back up
+    when it is able to get more data from the API.
     """
 
     def __init__(self):
@@ -121,44 +168,5 @@ class Twarc(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        filename="twarc.log",
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
-    )
+    main()
 
-    parser = argparse.ArgumentParser("twarc")
-    parser.add_argument("--search", dest="search", action="store",
-                        help="search for tweets matching a query")
-    parser.add_argument("--max_id", dest="max_id", action="store",
-                        help="maximum tweet id to search for")
-    parser.add_argument("--since_id", dest="since_id", action="store",
-                        help="smallest id to search for")
-    parser.add_argument("--filter", dest="stream", action="store_true",
-                        help="filter current tweets")
-    parser.add_argument("--hydrate", dest="hydrate", action="store",
-                        help="rehydrate tweets from a file of tweet ids")
-
-    args = parser.parse_args()
-
-    if args.query is None and args.hydrate is None:
-        parser.print_usage()
-        sys.exit(1)
-
-    t = Twarc()
-
-    if args.search:
-        tweets = t.search(
-            args.search, 
-            since_id=args.since_id, 
-            max_id=args.max_id
-        )
-    elif args.filter:
-        tweets = t.filter(args.filter)
-    elif args.hydrate:
-        tweets = t.lookup(open(args.hydrate))
-    else:
-        raise argparse.ArgumentTypeError("must supply one of: --search --filter or --hydrate")
-
-    for tweet in tweets:
-        print(json.dumps(tweet))
