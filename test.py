@@ -83,6 +83,17 @@ def test_paging():
     assert count == 500
 
 
+def test_filter():
+    t = Twarc()
+    found = False
+    for tweet in t.filter("obama"):
+        assert tweet['id_str']
+        assert tweet['text']
+        found = True
+        break
+    assert found
+
+
 def test_hydrate():
     ids = [
         "501064188211765249", "501064196642340864", "501064197632167936",
@@ -128,7 +139,7 @@ def test_hydrate():
     ]
     t = Twarc()
     count = 0
-    for tweet in t.hydrate(ids):
+    for tweet in t.lookup(iter(ids)):
         assert tweet['id_str']
         count += 1
     assert count > 100 # may need to adjust as these might get deleted

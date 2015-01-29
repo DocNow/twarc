@@ -11,23 +11,18 @@ import argparse
 import requests
 from requests_oauthlib import OAuth1Session
 
-try:
-    # Python 3
-    from urllib.parse import quote
-    from urllib.parse import urlencode
-except ImportError:
-    # Python 2
-    from urllib import quote
-    from urllib import urlencode
 
-
-class TwitterClient:
+class Twarc(object):
     """
-    A class that manages authentication and quota management for
-    the Twitter API.
+    Your friendly neighborhood Twitter archiving class.
     """
 
     def __init__(self):
+        """
+        Instantiate a Twarc instance. Make sure your environment variables
+        are set.
+        """
+        # TODO: allow keys to be passed in?
         ck = os.environ.get('CONSUMER_KEY')
         cks = os.environ.get('CONSUMER_SECRET')
         at = os.environ.get('ACCESS_TOKEN')
@@ -35,6 +30,7 @@ class TwitterClient:
         if not (ck and cks and at and ats):
             raise argparse.ArgumentTypeError("Please make sure CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set.")
 
+        # create our http client
         self.client = OAuth1Session(
             ck,
             client_secret=cks,
@@ -42,104 +38,86 @@ class TwitterClient:
             resource_owner_secret=ats
         )
 
-        self.search_remaining = 0
-        self.search_reset = None
-        self.lookup_remaining = 0
-        self.lookup_reset = None
 
-    def search(self, query, max_id=None, min_id=None):
-        pass
+    def search(self, q, max_id=None, since_id=None):
+        """
+        Pass in a query with optional max_id and min_id and get back 
+        an iterator for decoded tweets.
+        """
+        url = "https://api.twitter.com/1.1/search/tweets.json"
+        params = {
+            "count": 100,
+            "q": q
+        }
+
+        while True:
+            if since_id:
+                params['since_id'] = since_id
+            if max_id:
+                params['max_id'] = max_id
+            
+            resp = self.client.get(url, params=params)
+            statuses = resp.json()["statuses"]
+
+            if len(statuses) == 0:
+                logging.info("no new tweets matching %s", params)
+                break
+
+            for status in statuses:
+                yield status
+
+            max_id = status["id_str"]
+
 
     def filter(self, query):
-        pass
+        """
+        Returns an iterator or tweets that match a given filter query from
+        the livestream of tweets happening right now.
+        """
+        logging.info("starting stream filter for %s", query)
+        url = 'https://stream.twitter.com/1.1/statuses/filter.json'
+        params = {"track": query}
+        headers = {'accept-encoding': 'deflate, gzip'}
+        while True:
+            logging.info("connecting to filter stream for %s", query)
+            r = self.client.post(url, params, headers=headers, stream=True)
+            for line in r.iter_lines():
+                try:
+                    yield json.loads(line)
+                except Exception as e:
+                    logging.error("json parse error: %s - %s", e, line)
 
-    def lookup(self, fh):
-        pass
+
+    def lookup(self, iterator):
+        """
+        Pass in an iterator of tweet ids and get back an iterator for the 
+        decoded JSON for each corresponding tweet.
+        """
+        ids = []
+        url = "https://api.twitter.com/1.1/statuses/lookup.json"
+
+        # lookup 100 tweets at a time
+        for tweet_id in iterator:
+            tweet_id = tweet_id.strip() # remove new line if present
+            ids.append(tweet_id)
+            if len(ids) == 100:
+                resp = self.client.post(url, data={"id": ','.join(ids)})
+                for tweet in resp.json():
+                    print("yielding %s" % tweet)
+                    yield tweet
+                ids = []
+
+        # hydrate any remaining ones
+        if len(ids) > 0:
+            resp = self.client.post(url, data={"id": ','.join(ids)})
+            for tweet in resp.json():
+                yield tweet
+
 
     def _get_limits(self, response):
         reset = int(response.headers['x-rate-limit-reset'])
         remaining = int(response.headers['x-rate-limit-remaining'])
         return reset, remaining
-
-def search(q, since_id=None, max_id=None, only_ids=False):
-    """returns a generator for *all* search results. 
-    """
-    logging.info("starting search for %s with since_id=%s and max_id=%s" %
-                 (q, since_id, max_id))
-    while True:
-        results, max_id = search_result(q, since_id, max_id)
-        if len(results) == 0:
-            break
-        for status in results:
-            yield status
-
-
-def stream(q):
-    """Will return a generator for tweets that match a given query from
-    the livestream.
-    """
-    logging.info("starting stream filter for %s", q)
-    client = TwitterClient()
-
-    url = 'https://stream.twitter.com/1.1/statuses/filter.json'
-    params = {"track": q}
-    headers = {'accept-encoding': 'deflate, gzip'}
-    while True:
-        logging.info("connecting to filter stream for %s", q)
-        r = client.client.post(url, params, headers=headers, stream=True)
-        for line in r.iter_lines():
-            try:
-                yield json.loads(line)
-            except Exception as e:
-                logging.error("json parse error: %s - %s", e, line)
-
-
-def search_result(q, since_id=None, max_id=None):
-    """returns a single page of search results
-    """
-    client = TwitterClient()
-    url = ("https://api.twitter.com/1.1/search/tweets.json?count=100&q=%s" %
-           quote(q, safe=''))
-    if since_id:
-        url += "&since_id=%s" % since_id
-    if max_id:
-        url += "&max_id=%s" % max_id
-    resp = client.fetch(url)
-
-    statuses = resp["statuses"]
-
-    if len(statuses) > 0:
-        new_max_id = int(statuses[-1]["id_str"]) + 1
-    else:
-        new_max_id = max_id
-
-    if max_id == new_max_id:
-        logging.info("no new tweets with id < %s", max_id)
-        return [], max_id
-
-    return statuses, new_max_id
-
-def hydrate(tweet_ids):
-    """
-    Give hydrate a list or generator of Twitter IDs and you get back 
-    a generator of line-oriented JSON for the rehydrated data.
-    """
-    ids = []
-    client = TwitterClient()
-
-    # rehydrate every 100 twitter IDs with one request
-    for tweet_id in tweet_ids:
-        tweet_id = tweet_id.strip() # remove new line if present
-        ids.append(tweet_id)
-        if len(ids) == 100:
-            for tweet in client.hydrate(ids):
-                yield tweet
-            ids = []
-
-    # hydrate remaining ones
-    if len(ids) > 0:
-        for tweet in client.hydrate(ids):
-            yield tweet
 
 
 if __name__ == "__main__":
