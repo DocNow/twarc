@@ -25,8 +25,8 @@ def main():
                         help="maximum tweet id to search for")
     parser.add_argument("--since_id", dest="since_id", action="store",
                         help="smallest id to search for")
-    parser.add_argument("--filter", dest="filter", action="store",
-                        help="filter current tweets")
+    parser.add_argument("--stream", dest="stream", action="store",
+                        help="stream tweets matching filter")
     parser.add_argument("--hydrate", dest="hydrate", action="store",
                         help="rehydrate tweets from a file of tweet ids")
     parser.add_argument("--log", dest="log", action="store",
@@ -47,12 +47,12 @@ def main():
             since_id=args.since_id, 
             max_id=args.max_id
         )
-    elif args.filter:
-        tweets = t.filter(args.filter)
+    elif args.stream:
+        tweets = t.stream(args.stream)
     elif args.hydrate:
-        tweets = t.lookup(open(args.hydrate))
+        tweets = t.hydrate(open(args.hydrate))
     else:
-        raise argparse.ArgumentTypeError("must supply one of: --search --filter or --hydrate")
+        raise argparse.ArgumentTypeError("must supply one of: --search --stream or --hydrate")
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
@@ -91,10 +91,10 @@ def rate_limit(f):
 class Twarc(object):
     """
     Your friendly neighborhood Twitter archiving class. Twarc allows
-    you to search for existing tweets, filter the livestream and lookup
-    (hdyrate) a list of tweet ids. 
+    you to search for existing tweets, stream live tweets that match
+    a filter query and lookup (hdyrate) a list of tweet ids. 
     
-    Each method search, filter and lookup returns a tweet iterator which allows
+    Each method search, stream and hydrate returns a tweet iterator which allows
     you to do what you want with the data. Twarc handles rate limiting in the 
     API, so it will go to sleep when Twitter tells it to, and wake back up
     when it is able to get more data from the API.
@@ -153,7 +153,7 @@ class Twarc(object):
             max_id = status["id_str"]
 
 
-    def filter(self, query):
+    def stream(self, query):
         """
         Returns an iterator for tweets that match a given filter query from
         the livestream of tweets happening right now.
@@ -171,7 +171,7 @@ class Twarc(object):
                     logging.error("json parse error: %s - %s", e, line)
 
 
-    def lookup(self, iterator):
+    def hydrate(self, iterator):
         """
         Pass in an iterator of tweet ids and get back an iterator for the 
         decoded JSON for each corresponding tweet.
@@ -210,4 +210,3 @@ class Twarc(object):
 
 if __name__ == "__main__":
     main()
-
