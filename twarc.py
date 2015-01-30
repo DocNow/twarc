@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+
 import os
 import re
 import sys
@@ -9,17 +10,14 @@ import time
 import logging
 import argparse
 import requests
+
 from requests_oauthlib import OAuth1Session
+
 
 def main():
     """
     The twarc command line.
     """
-    logging.basicConfig(
-        filename="twarc.log",
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
-    )
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument("--search", dest="search", action="store",
                         help="search for tweets matching a query")
@@ -31,8 +29,16 @@ def main():
                         help="filter current tweets")
     parser.add_argument("--hydrate", dest="hydrate", action="store",
                         help="rehydrate tweets from a file of tweet ids")
-
+    parser.add_argument("--log", dest="log", action="store",
+                        default="twarc.log", help="log file")
     args = parser.parse_args()
+
+    logging.basicConfig(
+        filename=args.log,
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
+
     t = Twarc()
 
     if args.search:
@@ -49,7 +55,28 @@ def main():
         raise argparse.ArgumentTypeError("must supply one of: --search --filter or --hydrate")
 
     for tweet in tweets:
+        logging.info("archived %s", tweet["id_str"])
         print(json.dumps(tweet))
+
+
+def rate_limit(f):
+    """
+    A decorator to handle rate limiting from the Twitter API.
+    """
+    def new_f(*args, **kwargs):
+        while True:
+            resp = f(*args, **kwargs)
+            if resp.status_code == 200:
+                return resp
+            elif resp.status_code == 429:
+                reset = int(resp.headers['x-rate-limit-reset'])
+                now = time.time()
+                seconds = reset - now + 10
+                logging.warn("rate limit exceeded: sleeping %s secs", seconds)
+                time.sleep(seconds)
+            else:
+                resp.raise_for_status()
+    return new_f
 
 
 class Twarc(object):
@@ -102,8 +129,8 @@ class Twarc(object):
                 params['since_id'] = since_id
             if max_id:
                 params['max_id'] = max_id
-            
-            resp = self.client.get(url, params=params)
+           
+            resp = self.get(url, params=params)
             statuses = resp.json()["statuses"]
 
             if len(statuses) == 0:
@@ -127,8 +154,8 @@ class Twarc(object):
         headers = {'accept-encoding': 'deflate, gzip'}
         while True:
             logging.info("connecting to filter stream for %s", query)
-            r = self.client.post(url, params, headers=headers, stream=True)
-            for line in r.iter_lines():
+            resp = self.post(url, params, headers=headers, stream=True)
+            for line in resp.iter_lines():
                 try:
                     yield json.loads(line)
                 except Exception as e:
@@ -160,10 +187,14 @@ class Twarc(object):
                 yield tweet
 
 
-    def _get_limits(self, response):
-        reset = int(response.headers['x-rate-limit-reset'])
-        remaining = int(response.headers['x-rate-limit-remaining'])
-        return reset, remaining
+    @rate_limit
+    def get(self, *args, **kwargs):
+        return self.client.get(*args, **kwargs)
+
+
+    @rate_limit
+    def post(self, *args, **kwargs):
+        return self.client.post(*args, **kwargs)
 
 
 if __name__ == "__main__":

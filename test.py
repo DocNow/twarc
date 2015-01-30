@@ -14,7 +14,7 @@ You will need to have these environment variables set to run these tests:
 
 """
 
-logging.basicConfig(filename="test.log", level=logging.DEBUG)
+logging.basicConfig(filename="test.log", level=logging.INFO)
 
 
 def test_search():
