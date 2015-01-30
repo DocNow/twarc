@@ -75,6 +75,8 @@ def rate_limit(f):
                 reset = int(resp.headers['x-rate-limit-reset'])
                 now = time.time()
                 seconds = reset - now + 10
+                if seconds < 1: 
+                    seconds = 10
                 logging.warn("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
             else:
@@ -152,7 +154,6 @@ class Twarc(object):
         Returns an iterator for tweets that match a given filter query from
         the livestream of tweets happening right now.
         """
-        logging.info("starting stream filter for %s", query)
         url = 'https://stream.twitter.com/1.1/statuses/filter.json'
         params = {"track": query}
         headers = {'accept-encoding': 'deflate, gzip'}
@@ -179,7 +180,7 @@ class Twarc(object):
             tweet_id = tweet_id.strip() # remove new line if present
             ids.append(tweet_id)
             if len(ids) == 100:
-                logging.info("hydrating %s", ids)
+                logging.info("hydrating %s ids", len(ids))
                 resp = self.post(url, data={"id": ','.join(ids)})
                 for tweet in resp.json():
                     yield tweet
