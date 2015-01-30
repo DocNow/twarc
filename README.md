@@ -151,7 +151,7 @@ Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
 
 Once you unshorten your URLs you can get a ranked list of most tweeted URLs:
     
-    % cat tweets.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
+    % cat unshortened.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
 
 ## twarc-report
 
