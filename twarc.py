@@ -39,8 +39,8 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
+    # figure out what tweets we will be iterating through
     t = Twarc()
-
     if args.search:
         tweets = t.search(
             args.search, 
@@ -54,6 +54,7 @@ def main():
     else:
         raise argparse.ArgumentTypeError("must supply one of: --search --filter or --hydrate")
 
+    # iterate through the tweets and write them to stdout
     for tweet in tweets:
         logging.info("archived %s", tweet["id_str"])
         print(json.dumps(tweet))
@@ -61,7 +62,9 @@ def main():
 
 def rate_limit(f):
     """
-    A decorator to handle rate limiting from the Twitter API.
+    A decorator to handle rate limiting from the Twitter API. If 
+    a rate limit error is encountered we will sleep until we can
+    issue the API call again.
     """
     def new_f(*args, **kwargs):
         while True:
@@ -118,6 +121,7 @@ class Twarc(object):
         Pass in a query with optional max_id and min_id and get back 
         an iterator for decoded tweets.
         """
+        logging.info("starting search for %s", q)
         url = "https://api.twitter.com/1.1/search/tweets.json"
         params = {
             "count": 100,
@@ -175,6 +179,7 @@ class Twarc(object):
             tweet_id = tweet_id.strip() # remove new line if present
             ids.append(tweet_id)
             if len(ids) == 100:
+                logging.info("hydrating %s", ids)
                 resp = self.post(url, data={"id": ','.join(ids)})
                 for tweet in resp.json():
                     yield tweet
@@ -182,6 +187,7 @@ class Twarc(object):
 
         # hydrate any remaining ones
         if len(ids) > 0:
+            logging.info("hydrating %s", ids)
             resp = self.client.post(url, data={"id": ','.join(ids)})
             for tweet in resp.json():
                 yield tweet
