@@ -19,14 +19,13 @@ When you run the exact same command again:
 
     ./archive.py ferguson /mnt/tweets/ferguson
 
-it again it will get the first tweet id in tweets-0001.json 
-and use it to write another file which includes any new tweets since that
-tweet:
+it will get the first tweet id in tweets-0001.json and use it to write another 
+file which includes any new tweets since that tweet:
 
     /mnt/tweets/ferguson/tweets-0002.json
 
-This functionality was initially part of twarc itself (not in a utility)
-maybe if it proves useful it will go back in. But for now twarc.py writes
+This functionality was initially part of twarc.py itself (not in a utility).
+If it proves useful perhaps it can go back in. But for now twarc.py writes
 to stdout to let you manage your data the way you want to.
 
 """
