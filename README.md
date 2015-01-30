@@ -5,35 +5,46 @@ twarc
 
 twarc is a command line tool and Python library for archiving Twitter JSON 
 data. Each tweet is represented as a JSON object which is exactly what was 
-returned from the Twitter API. It runs in three modes: search, filter and 
+returned from the Twitter API. It runs in three modes: search, stream and 
 hydrate. When running in each mode twarc will stop and resume activity in 
-order to respect the Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
+order to work within the Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
 
-### Search
+## Install
+
+This is an example of using twarc in search mode: 
+
+1. install [Python](http://python.org/download) and [pip](https://pip.pypa.io/en/latest/installing.html)
+1. pip install twarc
+1. create an app for your program at [apps.twitter.com](https://apps.twitter.com/)
+1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET
+for your app in your environment.
+1. twarc.py --search ferguson > tweets.json
+
+## Search
 
 When running in search mode twarc will use Twitter's [search API](https://dev.twitter.com/rest/reference/get/search/tweets) to retrieve
 tweets that match a particular query. So for example, to collect all the 
-tweets mentioning the keyword Ferguson you would:
+tweets mentioning the keyword "ferguson" you would:
 
     twarc.py --search ferguson > tweets.json
 
-This command would will walk through each page of the search results and save
-them to stdout. Twitter's search API only makes (roughly) the
-last weeks worth of Tweets available via its search API, so time is of the 
-essence if you are trying to collect tweets for something that has already 
-happened. 
+This command will walk through each page of the search results and write
+each tweet to stdout as line oriented JSON. Twitter's search API only makes 
+(roughly) the last weeks worth of Tweets available via its search API, so 
+time is of the essence if you are trying to collect tweets for something 
+that has already happened. 
 
-### Stream
+## Stream
 
 In stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
-tweets that match a particular filter. Similar to search mode twarc will save 
-the tweets to a file.
+tweets that match a particular filter. Similar to search mode twarc will write
+these tweets to stdout as line oriented JSON:
 
     twarc.py --stream ferguson > tweets.json
 
 Note the syntax for the Twitter's filter queries is slightly different than what queries in their search API. So please consult the [documentation](https://dev.twitter.com/streaming/overview/request-parameters#track) on how best to express the filter.
 
-### Hydrate
+## Hydrate
 
 The Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)
 prevent people from making large amounts of raw Twitter data available on the
@@ -47,19 +58,9 @@ research.
 
 In hydrate mode twarc will read a file of tweet identifiers and use Twitter's 
 [lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API to 
-fetch the full JSON for each tweet and output each one as line-oriented JSON:
-
+fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 
     twarc.py --hydrate ids.txt > tweets.json
-
-## Install
-
-This is an example of using twarc in search mode: 
-
-1. pip install twarc
-1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET in your environment.
-1. twarc.py --query aaronsw
-1. cat aaronsw*.json
 
 ## Use as a Library
 
@@ -107,7 +108,22 @@ For example lets say you archive some tweets mentioning "ferguson":
 
     % twarc.py --search ferguson > tweets.json
 
-Once this finishes you can create a rudimentary wall of these tweets:
+This is good for one off collecting but if you would like to periodically
+run the same search and have it only collect tweets you previously missed try
+the utils/archive.py utility:
+
+    % utils/archive.py ferguson /mnt/tweets/ferguson/
+
+This will search for tweets and write them as:
+
+    /mnt/tweets/ferguson/tweets-0001.json
+
+If you run the same command later it will write any tweets that weren't
+archived previously to:
+
+    /mnt/tweets/ferguson/tweets-0002.json
+
+When you've got some tweets you can create a rudimentary wall of them:
 
     % utils/wall.py tweets.json > tweets.html
 
@@ -147,11 +163,11 @@ If you want to remove the retweets:
 
 Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
 
-    % cat nas.json | utils/unshorten.py > ushortened.json
+    % cat tweets.json | utils/unshorten.py > ushortened.json
 
 Once you unshorten your URLs you can get a ranked list of most tweeted URLs:
     
-    % cat tweets.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
+    % cat unshortened.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
 
 ## twarc-report
 
