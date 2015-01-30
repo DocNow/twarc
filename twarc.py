@@ -175,7 +175,7 @@ class Twarc(object):
             tweet_id = tweet_id.strip() # remove new line if present
             ids.append(tweet_id)
             if len(ids) == 100:
-                resp = self.client.post(url, data={"id": ','.join(ids)})
+                resp = self.post(url, data={"id": ','.join(ids)})
                 for tweet in resp.json():
                     yield tweet
                 ids = []
