@@ -13,12 +13,12 @@ order to work within the Twitter API's [rate limits](https://dev.twitter.com/res
 
 This is an example of using twarc in search mode: 
 
+1. install [Python](http://python.org/download) and [pip](https://pip.pypa.io/en/latest/installing.html)
 1. pip install twarc
 1. create an app for your program at [apps.twitter.com](https://apps.twitter.com/)
 1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET
 for your app in your environment.
 1. twarc.py --search ferguson > tweets.json
-
 
 ## Search
 
