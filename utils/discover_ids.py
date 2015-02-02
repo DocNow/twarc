@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 """
-This is just an imperfect way of discovering tweet ids that match 
-a particular query by using the Twitter website. It isn't complete 
-or quick, and really can only be used for smallish queries.
+This is an imperfect way of discovering tweet ids that match a particular 
+query using the Twitter website. It isn't complete or quick, and really 
+can only be used for smallish queries. Once you have the tweet ids for a 
+given query you can hydrate them with twarc.py. For example:
+
+    discover_ids.py '#code4lib' > ids.txt
+    twarc.py --hydrate ids.txt > tweets.json
+
 """
 
 import re
@@ -17,16 +22,16 @@ import requests
 
 
 def main():
-    parser = argparse.ArgumentParser("scrape_tweet_ids")
+    parser = argparse.ArgumentParser("discover_ids")
     parser.add_argument("query", action="store",
                         help="tweets to search for")
     args = parser.parse_args()
 
-    logging.basicConfig(filename="scrape.log", level=logging.INFO)
-    for id in scrape_tweet_ids(args.query):
+    logging.basicConfig(filename="discover.log", level=logging.INFO)
+    for id in discover_ids(args.query):
         print id
 
-def scrape_tweet_ids(query):
+def discover_ids(query):
     cursor = None
     url = 'https://twitter.com/i/search/timeline?'
     q = {
@@ -39,7 +44,7 @@ def scrape_tweet_ids(query):
     }
 
     while True:
-        logging.info("scraping tweets with curor=%s", cursor)
+        logging.info("collecting tweet ids with cursor=%s", cursor)
         q["last_note_ts"] = calendar.timegm(time.gmtime())
         if cursor:
             q["scroll_cursor"] = cursor
@@ -49,7 +54,7 @@ def scrape_tweet_ids(query):
 
         html = s["items_html"]
         tweet_ids = re.findall(r'<a href=\"/.+/status/(\d+)', html)
-        logging.info("scraped tweet ids: %s", tweet_ids)
+        logging.info("discovered tweet ids: %s", tweet_ids)
 
         if len(tweet_ids) == 0:
             logging.debug("no more tweet ids: %s", html)
