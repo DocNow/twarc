@@ -2,9 +2,10 @@
 
 """
 This is an imperfect way of discovering tweet ids that match a particular 
-query using the Twitter website. It isn't complete or quick, and really 
-can only be used for smallish queries. Once you have the tweet ids for a 
-given query you can hydrate them with twarc.py. For example:
+query using the infinite scroll windown on Twitter's website. It doesn't 
+yield complete or quick results; so really it can only be used for smallish 
+queries. Once you have the tweet ids for a given query you can hydrate 
+them with twarc.py. For example:
 
     discover_ids.py '#code4lib' > ids.txt
     twarc.py --hydrate ids.txt > tweets.json
