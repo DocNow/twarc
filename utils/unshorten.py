@@ -55,7 +55,7 @@ def rewrite_line(line):
 def main():
     pool = multiprocessing.Pool(POOL_SIZE)
     for line in pool.imap_unordered(rewrite_line, fileinput.input()):
-        print line
+        if line != "": print line
 
 if __name__ == "__main__":
     main()
