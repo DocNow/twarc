@@ -186,7 +186,9 @@ class Twarc(object):
             if len(ids) == 100:
                 logging.info("hydrating %s ids", len(ids))
                 resp = self.post(url, data={"id": ','.join(ids)})
-                for tweet in resp.json():
+                tweets = resp.json()
+                tweets.sort(lambda a, b: cmp(a['id_str'], b['id_str']))
+                for tweet in tweets:
                     yield tweet
                 ids = []
 

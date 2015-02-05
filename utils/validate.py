@@ -12,4 +12,4 @@ for line in fileinput.input():
     try:
         tweet = json.loads(line)
     except Exception as e:
-        sys.stderr.write("uhoh, we got a problem on line: %d\n%s\n" % (line_number, e))
+        sys.stderr.write("invalid JSON (%s) line %s: %s" % (e, line_number, line))
