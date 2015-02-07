@@ -21,6 +21,9 @@ def main():
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument("--search", dest="search", action="store",
                         help="search for tweets matching a query")
+    parser.add_argument("--use", dest="usesaved", action="store", nargs="?",
+                        help="use query in file (default twarc-search.txt)", 
+			const="twarc-search.txt")
     parser.add_argument("--max_id", dest="max_id", action="store",
                         help="maximum tweet id to search for")
     parser.add_argument("--since_id", dest="since_id", action="store",
@@ -41,6 +44,9 @@ def main():
 
     # figure out what tweets we will be iterating through
     t = Twarc()
+    if args.usesaved:
+        with open (args.usesaved, "r") as twarcsearch:
+            args.search=twarcsearch.read()
     if args.search:
         tweets = t.search(
             args.search, 
@@ -52,7 +58,7 @@ def main():
     elif args.hydrate:
         tweets = t.hydrate(open(args.hydrate))
     else:
-        raise argparse.ArgumentTypeError("must supply one of: --search --stream or --hydrate")
+        raise argparse.ArgumentTypeError("must supply one of: --search --use --stream or --hydrate")
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
