@@ -81,7 +81,7 @@ def rate_limit(f):
                 time.sleep(seconds)
             elif resp.status_code == 503:
                 seconds = 60
-                logging.warn("503 from Twitter API, sleeping %s", secs)
+                logging.warn("503 from Twitter API, sleeping %s", seconds)
                 time.sleep(seconds)
             else:
                 resp.raise_for_status()
