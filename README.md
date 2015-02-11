@@ -34,6 +34,13 @@ each tweet to stdout as line oriented JSON. Twitter's search API only makes
 time is of the essence if you are trying to collect tweets for something 
 that has already happened. 
 
+You may also save the query in a text file, and load it using the --use flag:
+
+    twarc.py --use mysearch.txt > tweets.JSON
+
+Entering the --use flag without a file name will cause twarc to use "twarc-search.txt". 
+This flag is useful to keep a record of a complex query.
+
 ## Stream
 
 In stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
