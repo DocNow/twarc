@@ -65,13 +65,14 @@ fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 ## Use as a Library
 
 If you want you can use twarc programatically as a library to collect
-tweets. You first need to create a `Twarc` instance, and then use it
-to iterate through search results, filter results or lookup results.
+tweets. You first need to create a `Twarc` instance (using your Twitter 
+credentials), and then use it to iterate through search results, filter
+results or lookup results.
 
 ```python
 from twarc import Twarc
 
-t = Twarc()
+t = Twarc(client_key, client_secret, access_token, access_token_secret)
 for tweet in t.search("ferguson"):
     print(tweet["text"])
 ```
@@ -79,9 +80,6 @@ for tweet in t.search("ferguson"):
 You can do the same for a stream of new tweets:
 
 ```python
-from twarc import Twarc
-
-t = Twarc()
 for tweet in t.stream("ferguson"):
     print(tweet["text"])
 ```
@@ -90,9 +88,6 @@ Similarly you can hydrate tweet identifiers by passing in a list of ids or
 or a generator:
 
 ```python
-from twarc import Twarc
-
-t = Twarc()
 for tweet in t.hydrate(open('ids.txt')):
   print(tweet["text"])
 ```

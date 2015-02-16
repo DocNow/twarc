@@ -1,3 +1,4 @@
+import os
 import time
 import logging
 
@@ -14,12 +15,17 @@ You will need to have these environment variables set to run these tests:
 
 """
 
+consumer_key = os.environ.get('CONSUMER_KEY')
+consumer_secret = os.environ.get('CONSUMER_SECRET')
+access_token = os.environ.get('ACCESS_TOKEN')
+access_token_secret = os.environ.get("ACCESS_TOKEN_SECRET")
+t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
+
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
 
 def test_search():
     count = 0
-    t = Twarc()
     for tweet in t.search('obama'):
         assert tweet['id_str']
         count += 1
@@ -29,7 +35,6 @@ def test_search():
 
 
 def test_since_id():
-    t = Twarc()
     for tweet in t.search('obama'):
         id = tweet['id_str']
         break
@@ -40,7 +45,6 @@ def test_since_id():
 
 
 def test_max_id():
-    t = Twarc()
     for tweet in t.search('obama'):
         id = tweet['id_str']
         break
@@ -55,7 +59,6 @@ def test_max_id():
 
 
 def test_max_and_since_ids():
-    t = Twarc()
     max_id = since_id = None
     count = 0
     for tweet in t.search('obama'):
@@ -74,7 +77,6 @@ def test_max_and_since_ids():
 
 def test_paging():
     # pages are 100 tweets big so if we can get 500 paging is working
-    t = Twarc()
     count = 0
     for tweet in t.search('obama'):
         count += 1
@@ -84,7 +86,6 @@ def test_paging():
 
 
 def test_stream():
-    t = Twarc()
     count = 0
     for tweet in t.stream("obama"):
         assert tweet['id_str']
@@ -138,7 +139,6 @@ def test_hydrate():
         "501064233438568450", "501064233774510081", "501064235107897344",
         "501064235175399425", "501064235456401410",
     ]
-    t = Twarc()
     count = 0
     for tweet in t.hydrate(iter(ids)):
         assert tweet['id_str']

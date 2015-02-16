@@ -31,6 +31,14 @@ def main():
                         help="rehydrate tweets from a file of tweet ids")
     parser.add_argument("--log", dest="log", action="store",
                         default="twarc.log", help="log file")
+    parser.add_argument("--consumer_key", action="store",
+                        default=None, help="Twitter API consumer key")
+    parser.add_argument("--consumer_secret", action="store",
+                        default=None, help="Twitter API consumer secret")
+    parser.add_argument("--access_token", action="store",
+                        default=None, help="Twitter API access key")
+    parser.add_argument("--access_token_secret", action="store",
+                        default=None, help="Twitter API access token secret")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -38,9 +46,20 @@ def main():
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
+    
+    consumer_key = args.consumer_key or os.environ.get('CONSUMER_KEY')
+    consumer_secret = args.consumer_secret or os.environ.get('CONSUMER_SECRET')
+    access_token = args.access_token or os.environ.get('ACCESS_TOKEN')
+    access_token_secret = args.access_token_secret or os.environ.get("ACCESS_TOKEN_SECRET")
 
-    # figure out what tweets we will be iterating through
-    t = Twarc()
+    if not (consumer_key and consumer_secret and access_token and access_token_secret):
+        raise argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables")
+
+    t = Twarc(consumer_key=args.consumer_key,
+              consumer_secret=args.consumer_secret,
+              access_token=args.access_token,
+              access_token_secret=args.access_token_secret)
+
     if args.search:
         tweets = t.search(
             args.search, 
@@ -100,25 +119,19 @@ class Twarc(object):
     when it is able to get more data from the API.
     """
 
-    def __init__(self):
+    def __init__(self, consumer_key, consumer_secret, access_token,
+            access_token_secret):
         """
         Instantiate a Twarc instance. Make sure your environment variables
         are set.
         """
-        # TODO: allow keys to be passed in?
-        ck = os.environ.get('CONSUMER_KEY')
-        cks = os.environ.get('CONSUMER_SECRET')
-        at = os.environ.get('ACCESS_TOKEN')
-        ats = os.environ.get("ACCESS_TOKEN_SECRET")
-        if not (ck and cks and at and ats):
-            raise argparse.ArgumentTypeError("Please make sure CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables are set.")
 
         # create our http client
         self.client = OAuth1Session(
-            ck,
-            client_secret=cks,
-            resource_owner_key=at,
-            resource_owner_secret=ats
+            client_key=consumer_key,
+            client_secret=consumer_secret,
+            resource_owner_key=access_token,
+            resource_owner_secret=access_token_secret
         )
 
 
