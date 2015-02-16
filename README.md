@@ -73,7 +73,7 @@ from twarc import Twarc
 
 t = Twarc()
 for tweet in t.search("ferguson"):
-    print tweet["text"]
+    print(tweet["text"])
 ```
 
 You can do the same for a stream of new tweets:
@@ -83,7 +83,7 @@ from twarc import Twarc
 
 t = Twarc()
 for tweet in t.stream("ferguson"):
-    print tweet["text"]
+    print(tweet["text"])
 ```
 
 Similarly you can hydrate tweet identifiers by passing in a list of ids or 
@@ -94,7 +94,7 @@ from twarc import Twarc
 
 t = Twarc()
 for tweet in t.hydrate(open('ids.txt')):
-  print tweet["text"]
+  print(tweet["text"])
 ```
 
 ## Utilities

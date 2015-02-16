@@ -19,7 +19,7 @@ class PyTest(Command):
 
 setup(
     name='twarc',
-    version='0.2.0',
+    version='0.2.1',
     url='http://github.com/edsu/twarc',
     author='Ed Summers',
     author_email='ehs@pobox.com',
@@ -27,6 +27,6 @@ setup(
     scripts=['twarc.py'],
     description='command line utility to archive Twitter search results as line-oriented-json',
     cmdclass={'test': PyTest},
-    install_requires=['oauth2', 'python-dateutil', 'requests_oauthlib'],
+    install_requires=['python-dateutil', 'requests_oauthlib'],
     tests_require=['pytest']
 )
