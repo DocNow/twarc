@@ -11,20 +11,31 @@ order to work within the Twitter API's [rate limits](https://dev.twitter.com/res
 
 ## Install
 
-This is an example of using twarc in search mode: 
-
-1. install [Python](http://python.org/download) and [pip](https://pip.pypa.io/en/latest/installing.html)
+1. install [Python](http://python.org/download) (2.7 or 3.x) and [pip](https://pip.pypa.io/en/latest/installing.html)
 1. pip install twarc
-1. create an app for your program at [apps.twitter.com](https://apps.twitter.com/)
-1. set CONSUMER\_KEY, CONSUMER\_SECRET, ACCESS\_TOKEN and ACCESS\_TOKEN\_SECRET
-for your app in your environment.
-1. twarc.py --search ferguson > tweets.json
+
+## Twitter API Keys
+
+Before using twarc you will need to register an application at
+[apps.twitter.com](http://apps.twitter.com). Once you've created your
+application note down the consumer key, consumer secret and then click to 
+generate an access token and access token secret. With these four variables 
+in hand you can choose to either set the following environment variables:
+
+* CONSUMER\_KEY
+* CONSUMER\_SECRET
+* ACCESS\_TOKEN
+* ACCESS\_TOKEN\_SECRET
+
+or you can pass them in as command line arguments, e.g.
+
+    twarc.py --consumer_key foo --consumer_secret bar --access_token baz --access_token_secret bez --search ferguson
 
 ## Search
 
-When running in search mode twarc will use Twitter's [search API](https://dev.twitter.com/rest/reference/get/search/tweets) to retrieve
-tweets that match a particular query. So for example, to collect all the 
-tweets mentioning the keyword "ferguson" you would:
+When running in search mode twarc will use Twitter's [search
+API](https://dev.twitter.com/rest/reference/get/search/tweets) to retrieve as
+many tweets it can find that match a particular query. So for example, to collect all the tweets mentioning the keyword "ferguson" you would:
 
     twarc.py --search ferguson > tweets.json
 
