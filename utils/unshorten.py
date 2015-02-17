@@ -18,7 +18,6 @@ from __future__ import print_function
 import json
 import urllib
 import logging
-import urlparse
 import fileinput
 import multiprocessing
 

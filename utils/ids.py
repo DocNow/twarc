@@ -4,7 +4,6 @@ from __future__ import print_function
 import sys
 import json
 import fileinput
-import dateutil.parser
 
 for line in fileinput.input():
     try:

@@ -8,7 +8,6 @@ utils/source.py tweets.json > sources.html
 from __future__ import print_function
 import json
 import fileinput
-import pprint
 from collections import defaultdict
 
 summary = defaultdict(int)

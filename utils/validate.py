@@ -3,12 +3,11 @@
 import sys
 import json
 import fileinput
-import dateutil.parser
 
-line_number = 0                                                                                                                                                                                        
+line_number = 0
 
 for line in fileinput.input():
-    line_number += 1 
+    line_number += 1
     try:
         tweet = json.loads(line)
     except Exception as e:

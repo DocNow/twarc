@@ -13,11 +13,9 @@ utils/sort_by_id.py tweets.json > sorted.json
 """
 from __future__ import print_function
 
-import sys
 import json
 from operator import itemgetter
 import fileinput
-import dateutil.parser
 
 
 tweets = []

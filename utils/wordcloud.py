@@ -5,7 +5,6 @@ import re
 import json
 import urllib
 import fileinput
-import dateutil.parser
 
 MAX_WORDS = 200
 
