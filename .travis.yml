@@ -1,11 +1,6 @@
 python:
-- '2.6'
 - '2.7'
-- pypy
-- '3.2'
-- '3.3'
 - '3.4'
-- pypy3
 
 branches:
   only:
