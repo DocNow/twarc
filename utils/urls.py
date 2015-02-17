@@ -3,6 +3,7 @@
 """
 Print out the URLs in a tweet json stream.
 """
+from __future__ import print_function
 
 import json
 import fileinput
@@ -11,8 +12,8 @@ for line in fileinput.input():
     tweet = json.loads(line)
     for url in tweet["entities"]["urls"]:
         if 'unshortened_url' in url:
-            print url['unshortened_url'].encode('utf8')
+            print(url['unshortened_url'].encode('utf8'))
         elif "expanded_url" in url:
-            print url['expanded_url'].encode('utf8')
+            print(url['expanded_url'].encode('utf8'))
         else:
-            print url['url'].encode('utf8')
+            print(url['url'].encode('utf8'))

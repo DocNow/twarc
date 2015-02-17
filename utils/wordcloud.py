@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import re
 import json
 import urllib
@@ -36,15 +37,15 @@ words = []
 count_range = word_counts[top_words[0]] - word_counts[top_words[-1]]
 size_ratio = 100.0 / count_range
 for word in top_words:
-    size = int(word_counts[word] * size_ratio) + 15 
+    size = int(word_counts[word] * size_ratio) + 15
     words.append({
-        "text": word, 
+        "text": word,
         "size": size
     })
 
 wordcloud_js = urllib.urlopen('https://raw.githubusercontent.com/jasondavies/d3-cloud/master/d3.layout.cloud.js').read()
 
-print """<!DOCTYPE html>
+print("""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -89,4 +90,4 @@ print """<!DOCTYPE html>
 </script>
 </body>
 </html>
-""" % (wordcloud_js, json.dumps(words, indent=2))
+""" % (wordcloud_js, json.dumps(words, indent=2)))

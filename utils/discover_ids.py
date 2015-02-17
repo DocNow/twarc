@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 
 """
-This is an imperfect way of discovering tweet ids that match a particular 
-query using the infinite scroll windown on Twitter's website. It doesn't 
-yield complete or quick results; so really it can only be used for smallish 
-queries. Once you have the tweet ids for a given query you can hydrate 
+This is an imperfect way of discovering tweet ids that match a particular
+query using the infinite scroll windown on Twitter's website. It doesn't
+yield complete or quick results; so really it can only be used for smallish
+queries. Once you have the tweet ids for a given query you can hydrate
 them with twarc.py. For example:
 
     discover_ids.py '#code4lib' > ids.txt
     twarc.py --hydrate ids.txt > tweets.json
 
 """
+from __future__ import print_function
 
 import re
 import json
@@ -30,7 +31,7 @@ def main():
 
     logging.basicConfig(filename="discover.log", level=logging.INFO)
     for id in discover_ids(args.query):
-        print id
+        print(id)
 
 def discover_ids(query):
     cursor = None

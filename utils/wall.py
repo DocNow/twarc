@@ -8,6 +8,7 @@ wall in chronological order, a handy trick is:
     % tail -r tweets.json | ./wall.py > wall.html
 
 """
+from __future__ import print_function
 
 import os
 import re
@@ -33,7 +34,7 @@ def download_file(url):
     return local_filename
 
 
-print """<!doctype html>
+print("""<!doctype html>
 <html>
 
 <head>
@@ -106,7 +107,7 @@ print """<!doctype html>
   </header>
 
   <div id="tweets">
-"""
+""")
 
 # Make avatar directory
 if not os.path.isdir(AVATAR_DIR):
@@ -173,9 +174,9 @@ for line in lines:
     </article>
     """ % t
 
-    print html.encode("utf-8")
+    print(html.encode("utf-8"))
 
-print """
+print("""
 
 </div>
 
@@ -188,4 +189,4 @@ created on the command line with <a href="http://github.com/edsu/twarc">twarc</a
 </footer>
 
 </body>
-</html>"""
+</html>""")
