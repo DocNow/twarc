@@ -1,3 +1,8 @@
+#!/bin/bash
+# -e: script exits as soon as a command returns a non-zero exit code
+# -v: verbose.
+set -ev
+
 # Run the utils scripts
 
 # Output isn't verified, this is just a quick test to ensure they can run
