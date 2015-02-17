@@ -20,5 +20,3 @@ utils/sort_by_id.py tweets.json > sorted.json
 utils/filter_date.py --mindate 1-may-2014 tweets.json > filtered.json
 utils/source.py tweets.json > sources.html
 utils/noretweets.py tweets.json > tweets_noretweets.json
-cat tweets.json | utils/unshorten.py > unshortened.json
-cat unshortened.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
