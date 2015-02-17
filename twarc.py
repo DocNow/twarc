@@ -55,10 +55,10 @@ def main():
     if not (consumer_key and consumer_secret and access_token and access_token_secret):
         raise argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables")
 
-    t = Twarc(consumer_key=args.consumer_key,
-              consumer_secret=args.consumer_secret,
-              access_token=args.access_token,
-              access_token_secret=args.access_token_secret)
+    t = Twarc(consumer_key=consumer_key,
+              consumer_secret=consumer_secret,
+              access_token=access_token,
+              access_token_secret=access_token_secret)
 
     if args.search:
         tweets = t.search(
@@ -177,9 +177,9 @@ class Twarc(object):
         while True:
             logging.info("connecting to filter stream for %s", query)
             resp = self.post(url, params, headers=headers, stream=True)
-            for line in resp.iter_lines():
+            for line in resp.iter_lines(chunk_size=512):
                 try:
-                    yield json.loads(line)
+                    yield json.loads(line.decode())
                 except Exception as e:
                     logging.error("json parse error: %s - %s", e, line)
 
