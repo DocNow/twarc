@@ -3,10 +3,10 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc) [![Coverage Status](https://coveralls.io/repos/edsu/twarc/badge.png)](https://coveralls.io/r/edsu/twarc) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/edsu/twarc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-twarc is a command line tool and Python library for archiving Twitter JSON 
-data. Each tweet is represented as a JSON object that is exactly what is 
-returned from the Twitter API. It runs in three modes: search, stream and 
-hydrate. When running in each mode twarc will stop and resume activity in 
+twarc is a command line tool and Python library for archiving Twitter JSON
+data. Each tweet is represented as a JSON object that is exactly what is
+returned from the Twitter API. It runs in three modes: search, stream and
+hydrate. When running in each mode twarc will stop and resume activity in
 order to work within the Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
 
 ## Install
@@ -18,8 +18,8 @@ order to work within the Twitter API's [rate limits](https://dev.twitter.com/res
 
 Before using twarc you will need to register an application at
 [apps.twitter.com](http://apps.twitter.com). Once you've created your
-application note down the consumer key, consumer secret and then click to 
-generate an access token and access token secret. With these four variables 
+application note down the consumer key, consumer secret and then click to
+generate an access token and access token secret. With these four variables
 in hand you can choose to either set the following environment variables:
 
 * CONSUMER\_KEY
@@ -40,10 +40,10 @@ many tweets it can find that match a particular query. So for example, to collec
     twarc.py --search ferguson > tweets.json
 
 This command will walk through each page of the search results and write
-each tweet to stdout as line oriented JSON. Twitter's search API only makes 
-(roughly) the last weeks worth of Tweets available via its search API, so 
-time is of the essence if you are trying to collect tweets for something 
-that has already happened. 
+each tweet to stdout as line oriented JSON. Twitter's search API only makes
+(roughly) the last weeks worth of Tweets available via its search API, so
+time is of the essence if you are trying to collect tweets for something
+that has already happened.
 
 ## Stream
 
@@ -60,15 +60,15 @@ Note the syntax for the Twitter's filter queries is slightly different than what
 The Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)
 prevent people from making large amounts of raw Twitter data available on the
 Web. The data can be used for research and archived for local use, but not
-shared with the world. Twitter does allow files of tweet identifiers to be 
-shared, which can be useful when you would like to make a dataset of tweets 
+shared with the world. Twitter does allow files of tweet identifiers to be
+shared, which can be useful when you would like to make a dataset of tweets
 available. You can then use Twitter's API to *hydrate* the data, or to retrieve
 the full JSON for each identifier. This is particularly important for
 [verification](https://en.wikipedia.org/wiki/Reproducibility) of social media
 research.
 
-In hydrate mode twarc will read a file of tweet identifiers and use Twitter's 
-[lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API to 
+In hydrate mode twarc will read a file of tweet identifiers and use Twitter's
+[lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API to
 fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 
     twarc.py --hydrate ids.txt > tweets.json
@@ -76,7 +76,7 @@ fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 ## Use as a Library
 
 If you want you can use twarc programatically as a library to collect
-tweets. You first need to create a `Twarc` instance (using your Twitter 
+tweets. You first need to create a `Twarc` instance (using your Twitter
 credentials), and then use it to iterate through search results, filter
 results or lookup results.
 
@@ -95,7 +95,7 @@ for tweet in t.stream("ferguson"):
     print(tweet["text"])
 ```
 
-Similarly you can hydrate tweet identifiers by passing in a list of ids or 
+Similarly you can hydrate tweet identifiers by passing in a list of ids or
 or a generator:
 
 ```python
@@ -106,7 +106,7 @@ for tweet in t.hydrate(open('ids.txt')):
 ## Utilities
 
 In the utils directory there are some simple command line utilities for
-working with the line-oriented JSON, like printing out the archived tweets as 
+working with the line-oriented JSON, like printing out the archived tweets as
 text or html, extracting the usernames, referenced URLs, etc.  If you
 create a script that is handy please send a pull request.
 
@@ -169,10 +169,10 @@ If you want to remove the retweets:
 
 Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
 
-    % cat tweets.json | utils/unshorten.py > ushortened.json
+    % cat tweets.json | utils/unshorten.py > unshortened.json
 
 Once you unshorten your URLs you can get a ranked list of most tweeted URLs:
-    
+
     % cat unshortened.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
 
 ## twarc-report
@@ -180,9 +180,9 @@ Once you unshorten your URLs you can get a ranked list of most tweeted URLs:
 Some further utility scripts to generate csv or json output suitable for
 use with [D3.js](http://d3js.org/) visualizations are found in the
 [twarc-report](https://github.com/pbinkley/twarc-report) project. The
-util directed.py, formerly part of twarc, has moved to twarc-report as 
+util directed.py, formerly part of twarc, has moved to twarc-report as
 d3graph.py.
 
 Each script can also generate an html demo of a D3 visualization, e.g.
-[timelines](https://wallandbinkley.com/twarc/bill10/) or a 
+[timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
