@@ -8,12 +8,12 @@ set -ev
 # Output isn't verified, this is just a quick test to ensure they can run
 
 # First hydrate some IDs into tweets
-twarc.py --hydrate test/ids.txt > tweets.json
+python twarc.py --hydrate test/ids.txt > tweets.json
 
 # Now test utils
 utils/wall.py tweets.json > tweets.html
 utils/wordcloud.py tweets.json > wordcloud.html
-utils/gender.py --gender female tweets.json | utils/wordcloud.py > tweets-female.html
+# utils/gender.py --gender female tweets.json | utils/wordcloud.py > tweets-female.html
 utils/geojson.py tweets.json > tweets.geojson
 utils/deduplicate.py tweets.json > deduped.json
 utils/sort_by_id.py tweets.json > sorted.json
