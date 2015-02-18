@@ -28,7 +28,7 @@ for line in fileinput.input():
         if not re.match('^[a-z]', word, re.IGNORECASE): continue
         word_counts[word] = word_counts.get(word, 0) + 1
 
-sorted_words = word_counts.keys()
+sorted_words = list(word_counts.keys())
 sorted_words.sort(lambda a, b: cmp(word_counts[b], word_counts[a]))
 top_words = sorted_words[0:MAX_WORDS]
 
