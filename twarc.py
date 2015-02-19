@@ -69,7 +69,7 @@ def main():
     elif args.stream:
         tweets = t.stream(args.stream)
     elif args.hydrate:
-        tweets = t.hydrate(open(args.hydrate))
+        tweets = t.hydrate(open(args.hydrate, 'rU'))
     else:
         raise argparse.ArgumentTypeError("must supply one of: --search --stream or --hydrate")
 
