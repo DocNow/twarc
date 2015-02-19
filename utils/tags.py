@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import json
 import fileinput
@@ -18,7 +19,4 @@ tags = counts.keys()
 tags.sort(lambda a, b: cmp(counts[b], counts[a]))
 
 for tag in tags:
-    print tag.encode('utf8'), counts[tag]
-
-
-
+    print(tag.encode('utf8'), counts[tag])

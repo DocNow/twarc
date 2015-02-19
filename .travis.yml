@@ -12,7 +12,10 @@ install:
 - pip install -r requirements.txt
 - pip install coverage
 
-script: coverage run --source twarc -m py.test test.py --verbose
+script:
+- coverage run --source twarc -m py.test test.py --verbose
+- chmod +x test/test_utils.sh
+- test/test_utils.sh # no coverage yet
 
 after_success:
 - pip install coveralls

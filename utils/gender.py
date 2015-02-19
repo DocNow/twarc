@@ -3,6 +3,7 @@
 """
 filters tweets based on a guess about the users gender
 """
+from __future__ import print_function
 
 import json
 import optparse
@@ -25,8 +26,8 @@ for line in fileinput.input(args):
     first_name = name.split(" ")[0]
     gender = d.getGender(first_name)
     if options.gender == "male" and gender == MALE:
-        print line.encode('utf-8')
+        print(line.encode('utf-8'))
     elif options.gender == "female" and gender == FEMALE:
-        print line.encode('utf-8')
+        print(line.encode('utf-8'))
     elif options.gender == "unknown" and gender == ANDROGYNOUS:
-        print line.encode('utf-8')
+        print(line.encode('utf-8'))

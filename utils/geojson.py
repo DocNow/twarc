@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import json
 import fileinput
@@ -24,11 +25,11 @@ for line in fileinput.input():
                 "text": tweet["text"],
                 "profile_image_url": tweet["user"]["profile_image_url"],
                 "url": "http://twitter.com/%s/status/%s" % (
-                    tweet["user"]["screen_name"], 
+                    tweet["user"]["screen_name"],
                     tweet["id_str"],
                 )
             }
         })
 
 geojson = {"type" : "FeatureCollection", "features": features}
-print json.dumps(geojson, indent=2)
+print(json.dumps(geojson, indent=2))

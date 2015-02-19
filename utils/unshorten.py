@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 
 """
-Unfortunately the "expanded_url" as supplied by Twitter aren't fully 
+Unfortunately the "expanded_url" as supplied by Twitter aren't fully
 expanded one hop past t.co.
 
-unshorten.py will attempt to completely unshorten URLs and add them as the 
-"unshortened_url" key to each url, and emit the tweet as JSON again on stdout. 
+unshorten.py will attempt to completely unshorten URLs and add them as the
+"unshortened_url" key to each url, and emit the tweet as JSON again on stdout.
 
-This script starts 10 seaprate processes which talk to an instance of unshrtn 
+This script starts 10 seaprate processes which talk to an instance of unshrtn
 that is running.
 
     http://github.com/edsu/unshrtn
 
 """
+from __future__ import print_function
 
 import json
 import urllib
 import logging
-import urlparse
 import fileinput
 import multiprocessing
 
@@ -39,7 +39,7 @@ def rewrite_line(line):
             url = url_dict["expanded_url"]
         else:
             url = url_dict['url']
-       
+
         url = url.encode('utf8')
         u = 'http://localhost:3000/?' + urllib.urlencode({'url': url})
         try:
@@ -55,7 +55,7 @@ def rewrite_line(line):
 def main():
     pool = multiprocessing.Pool(POOL_SIZE)
     for line in pool.imap_unordered(rewrite_line, fileinput.input()):
-        if line != "\n": print line
+        if line != "\n": print(line)
 
 if __name__ == "__main__":
     main()

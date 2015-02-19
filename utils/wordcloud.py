@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import re
 import json
-import urllib
 import fileinput
-import dateutil.parser
+
+try:
+    from urllib import urlopen  # Python 2
+except ImportError:
+    from urllib.request import urlopen  # Python 3
 
 MAX_WORDS = 200
 
@@ -28,23 +32,23 @@ for line in fileinput.input():
         if not re.match('^[a-z]', word, re.IGNORECASE): continue
         word_counts[word] = word_counts.get(word, 0) + 1
 
-sorted_words = word_counts.keys()
-sorted_words.sort(lambda a, b: cmp(word_counts[b], word_counts[a]))
+sorted_words = list(word_counts.keys())
+sorted_words.sort(key = lambda x: word_counts[x], reverse=True)
 top_words = sorted_words[0:MAX_WORDS]
 
 words = []
 count_range = word_counts[top_words[0]] - word_counts[top_words[-1]]
 size_ratio = 100.0 / count_range
 for word in top_words:
-    size = int(word_counts[word] * size_ratio) + 15 
+    size = int(word_counts[word] * size_ratio) + 15
     words.append({
-        "text": word, 
+        "text": word,
         "size": size
     })
 
-wordcloud_js = urllib.urlopen('https://raw.githubusercontent.com/jasondavies/d3-cloud/master/d3.layout.cloud.js').read()
+wordcloud_js = urlopen('https://raw.githubusercontent.com/jasondavies/d3-cloud/master/d3.layout.cloud.js').read()
 
-print """<!DOCTYPE html>
+print("""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -89,4 +93,4 @@ print """<!DOCTYPE html>
 </script>
 </body>
 </html>
-""" % (wordcloud_js, json.dumps(words, indent=2))
+""" % (wordcloud_js.decode('utf-8'), json.dumps(words, indent=2)))

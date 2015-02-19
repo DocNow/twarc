@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 """
-Reads a stream of twitter data and writes out data for the top 10 retweets. 
+Reads a stream of twitter data and writes out data for the top 10 retweets.
 Use the --results option to change the number of results.
 """
+from __future__ import print_function
 
 import json
 import optparse
@@ -33,7 +34,7 @@ def main():
             min_rt = retweets[-1]['retweet_count']
 
     for rt in retweets:
-        print json.dumps(rt)
+        print(json.dumps(rt))
 
 def insert(rt, retweets, num_results):
     if len(retweets) == 0:

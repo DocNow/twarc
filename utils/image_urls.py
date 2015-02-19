@@ -6,6 +6,7 @@ Useful for piping to wget or curl to mass download. In Bash:
 
 % wget $(./utils/image_urls.py tweets.json)
 """
+from __future__ import print_function
 
 import json
 import fileinput
@@ -15,4 +16,4 @@ for line in fileinput.input():
     if 'media' in tweet['entities']:
         for media in tweet['entities']['media']:
             if media['type'] == 'photo':
-                print media['media_url']
+                print(media['media_url'])
