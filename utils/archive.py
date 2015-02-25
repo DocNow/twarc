@@ -41,25 +41,45 @@ archive_file_fmt = "tweets-%04i.json"
 archive_file_pat = "tweets-(\d{4}).json$"
 
 def main():
-    parser = argparse.ArgumentParser("search_archive")
+    e = os.environ.get
+    parser = argparse.ArgumentParser("archive")
     parser.add_argument("search", action="store",
                         help="search for tweets matching a query")
     parser.add_argument("archive_dir", action="store",
                         help="a directory where results are stored")
+    parser.add_argument("--consumer_key", action="store",
+                        default=e('CONSUMER_KEY'),
+                        help="Twitter API consumer key")
+    parser.add_argument("--consumer_secret", action="store",
+                        default=e('CONSUMER_SECRET'),
+                        help="Twitter API consumer secret")
+    parser.add_argument("--access_token", action="store",
+                        default=e('ACCESS_TOKEN'),
+                        help="Twitter API access key")
+    parser.add_argument("--access_token_secret", action="store",
+                        default=e('ACCESS_TOKEN_SECRET'),
+                        help="Twitter API access token secret")
     args = parser.parse_args()
 
     if not os.path.isdir(args.archive_dir):
         os.mkdir(args.archive_dir)
 
     logging.basicConfig(
-        filename=os.path.join(args.archive_dir, "search_archive.log"),
+        filename=os.path.join(args.archive_dir, "archive.log"),
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
+    if not (args.consumer_key and args.consumer_secret and args.access_token and
+            args.access_token_secret):
+        print argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables")
+        sys.exit(1)
+
     logging.info("logging search for %s to %s", args.search, args.archive_dir)
 
-    t = twarc.Twarc()
+    t = twarc.Twarc(args.consumer_key, args.consumer_secret, args.access_token,
+            args.access_token_secret)
+
     last_archive = get_last_archive(args.archive_dir)
     if last_archive:
         last_id = json.loads(next(open(last_archive)))['id_str']
