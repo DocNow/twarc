@@ -14,7 +14,7 @@ order to work within the Twitter API's [rate limits](https://dev.twitter.com/res
 
 ## Install
 
-1. install [Python](http://python.org/download) (2 or 3) and [pip](https://pip.pypa.io/en/latest/installing.html)
+1. install [Python](http://python.org/download) (2 or 3)
 1. pip install twarc
 
 ## Twitter API Keys
