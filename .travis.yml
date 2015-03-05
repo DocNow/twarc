@@ -8,11 +8,8 @@ branches:
 
 language: python
 
-install:
-- pip install -r requirements.txt
-- pip install coverage
-
 script:
+- pip install coverage
 - coverage run --source twarc -m python setup.py test --verbose
 - chmod +x test/test_utils.sh
 - test/test_utils.sh # no coverage yet
