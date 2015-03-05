@@ -12,23 +12,7 @@ install:
 - python setup.py install
 
 script:
-- pip install coverage
-- coverage run --source twarc -m python setup.py test --verbose
-- chmod +x test/test_utils.sh
-- test/test_utils.sh # no coverage yet
-
-after_success:
-- pip install coveralls
-- coveralls
-
-after_script:
-- coverage report
-- pip install pep8 pyflakes
-- pep8 --statistics --count *.py
-- pyflakes *.py | tee >(wc -l)
-
-after_failure:
-- cat test.log
+- python setup.py test
 
 env:
   global:
