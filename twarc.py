@@ -75,8 +75,9 @@ def main():
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
-        logging.info("archived %s", tweet["id_str"])
-        print(json.dumps(tweet))
+        if "id_str" in tweet:
+            logging.info("archived %s", tweet["id_str"])
+            print(json.dumps(tweet))
 
 
 def rate_limit(f):
