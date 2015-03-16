@@ -175,14 +175,34 @@ class Twarc(object):
         url = 'https://stream.twitter.com/1.1/statuses/filter.json'
         params = {"track": query}
         headers = {'accept-encoding': 'deflate, gzip'}
+        errors = 0
         while True:
-            logging.info("connecting to filter stream for %s", query)
-            resp = self.post(url, params, headers=headers, stream=True)
-            for line in resp.iter_lines(chunk_size=512):
-                try:
-                    yield json.loads(line.decode())
-                except Exception as e:
-                    logging.error("json parse error: %s - %s", e, line)
+            try:
+                logging.info("connecting to filter stream for %s", query)
+                resp = self.post(url, params, headers=headers, stream=True)
+                errors = 0
+                for line in resp.iter_lines(chunk_size=512):
+                    try:
+                        yield json.loads(line.decode())
+                    except Exception as e:
+                        logging.error("json parse error: %s - %s", e, line)
+            except requests.exceptions.HTTPError as e:
+                errors += 1
+                logging.error(e)
+                if e.response.status_code == 420:
+                    t = errors * 60
+                    logging.info("sleeping %s", t)
+                    time.sleep(t)
+                else:
+                    t = errors * 5
+                    logging.info("sleeping %s", t)
+                    time.sleep(t)
+            except Exception as e:
+                errors += 1
+                t = errors * 1
+                logging.error(e)
+                logging.info("sleeping %s", t)
+                time.sleep(t)
 
 
     def hydrate(self, iterator):
