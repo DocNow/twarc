@@ -1,3 +1,4 @@
+import sys
 from setuptools import setup, Command
 
 
@@ -17,6 +18,12 @@ class PyTest(Command):
         import pytest
         pytest.main("test.py")
 
+if sys.version_info[0] < 3:
+    dependencies = open('requirements/python2.txt').read().split()
+else:
+    dependencies = open('requirements/python3.txt').read().split()
+
+
 setup(
     name='twarc',
     version='0.2.3',
@@ -27,6 +34,8 @@ setup(
     scripts=['twarc.py'],
     description='command line utility to archive Twitter search results as line-oriented-json',
     cmdclass={'test': PyTest},
-    install_requires=['python-dateutil', 'requests_oauthlib'],
+    install_requires=dependencies,
     tests_require=['pytest']
 )
+
+

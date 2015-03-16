@@ -2,7 +2,6 @@ twarc
 =====
 
 [![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc) 
-[![Coverage Status](https://coveralls.io/repos/edsu/twarc/badge.png)](https://coveralls.io/r/edsu/twarc)
 [![Downloads](https://pypip.in/d/twarc/badge.png)](http://pypi.org/twarc) 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/edsu/twarc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -14,7 +13,7 @@ order to work within the Twitter API's [rate limits](https://dev.twitter.com/res
 
 ## Install
 
-1. install [Python](http://python.org/download) (2 or 3) and [pip](https://pip.pypa.io/en/latest/installing.html)
+1. install [Python](http://python.org/download) (2 or 3)
 1. pip install twarc
 
 ## Twitter API Keys

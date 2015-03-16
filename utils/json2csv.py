@@ -8,7 +8,11 @@ CSV columns. If you'd like it adjusted send a pull request!
 import sys
 import json
 import fileinput
-import unicodecsv as csv
+
+if sys.version_info[0] < 3:
+    import unicodecsv as csv
+else:
+    import csv
 
 def main():
     sheet = csv.writer(sys.stdout, encoding="utf-8")
