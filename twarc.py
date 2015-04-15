@@ -164,7 +164,7 @@ class Twarc(object):
             for status in statuses:
                 yield status
 
-            max_id = status["id_str"]
+            max_id = str(int(status["id_str"]) - 1)
 
 
     def stream(self, query):
