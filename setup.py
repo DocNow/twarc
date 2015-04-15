@@ -1,4 +1,6 @@
 import sys
+
+from os.path import join
 from setuptools import setup, Command
 
 
@@ -19,14 +21,14 @@ class PyTest(Command):
         pytest.main("test.py")
 
 if sys.version_info[0] < 3:
-    dependencies = open('requirements/python2.txt').read().split()
+    dependencies = open(join('requirements', 'python2.txt')).read().split()
 else:
-    dependencies = open('requirements/python3.txt').read().split()
+    dependencies = open(join('requirements', 'python3.txt')).read().split()
 
 
 setup(
     name='twarc',
-    version='0.2.3',
+    version='0.2.5',
     url='http://github.com/edsu/twarc',
     author='Ed Summers',
     author_email='ehs@pobox.com',
