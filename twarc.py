@@ -127,13 +127,11 @@ class Twarc(object):
         are set.
         """
 
-        # create our http client
-        self.client = OAuth1Session(
-            client_key=consumer_key,
-            client_secret=consumer_secret,
-            resource_owner_key=access_token,
-            resource_owner_secret=access_token_secret
-        )
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
+        self.access_token = access_token
+        self.access_token_secret = access_token_secret
+        self._connect()
 
 
     def search(self, q, max_id=None, since_id=None):
@@ -236,13 +234,27 @@ class Twarc(object):
 
     @rate_limit
     def get(self, *args, **kwargs):
-        return self.client.get(*args, **kwargs)
+        try:
+            return self.client.get(*args, **kwargs)
+        except requests.exceptions.ConnectionError as e:
+            logging.error("caught connection error %s", e)
+            self._connect()
+            return self.get(*args, **kwargs)
 
 
     @rate_limit
     def post(self, *args, **kwargs):
         return self.client.post(*args, **kwargs)
 
+
+    def _connect(self):
+        logging.info("creating http session")
+        self.client = OAuth1Session(
+            client_key=self.consumer_key,
+            client_secret=self.consumer_secret,
+            resource_owner_key=self.access_token,
+            resource_owner_secret=self.access_token_secret
+        )
 
 if __name__ == "__main__":
     main()
