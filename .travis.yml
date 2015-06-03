@@ -15,13 +15,13 @@ script:
 
 after_success:
 - pip install coveralls
-- coveralls
+- coveralls # send coverage to coveralls.io
 
 after_script:
-- coverage report
+- coverage report                # show coverage on cmd line
 - pip install pep8 pyflakes
-- pep8 --statistics --count *.py
-- pyflakes *.py | tee >(wc -l)
+- pep8 --statistics --count *.py # static analysis
+- pyflakes *.py | tee >(wc -l)   # static analysis
 
 after_failure:
 - cat test.log
