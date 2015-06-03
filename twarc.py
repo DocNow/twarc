@@ -7,6 +7,7 @@ import re
 import sys
 import json
 import time
+import yaml
 import logging
 import argparse
 import requests
@@ -19,26 +20,29 @@ def main():
     The twarc command line.
     """
     parser = argparse.ArgumentParser("twarc")
-    parser.add_argument("--search", dest="search", action="store",
+    parser.add_argument("--search", dest="search",
                         help="search for tweets matching a query")
-    parser.add_argument("--max_id", dest="max_id", action="store",
+    parser.add_argument("--max_id", dest="max_id",
                         help="maximum tweet id to search for")
-    parser.add_argument("--since_id", dest="since_id", action="store",
+    parser.add_argument("--since_id", dest="since_id",
                         help="smallest id to search for")
-    parser.add_argument("--stream", dest="stream", action="store",
+    parser.add_argument("--stream", dest="stream",
                         help="stream tweets matching filter")
-    parser.add_argument("--hydrate", dest="hydrate", action="store",
+    parser.add_argument("--hydrate", dest="hydrate",
                         help="rehydrate tweets from a file of tweet ids")
-    parser.add_argument("--log", dest="log", action="store",
+    parser.add_argument("--log", dest="log",
                         default="twarc.log", help="log file")
-    parser.add_argument("--consumer_key", action="store",
+    parser.add_argument("--consumer_key",
                         default=None, help="Twitter API consumer key")
-    parser.add_argument("--consumer_secret", action="store",
+    parser.add_argument("--consumer_secret",
                         default=None, help="Twitter API consumer secret")
-    parser.add_argument("--access_token", action="store",
+    parser.add_argument("--access_token",
                         default=None, help="Twitter API access key")
-    parser.add_argument("--access_token_secret", action="store",
+    parser.add_argument("--access_token_secret",
                         default=None, help="Twitter API access token secret")
+    parser.add_argument('-y', '--yaml',
+                        default='twarc.yaml',
+                        help="YAML file containing Twitter keys and secrets")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -46,14 +50,25 @@ def main():
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
-    
+
     consumer_key = args.consumer_key or os.environ.get('CONSUMER_KEY')
     consumer_secret = args.consumer_secret or os.environ.get('CONSUMER_SECRET')
     access_token = args.access_token or os.environ.get('ACCESS_TOKEN')
     access_token_secret = args.access_token_secret or os.environ.get("ACCESS_TOKEN_SECRET")
 
-    if not (consumer_key and consumer_secret and access_token and access_token_secret):
-        raise argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables")
+    if not (consumer_key and consumer_secret and
+            access_token and access_token_secret):
+        credentials = load_yaml(args.yaml)
+        if credentials:
+            consumer_key = credentials['consumer_key']
+            consumer_secret = credentials['consumer_secret']
+            access_token = credentials['access_token']
+            access_token_secret = credentials['access_token_secret']
+        else:
+            raise argparse.ArgumentTypeError("Please make sure to use command "
+                "line arguments to set the Twitter API keys or set the "
+                "CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and "
+                "ACCESS_TOKEN_SECRET environment variables or use a YAML file")
 
     t = Twarc(consumer_key=consumer_key,
               consumer_secret=consumer_secret,
@@ -62,8 +77,8 @@ def main():
 
     if args.search:
         tweets = t.search(
-            args.search, 
-            since_id=args.since_id, 
+            args.search,
+            since_id=args.since_id,
             max_id=args.max_id
         )
     elif args.stream:
@@ -80,9 +95,29 @@ def main():
             print(json.dumps(tweet))
 
 
+def load_yaml(filename):
+    """
+    File should contain:
+    consumer_key: TODO_ENTER_YOURS
+    consumer_secret: TODO_ENTER_YOURS
+    access_token: TODO_ENTER_YOURS
+    access_token_secret: TODO_ENTER_YOURS
+    """
+    if not os.path.isfile(filename):
+        return None
+    f = open(filename)
+    data = yaml.safe_load(f)
+    f.close()
+    if not data.viewkeys() >= {
+            'access_token', 'access_token',
+            'consumer_key', 'consumer_secret'}:
+        sys.exit("Twitter credentials missing from YAML: " + filename)
+    return data
+
+
 def rate_limit(f):
     """
-    A decorator to handle rate limiting from the Twitter API. If 
+    A decorator to handle rate limiting from the Twitter API. If
     a rate limit error is encountered we will sleep until we can
     issue the API call again.
     """
@@ -95,7 +130,7 @@ def rate_limit(f):
                 reset = int(resp.headers['x-rate-limit-reset'])
                 now = time.time()
                 seconds = reset - now + 10
-                if seconds < 1: 
+                if seconds < 1:
                     seconds = 10
                 logging.warn("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
@@ -112,10 +147,10 @@ class Twarc(object):
     """
     Your friendly neighborhood Twitter archiving class. Twarc allows
     you to search for existing tweets, stream live tweets that match
-    a filter query and lookup (hdyrate) a list of tweet ids. 
-    
+    a filter query and lookup (hdyrate) a list of tweet ids.
+
     Each method search, stream and hydrate returns a tweet iterator which allows
-    you to do what you want with the data. Twarc handles rate limiting in the 
+    you to do what you want with the data. Twarc handles rate limiting in the
     API, so it will go to sleep when Twitter tells it to, and wake back up
     when it is able to get more data from the API.
     """
@@ -136,7 +171,7 @@ class Twarc(object):
 
     def search(self, q, max_id=None, since_id=None):
         """
-        Pass in a query with optional max_id and min_id and get back 
+        Pass in a query with optional max_id and min_id and get back
         an iterator for decoded tweets.
         """
         logging.info("starting search for %s", q)
@@ -151,7 +186,7 @@ class Twarc(object):
                 params['since_id'] = since_id
             if max_id:
                 params['max_id'] = max_id
-           
+
             resp = self.get(url, params=params)
             statuses = resp.json()["statuses"]
 
@@ -205,7 +240,7 @@ class Twarc(object):
 
     def hydrate(self, iterator):
         """
-        Pass in an iterator of tweet ids and get back an iterator for the 
+        Pass in an iterator of tweet ids and get back an iterator for the
         decoded JSON for each corresponding tweet.
         """
         ids = []

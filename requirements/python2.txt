@@ -1,4 +1,5 @@
 pytest
+pyyaml
 python-dateutil
 requests_oauthlib
 unicodecsv
