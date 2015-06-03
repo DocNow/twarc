@@ -3,7 +3,6 @@
 from __future__ import print_function
 
 import os
-import re
 import sys
 import json
 import time
@@ -13,6 +12,13 @@ import argparse
 import requests
 
 from requests_oauthlib import OAuth1Session
+
+if sys.version_info[:2] <= (2, 7):
+    # Python 2
+    get_input = raw_input
+else:
+    # Python 3
+    get_input = input
 
 
 def main():
@@ -65,10 +71,13 @@ def main():
             access_token = credentials['access_token']
             access_token_secret = credentials['access_token_secret']
         else:
-            raise argparse.ArgumentTypeError("Please make sure to use command "
-                "line arguments to set the Twitter API keys or set the "
-                "CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and "
-                "ACCESS_TOKEN_SECRET environment variables or use a YAML file")
+            print("Please enter Twitter keys and secrets.")
+            consumer_key = get_input('Consumer key: ')
+            consumer_secret = get_input('Consumer secret: ')
+            access_token = get_input('Access_token: ')
+            access_token_secret = get_input('Access token secret: ')
+            save_keys(consumer_key, consumer_secret,
+                      access_token, access_token_secret)
 
     t = Twarc(consumer_key=consumer_key,
               consumer_secret=consumer_secret,
@@ -113,6 +122,30 @@ def load_yaml(filename):
             'consumer_key', 'consumer_secret'}:
         sys.exit("Twitter credentials missing from YAML: " + filename)
     return data
+
+
+def save_yaml(filename, data):
+    """
+    Save data to filename in YAML format
+    """
+    with open(filename, 'w') as yaml_file:
+        yaml_file.write(yaml.safe_dump(data, default_flow_style=False))
+
+
+def save_keys(consumer_key, consumer_secret,
+              access_token, access_token_secret):
+    """
+    Save keys to ~/.twarc.yaml
+    """
+    credentials = {'consumer_key': consumer_key,
+                   'consumer_secret': consumer_secret,
+                   'access_token': access_token,
+                   'access_token_secret': access_token_secret
+                   }
+    home = os.path.expanduser("~")
+    filename = os.path.join(home, ".twarc.yaml")
+    save_yaml(filename, credentials)
+    print("Keys saved to", filename)
 
 
 def rate_limit(f):
