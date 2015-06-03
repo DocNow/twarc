@@ -47,7 +47,7 @@ def main():
     parser.add_argument("--access_token_secret",
                         default=None, help="Twitter API access token secret")
     parser.add_argument('-y', '--yaml',
-                        default='twarc.yaml',
+                        default=default_yaml_filename(),
                         help="YAML file containing Twitter keys and secrets")
     args = parser.parse_args()
 
@@ -95,7 +95,8 @@ def main():
     elif args.hydrate:
         tweets = t.hydrate(open(args.hydrate, 'rU'))
     else:
-        raise argparse.ArgumentTypeError("must supply one of: --search --stream or --hydrate")
+        raise argparse.ArgumentTypeError(
+            "must supply one of: --search --stream or --hydrate")
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
@@ -132,6 +133,14 @@ def save_yaml(filename, data):
         yaml_file.write(yaml.safe_dump(data, default_flow_style=False))
 
 
+def default_yaml_filename():
+    """
+    Return the default YAML filename for storing Twitter keys.
+    """
+    home = os.path.expanduser("~")
+    return os.path.join(home, ".twarc.yaml")
+
+
 def save_keys(consumer_key, consumer_secret,
               access_token, access_token_secret):
     """
@@ -142,8 +151,7 @@ def save_keys(consumer_key, consumer_secret,
                    'access_token': access_token,
                    'access_token_secret': access_token_secret
                    }
-    home = os.path.expanduser("~")
-    filename = os.path.join(home, ".twarc.yaml")
+    filename = default_yaml_filename()
     save_yaml(filename, credentials)
     print("Keys saved to", filename)
 
@@ -182,14 +190,14 @@ class Twarc(object):
     you to search for existing tweets, stream live tweets that match
     a filter query and lookup (hdyrate) a list of tweet ids.
 
-    Each method search, stream and hydrate returns a tweet iterator which allows
-    you to do what you want with the data. Twarc handles rate limiting in the
-    API, so it will go to sleep when Twitter tells it to, and wake back up
-    when it is able to get more data from the API.
+    Each method search, stream and hydrate returns a tweet iterator which
+    allows you to do what you want with the data. Twarc handles rate limiting
+    in the API, so it will go to sleep when Twitter tells it to, and wake back
+    up when it is able to get more data from the API.
     """
 
     def __init__(self, consumer_key, consumer_secret, access_token,
-            access_token_secret):
+                 access_token_secret):
         """
         Instantiate a Twarc instance. Make sure your environment variables
         are set.
@@ -200,7 +208,6 @@ class Twarc(object):
         self.access_token = access_token
         self.access_token_secret = access_token_secret
         self._connect()
-
 
     def search(self, q, max_id=None, since_id=None):
         """
@@ -231,7 +238,6 @@ class Twarc(object):
                 yield status
 
             max_id = str(int(status["id_str"]) - 1)
-
 
     def stream(self, query):
         """
@@ -270,7 +276,6 @@ class Twarc(object):
                 logging.info("sleeping %s", t)
                 time.sleep(t)
 
-
     def hydrate(self, iterator):
         """
         Pass in an iterator of tweet ids and get back an iterator for the
@@ -281,7 +286,7 @@ class Twarc(object):
 
         # lookup 100 tweets at a time
         for tweet_id in iterator:
-            tweet_id = tweet_id.strip() # remove new line if present
+            tweet_id = tweet_id.strip()  # remove new line if present
             ids.append(tweet_id)
             if len(ids) == 100:
                 logging.info("hydrating %s ids", len(ids))
@@ -299,7 +304,6 @@ class Twarc(object):
             for tweet in resp.json():
                 yield tweet
 
-
     @rate_limit
     def get(self, *args, **kwargs):
         try:
@@ -309,11 +313,9 @@ class Twarc(object):
             self._connect()
             return self.get(*args, **kwargs)
 
-
     @rate_limit
     def post(self, *args, **kwargs):
         return self.client.post(*args, **kwargs)
-
 
     def _connect(self):
         logging.info("creating http session")
