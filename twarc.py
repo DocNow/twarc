@@ -2,14 +2,15 @@
 
 from __future__ import print_function
 
+import io
 import os
 import sys
 import json
 import time
-import yaml
 import logging
 import argparse
 import requests
+import ConfigParser
 
 from requests_oauthlib import OAuth1Session
 
@@ -46,9 +47,9 @@ def main():
                         default=None, help="Twitter API access key")
     parser.add_argument("--access_token_secret",
                         default=None, help="Twitter API access token secret")
-    parser.add_argument('-y', '--yaml',
-                        default=default_yaml_filename(),
-                        help="YAML file containing Twitter keys and secrets")
+    parser.add_argument('-i', '--ini',
+                        default=default_config_filename(),
+                        help="Config file containing Twitter keys and secrets")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -64,7 +65,7 @@ def main():
 
     if not (consumer_key and consumer_secret and
             access_token and access_token_secret):
-        credentials = load_yaml(args.yaml)
+        credentials = load_config(args.ini)
         if credentials:
             consumer_key = credentials['consumer_key']
             consumer_secret = credentials['consumer_secret']
@@ -105,54 +106,70 @@ def main():
             print(json.dumps(tweet))
 
 
-def load_yaml(filename):
+def load_config(filename):
     """
     File should contain:
-    consumer_key: TODO_ENTER_YOURS
-    consumer_secret: TODO_ENTER_YOURS
-    access_token: TODO_ENTER_YOURS
-    access_token_secret: TODO_ENTER_YOURS
+    [twarc]
+    consumer_key=TODO_ENTER_YOURS
+    consumer_secret=TODO_ENTER_YOURS
+    access_token=TODO_ENTER_YOURS
+    access_token_secret=TODO_ENTER_YOURS
     """
     if not os.path.isfile(filename):
         return None
-    f = open(filename)
-    data = yaml.safe_load(f)
-    f.close()
+
+    config = ConfigParser.ConfigParser()
+    config.read(filename)
+
+    section = "twarc"
+    data = {}
+    for option in config.options(section):
+        try:
+            data[option] = config.get(section, option)
+        except:
+            data[option] = None
+
     if not data.viewkeys() >= {
             'access_token', 'access_token',
             'consumer_key', 'consumer_secret'}:
-        sys.exit("Twitter credentials missing from YAML: " + filename)
+        sys.exit("Twitter credentials missing from config: " + filename)
     return data
 
 
-def save_yaml(filename, data):
+def save_config(filename,
+                consumer_key, consumer_secret,
+                access_token, access_token_secret):
     """
     Save data to filename in YAML format
     """
-    with open(filename, 'w') as yaml_file:
-        yaml_file.write(yaml.safe_dump(data, default_flow_style=False))
+    section = "twarc"
+    config = ConfigParser.ConfigParser()
+    config.add_section(section)
+    config.set(section, 'consumer_key', consumer_key)
+    config.set(section, 'consumer_secret', consumer_secret)
+    config.set(section, 'access_token', access_token)
+    config.set(section, 'access_token_secret', access_token_secret)
+    with open(filename, 'w') as config_file:
+        config.write(config_file)
 
 
-def default_yaml_filename():
+def default_config_filename():
     """
-    Return the default YAML filename for storing Twitter keys.
+    Return the default filename for storing Twitter keys.
     """
     home = os.path.expanduser("~")
-    return os.path.join(home, ".twarc.yaml")
+    return os.path.join(home, ".twarc.ini")
 
 
 def save_keys(consumer_key, consumer_secret,
               access_token, access_token_secret):
     """
-    Save keys to ~/.twarc.yaml
+    Save keys to ~/.twarc.ini
     """
-    credentials = {'consumer_key': consumer_key,
-                   'consumer_secret': consumer_secret,
-                   'access_token': access_token,
-                   'access_token_secret': access_token_secret
-                   }
-    filename = default_yaml_filename()
-    save_yaml(filename, credentials)
+    filename = default_config_filename()
+    save_config(filename,
+                consumer_key, consumer_secret,
+                access_token, access_token_secret)
     print("Keys saved to", filename)
 
 
