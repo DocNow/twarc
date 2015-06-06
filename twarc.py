@@ -10,9 +10,13 @@ import time
 import logging
 import argparse
 import requests
-import ConfigParser
 
 from requests_oauthlib import OAuth1Session
+
+try:
+    import configparser  # Python 3
+except ImportError:
+    import ConfigParser as configparser  # Python 2
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -118,7 +122,7 @@ def load_config(filename):
     if not os.path.isfile(filename):
         return None
 
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(filename)
 
     section = "twarc"
@@ -143,7 +147,7 @@ def save_config(filename,
     Save data to filename in YAML format
     """
     section = "twarc"
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.add_section(section)
     config.set(section, 'consumer_key', consumer_key)
     config.set(section, 'consumer_secret', consumer_secret)
