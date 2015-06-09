@@ -51,7 +51,7 @@ def main():
                         default=None, help="Twitter API access key")
     parser.add_argument("--access_token_secret",
                         default=None, help="Twitter API access token secret")
-    parser.add_argument('-i', '--ini',
+    parser.add_argument('-c', '--config',
                         default=default_config_filename(),
                         help="Config file containing Twitter keys and secrets")
     args = parser.parse_args()
@@ -69,7 +69,7 @@ def main():
 
     if not (consumer_key and consumer_secret and
             access_token and access_token_secret):
-        credentials = load_config(args.ini)
+        credentials = load_config(args.config)
         if credentials:
             consumer_key = credentials['consumer_key']
             consumer_secret = credentials['consumer_secret']
@@ -113,7 +113,7 @@ def main():
 def load_config(filename):
     """
     File should contain:
-    [twarc]
+    [default]
     consumer_key=TODO_ENTER_YOURS
     consumer_secret=TODO_ENTER_YOURS
     access_token=TODO_ENTER_YOURS
@@ -125,7 +125,7 @@ def load_config(filename):
     config = configparser.ConfigParser()
     config.read(filename)
 
-    section = "twarc"
+    section = "default"
     data = {}
     for option in config.options(section):
         try:
@@ -133,10 +133,9 @@ def load_config(filename):
         except:
             data[option] = None
 
-    if not data.viewkeys() >= {
-            'access_token', 'access_token',
-            'consumer_key', 'consumer_secret'}:
-        sys.exit("Twitter credentials missing from config: " + filename)
+    for key in ['access_token', 'access_token', 'consumer_key', 'consumer_secret']:
+        if not key in data:
+            sys.exit("Twitter credentials for %s missing from config %s " % (key, filename))
     return data
 
 
@@ -146,7 +145,7 @@ def save_config(filename,
     """
     Save data to filename in YAML format
     """
-    section = "twarc"
+    section = "default"
     config = configparser.ConfigParser()
     config.add_section(section)
     config.set(section, 'consumer_key', consumer_key)
@@ -162,13 +161,13 @@ def default_config_filename():
     Return the default filename for storing Twitter keys.
     """
     home = os.path.expanduser("~")
-    return os.path.join(home, ".twarc.ini")
+    return os.path.join(home, ".twarc")
 
 
 def save_keys(consumer_key, consumer_secret,
               access_token, access_token_secret):
     """
-    Save keys to ~/.twarc.ini
+    Save keys to ~/.twarc
     """
     filename = default_config_filename()
     save_config(filename,
