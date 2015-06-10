@@ -26,9 +26,9 @@ generate an access token and access token secret. With these four variables
 in hand you are ready to start using twarc. 
 
 The first time you run twarc it will prompt you for these keys and store them 
-in a .twarc file in your home directory. Sometimes it can be handy to store
+in a `.twarc` file in your home directory. Sometimes it can be handy to store
 multiple authorization keys for different Twitter accounts in your config
-file.  So if you can have multiple profiles to your .twarc file, for 
+file.  So if you can have multiple profiles to your `.twarc` file, for 
 example:
 
     [main]
