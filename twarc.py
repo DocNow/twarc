@@ -54,6 +54,8 @@ def main():
     parser.add_argument('-c', '--config',
                         default=default_config_filename(),
                         help="Config file containing Twitter keys and secrets")
+    parser.add_argument('-p', '--profile', default='main',
+                        help="Name of a profile in your configuration file")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -69,19 +71,19 @@ def main():
 
     if not (consumer_key and consumer_secret and
             access_token and access_token_secret):
-        credentials = load_config(args.config)
+        credentials = load_config(args.config, args.profile)
         if credentials:
             consumer_key = credentials['consumer_key']
             consumer_secret = credentials['consumer_secret']
             access_token = credentials['access_token']
             access_token_secret = credentials['access_token_secret']
         else:
-            print("Please enter Twitter keys and secrets.")
-            consumer_key = get_input('Consumer key: ')
-            consumer_secret = get_input('Consumer secret: ')
-            access_token = get_input('Access_token: ')
-            access_token_secret = get_input('Access token secret: ')
-            save_keys(consumer_key, consumer_secret,
+            print("Please enter Twitter authentication credentials")
+            consumer_key = get_input('consumer key: ')
+            consumer_secret = get_input('consumer secret: ')
+            access_token = get_input('access_token: ')
+            access_token_secret = get_input('access token secret: ')
+            save_keys(args.profile, consumer_key, consumer_secret,
                       access_token, access_token_secret)
 
     t = Twarc(consumer_key=consumer_key,
@@ -110,48 +112,31 @@ def main():
             print(json.dumps(tweet))
 
 
-def load_config(filename):
-    """
-    File should contain:
-    [default]
-    consumer_key=TODO_ENTER_YOURS
-    consumer_secret=TODO_ENTER_YOURS
-    access_token=TODO_ENTER_YOURS
-    access_token_secret=TODO_ENTER_YOURS
-    """
+def load_config(filename, profile):
     if not os.path.isfile(filename):
         return None
-
     config = configparser.ConfigParser()
     config.read(filename)
-
-    section = "default"
     data = {}
-    for option in config.options(section):
+    for key in ['access_token', 'access_token_secret', 'consumer_key', 'consumer_secret']:
         try:
-            data[option] = config.get(section, option)
-        except:
-            data[option] = None
-
-    for key in ['access_token', 'access_token', 'consumer_key', 'consumer_secret']:
-        if not key in data:
-            sys.exit("Twitter credentials for %s missing from config %s " % (key, filename))
+            data[key] = config.get(profile, key)
+        except configparser.NoSectionError:
+            sys.exit("no such profile %s in %s" % (profile, filename))
+        except configparser.NoOptionError:
+            sys.exit("missing %s from profile %s in %s" % (key, profile, filename))
     return data
 
 
-def save_config(filename,
+def save_config(filename, profile,
                 consumer_key, consumer_secret,
                 access_token, access_token_secret):
-    """
-    Save data to filename in YAML format
-    """
-    section = "default"
     config = configparser.ConfigParser()
-    config.add_section(section)
-    config.set(section, 'consumer_key', consumer_key)
-    config.set(section, 'consumer_secret', consumer_secret)
-    config.set(section, 'access_token', access_token)
-    config.set(section, 'access_token_secret', access_token_secret)
+    config.add_section(profile)
+    config.set(profile, 'consumer_key', consumer_key)
+    config.set(profile, 'consumer_secret', consumer_secret)
+    config.set(profile, 'access_token', access_token)
+    config.set(profile, 'access_token_secret', access_token_secret)
     with open(filename, 'w') as config_file:
         config.write(config_file)
 
@@ -164,13 +149,13 @@ def default_config_filename():
     return os.path.join(home, ".twarc")
 
 
-def save_keys(consumer_key, consumer_secret,
+def save_keys(profile, consumer_key, consumer_secret,
               access_token, access_token_secret):
     """
     Save keys to ~/.twarc
     """
     filename = default_config_filename()
-    save_config(filename,
+    save_config(filename, profile,
                 consumer_key, consumer_secret,
                 access_token, access_token_secret)
     print("Keys saved to", filename)

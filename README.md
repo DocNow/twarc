@@ -21,16 +21,41 @@ order to work within the Twitter API's [rate limits](https://dev.twitter.com/res
 
 Before using twarc you will need to register an application at
 [apps.twitter.com](http://apps.twitter.com). Once you've created your
-application note down the consumer key, consumer secret and then click to
+application, note down the consumer key, consumer secret and then click to
 generate an access token and access token secret. With these four variables
-in hand you can choose to either set the following environment variables:
+in hand you are ready to start using twarc. 
+
+The first time you run twarc it will prompt you for these keys and store them 
+in a .twarc file in your home directory. Sometimes it can be handy to store
+multiple authorization keys for different Twitter accounts in your config
+file.  So if you can have multiple profiles to your .twarc file, for 
+example:
+
+    [main]
+    consumer_key=lksdfljklksdjf
+    consumer_secret=lkjsdflkjsdlkfj
+    access_token=lkslksjksljk3039jklj
+    access_token_secret=lksdjfljsdkjfsdlkfj 
+
+    [another]
+    consumer_key=lkjsdflsj
+    consumer_secret=lkjsdflkj
+    access_token=lkjsdflkjsdflkjj
+    access_token_secret=lkjsdflkjsdflkj
+
+You then use the other profile with the `--profile` option:
+
+    twarc.py --profile another --search ferguson
+
+twarc will also look for authentication keys in the environment if you 
+would prefer to set them there using the following names:
 
 * CONSUMER\_KEY
 * CONSUMER\_SECRET
 * ACCESS\_TOKEN
 * ACCESS\_TOKEN\_SECRET
 
-or you can pass them in as command line arguments, e.g.
+And finally you can pass the authorization keys as arguments to twarc:
 
     twarc.py --consumer_key foo --consumer_secret bar --access_token baz --access_token_secret bez --search ferguson
 
