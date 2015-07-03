@@ -320,7 +320,12 @@ class Twarc(object):
 
     @rate_limit
     def post(self, *args, **kwargs):
-        return self.client.post(*args, **kwargs)
+        try:
+            return self.client.post(*args, **kwargs)
+        except requests.exceptions.ConnectionError as e:
+            logging.error("caught connection error %s", e)
+            self._connect()
+            return self.post(*args, **kwargs)
 
     def _connect(self):
         logging.info("creating http session")
