@@ -32,6 +32,7 @@ to stdout to let you manage your data the way you want to.
 
 import os
 import re
+import sys
 import json
 import twarc
 import logging
@@ -59,6 +60,10 @@ def main():
     parser.add_argument("--access_token_secret", action="store",
                         default=e('ACCESS_TOKEN_SECRET'),
                         help="Twitter API access token secret")
+    parser.add_argument("--profile", action="store", default="main")
+    parser.add_argument('-c', '--config',
+                        default=twarc.default_config_filename(),
+                        help="Config file containing Twitter keys and secrets")
     args = parser.parse_args()
 
     if not os.path.isdir(args.archive_dir):
@@ -70,10 +75,16 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    if not (args.consumer_key and args.consumer_secret and args.access_token and
-            args.access_token_secret):
-        print argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables")
-        sys.exit(1)
+    if not (args.consumer_key and args.consumer_secret and args.access_token and args.access_token_secret):
+        credentials = twarc.load_config(args.config, args.profile)
+        if credentials:
+            args.consumer_key = credentials['consumer_key']
+            args.consumer_secret = credentials['consumer_secret']
+            args.access_token = credentials['access_token']
+            args.access_token_secret = credentials['access_token_secret']
+        else:
+            print argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables")
+            sys.exit(1)
 
     logging.info("logging search for %s to %s", args.search, args.archive_dir)
 
