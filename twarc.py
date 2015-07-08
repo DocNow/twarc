@@ -189,6 +189,25 @@ def rate_limit(f):
     return new_f
 
 
+def catch_conn_reset(f):
+    """
+    A decorator to handle connection reset errors even ones from pyOpenSSL
+    until https://github.com/edsu/twarc/issues/72 is resolved
+    """
+    try:
+        import OpenSSL
+        ConnectionError = OpenSSL.SSL.SysCallError
+    except:
+        ConnectionError = requests.exceptions.ConnectionError
+    def new_f(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except ConnectionError:
+            self._connect()
+            return f(self, *args, **kwargs)
+    return new_f
+
+
 class Twarc(object):
     """
     Your friendly neighborhood Twitter archiving class. Twarc allows
@@ -310,6 +329,7 @@ class Twarc(object):
                 yield tweet
 
     @rate_limit
+    @catch_conn_reset
     def get(self, *args, **kwargs):
         try:
             return self.client.get(*args, **kwargs)
@@ -319,6 +339,7 @@ class Twarc(object):
             return self.get(*args, **kwargs)
 
     @rate_limit
+    @catch_conn_reset
     def post(self, *args, **kwargs):
         try:
             return self.client.post(*args, **kwargs)
