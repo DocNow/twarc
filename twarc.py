@@ -259,6 +259,9 @@ class Twarc(object):
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
+                    # ignore keep alives
+                    if line == "": 
+                        continue
                     try:
                         yield json.loads(line.decode())
                     except Exception as e:
