@@ -335,7 +335,12 @@ class Twarc(object):
     @catch_conn_reset
     def get(self, *args, **kwargs):
         try:
-            return self.client.get(*args, **kwargs)
+            r = self.client.get(*args, **kwargs)
+            if r.status_code == 404:
+                logging.warn("404 from Twitter API! trying again")
+                time.sleep(1)
+                r = self.get(*args, **kwargs)
+            return r
         except requests.exceptions.ConnectionError as e:
             logging.error("caught connection error %s", e)
             self._connect()
