@@ -6,10 +6,11 @@ twarc
 [![DOI](https://zenodo.org/badge/12737/edsu/twarc.svg)](http://dx.doi.org/10.5281/zenodo.17385)
 
 twarc is a command line tool and Python library for archiving Twitter JSON
-data. Each tweet is represented as a JSON object that is exactly what is
-returned from the Twitter API. It runs in three modes: search, stream and
-hydrate. When running in each mode twarc will stop and resume activity in
-order to work within the Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
+data. Each tweet is represented as a JSON object that is exactly what was 
+returned from the Twitter API. Tweets are stored as line-oriented JSON. It 
+twarc runs in three modes: search, stream and hydrate. When running in each 
+mode twarc will stop and resume activity in order to work within the Twitter 
+API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
 
 ## Install
 
