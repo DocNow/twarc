@@ -128,7 +128,7 @@ or a generator:
 
 ```python
 for tweet in t.hydrate(open('ids.txt')):
-  print(tweet["text"])
+    print(tweet["text"])
 ```
 
 ## Utilities
