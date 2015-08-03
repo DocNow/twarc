@@ -336,6 +336,8 @@ class Twarc(object):
     def get(self, *args, **kwargs):
         try:
             r = self.client.get(*args, **kwargs)
+            # this has been noticed, believe it or not
+            # https://github.com/edsu/twarc/issues/75
             if r.status_code == 404:
                 logging.warn("404 from Twitter API! trying again")
                 time.sleep(1)
