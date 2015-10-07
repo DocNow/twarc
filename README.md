@@ -151,25 +151,6 @@ working with the line-oriented JSON, like printing out the archived tweets as
 text or html, extracting the usernames, referenced URLs, etc.  If you
 create a script that is handy please send a pull request.
 
-For example lets say you archive some tweets mentioning "ferguson":
-
-    % twarc.py --search ferguson > tweets.json
-
-This is good for one off collecting but if you would like to periodically
-run the same search and have it only collect tweets you previously missed try
-the utils/archive.py utility:
-
-    % utils/archive.py ferguson /mnt/tweets/ferguson/
-
-This will search for tweets and write them as:
-
-    /mnt/tweets/ferguson/tweets-0001.json
-
-If you run the same command later it will write any tweets that weren't
-archived previously to:
-
-    /mnt/tweets/ferguson/tweets-0002.json
-
 When you've got some tweets you can create a rudimentary wall of them:
 
     % utils/wall.py tweets.json > tweets.html
