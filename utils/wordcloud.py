@@ -46,7 +46,7 @@ for word in top_words:
         "size": size
     })
 
-wordcloud_js = urlopen('https://raw.githubusercontent.com/jasondavies/d3-cloud/master/d3.layout.cloud.js').read()
+wordcloud_js = urlopen('https://raw.githubusercontent.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js').read()
 
 print("""<!DOCTYPE html>
 <html>
