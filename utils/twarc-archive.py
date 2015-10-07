@@ -8,7 +8,7 @@ searching.
 So for example if you want to search for tweets mentioning "ferguson" you can 
 run it:
 
-    ./archive.py ferguson /mnt/tweets/ferguson
+    % twarc-archive.py ferguson /mnt/tweets/ferguson
 
 The first time you run this it will search twitter for tweets matching 
 "ferguson" and write them to a file:
@@ -17,16 +17,15 @@ The first time you run this it will search twitter for tweets matching
 
 When you run the exact same command again:
 
-    ./archive.py ferguson /mnt/tweets/ferguson
+    % twarc-archive.py ferguson /mnt/tweets/ferguson
 
 it will get the first tweet id in tweets-0001.json and use it to write another 
 file which includes any new tweets since that tweet:
 
     /mnt/tweets/ferguson/tweets-0002.json
 
-This functionality was initially part of twarc.py itself (not in a utility).
-If it proves useful perhaps it can go back in. But for now twarc.py writes
-to stdout to let you manage your data the way you want to.
+This functionality was initially part of twarc.py itself, but has been split out
+into a separate utility.
 
 """
 

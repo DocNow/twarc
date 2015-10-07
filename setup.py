@@ -28,12 +28,12 @@ else:
 
 setup(
     name='twarc',
-    version='0.3.3',
+    version='0.3.4',
     url='http://github.com/edsu/twarc',
     author='Ed Summers',
     author_email='ehs@pobox.com',
     py_modules=['twarc', ],
-    scripts=['twarc.py'],
+    scripts=['twarc.py', 'utils/twarc-archive.py'],
     description='command line utility to archive Twitter search results as line-oriented-json',
     cmdclass={'test': PyTest},
     install_requires=dependencies,

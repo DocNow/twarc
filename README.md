@@ -101,6 +101,19 @@ fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 
     twarc.py --hydrate ids.txt > tweets.json
 
+## Archive
+
+In addition to `twarc.py` when you install twarc you will also get a
+`twarc-archive.py` command line tool. This uses twarc as a library to
+periodically collect data matching a particular search query. It's useful if you
+don't necessarily want to collect tweets as they happen with the streaming
+api, and are content to perhaps run it every day (perhaps) from cron to collect
+what you can. The script will keep the files organized, and is smart enough to
+use the most recent file to determine when it can stop collecting so there are
+no duplicates.
+
+    twarc-archive.py 
+
 ## Use as a Library
 
 If you want you can use twarc programatically as a library to collect
