@@ -10,7 +10,7 @@ from dateutil import tz
 
 opt_parser = optparse.OptionParser(usage="geojson.py [options] filename")
 opt_parser.add_option("-f", "--format-time", action="store_true", dest="format_time",
-		        help="Format 'created_at' time as Y-%m-%d %H:%M:%S. Or pass -c option with a custom format")
+		        help="Format 'created_at' time as Y-%m-%d %H:%M:%S. Additionally, you pass '-c' with a custom format")
 opt_parser.add_option("-c", "--custom-format", dest="custom_format",
 		        default='%Y-%m-%d %H:%M:%S', help="Custom format to use for'created_at' time")
 
@@ -53,6 +53,3 @@ for line in fileinput.input(sys.argv[-1]):
 
 geojson = {"type" : "FeatureCollection", "features": features}
 print(json.dumps(geojson, indent=2))
-
-
-
