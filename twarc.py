@@ -233,10 +233,10 @@ class Twarc(object):
         self.access_token_secret = access_token_secret
         self._connect()
 
-    def search(self, q, max_id=None, since_id=None):
+    def search(self, q, max_id=None, since_id=None, lang=None):
         """
-        Pass in a query with optional max_id and min_id and get back
-        an iterator for decoded tweets.
+        Pass in a query with optional max_id, min_id and lang and get
+        back an iterator for decoded tweets.
         """
         logging.info("starting search for %s", q)
         url = "https://api.twitter.com/1.1/search/tweets.json"
@@ -244,6 +244,8 @@ class Twarc(object):
             "count": 100,
             "q": q
         }
+        if lang is not None:
+            params['lang'] = lang
 
         while True:
             if since_id:
