@@ -37,8 +37,10 @@ def main():
                         help="maximum tweet id to search for")
     parser.add_argument("--since_id", dest="since_id",
                         help="smallest id to search for")
+    parser.add_argument("--lang", dest="lang",
+                        help="limit to ISO 639-1 language code"),
     parser.add_argument("--stream", dest="stream",
-                        help="stream tweets matching filter")
+                        help="stream tweets matching track filter")
     parser.add_argument("--hydrate", dest="hydrate",
                         help="rehydrate tweets from a file of tweet ids")
     parser.add_argument("--log", dest="log",
@@ -95,7 +97,8 @@ def main():
         tweets = t.search(
             args.search,
             since_id=args.since_id,
-            max_id=args.max_id
+            max_id=args.max_id,
+            lang=args.lang
         )
     elif args.stream:
         tweets = t.stream(args.stream)
@@ -235,7 +238,7 @@ class Twarc(object):
 
     def search(self, q, max_id=None, since_id=None, lang=None):
         """
-        Pass in a query with optional max_id, min_id and lang and get
+        Pass in a query with optional max_id, min_id or lang and get
         back an iterator for decoded tweets.
         """
         logging.info("starting search for %s", q)
@@ -265,18 +268,18 @@ class Twarc(object):
 
             max_id = str(int(status["id_str"]) - 1)
 
-    def stream(self, query):
+    def stream(self, track):
         """
-        Returns an iterator for tweets that match a given filter query from
+        Returns an iterator for tweets that match a given filter track from
         the livestream of tweets happening right now.
         """
         url = 'https://stream.twitter.com/1.1/statuses/filter.json'
-        params = {"track": query}
+        params = {"track": track}
         headers = {'accept-encoding': 'deflate, gzip'}
         errors = 0
         while True:
             try:
-                logging.info("connecting to filter stream for %s", query)
+                logging.info("connecting to filter stream for %s", track)
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
