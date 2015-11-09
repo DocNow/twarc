@@ -58,6 +58,9 @@ def main():
                         help="Config file containing Twitter keys and secrets")
     parser.add_argument('-p', '--profile', default='main',
                         help="Name of a profile in your configuration file")
+    parser.add_argument('-w', '--warnings', action='store_true', 
+                        help="Include warning messages in output")
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -110,9 +113,20 @@ def main():
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
-        if "id_str" in tweet:
-            logging.info("archived %s", tweet["id_str"])
+        
+        # include warnings in output only if they asked for it
+        if 'id_str' in tweet or args.warnings:
             print(json.dumps(tweet))
+
+        # add some info to the log
+        if "id_str" in tweet:
+            logging.info("archived https://twitter.com/%s/status/%s", tweet['user']['screen_name'], tweet["id_str"])
+        elif 'limit' in tweet:
+            logging.warn("%s tweets undelivered", tweet["limit"]["track"])
+        elif 'warning' in tweet:
+            logging.warn(tweet['warning']['message'])
+        else:
+            logging.warn(json.dumps(tweet))
 
 
 def load_config(filename, profile):
@@ -274,7 +288,7 @@ class Twarc(object):
         the livestream of tweets happening right now.
         """
         url = 'https://stream.twitter.com/1.1/statuses/filter.json'
-        params = {"track": track}
+        params = {"track": track, "stall_warning": True}
         headers = {'accept-encoding': 'deflate, gzip'}
         errors = 0
         while True:
