@@ -69,7 +69,7 @@ many tweets it can find that match a particular query. So for example, to collec
 
 This command will walk through each page of the search results and write
 each tweet to stdout as line oriented JSON. Twitter's search API only makes
-(roughly) the last weeks worth of Tweets available via its search API, so
+(roughly) the last week's worth of Tweets available via its search API, so
 time is of the essence if you are trying to collect tweets for something
 that has already happened.
 
@@ -116,7 +116,7 @@ no duplicates.
 
 ## Use as a Library
 
-If you want you can use twarc programatically as a library to collect
+If you want you can use twarc programmatically as a library to collect
 tweets. You first need to create a `Twarc` instance (using your Twitter
 credentials), and then use it to iterate through search results, filter
 results or lookup results.
