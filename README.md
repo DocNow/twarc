@@ -136,7 +136,7 @@ for tweet in t.stream("ferguson"):
     print(tweet["text"])
 ```
 
-Similarly you can hydrate tweet identifiers by passing in a list of ids or
+Similarly you can hydrate tweet identifiers by passing in a list of ids
 or a generator:
 
 ```python
