@@ -47,7 +47,7 @@ def main():
                         help="stream tweets matching track filter")
     parser.add_argument("--follow", dest="follow",
                         help="stream tweets from user ids")
-    parser.add_argument("--locations", dest="locations", nargs="*",
+    parser.add_argument("--locations", dest="locations",
                         help="stream tweets from a particular location")
     parser.add_argument("--hydrate", dest="hydrate",
                         help="rehydrate tweets from a file of tweet ids")

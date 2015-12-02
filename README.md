@@ -82,13 +82,20 @@ Similar to search mode twarc will write these tweets to stdout as line
 oriented JSON:
 
     # stream tweets that mention ferguson or blacklivesmatter
+
     twarc.py --track "ferguson,blacklivesmatter" > tweets.json
 
+
     # stream tweets, replies and retweets for @guardian and @nytimes
+
     twarc.py --follow "87818409,807095" > tweets.json
 
+
     # stream tweets from New York City
-    twarc.py --locations "-74,40,-73,41" > tweets.json
+    # note: the leading dash needs to be escaped in the bounding box
+    # or else it will be interpreted as a command line argument!
+
+    twarc.py --locations "\-74,40,-73,41" > tweets.json
 
 Note the syntax for the Twitter's filter queries is slightly different than what queries in their search API. So please consult the [documentation](https://dev.twitter.com/streaming/reference/post/statuses/filter) on how best to express the filter option you are using. Note: the options can be combined, which has the effect of a boolean `or`.
 
