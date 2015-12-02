@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import logging
 
@@ -85,15 +86,63 @@ def test_paging():
     assert count == 500
 
 
-def test_stream():
-    count = 0
-    for tweet in t.stream("obama"):
+def test_track():
+    found = False
+    tweet = t.filter(track="obama").next()
+    if re.search('obama', tweet['text'], re.IGNORECASE):
+        found = True
+    elif re.search('obama', tweet['user']['screen_name'], re.IGNORECASE):
+        found = True
+
+    assert found
+
+
+def test_follow():
+    users = ["guardian","nytimes","cnnbrk","BBCBreaking","washingtonpost",
+            "BuzzFeedNews", "WSJbreakingnews", "ABCNewsLive", "ReutersLive",
+            "SkyNewsBreak", "AJELive"]
+    user_ids = [
+        "87818409",   # @guardian
+        "807095",     # @nytimes
+        "428333",     # @cnnbrk
+        "5402612",    # @BBCBreaking
+        "2467791",    # @washingtonpost
+        "1020058453", # @BuzzFeedNews
+        "23484039",   # WSJbreakingnews
+        "384438102",  # ABCNewsLive
+        "15108702",   # ReutersLive
+        "87416722",   # SkyNewsBreak
+        "2673523800", # AJELive
+    ]
+    found = False
+
+    for tweet in t.filter(follow=','.join(user_ids)):
         assert tweet['id_str']
-        assert tweet['text']
-        count += 1
-        if count == 50:
+        if tweet['user']['id_str'] in user_ids:
+            found = True
+        elif tweet['in_reply_to_user_id_str'] in user_ids:
+            found = True
+        elif tweet['retweeted_status']['user']['id_str'] in user_ids:
+            found = True
+        break
+
+    assert found
+
+
+def test_locations():
+    # look for tweets from New York ; the bounding box is larger than NYC
+    # so hopefully we'll find one from Manhattan in the first 100?
+    count = 0
+    found = False
+    for tweet in t.filter(locations="-74,40,-73,41"):
+        if tweet['place']['name'] == 'Manhattan':
+            found = True
             break
-    assert count == 50
+        if count > 100:
+            break
+        count += 1
+
+    assert found
 
 
 def test_hydrate():

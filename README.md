@@ -8,9 +8,9 @@ twarc
 twarc is a command line tool and Python library for archiving Twitter JSON
 data. Each tweet is represented as a JSON object that is exactly what was 
 returned from the Twitter API. Tweets are stored as line-oriented JSON. It 
-twarc runs in three modes: search, stream and hydrate. When running in each 
-mode twarc will stop and resume activity in order to work within the Twitter 
-API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
+twarc runs in three modes: search, filter stream and hydrate. When running in 
+each mode twarc will stop and resume activity in order to work within the 
+Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
 
 ## Install
 
@@ -73,15 +73,24 @@ each tweet to stdout as line oriented JSON. Twitter's search API only makes
 time is of the essence if you are trying to collect tweets for something
 that has already happened.
 
-## Stream
+## Filter Stream
 
-In stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
-tweets that match a particular filter. Similar to search mode twarc will write
-these tweets to stdout as line oriented JSON:
+In filter stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
+tweets that match a particular filter. You can filter by keywords using
+`--track`, user identifiers using `--follow` and places using `--locations`. 
+Similar to search mode twarc will write these tweets to stdout as line 
+oriented JSON:
 
-    twarc.py --stream ferguson > tweets.json
+    # stream tweets that mention ferguson or blacklivesmatter
+    twarc.py --track "ferguson,blacklivesmatter" > tweets.json
 
-Note the syntax for the Twitter's filter queries is slightly different than what queries in their search API. So please consult the [documentation](https://dev.twitter.com/streaming/overview/request-parameters#track) on how best to express the filter.
+    # stream tweets, replies and retweets for @guardian and @nytimes
+    twarc.py --follow "87818409,807095" > tweets.json
+
+    # stream tweets from New York City
+    twarc.py --locations "-74,40,-73,41" > tweets.json
+
+Note the syntax for the Twitter's filter queries is slightly different than what queries in their search API. So please consult the [documentation](https://dev.twitter.com/streaming/reference/post/statuses/filter) on how best to express the filter option you are using. Note: the options can be combined, which has the effect of a boolean `or`.
 
 ## Hydrate
 
@@ -129,10 +138,25 @@ for tweet in t.search("ferguson"):
     print(tweet["text"])
 ```
 
-You can do the same for a stream of new tweets:
+You can do the same for a filter stream of new tweets that match a track
+keyword
 
 ```python
-for tweet in t.stream("ferguson"):
+for tweet in t.filter(track="ferguson"):
+    print(tweet["text"])
+```
+
+or location:
+
+```python
+for tweet in t.filter(locations="-74,40,-73,41"):
+    print(tweet["text"])
+```
+
+or user ids:
+
+```python
+for tweet in t.filter(follow='12345,678910'):
     print(tweet["text"])
 ```
 

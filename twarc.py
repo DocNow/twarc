@@ -26,6 +26,10 @@ else:
     get_input = input
 
 
+def geo(value):
+    return '-74,40,-73,41'
+
+
 def main():
     """
     The twarc command line.
@@ -39,8 +43,12 @@ def main():
                         help="smallest id to search for")
     parser.add_argument("--lang", dest="lang",
                         help="limit to ISO 639-1 language code"),
-    parser.add_argument("--stream", dest="stream",
+    parser.add_argument("--track", dest="track",
                         help="stream tweets matching track filter")
+    parser.add_argument("--follow", dest="follow",
+                        help="stream tweets from user ids")
+    parser.add_argument("--locations", dest="locations", nargs="*",
+                        help="stream tweets from a particular location")
     parser.add_argument("--hydrate", dest="hydrate",
                         help="rehydrate tweets from a file of tweet ids")
     parser.add_argument("--log", dest="log",
@@ -103,8 +111,9 @@ def main():
             max_id=args.max_id,
             lang=args.lang
         )
-    elif args.stream:
-        tweets = t.stream(args.stream)
+    elif args.track or args.follow or args.locations:
+        tweets = t.filter(track=args.track, follow=args.follow,
+                locations=args.locations)
     elif args.hydrate:
         tweets = t.hydrate(open(args.hydrate, 'rU'))
     else:
@@ -282,18 +291,30 @@ class Twarc(object):
 
             max_id = str(int(status["id_str"]) - 1)
 
-    def stream(self, track):
+    def filter(self, track=None, follow=None, locations=None):
         """
         Returns an iterator for tweets that match a given filter track from
         the livestream of tweets happening right now.
         """
+        if locations is not None:
+            if type(locations) == list:
+                locations = ','.join(locations)
+            locations = locations.replace('\\', '')
+
         url = 'https://stream.twitter.com/1.1/statuses/filter.json'
-        params = {"track": track, "stall_warning": True}
+        params = {"stall_warning": True}
+        if track:
+            params["track"] = track
+        if follow:
+            params["follow"] = follow
+        if locations:
+            params["locations"] = locations
         headers = {'accept-encoding': 'deflate, gzip'}
         errors = 0
         while True:
             try:
-                logging.info("connecting to filter stream for %s", track)
+                #logging.info("connecting to filter stream for track=%s follow=%s locations=%s", (track, follow, locations))
+                logging.info("connecting to filter stream for %s", params)
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
