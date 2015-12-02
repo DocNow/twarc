@@ -81,18 +81,18 @@ tweets that match a particular filter. You can filter by keywords using
 Similar to search mode twarc will write these tweets to stdout as line 
 oriented JSON:
 
-### stream tweets containing a keyword
+### Stream tweets containing a keyword
 
     twarc.py --track "ferguson,blacklivesmatter" > tweets.json
 
-### stream tweets from/to users
+### Stream tweets from/to users
 
 Note: you must use the user identifiers, for example these are the 
 user ids for the @guardian and @nytimes:
 
     twarc.py --follow "87818409,807095" > tweets.json
 
-### stream tweets from a location
+### Stream tweets from a location
 
 Note: the leading dash needs to be escaped in the bounding box
 or else it will be interpreted as a command line argument!
