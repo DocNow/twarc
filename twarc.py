@@ -313,7 +313,6 @@ class Twarc(object):
         errors = 0
         while True:
             try:
-                #logging.info("connecting to filter stream for track=%s follow=%s locations=%s", (track, follow, locations))
                 logging.info("connecting to filter stream for %s", params)
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
