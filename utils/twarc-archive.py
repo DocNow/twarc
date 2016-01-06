@@ -28,6 +28,7 @@ This functionality was initially part of twarc.py itself, but has been split out
 into a separate utility.
 
 """
+from __future__ import print_function
 
 import os
 import re
@@ -82,7 +83,7 @@ def main():
             args.access_token = credentials['access_token']
             args.access_token_secret = credentials['access_token_secret']
         else:
-            print argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables")
+            print(argparse.ArgumentTypeError("Please make sure to use command line arguments to set the Twitter API keys or set the CONSUMER_KEY, CONSUMER_SECRET ACCESS_TOKEN and ACCESS_TOKEN_SECRET environment variables"))
             sys.exit(1)
 
     logging.info("logging search for %s to %s", args.search, args.archive_dir)
