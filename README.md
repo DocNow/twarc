@@ -121,16 +121,21 @@ fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 
 ## Archive
 
-In addition to `twarc.py` when you install twarc you will also get a
+In addition to `twarc.py` when you install twarc you will also get the 
 `twarc-archive.py` command line tool. This uses twarc as a library to
 periodically collect data matching a particular search query. It's useful if you
 don't necessarily want to collect tweets as they happen with the streaming
-api, and are content to perhaps run it every day (perhaps) from cron to collect
-what you can. The script will keep the files organized, and is smart enough to
+api, and are content to run it periodically from cron to collect what you can.
+You will want to adjust the schedule so that it at least runs every 7 days (the
+search API window), and often enough to match the volume of tweets being
+collected. The script will keep the files organized, and is smart enough to
 use the most recent file to determine when it can stop collecting so there are
 no duplicates.
 
-    twarc-archive.py 
+For example this will collect all the tweets mentioning the word "ferguson" from
+the search API and write them to a unique file in `/mnt/tweets/ferguson`.
+
+    twarc-archive.py ferguson /mnt/tweets/ferguson 
 
 ## Use as a Library
 
