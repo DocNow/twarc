@@ -194,9 +194,11 @@ def rate_limit(f):
     issue the API call again.
     """
     def new_f(*args, **kwargs):
+        errors = 0
         while True:
             resp = f(*args, **kwargs)
             if resp.status_code == 200:
+                errors = 0
                 return resp
             elif resp.status_code == 429:
                 reset = int(resp.headers['x-rate-limit-reset'])
@@ -206,9 +208,13 @@ def rate_limit(f):
                     seconds = 10
                 logging.warn("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
-            elif resp.status_code == 503:
-                seconds = 60
-                logging.warn("503 from Twitter API, sleeping %s", seconds)
+            elif resp.status_code in (500, 503):
+                errors += 1
+                if errors > 20:
+                    logging.warn("too many errors from Twitter, giving up")
+                    resp.raise_for_status()
+                seconds = 60 * errors
+                logging.warn("%s from Twitter API, sleeping %s", resp.status_code, seconds)
                 time.sleep(seconds)
             else:
                 resp.raise_for_status()
