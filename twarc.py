@@ -208,9 +208,9 @@ def rate_limit(f):
                     seconds = 10
                 logging.warn("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
-            elif resp.status_code in (500, 503):
+            elif resp.status_code >= 500:
                 errors += 1
-                if errors > 20:
+                if errors > 30:
                     logging.warn("too many errors from Twitter, giving up")
                     resp.raise_for_status()
                 seconds = 60 * errors
