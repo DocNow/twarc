@@ -323,7 +323,7 @@ class Twarc(object):
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
-                    if line == "": 
+                    if not line:
                         logging.info("keep-alive")
                         continue
                     try:
