@@ -235,7 +235,7 @@ def catch_conn_reset(f):
         try:
             return f(self, *args, **kwargs)
         except ConnectionError:
-            self._connect()
+            self.connect()
             return f(self, *args, **kwargs)
     return new_f
 
@@ -263,7 +263,8 @@ class Twarc(object):
         self.consumer_secret = consumer_secret
         self.access_token = access_token
         self.access_token_secret = access_token_secret
-        self._connect()
+        self.client = None
+        self.connect()
 
     def search(self, q, max_id=None, since_id=None, lang=None):
         """
@@ -390,7 +391,7 @@ class Twarc(object):
             return r
         except requests.exceptions.ConnectionError as e:
             logging.error("caught connection error %s", e)
-            self._connect()
+            self.connect()
             return self.get(*args, **kwargs)
 
     @rate_limit
@@ -400,10 +401,17 @@ class Twarc(object):
             return self.client.post(*args, **kwargs)
         except requests.exceptions.ConnectionError as e:
             logging.error("caught connection error %s", e)
-            self._connect()
+            self.connect()
             return self.post(*args, **kwargs)
 
-    def _connect(self):
+    def connect(self):
+        """
+        Sets up the HTTP session to talk to Twitter. If one is active it is 
+        closed and another one is opened.
+        """
+        if self.client:
+            logging.info("closing existing http session")
+            self.client.close()
         logging.info("creating http session")
         self.client = OAuth1Session(
             client_key=self.consumer_key,

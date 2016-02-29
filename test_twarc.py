@@ -91,7 +91,11 @@ def test_track():
     found = False
     tweet = next(t.filter(track="obama"))
     json_str = json.dumps(tweet)
+
     assert re.search('obama', json_str, re.IGNORECASE)
+
+    # reconnect to close streaming connection for other tests
+    t.connect()
 
 
 def test_follow():
@@ -127,15 +131,18 @@ def test_follow():
 
     assert found
 
+    # reconnect to close streaming connection for other tests
+    t.connect()
+
 
 def test_locations():
     # look for tweets from New York ; the bounding box is larger than NYC
     # so hopefully we'll find one from New York in the first 100?
     count = 0
     found = False
+
     for tweet in t.filter(locations="-74,40,-73,41"):
-        print(tweet['place']['name'])
-        if tweet['place']['name'] == 'New York':
+        if tweet['place']['name'] == 'Manhattan':
             found = True
             break
         if count > 100:
@@ -143,6 +150,9 @@ def test_locations():
         count += 1
 
     assert found
+
+    # reconnect to close streaming connection for other tests
+    t.connect()
 
 
 def test_hydrate():
