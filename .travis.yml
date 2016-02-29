@@ -11,6 +11,8 @@ install:
 script:
 - pip install coverage
 - coverage run --source twarc setup.py test --verbose
+- chmod +x test/test_utils.sh
+- test/test_utils.sh # no coverage yet
 
 after_success:
 - pip install coveralls

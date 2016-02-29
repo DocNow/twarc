@@ -18,7 +18,7 @@ class PyTest(Command):
 
     def run(self):
         import pytest
-        pytest.main("test.py")
+        sys.exit(pytest.main("test.py"))
 
 if sys.version_info[0] < 3:
     dependencies = open(join('requirements', 'python2.txt')).read().split()
@@ -28,7 +28,7 @@ else:
 
 setup(
     name='twarc',
-    version='0.5.1',
+    version='0.5.2',
     url='http://github.com/edsu/twarc',
     author='Ed Summers',
     author_email='ehs@pobox.com',
