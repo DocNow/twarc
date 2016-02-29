@@ -4,22 +4,6 @@ from os.path import join
 from setuptools import setup, Command
 
 
-class PyTest(Command):
-    """
-    A command to convince setuptools to run pytests.
-    """
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import pytest
-        sys.exit(pytest.main("test.py"))
-
 if sys.version_info[0] < 3:
     dependencies = open(join('requirements', 'python2.txt')).read().split()
 else:
@@ -35,9 +19,7 @@ setup(
     py_modules=['twarc', ],
     scripts=['twarc.py', 'utils/twarc-archive.py'],
     description='command line utility to archive Twitter search results as line-oriented-json',
-    cmdclass={'test': PyTest},
     install_requires=dependencies,
-    tests_require=['pytest']
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 )
-
-
