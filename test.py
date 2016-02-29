@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import time
 import logging
 
@@ -89,12 +90,8 @@ def test_paging():
 def test_track():
     found = False
     tweet = next(t.filter(track="obama"))
-    if re.search('obama', tweet['text'], re.IGNORECASE):
-        found = True
-    elif re.search('obama', tweet['user']['screen_name'], re.IGNORECASE):
-        found = True
-
-    assert found
+    json_str = json.dumps(tweet)
+    assert re.search('obama', json_str, re.IGNORECASE)
 
 
 def test_follow():
@@ -131,11 +128,12 @@ def test_follow():
 
 def test_locations():
     # look for tweets from New York ; the bounding box is larger than NYC
-    # so hopefully we'll find one from Manhattan in the first 100?
+    # so hopefully we'll find one from New York in the first 100?
     count = 0
     found = False
     for tweet in t.filter(locations="-74,40,-73,41"):
-        if tweet['place']['name'] == 'Manhattan':
+        print(tweet['place']['name'])
+        if tweet['place']['name'] == 'New York':
             found = True
             break
         if count > 100:
