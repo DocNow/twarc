@@ -88,7 +88,7 @@ def test_paging():
 
 def test_track():
     found = False
-    tweet = t.filter(track="obama").next()
+    tweet = next(t.filter(track="obama"))
     if re.search('obama', tweet['text'], re.IGNORECASE):
         found = True
     elif re.search('obama', tweet['user']['screen_name'], re.IGNORECASE):
