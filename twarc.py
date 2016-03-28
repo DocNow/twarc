@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import io
 import os
 import sys
 import json
@@ -266,10 +265,12 @@ class Twarc(object):
         self.client = None
         self.connect()
 
-    def search(self, q, max_id=None, since_id=None, lang=None):
+    def search(self, q, max_id=None, since_id=None, lang=None,
+               result_type='recent'):
         """
         Pass in a query with optional max_id, min_id or lang and get
-        back an iterator for decoded tweets.
+        back an iterator for decoded tweets. Defaults to recent (i.e.
+        not mixed, the API default, or popular) tweets.
         """
         logging.info("starting search for %s", q)
         url = "https://api.twitter.com/1.1/search/tweets.json"
@@ -279,6 +280,10 @@ class Twarc(object):
         }
         if lang is not None:
             params['lang'] = lang
+        if result_type in ['mixed', 'recent', 'popular']:
+            params['result_type'] = result_type
+        else:
+            params['result_type'] = 'recent'
 
         while True:
             if since_id:
