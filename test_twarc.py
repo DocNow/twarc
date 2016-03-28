@@ -125,7 +125,7 @@ def test_follow():
             found = True
         elif tweet['retweeted_status']['user']['id_str'] in user_ids:
             found = True
-        elif tweet['quoted_status']['user']['id_str'] in user_ids:
+        elif 'quoted_status' in tweet and tweet['quoted_status']['user']['id_str'] in user_ids:
             found = True
         break
 
