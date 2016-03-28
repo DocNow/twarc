@@ -14,9 +14,3 @@ script:
 after_failure:
 - cat test.log
 
-env:
-  global:
-  - secure: lRhbItpFTtdO+YaqTRqXB6LfGIE8h+D7FcSKMbJlgY/wW+reSiecVOq3XvK8QdpasnBwG6aaB1Q2tP1/9nbQPJZPr2235iUqwbyQHU8Fqe46qIAhZ5pK7vmfuXIJBbKiIWU2f4V0fqGxZ/SQgAlZepo9495PxJXqiucUu+4O3Ss=
-  - secure: PO/jIbrrF2cR2n2bzT7gOhlMTdpHOg9yYoBLpw/kgb1iDYjZ7BltI58oJQJAg295xHd1sLeGwcPnGC1QGf04ieL1NpjLxeXvCd9HGVN0QLcX81FUiCgtu65Sy8xkjnW5G8omHor+E2YaN9PftHUJeN5izvt3+c5s6w4iGBMDfL0=
-  - secure: No5Tj/Hvjh+LDFA/hK9QXeoKNtnxYXxWql7A/lM1VJeoOqhgSXNyYjKRrcN83fuaoWLeVKcsZsXt1yOoPk0brpFPLXfKs0nIn9L/Ul9kmyPEa4RfYtCtyjFx3ZIhQaUdTt18qrJF6Iqm1ipy69y3gynsL4xJoQQyc1IrGSM9kUg=
-  - secure: O4PmYWGqutwj1lAAnKjbjdFLwCE6Q5+BzUFmxlW3f4n4Uh9Lv6DJPAriDfjdwBhk/c0m11yrBMpQbStM9uXTLQuvRE3VPWAa8cjFb/4ssW+vPbDkDdn7aXKTd2AX+6JMv/6ND5PbMyycN4d51BSUjbg6sc/FXXQePDr10NWqqTQ=
