@@ -12,7 +12,7 @@ else:
 
 setup(
     name='twarc',
-    version='0.6.0',
+    version='0.6.1',
     url='http://github.com/edsu/twarc',
     author='Ed Summers',
     author_email='ehs@pobox.com',
