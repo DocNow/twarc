@@ -104,7 +104,6 @@ def test_follow():
             "SkyNewsBreak", "AJELive"]
     user_ids = [
         "87818409",   # @guardian
-        "807095",     # @nytimes
         "428333",     # @cnnbrk
         "5402612",    # @BBCBreaking
         "2467791",    # @washingtonpost
