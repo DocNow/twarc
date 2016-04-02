@@ -40,6 +40,9 @@ def main():
                         help="maximum tweet id to search for")
     parser.add_argument("--since_id", dest="since_id",
                         help="smallest id to search for")
+    parser.add_argument("--result_type", dest="result_type",
+                        choices=["mixed", "recent", "popular"],
+                        default="recent", help="search result type")
     parser.add_argument("--lang", dest="lang",
                         help="limit to ISO 639-1 language code"),
     parser.add_argument("--track", dest="track",
@@ -108,7 +111,8 @@ def main():
             args.search,
             since_id=args.since_id,
             max_id=args.max_id,
-            lang=args.lang
+            lang=args.lang,
+            result_type=args.result_type,
         )
     elif args.track or args.follow or args.locations:
         tweets = t.filter(track=args.track, follow=args.follow,
