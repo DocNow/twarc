@@ -129,6 +129,10 @@ def test_follow():
             found = True
         break
 
+    if not found:
+        print("couldn't find user in response")
+        print(json.dumps(tweet, indent=2))
+
     assert found
 
     # reconnect to close streaming connection for other tests
