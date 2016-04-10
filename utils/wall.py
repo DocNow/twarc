@@ -152,6 +152,11 @@ for line in lines:
     else:
         t['retweet_count'] = tweet.get('retweet_count', 0)
 
+    if t['retweet_count'] == 1:
+        t['retweet_string'] = 'retweet'
+    else:
+        t['retweet_string'] = 'retweets'
+
     for url in tweet['entities']['urls']:
         a = '<a href="%(expanded_url)s">%(url)s</a>' % url
         start, end = url['indices']
@@ -168,7 +173,7 @@ for line in lines:
       <br>
       <span class="text">%(text)s</span><br>
       <footer>
-      %(retweet_count)s Retweets<br>
+      %(retweet_count)s %(retweet_string)s<br>
       <a href="%(url)s"><time>%(created_at)s</time></a>
       </footer>
     </article>
