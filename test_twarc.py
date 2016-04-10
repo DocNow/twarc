@@ -17,13 +17,13 @@ You will need to have these environment variables set to run these tests:
 
 """
 
+logging.basicConfig(filename="test.log", level=logging.INFO)
+
 consumer_key = os.environ.get('CONSUMER_KEY')
 consumer_secret = os.environ.get('CONSUMER_SECRET')
 access_token = os.environ.get('ACCESS_TOKEN')
 access_token_secret = os.environ.get("ACCESS_TOKEN_SECRET")
 t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
-
-logging.basicConfig(filename="test.log", level=logging.INFO)
 
 
 def test_search():
