@@ -267,6 +267,7 @@ class Twarc(object):
         self.access_token = access_token
         self.access_token_secret = access_token_secret
         self.client = None
+        self.last_response = None
         self.connect()
 
     def search(self, q, max_id=None, since_id=None, lang=None,
@@ -390,7 +391,7 @@ class Twarc(object):
     @catch_conn_reset
     def get(self, *args, **kwargs):
         try:
-            r = self.client.get(*args, **kwargs)
+            r = self.last_response = self.client.get(*args, **kwargs)
             # this has been noticed, believe it or not
             # https://github.com/edsu/twarc/issues/75
             if r.status_code == 404:
@@ -407,7 +408,8 @@ class Twarc(object):
     @catch_conn_reset
     def post(self, *args, **kwargs):
         try:
-            return self.client.post(*args, **kwargs)
+            self.last_response = self.client.post(*args, **kwargs)
+            return self.last_response
         except requests.exceptions.ConnectionError as e:
             logging.error("caught connection error %s", e)
             self.connect()
@@ -421,6 +423,9 @@ class Twarc(object):
         if self.client:
             logging.info("closing existing http session")
             self.client.close()
+        if self.last_response:
+            logging.info("closing last response")
+            self.last_response.close()
         logging.info("creating http session")
         self.client = OAuth1Session(
             client_key=self.consumer_key,

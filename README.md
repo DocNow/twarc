@@ -207,6 +207,14 @@ You can output [GeoJSON](http://geojson.org/) from tweets where geo coordinates 
 
     % utils/geojson.py tweets.json > tweets.geojson
 
+Optionally you can export GeoJSON with centroids replacing bounding boxes:
+
+    % utils/geojson.py tweets.json --centroid > tweets.geojson
+
+And if you do export GeoJSON with centroids, you can add some random fuzzing:
+
+    % utils/geojson.py tweets.json --centroid --fuzz 0.01 > tweets.geojson
+
 If you suspect you have duplicate in your tweets you can dedupe them:
 
     % utils/deduplicate.py tweets.json > deduped.json
@@ -231,9 +239,9 @@ Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
 
     % cat tweets.json | utils/unshorten.py > unshortened.json
 
-Once you unshorten your URLs you can get a ranked list of most tweeted URLs:
+Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
 
-    % cat unshortened.json | utils/urls.py | sort | uniq -c | sort -n > urls.txt
+    % cat unshortened.json | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
 
 ## twarc-report
 
