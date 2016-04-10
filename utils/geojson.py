@@ -1,4 +1,25 @@
 #!/usr/bin/env python
+
+"""
+geojson.py reads in tweets and writes out a corresponding geojson file for the
+tweets. Each feature will include the following properties:
+
+* twitter user name
+* twitter user screename
+* tweet creation time
+* tweet status text
+* profile image url
+* the tweet url
+
+By default both Point and Polygon features will be included, depending on
+whether the tweet includes a point or is assigned to a place with a bounding
+box.
+
+Optionally you can convert bounding boxes to points with the --centroid
+parameter, and can also use --fuzz to randomly place the the point inside the
+bounding box.
+"""
+
 from __future__ import print_function
 
 import json
@@ -28,6 +49,7 @@ parser.add_argument(
 parser.add_argument(
     'files',
     nargs='*',
+    default=("-",),
     help='files to read, if empty, stdin is used'
 )
 
@@ -36,8 +58,7 @@ args = parser.parse_args()
 
 features = []
 
-for line in fileinput.input(files=args.files if len(args.files) > 0 else ('-', )):
-
+for line in fileinput.input(files=args.files):
     tweet = json.loads(line)
 
     f = {
@@ -90,7 +111,7 @@ for line in fileinput.input(files=args.files if len(args.files) > 0 else ('-', )
         else:
             f['geometry'] = {
                 "type": "Polygon",
-                "coordinates": bbox
+                "coordinates": [bbox]
             }
 
     features.append(f)
