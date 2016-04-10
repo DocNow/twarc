@@ -60,6 +60,7 @@ features = []
 
 for line in fileinput.input(files=args.files):
     tweet = json.loads(line)
+    hasGeo = False
 
     f = {
         "type": "Feature",
@@ -77,6 +78,7 @@ for line in fileinput.input(files=args.files):
     }
     
     if tweet["geo"]:
+        hasGeo = True
         f['geometry'] = {
             "type": "Point",
             "coordinates": [
@@ -86,6 +88,7 @@ for line in fileinput.input(files=args.files):
         }
 
     elif tweet["place"] and any(tweet["place"]["bounding_box"]):
+        hasGeo = True
         bbox = tweet["place"]["bounding_box"]["coordinates"][0]
 
         if args.centroid:
@@ -121,8 +124,8 @@ for line in fileinput.input(files=args.files):
                     ]
                 ],
             }
-
-    features.append(f)
+    if(hasGeo):
+        features.append(f)
 
 geojson = {"type" : "FeatureCollection", "features": features}
 print(json.dumps(geojson, indent=2))
