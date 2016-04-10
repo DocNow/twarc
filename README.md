@@ -207,6 +207,14 @@ You can output [GeoJSON](http://geojson.org/) from tweets where geo coordinates 
 
     % utils/geojson.py tweets.json > tweets.geojson
 
+Optionally you can export GeoJSON with centroids replacing bounding boxes:
+
+    % utils/geojson.py tweets.json --centroid > tweets.geojson
+
+And if you do export GeoJSON with centroids, you can add some random fuzzing:
+
+    % utils/geojson.py tweets.json --centroid --fuzz 0.01 > tweets.geojson
+
 If you suspect you have duplicate in your tweets you can dedupe them:
 
     % utils/deduplicate.py tweets.json > deduped.json
