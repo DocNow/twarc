@@ -26,6 +26,7 @@ import json
 import random
 import argparse
 import fileinput
+import dateutil.parser
 
 parser = argparse.ArgumentParser()
 
@@ -60,13 +61,14 @@ features = []
 
 for line in fileinput.input(files=args.files):
     tweet = json.loads(line)
+    t = dateutil.parser.parse(tweet['created_at'])
 
     f = {
         "type": "Feature",
         "properties": {
             "name": tweet["user"]["name"],
             "screen_name": tweet["user"]["screen_name"],
-            "created_at": tweet["created_at"],
+            "created_at": t.isoformat("T") + "Z",
             "text": tweet["text"],
             "profile_image_url": tweet["user"]["profile_image_url"],
             "url": "http://twitter.com/%s/status/%s" % (
