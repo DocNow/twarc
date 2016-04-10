@@ -208,9 +208,11 @@ You can output [GeoJSON](http://geojson.org/) from tweets where geo coordinates 
     % utils/geojson.py -i tweets.json > tweets.geojson
 
 Optionally you can export GeoJSON with centroids replacing bounding boxes:
+
     % utils/geojson -i tweets.json -c True > tweets.geojson
 
 And if you do export GeoJSON with centroids, you can add some random fuzzing:
+
     % utils/geojson -i tweets.json -c True -f 0.01 > tweets.geojson
 
 If you suspect you have duplicate in your tweets you can dedupe them:
