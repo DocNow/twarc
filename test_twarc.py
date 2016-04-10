@@ -88,7 +88,6 @@ def test_paging():
 
 
 def test_track():
-    found = False
     tweet = next(t.filter(track="obama"))
     json_str = json.dumps(tweet)
 
@@ -99,9 +98,6 @@ def test_track():
 
 
 def test_follow():
-    users = ["guardian","nytimes","cnnbrk","BBCBreaking","washingtonpost",
-            "BuzzFeedNews", "WSJbreakingnews", "ABCNewsLive", "ReutersLive",
-            "SkyNewsBreak", "AJELive"]
     user_ids = [
         "87818409",   # @guardian
         "428333",     # @cnnbrk

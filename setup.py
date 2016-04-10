@@ -1,7 +1,7 @@
 import sys
 
 from os.path import join
-from setuptools import setup, Command
+from setuptools import setup
 
 
 if sys.version_info[0] < 3:
