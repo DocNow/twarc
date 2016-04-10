@@ -98,9 +98,6 @@ def test_track():
 
 
 def test_follow():
-    users = ["guardian","cnnbrk","BBCBreaking","washingtonpost",
-            "BuzzFeedNews", "WSJbreakingnews", "ABCNewsLive", "ReutersLive",
-            "SkyNewsBreak", "AJELive"]
     user_ids = [
         "87818409",   # @guardian
         "428333",     # @cnnbrk
