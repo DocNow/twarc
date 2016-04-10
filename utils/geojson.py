@@ -4,6 +4,7 @@ from __future__ import print_function
 import json
 import fileinput
 import argparse
+import random
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input",
@@ -12,6 +13,9 @@ parser.add_argument("-i", "--input",
 parser.add_argument("-c", "--centroid", 
 					dest="centroid", type=bool, choices=[True, False], default=False,
                     help="If True, store centroid instead of a bounding box for 'place' attribute")
+parser.add_argument("-f", "--fuzz", 
+					dest="fuzz", type=float, default=0,
+                    help="Setting fuzz to something between 0 and 0.1 (0.01 recommended) will add a random lon and lat shift to bounding box centroids.")
 args = parser.parse_args()
 
 #Store the features in an array ready for output.
@@ -50,8 +54,10 @@ for line in fileinput.input(args.filename):
 	        minY = bbox[0][1]
 	        maxX = bbox[2][0]
 	        maxY = bbox[2][1]
-	        centerX = (maxX + minX) / 2.0
-	        centerY = (maxY + minY) / 2.0
+	        fuzzX = args.fuzz * random.uniform(-1,1)
+	        fuzzY = args.fuzz * random.uniform(-1,1)
+	        centerX = ((maxX + minX) / 2.0) + fuzzX
+	        centerY = ((maxY + minY) / 2.0) + fuzzY
 
 	        features.append({
 	            "type": "Feature",
