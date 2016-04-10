@@ -52,6 +52,7 @@ print(("""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
+<title>twarc wordcloud</title>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="https://raw.github.com/jasondavies/d3-cloud/master/d3.layout.cloud.js"></script>
 </head>
