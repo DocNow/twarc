@@ -113,10 +113,19 @@ for line in fileinput.input(files=args.files):
         else:
             f['geometry'] = {
                 "type": "Polygon",
-                "coordinates": [bbox]
+                "coordinates": [
+                    [
+                        bbox[0],
+                        bbox[1],
+                        bbox[2],
+                        bbox[3],
+                        bbox[0]
+                    ]
+                ],
             }
 
-    features.append(f)
+    if f['geometry']:
+        features.append(f)
 
 geojson = {"type" : "FeatureCollection", "features": features}
 print(json.dumps(geojson, indent=2))
