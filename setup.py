@@ -2,6 +2,7 @@ import sys
 
 from os.path import join
 from setuptools import setup
+from twarc import __version__
 
 
 if sys.version_info[0] < 3:
@@ -12,7 +13,7 @@ else:
 
 setup(
     name='twarc',
-    version='0.6.1',
+    version=__version__,
     url='http://github.com/edsu/twarc',
     author='Ed Summers',
     author_email='ehs@pobox.com',

@@ -24,6 +24,8 @@ else:
     # Python 3
     get_input = input
 
+__version__ = '0.6.1'
+
 
 def geo(value):
     return '-74,40,-73,41'
@@ -34,6 +36,9 @@ def main():
     The twarc command line.
     """
     parser = argparse.ArgumentParser("twarc")
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {version}'.format(
+                            version=__version__))
     parser.add_argument("--search", dest="search",
                         help="search for tweets matching a query")
     parser.add_argument("--max_id", dest="max_id",
@@ -68,7 +73,7 @@ def main():
                         help="Config file containing Twitter keys and secrets")
     parser.add_argument('-p', '--profile', default='main',
                         help="Name of a profile in your configuration file")
-    parser.add_argument('-w', '--warnings', action='store_true', 
+    parser.add_argument('-w', '--warnings', action='store_true',
                         help="Include warning messages in output")
 
     args = parser.parse_args()
@@ -125,7 +130,7 @@ def main():
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
-        
+
         # include warnings in output only if they asked for it
         if 'id_str' in tweet or args.warnings:
             print(json.dumps(tweet))
@@ -417,7 +422,7 @@ class Twarc(object):
 
     def connect(self):
         """
-        Sets up the HTTP session to talk to Twitter. If one is active it is 
+        Sets up the HTTP session to talk to Twitter. If one is active it is
         closed and another one is opened.
         """
         if self.client:
