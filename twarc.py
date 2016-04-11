@@ -25,8 +25,6 @@ else:
     # Python 3
     get_input = input
 
-__version__ = '0.6.1'
-
 
 def geo(value):
     return '-74,40,-73,41'
