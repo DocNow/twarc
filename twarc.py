@@ -237,7 +237,22 @@ def catch_conn_reset(f):
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
-        except ConnectionError:
+        except ConnectionError as e:
+            logging.warn("caught connection error: %s", e)
+            self.connect()
+            return f(self, *args, **kwargs)
+    return new_f
+
+
+def catch_timeout(f):
+    """
+    A decorator to handle read timeouts from Twitter.
+    """
+    def new_f(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except requests.exceptions.ReadTimeout as e:
+            logging.warn("caught read timeout: %s", e)
             self.connect()
             return f(self, *args, **kwargs)
     return new_f
@@ -389,6 +404,7 @@ class Twarc(object):
 
     @rate_limit
     @catch_conn_reset
+    @catch_timeout
     def get(self, *args, **kwargs):
         try:
             r = self.last_response = self.client.get(*args, **kwargs)
@@ -406,6 +422,7 @@ class Twarc(object):
 
     @rate_limit
     @catch_conn_reset
+    @catch_timeout
     def post(self, *args, **kwargs):
         try:
             self.last_response = self.client.post(*args, **kwargs)
