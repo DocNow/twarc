@@ -11,6 +11,7 @@ import argparse
 import requests
 
 from requests_oauthlib import OAuth1Session
+from version import __version__
 
 try:
     import configparser  # Python 3
@@ -34,6 +35,9 @@ def main():
     The twarc command line.
     """
     parser = argparse.ArgumentParser("twarc")
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {version}'.format(
+                            version=__version__))
     parser.add_argument("--search", dest="search",
                         help="search for tweets matching a query")
     parser.add_argument("--max_id", dest="max_id",
@@ -68,7 +72,7 @@ def main():
                         help="Config file containing Twitter keys and secrets")
     parser.add_argument('-p', '--profile', default='main',
                         help="Name of a profile in your configuration file")
-    parser.add_argument('-w', '--warnings', action='store_true', 
+    parser.add_argument('-w', '--warnings', action='store_true',
                         help="Include warning messages in output")
 
     args = parser.parse_args()
@@ -116,7 +120,7 @@ def main():
         )
     elif args.track or args.follow or args.locations:
         tweets = t.filter(track=args.track, follow=args.follow,
-                locations=args.locations)
+                          locations=args.locations)
     elif args.hydrate:
         tweets = t.hydrate(open(args.hydrate, 'rU'))
     else:
@@ -125,14 +129,15 @@ def main():
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
-        
+
         # include warnings in output only if they asked for it
         if 'id_str' in tweet or args.warnings:
             print(json.dumps(tweet))
 
         # add some info to the log
         if "id_str" in tweet:
-            logging.info("archived https://twitter.com/%s/status/%s", tweet['user']['screen_name'], tweet["id_str"])
+            logging.info("archived https://twitter.com/%s/status/%s",
+                         tweet['user']['screen_name'], tweet["id_str"])
         elif 'limit' in tweet:
             logging.warn("%s tweets undelivered", tweet["limit"]["track"])
         elif 'warning' in tweet:
@@ -147,13 +152,15 @@ def load_config(filename, profile):
     config = configparser.ConfigParser()
     config.read(filename)
     data = {}
-    for key in ['access_token', 'access_token_secret', 'consumer_key', 'consumer_secret']:
+    for key in ['access_token', 'access_token_secret',
+                'consumer_key', 'consumer_secret']:
         try:
             data[key] = config.get(profile, key)
         except configparser.NoSectionError:
             sys.exit("no such profile %s in %s" % (profile, filename))
         except configparser.NoOptionError:
-            sys.exit("missing %s from profile %s in %s" % (key, profile, filename))
+            sys.exit("missing %s from profile %s in %s" % (
+                        key, profile, filename))
     return data
 
 
@@ -217,7 +224,8 @@ def rate_limit(f):
                     logging.warn("too many errors from Twitter, giving up")
                     resp.raise_for_status()
                 seconds = 60 * errors
-                logging.warn("%s from Twitter API, sleeping %s", resp.status_code, seconds)
+                logging.warn("%s from Twitter API, sleeping %s",
+                             resp.status_code, seconds)
                 time.sleep(seconds)
             else:
                 resp.raise_for_status()
@@ -234,6 +242,7 @@ def catch_conn_reset(f):
         ConnectionError = OpenSSL.SSL.SysCallError
     except:
         ConnectionError = requests.exceptions.ConnectionError
+
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
@@ -434,7 +443,7 @@ class Twarc(object):
 
     def connect(self):
         """
-        Sets up the HTTP session to talk to Twitter. If one is active it is 
+        Sets up the HTTP session to talk to Twitter. If one is active it is
         closed and another one is opened.
         """
         if self.client:

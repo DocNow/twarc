@@ -65,3 +65,4 @@ html
 custom
 img/
 *.ini
+.eggs
