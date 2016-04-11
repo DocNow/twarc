@@ -54,7 +54,6 @@ print(("""<!DOCTYPE html>
 <meta charset="utf-8">
 <title>twarc wordcloud</title>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="https://raw.githubusercontent.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
 </head>
 <body>
 <script>
