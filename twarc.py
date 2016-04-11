@@ -11,6 +11,7 @@ import argparse
 import requests
 
 from requests_oauthlib import OAuth1Session
+from version import __version__
 
 try:
     import configparser  # Python 3

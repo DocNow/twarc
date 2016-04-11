@@ -2,7 +2,7 @@ import sys
 
 from os.path import join
 from setuptools import setup
-from twarc import __version__
+from version import __version__
 
 
 if sys.version_info[0] < 3:
