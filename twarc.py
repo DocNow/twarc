@@ -121,7 +121,7 @@ def main():
         )
     elif args.track or args.follow or args.locations:
         tweets = t.filter(track=args.track, follow=args.follow,
-                locations=args.locations)
+                          locations=args.locations)
     elif args.hydrate:
         tweets = t.hydrate(open(args.hydrate, 'rU'))
     else:
@@ -137,7 +137,8 @@ def main():
 
         # add some info to the log
         if "id_str" in tweet:
-            logging.info("archived https://twitter.com/%s/status/%s", tweet['user']['screen_name'], tweet["id_str"])
+            logging.info("archived https://twitter.com/%s/status/%s",
+                         tweet['user']['screen_name'], tweet["id_str"])
         elif 'limit' in tweet:
             logging.warn("%s tweets undelivered", tweet["limit"]["track"])
         elif 'warning' in tweet:
@@ -152,13 +153,15 @@ def load_config(filename, profile):
     config = configparser.ConfigParser()
     config.read(filename)
     data = {}
-    for key in ['access_token', 'access_token_secret', 'consumer_key', 'consumer_secret']:
+    for key in ['access_token', 'access_token_secret',
+                'consumer_key', 'consumer_secret']:
         try:
             data[key] = config.get(profile, key)
         except configparser.NoSectionError:
             sys.exit("no such profile %s in %s" % (profile, filename))
         except configparser.NoOptionError:
-            sys.exit("missing %s from profile %s in %s" % (key, profile, filename))
+            sys.exit("missing %s from profile %s in %s" % (
+                        key, profile, filename))
     return data
 
 
@@ -222,7 +225,8 @@ def rate_limit(f):
                     logging.warn("too many errors from Twitter, giving up")
                     resp.raise_for_status()
                 seconds = 60 * errors
-                logging.warn("%s from Twitter API, sleeping %s", resp.status_code, seconds)
+                logging.warn("%s from Twitter API, sleeping %s",
+                             resp.status_code, seconds)
                 time.sleep(seconds)
             else:
                 resp.raise_for_status()
@@ -239,6 +243,7 @@ def catch_conn_reset(f):
         ConnectionError = OpenSSL.SSL.SysCallError
     except:
         ConnectionError = requests.exceptions.ConnectionError
+
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)

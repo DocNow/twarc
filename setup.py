@@ -19,7 +19,8 @@ setup(
     author_email='ehs@pobox.com',
     py_modules=['twarc', ],
     scripts=['twarc.py', 'utils/twarc-archive.py'],
-    description='command line utility to archive Twitter search results as line-oriented-json',
+    description='command line utility to archive Twitter search results '
+                'as line-oriented-json',
     install_requires=dependencies,
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
