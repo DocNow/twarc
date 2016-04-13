@@ -2,8 +2,9 @@ import sys
 
 from os.path import join
 from setuptools import setup
-from version import __version__
 
+# Also in twarc.py
+__version__ = '0.6.1'
 
 if sys.version_info[0] < 3:
     dependencies = open(join('requirements', 'python2.txt')).read().split()

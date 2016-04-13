@@ -11,7 +11,6 @@ import argparse
 import requests
 
 from requests_oauthlib import OAuth1Session
-from version import __version__
 
 try:
     import configparser  # Python 3
@@ -24,6 +23,9 @@ if sys.version_info[:2] <= (2, 7):
 else:
     # Python 3
     get_input = input
+
+# Also in setup.py
+__version__ = '0.6.1'
 
 
 def geo(value):
