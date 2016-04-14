@@ -124,7 +124,7 @@ for line in fileinput.input(files=args.files):
                 ],
             }
 
-    if f['geometry']:
+    if 'geometry' in f:
         features.append(f)
 
 geojson = {"type" : "FeatureCollection", "features": features}
