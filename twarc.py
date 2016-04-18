@@ -8,6 +8,7 @@ import json
 import time
 import logging
 import argparse
+import datetime
 import requests
 
 from requests_oauthlib import OAuth1Session
@@ -141,7 +142,9 @@ def main():
             logging.info("archived https://twitter.com/%s/status/%s",
                          tweet['user']['screen_name'], tweet["id_str"])
         elif 'limit' in tweet:
-            logging.warn("%s tweets undelivered", tweet["limit"]["track"])
+            t = datetime.datetime.utcfromtimestamp(float(tweet["limit"]["timestamp_ms"]) / 1000)
+            t = t.isoformat("T") + "Z"
+            logging.warn("%s tweets undelivered at %s", tweet["limit"]["track"], t)
         elif 'warning' in tweet:
             logging.warn(tweet['warning']['message'])
         else:
