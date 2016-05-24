@@ -118,6 +118,40 @@ fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 
     twarc.py --hydrate ids.txt > tweets.json
 
+## Sample Stream
+
+In sample stream mode twarc will listen to Twitter's 
+[sample stream API](https://dev.twitter.com/streaming/reference/get/statuses/sample) 
+for a random sample of recent public statuses. Similar to search mode and filter stream
+mode, twarc will write these tweets to stdout as line oriented JSON:
+
+	twarc.py --sample > tweets.json
+
+## User Timeline
+
+In user timeline mode twarc will use Twitter's 
+[user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)
+to collect the most recent tweets posted by the user indicated by screen_name:
+
+	twarc.py --timeline screen_name > tweets.json
+
+or by user_id:
+
+	twarc.py --timeline_user_id user_id > tweets.json
+
+## User Lookup
+
+In user lookup mode twarc will use Twitter's 
+[user lookup API](https://dev.twitter.com/rest/reference/get/users/lookup)
+to collect fully hydrated [user objects](https://dev.twitter.com/overview/api/users) 
+for up to 100 users per request as specified by a list of one or more user screen names:
+
+	twarc.py --lookup_screen_names screen_names > users.json
+
+or user_ids:
+
+	twarc.py --lookup_user_ids user_ids > users.json
+
 ## Archive
 
 In addition to `twarc.py` when you install twarc you will also get the 
