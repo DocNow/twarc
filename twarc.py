@@ -271,6 +271,21 @@ def catch_timeout(f):
             return f(self, *args, **kwargs)
     return new_f
 
+def catch_gzip_errors(f):
+    """
+    A decorator to handle gzip encoding errors which have been known to 
+    happen during hydration.
+    """
+    def new_f(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except requests.exceptions.ContentDecodingError as e:
+            logging.warn("caught gzip error: %s", e)
+            self.connect()
+            return f(self, *args, **kwargs)
+    return new_f
+
+
 
 class Twarc(object):
     """
@@ -419,6 +434,7 @@ class Twarc(object):
     @rate_limit
     @catch_conn_reset
     @catch_timeout
+    @catch_gzip_errors
     def get(self, *args, **kwargs):
         try:
             r = self.last_response = self.client.get(*args, **kwargs)
@@ -437,6 +453,7 @@ class Twarc(object):
     @rate_limit
     @catch_conn_reset
     @catch_timeout
+    @catch_gzip_errors
     def post(self, *args, **kwargs):
         try:
             self.last_response = self.client.post(*args, **kwargs)
