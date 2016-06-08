@@ -56,6 +56,9 @@ target/
 # CloneDigger
 output.html
 
+# pyenv
+.python-version
+
 config.py
 *.json
 *.html
@@ -66,3 +69,4 @@ custom
 img/
 *.ini
 .eggs
+*.swp
