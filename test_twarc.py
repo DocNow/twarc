@@ -162,9 +162,6 @@ def test_timeline_by_user_id():
     for tweet in t.timeline(user_id=user_id):
         assert tweet['user']['id_str'] == user_id
 
-    # reconnect to close streaming connection for other tests
-    t.connect()
-
 
 def test_timeline_by_screen_name():
     # looks for recent tweets and checks if tweets are of provided screen_name
@@ -172,9 +169,6 @@ def test_timeline_by_screen_name():
 
     for tweet in t.timeline(screen_name=screen_name):
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
-
-    # reconnect to close streaming connection for other tests
-    t.connect()
 
 
 def test_user_lookup_by_user_id():
@@ -201,9 +195,6 @@ def test_user_lookup_by_user_id():
 
     assert set(user_ids) == set(uids)
 
-    # reconnect to close streaming connection for other tests
-    t.connect()
-
 
 def test_user_lookup_by_screen_name():
     # looks for the user with given screen_names
@@ -217,9 +208,6 @@ def test_user_lookup_by_screen_name():
         names.append(user['screen_name'].lower())
 
     assert set(names) == set(map(lambda x: x.lower(), screen_names))
-
-    # reconnect to close streaming connection for other tests
-    t.connect()
 
 
 def test_hydrate():
