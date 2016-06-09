@@ -4,7 +4,7 @@ import json
 import time
 import logging
 
-from twarc import Twarc
+import twarc
 
 """
 
@@ -23,7 +23,12 @@ consumer_key = os.environ.get('CONSUMER_KEY')
 consumer_secret = os.environ.get('CONSUMER_SECRET')
 access_token = os.environ.get('ACCESS_TOKEN')
 access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
-t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
+t = twarc.Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
+
+
+def test_version():
+    import setup
+    assert setup.__version__ == twarc.__version__
 
 
 def test_search():
