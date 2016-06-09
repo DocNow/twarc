@@ -22,7 +22,7 @@ logging.basicConfig(filename="test.log", level=logging.INFO)
 consumer_key = os.environ.get('CONSUMER_KEY')
 consumer_secret = os.environ.get('CONSUMER_SECRET')
 access_token = os.environ.get('ACCESS_TOKEN')
-access_token_secret = os.environ.get("ACCESS_TOKEN_SECRET")
+access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
 t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
 
 
@@ -99,16 +99,16 @@ def test_track():
 
 def test_follow():
     user_ids = [
-        "87818409",   # @guardian
-        "428333",     # @cnnbrk
-        "5402612",    # @BBCBreaking
-        "2467791",    # @washingtonpost
-        "1020058453", # @BuzzFeedNews
-        "23484039",   # WSJbreakingnews
-        "384438102",  # ABCNewsLive
-        "15108702",   # ReutersLive
-        "87416722",   # SkyNewsBreak
-        "2673523800", # AJELive
+        "87818409",    # @guardian
+        "428333",      # @cnnbrk
+        "5402612",     # @BBCBreaking
+        "2467791",     # @washingtonpost
+        "1020058453",  # @BuzzFeedNews
+        "23484039",    # WSJbreakingnews
+        "384438102",   # ABCNewsLive
+        "15108702",    # ReutersLive
+        "87416722",    # SkyNewsBreak
+        "2673523800",  # AJELive
     ]
     found = False
 
@@ -120,7 +120,8 @@ def test_follow():
             found = True
         elif tweet['retweeted_status']['user']['id_str'] in user_ids:
             found = True
-        elif 'quoted_status' in tweet and tweet['quoted_status']['user']['id_str'] in user_ids:
+        elif 'quoted_status' in tweet and \
+             tweet['quoted_status']['user']['id_str'] in user_ids:
             found = True
         break
 
@@ -152,6 +153,61 @@ def test_locations():
 
     # reconnect to close streaming connection for other tests
     t.connect()
+
+
+def test_timeline_by_user_id():
+    # looks for recent tweets and checks if tweets are of provided user_id
+    user_id = "87818409"
+
+    for tweet in t.timeline(user_id=user_id):
+        assert tweet['user']['id_str'] == user_id
+
+
+def test_timeline_by_screen_name():
+    # looks for recent tweets and checks if tweets are of provided screen_name
+    screen_name = "guardian"
+
+    for tweet in t.timeline(screen_name=screen_name):
+        assert tweet['user']['screen_name'].lower() == screen_name.lower()
+
+
+def test_user_lookup_by_user_id():
+    # looks for the user with given user_id
+
+    user_ids = [
+        '87818409',    # @guardian
+        '807095',      # @nytimes
+        '428333',      # @cnnbrk
+        '5402612',     # @BBCBreaking
+        '2467791',     # @washingtonpost
+        '1020058453',  # @BuzzFeedNews
+        '23484039',    # WSJbreakingnews
+        '384438102',   # ABCNewsLive
+        '15108702',    # ReutersLive
+        '87416722',    # SkyNewsBreak
+        '2673523800',  # AJELive
+    ]
+
+    uids = []
+
+    for user in t.user_lookup(user_ids=user_ids):
+        uids.append(user['id_str'])
+
+    assert set(user_ids) == set(uids)
+
+
+def test_user_lookup_by_screen_name():
+    # looks for the user with given screen_names
+    screen_names = ["guardian", "nytimes", "cnnbrk", "BBCBreaking",
+                    "washingtonpost", "BuzzFeedNews", "WSJbreakingnews",
+                    "ABCNewsLive", "ReutersLive", "SkyNewsBreak", "AJELive"]
+
+    names = []
+
+    for user in t.user_lookup(screen_names=screen_names):
+        names.append(user['screen_name'].lower())
+
+    assert set(names) == set(map(lambda x: x.lower(), screen_names))
 
 
 def test_hydrate():
@@ -224,4 +280,4 @@ def test_hydrate():
     for tweet in t.hydrate(iter(ids)):
         assert tweet['id_str']
         count += 1
-    assert count > 100 # may need to adjust as these might get deleted
+    assert count > 100  # may need to adjust as these might get deleted
