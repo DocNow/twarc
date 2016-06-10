@@ -92,6 +92,23 @@ def test_paging():
     assert count == 500
 
 
+def test_geocode():
+    # look for tweets from New York ; the search radius is larger than NYC
+    # so hopefully we'll find one from New York in the first 100?
+    count = 0
+    found = False
+
+    for tweet in t.search(None, geocode='40.7484,-73.9857,1mi'):
+        if (tweet['place'] or {}).get('name') == 'Manhattan':
+            found = True
+            break
+        if count > 100:
+            break
+        count += 1
+
+    assert found
+
+
 def test_track():
     tweet = next(t.filter(track="obama"))
     json_str = json.dumps(tweet)
