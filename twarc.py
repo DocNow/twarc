@@ -52,6 +52,8 @@ def main():
                         default="recent", help="search result type")
     parser.add_argument("--lang", dest="lang",
                         help="limit to ISO 639-1 language code"),
+    parser.add_argument("--geocode", dest="geocode",
+                        help="limit by latitude,longitude,radius")
     parser.add_argument("--track", dest="track",
                         help="stream tweets matching track filter")
     parser.add_argument("--follow", dest="follow",
@@ -128,13 +130,14 @@ def main():
     users = []
 
     # Calls that return tweets
-    if args.search:
+    if args.search or args.geocode:
         tweets = t.search(
             args.search,
             since_id=args.since_id,
             max_id=args.max_id,
             lang=args.lang,
             result_type=args.result_type,
+            geocode=args.geocode
         )
     elif args.track or args.follow or args.locations:
         tweets = t.filter(track=args.track, follow=args.follow,
@@ -319,7 +322,7 @@ def catch_timeout(f):
 
 def catch_gzip_errors(f):
     """
-    A decorator to handle gzip encoding errors which have been known to 
+    A decorator to handle gzip encoding errors which have been known to
     happen during hydration.
     """
     def new_f(self, *args, **kwargs):
@@ -361,10 +364,10 @@ class Twarc(object):
         self.connect()
 
     def search(self, q, max_id=None, since_id=None, lang=None,
-               result_type='recent'):
+               result_type='recent', geocode=None):
         """
-        Pass in a query with optional max_id, min_id or lang and get
-        back an iterator for decoded tweets. Defaults to recent (i.e.
+        Pass in a query with optional max_id, min_id, lang or geocode
+        and get back an iterator for decoded tweets. Defaults to recent (i.e.
         not mixed, the API default, or popular) tweets.
         """
         logging.info("starting search for %s", q)
@@ -379,6 +382,8 @@ class Twarc(object):
             params['result_type'] = result_type
         else:
             params['result_type'] = 'recent'
+        if geocode is not None:
+            params['geocode'] = geocode
 
         while True:
             if since_id:
