@@ -20,9 +20,11 @@ import urllib
 import logging
 import fileinput
 import multiprocessing
+import argparse
 
 # number of urls to look up in parallel
 POOL_SIZE = 10
+unshrtn_url = "http://localhost:3000"
 
 logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
@@ -41,7 +43,7 @@ def rewrite_line(line):
             url = url_dict['url']
 
         url = url.encode('utf8')
-        u = 'http://localhost:3000/?' + urllib.urlencode({'url': url})
+        u = '{}/?{}'.format(unshrtn_url, urllib.urlencode({'url': url}))
         try:
             resp = json.loads(urllib.urlopen(u).read())
             if resp['long']:
@@ -52,9 +54,18 @@ def rewrite_line(line):
 
     return json.dumps(tweet)
 
+
 def main():
-    pool = multiprocessing.Pool(POOL_SIZE)
-    for line in pool.imap_unordered(rewrite_line, fileinput.input()):
+    global unshrtn_url
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pool-size', help='number of urls to look up in parallel', default=POOL_SIZE, type=int)
+    parser.add_argument('--unshrtn', help='url of the unshrtn service', default=unshrtn_url)
+    parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
+    args = parser.parse_args()
+
+    unshrtn_url = args.unshrtn
+    pool = multiprocessing.Pool(args.pool_size)
+    for line in pool.imap_unordered(rewrite_line, fileinput.input(files=args.files if len(args.files) > 0 else ('-',))):
         if line != "\n": print(line)
 
 if __name__ == "__main__":
