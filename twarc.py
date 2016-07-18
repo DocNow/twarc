@@ -2,6 +2,8 @@
 
 from __future__ import print_function
 
+__version__ = '0.7.0' # also in setup.py
+
 import fileinput
 import os
 import sys
@@ -25,13 +27,6 @@ if sys.version_info[:2] <= (2, 7):
 else:
     # Python 3
     get_input = input
-
-# Also in setup.py
-__version__ = '0.7.0'
-
-
-def geo(value):
-    return '-74,40,-73,41'
 
 
 def main():
@@ -70,8 +65,9 @@ def main():
                                          returns user objects")
     parser.add_argument("--lookup_user_ids", dest="lookup_user_ids", nargs='+',
                         help="look up users by user id; returns user objects")
-    parser.add_argument("--hydrate", dest="hydrate",
-                        help="rehydrate tweets from a file of tweet ids")
+    parser.add_argument("--hydrate", action="append", dest="hydrate",
+                        help="rehydrate tweets from a file of tweet ids, \
+                              use - for stdin")
     parser.add_argument("--log", dest="log",
                         default="twarc.log", help="log file")
     parser.add_argument("--consumer_key",
@@ -141,16 +137,12 @@ def main():
         tweets = t.filter(track=args.track, follow=args.follow,
                           locations=args.locations)
     elif args.hydrate:
-        f_names = [args.hydrate] if args.hydrate != '--hydrate' else None
-
         input_iterator = fileinput.FileInput(
-            f_names,
+            args.hydrate,
             mode='rU',
             openhook=fileinput.hook_compressed,
         )
-
         tweets = t.hydrate(input_iterator)
-
     elif args.sample:
         tweets = t.sample()
     elif args.timeline:
