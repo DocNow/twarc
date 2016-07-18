@@ -141,7 +141,16 @@ def main():
         tweets = t.filter(track=args.track, follow=args.follow,
                           locations=args.locations)
     elif args.hydrate:
-        tweets = t.hydrate(args.hydrate)
+        f_names = [args.hydrate] if args.hydrate != '--hydrate' else None
+
+        input_iterator = fileinput.FileInput(
+            f_names,
+            mode='rU',
+            openhook=fileinput.hook_compressed,
+        )
+
+        tweets = t.hydrate(input_iterator)
+
     elif args.sample:
         tweets = t.sample()
     elif args.timeline:
@@ -567,44 +576,31 @@ class Twarc(object):
 
     def hydrate(self, iterator):
         """
-        Pass in an iterator of tweet ids or a file name with tweet ids and get
-        back an iterator for the decoded JSON for each corresponding tweet.
+        Pass in an iterator of tweet ids and get back an iterator for the
+        decoded JSON for each corresponding tweet.
         """
         ids = []
         url = "https://api.twitter.com/1.1/statuses/lookup.json"
 
-        if isinstance(iterator, str):
-            f_names = [iterator] if iterator != '--hydrate' else None
-
-            iterator = fileinput.FileInput(
-                f_names,
-                mode='rU',
-                openhook=fileinput.hook_compressed,
-            )
-
-        try:
-            # lookup 100 tweets at a time
-            for tweet_id in iterator:
-                tweet_id = tweet_id.strip()  # remove new line if present
-                ids.append(tweet_id)
-                if len(ids) == 100:
-                    logging.info("hydrating %s ids", len(ids))
-                    resp = self.post(url, data={"id": ','.join(ids)})
-                    tweets = resp.json()
-                    tweets.sort(key=lambda t: t['id_str'])
-                    for tweet in tweets:
-                        yield tweet
-                    ids = []
-
-            # hydrate any remaining ones
-            if len(ids) > 0:
-                logging.info("hydrating %s", ids)
-                resp = self.client.post(url, data={"id": ','.join(ids)})
-                for tweet in resp.json():
+        # lookup 100 tweets at a time
+        for tweet_id in iterator:
+            tweet_id = tweet_id.strip()  # remove new line if present
+            ids.append(tweet_id)
+            if len(ids) == 100:
+                logging.info("hydrating %s ids", len(ids))
+                resp = self.post(url, data={"id": ','.join(ids)})
+                tweets = resp.json()
+                tweets.sort(key=lambda t: t['id_str'])
+                for tweet in tweets:
                     yield tweet
-        finally:
-            if hasattr(iterator, 'close'):
-                iterator.close()
+                ids = []
+
+        # hydrate any remaining ones
+        if len(ids) > 0:
+            logging.info("hydrating %s", ids)
+            resp = self.client.post(url, data={"id": ','.join(ids)})
+            for tweet in resp.json():
+                yield tweet
 
     @rate_limit
     @catch_conn_reset
