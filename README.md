@@ -78,7 +78,7 @@ You can specify a search term or omit one to search for all tweets within a give
 
     twarc.py --search ferguson --geocode 38.7442,-90.3054,1mi
     twarc.py --geocode 38.7442,-90.3054,1mi
-    
+
 See the [API documentation](https://dev.twitter.com/rest/reference/get/search/tweets#api-param-search_geocode) for more details on how these searches work.
 
 ## Filter Stream
@@ -261,7 +261,7 @@ To filter tweets by presence or absence of geo coordinates (or Place, see [API d
 
     % utils/geofilter.py tweets.json --yes-coordinates > tweets-with-geocoords.json
     % cat tweets.json | utils/geofilter.py --no-place > tweets-with-no-place.json
-    
+
 To filter tweets by a GeoJSON fence (requires [Shapely](https://github.com/Toblerity/Shapely)):
 
     % utils/geofilter.py tweets.json --fence limits.geojson > fenced-tweets.json
