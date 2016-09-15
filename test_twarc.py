@@ -323,14 +323,14 @@ def test_connection_error_post(oauth1session_class):
 def test_http_error_sample():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=2)
     with pytest.raises(requests.exceptions.HTTPError):
-        t.sample().next()
+        next(t.sample())
 
 def test_http_error_filter():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=3)
     with pytest.raises(requests.exceptions.HTTPError):
-        t.filter(track="test").next()
+        next(t.filter(track="test"))
 
 def test_http_error_timeline():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=4)
     with pytest.raises(requests.exceptions.HTTPError):
-        t.timeline(user_id="test").next()
+        next(t.timeline(user_id="test"))
