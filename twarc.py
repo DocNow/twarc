@@ -2,6 +2,9 @@
 
 from __future__ import print_function
 
+__version__ = '0.8.0' # also in setup.py
+
+import fileinput
 import os
 import sys
 import json
@@ -24,13 +27,6 @@ if sys.version_info[:2] <= (2, 7):
 else:
     # Python 3
     get_input = input
-
-# Also in setup.py
-__version__ = '0.7.0'
-
-
-def geo(value):
-    return '-74,40,-73,41'
 
 
 def main():
@@ -71,8 +67,9 @@ def main():
                                          returns user objects")
     parser.add_argument("--lookup_user_ids", dest="lookup_user_ids", nargs='+',
                         help="look up users by user id; returns user objects")
-    parser.add_argument("--hydrate", dest="hydrate",
-                        help="rehydrate tweets from a file of tweet ids")
+    parser.add_argument("--hydrate", action="append", dest="hydrate",
+                        help="rehydrate tweets from a file of tweet ids, \
+                              use - for stdin")
     parser.add_argument("--log", dest="log",
                         default="twarc.log", help="log file")
     parser.add_argument("--consumer_key",
@@ -90,6 +87,10 @@ def main():
                         help="Name of a profile in your configuration file")
     parser.add_argument('-w', '--warnings', action='store_true',
                         help="Include warning messages in output")
+    parser.add_argument("--connection_errors", type=int, default="0",
+                        help="Number of connection errors before giving up. Default is to keep trying.")
+    parser.add_argument("--http_errors", type=int, default="0",
+                        help="Number of http errors before giving up. Default is to keep trying.")
 
     args = parser.parse_args()
 
@@ -124,7 +125,9 @@ def main():
     t = Twarc(consumer_key=consumer_key,
               consumer_secret=consumer_secret,
               access_token=access_token,
-              access_token_secret=access_token_secret)
+              access_token_secret=access_token_secret,
+              connection_errors=args.connection_errors,
+              http_errors=args.http_errors)
 
     tweets = []
     users = []
@@ -143,7 +146,12 @@ def main():
         tweets = t.filter(track=args.track, follow=args.follow,
                           locations=args.locations)
     elif args.hydrate:
-        tweets = t.hydrate(open(args.hydrate, 'rU'))
+        input_iterator = fileinput.FileInput(
+            args.hydrate,
+            mode='rU',
+            openhook=fileinput.hook_compressed,
+        )
+        tweets = t.hydrate(input_iterator)
     elif args.sample:
         tweets = t.sample()
     elif args.timeline:
@@ -295,14 +303,18 @@ def catch_conn_reset(f):
         import OpenSSL
         ConnectionError = OpenSSL.SSL.SysCallError
     except:
-        ConnectionError = requests.exceptions.ConnectionError
+        ConnectionError = None
 
     def new_f(self, *args, **kwargs):
-        try:
-            return f(self, *args, **kwargs)
-        except ConnectionError as e:
-            logging.warn("caught connection error: %s", e)
-            self.connect()
+        # Only handle if pyOpenSSL is installed.
+        if ConnectionError:
+            try:
+                return f(self, *args, **kwargs)
+            except ConnectionError as e:
+                logging.warn("caught connection reset error: %s", e)
+                self.connect()
+                return f(self, *args, **kwargs)
+        else:
             return f(self, *args, **kwargs)
     return new_f
 
@@ -319,6 +331,7 @@ def catch_timeout(f):
             self.connect()
             return f(self, *args, **kwargs)
     return new_f
+
 
 def catch_gzip_errors(f):
     """
@@ -349,7 +362,7 @@ class Twarc(object):
     """
 
     def __init__(self, consumer_key, consumer_secret, access_token,
-                 access_token_secret):
+                 access_token_secret, connection_errors=0, http_errors=0):
         """
         Instantiate a Twarc instance. Make sure your environment variables
         are set.
@@ -359,6 +372,8 @@ class Twarc(object):
         self.consumer_secret = consumer_secret
         self.access_token = access_token
         self.access_token_secret = access_token_secret
+        self.connection_errors = connection_errors
+        self.http_errors = http_errors
         self.client = None
         self.last_response = None
         self.connect()
@@ -512,7 +527,10 @@ class Twarc(object):
                         logging.error("json parse error: %s - %s", e, line)
             except requests.exceptions.HTTPError as e:
                 errors += 1
-                logging.error(e)
+                logging.error("caught http error %s on %s try", e, errors)
+                if self.http_errors and errors == self.http_errors:
+                    logging.warn("too many errors")
+                    raise e
                 if e.response.status_code == 420:
                     t = errors * 60
                     logging.info("sleeping %s", t)
@@ -523,6 +541,10 @@ class Twarc(object):
                     time.sleep(t)
             except Exception as e:
                 errors += 1
+                logging.error("caught exception %s on %s try", e, errors)
+                if self.http_errors and errors == self.http_errors:
+                    logging.warn("too many exceptions")
+                    raise e
                 t = errors * 1
                 logging.error(e)
                 logging.info("sleeping %s", t)
@@ -553,7 +575,10 @@ class Twarc(object):
                         logging.error("json parse error: %s - %s", e, line)
             except requests.exceptions.HTTPError as e:
                 errors += 1
-                logging.error(e)
+                logging.error("caught http error %s on %s try", e, errors)
+                if self.http_errors and errors == self.http_errors:
+                    logging.warn("too many errors")
+                    raise e
                 if e.response.status_code == 420:
                     t = errors * 60
                     logging.info("sleeping %s", t)
@@ -564,8 +589,11 @@ class Twarc(object):
                     time.sleep(t)
             except Exception as e:
                 errors += 1
+                logging.error("caught exception %s on %s try", e, errors)
+                if self.http_errors and errors == self.http_errors:
+                    logging.warn("too many errors")
+                    raise e
                 t = errors * 1
-                logging.error(e)
                 logging.info("sleeping %s", t)
                 time.sleep(t)
 
@@ -604,6 +632,7 @@ class Twarc(object):
     def get(self, *args, **kwargs):
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)
+        connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
             r = self.last_response = self.client.get(*args, **kwargs)
             # this has been noticed, believe it or not
@@ -614,22 +643,35 @@ class Twarc(object):
                 r = self.get(*args, **kwargs)
             return r
         except requests.exceptions.ConnectionError as e:
-            logging.error("caught connection error %s", e)
-            self.connect()
-            return self.get(*args, **kwargs)
+            connection_error_count += 1
+            logging.error("caught connection error %s on %s try", e, connection_error_count)
+            if self.connection_errors and connection_error_count == self.connection_errors:
+                logging.error("received too many connection errors")
+                raise e
+            else:
+                self.connect()
+                kwargs['connection_error_count'] = connection_error_count
+                return self.get(*args, **kwargs)
 
     @rate_limit
     @catch_conn_reset
     @catch_timeout
     @catch_gzip_errors
     def post(self, *args, **kwargs):
+        connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
             self.last_response = self.client.post(*args, **kwargs)
             return self.last_response
         except requests.exceptions.ConnectionError as e:
-            logging.error("caught connection error %s", e)
-            self.connect()
-            return self.post(*args, **kwargs)
+            connection_error_count += 1
+            logging.error("caught connection error %s on %s try", e, connection_error_count)
+            if self.connection_errors and connection_error_count == self.connection_errors:
+                logging.error("received too many connection errors")
+                raise e
+            else:
+                self.connect()
+                kwargs['connection_error_count'] = connection_error_count
+                return self.post(*args, **kwargs)
 
     def connect(self):
         """

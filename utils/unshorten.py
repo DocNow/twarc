@@ -20,9 +20,14 @@ import urllib
 import logging
 import fileinput
 import multiprocessing
+import argparse
+import time
 
 # number of urls to look up in parallel
 POOL_SIZE = 10
+unshrtn_url = "http://localhost:3000"
+retries = 2
+wait = 15
 
 logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
@@ -41,20 +46,39 @@ def rewrite_line(line):
             url = url_dict['url']
 
         url = url.encode('utf8')
-        u = 'http://localhost:3000/?' + urllib.urlencode({'url': url})
-        try:
-            resp = json.loads(urllib.urlopen(u).read())
-            if resp['long']:
-                url_dict['unshortened_url'] = resp['long']
-        except Exception as e:
-            logging.error("http error: %s when looking up %s", e, url)
-            return line
+        u = '{}/?{}'.format(unshrtn_url, urllib.urlencode({'url': url}))
+
+        resp = None
+        for retry in range(1, retries+1):
+            try:
+                resp = json.loads(urllib.urlopen(u).read())
+                break
+            except Exception as e:
+                logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
+                time.sleep(wait)
+        if resp and resp['long']:
+            url_dict['unshortened_url'] = resp['long']
 
     return json.dumps(tweet)
 
+
 def main():
-    pool = multiprocessing.Pool(POOL_SIZE)
-    for line in pool.imap_unordered(rewrite_line, fileinput.input()):
+    global unshrtn_url, retries, wait
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pool-size', help='number of urls to look up in parallel', default=POOL_SIZE, type=int)
+    parser.add_argument('--unshrtn', help='url of the unshrtn service', default=unshrtn_url)
+    parser.add_argument('--retries', help='number of time to retry if error from unshrtn service', default=retries,
+                        type=int)
+    parser.add_argument('--wait', help='number of seconds to wait between retries if error from unshrtn service',
+                        default=wait, type=int)
+    parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
+    args = parser.parse_args()
+
+    unshrtn_url = args.unshrtn
+    retries = args.retries
+    wait = args.wait
+    pool = multiprocessing.Pool(args.pool_size)
+    for line in pool.imap_unordered(rewrite_line, fileinput.input(files=args.files if len(args.files) > 0 else ('-',))):
         if line != "\n": print(line)
 
 if __name__ == "__main__":

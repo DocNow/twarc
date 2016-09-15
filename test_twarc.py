@@ -3,6 +3,14 @@ import re
 import json
 import time
 import logging
+import pytest
+try:
+    from unittest.mock import patch, call, MagicMock  # Python 3
+except ImportError:
+    from mock import patch, call, MagicMock  # Python 2
+
+from requests_oauthlib import OAuth1Session
+import requests
 
 import twarc
 
@@ -303,3 +311,43 @@ def test_hydrate():
         assert tweet['id_str']
         count += 1
     assert count > 100  # may need to adjust as these might get deleted
+
+
+@patch("twarc.OAuth1Session", autospec=True)
+def test_connection_error_get(oauth1session_class):
+    mock_oauth1session = MagicMock(spec=OAuth1Session)
+    oauth1session_class.return_value = mock_oauth1session
+    mock_oauth1session.get.side_effect = requests.exceptions.ConnectionError
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", connection_errors=3)
+    with pytest.raises(requests.exceptions.ConnectionError):
+        t.get("https://api.twitter.com")
+
+    assert 3 == mock_oauth1session.get.call_count
+
+
+@patch("twarc.OAuth1Session", autospec=True)
+def test_connection_error_post(oauth1session_class):
+    mock_oauth1session = MagicMock(spec=OAuth1Session)
+    oauth1session_class.return_value = mock_oauth1session
+    mock_oauth1session.post.side_effect = requests.exceptions.ConnectionError
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", connection_errors=2)
+    with pytest.raises(requests.exceptions.ConnectionError):
+        t.post("https://api.twitter.com")
+
+    assert 2 == mock_oauth1session.post.call_count
+
+
+def test_http_error_sample():
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=2)
+    with pytest.raises(requests.exceptions.HTTPError):
+        next(t.sample())
+
+def test_http_error_filter():
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=3)
+    with pytest.raises(requests.exceptions.HTTPError):
+        next(t.filter(track="test"))
+
+def test_http_error_timeline():
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=4)
+    with pytest.raises(requests.exceptions.HTTPError):
+        next(t.timeline(user_id="test"))
