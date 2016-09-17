@@ -136,6 +136,10 @@ def get_next_archive(archive_dir):
         count = 1
     return os.path.join(archive_dir, archive_file_fmt % count)
 
+#Function to decode args to unicode
+def commandline_unicode(bytestring):
+    unicode_string = bytestring.decode(sys.getfilesystemencoding())
+    return unicode_string
 
 if __name__ == "__main__":
     main()
