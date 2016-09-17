@@ -44,9 +44,9 @@ archive_file_pat = "tweets-(\d{4}).json$"
 def main():
     e = os.environ.get
     parser = argparse.ArgumentParser("archive")
-    parser.add_argument("search", action="store",
+    parser.add_argument("search", type=commandline_unicode, action="store",
                         help="search for tweets matching a query")
-    parser.add_argument("archive_dir", action="store",
+    parser.add_argument("archive_dir", action="store", type=commandline_unicode,
                         help="a directory where results are stored")
     parser.add_argument("--consumer_key", action="store",
                         default=e('CONSUMER_KEY'),
