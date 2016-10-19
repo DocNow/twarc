@@ -72,6 +72,15 @@ each tweet to stdout as line oriented JSON. Twitter's search API only makes
 time is of the essence if you are trying to collect tweets for something
 that has already happened.
 
+### Search for tweets within a given area
+
+You can specify a search term or omit one to search for all tweets within a given radius of a given latitude/longitude:
+
+    twarc.py --search ferguson --geocode 38.7442,-90.3054,1mi
+    twarc.py --geocode 38.7442,-90.3054,1mi
+
+See the [API documentation](https://dev.twitter.com/rest/reference/get/search/tweets#api-param-search_geocode) for more details on how these searches work.
+
 ## Filter Stream
 
 In filter stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
@@ -117,6 +126,40 @@ In hydrate mode twarc will read a file of tweet identifiers and use Twitter's
 fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 
     twarc.py --hydrate ids.txt > tweets.json
+
+## Sample Stream
+
+In sample stream mode twarc will listen to Twitter's 
+[sample stream API](https://dev.twitter.com/streaming/reference/get/statuses/sample) 
+for a random sample of recent public statuses. Similar to search mode and filter stream
+mode, twarc will write these tweets to stdout as line oriented JSON:
+
+	twarc.py --sample > tweets.json
+
+## User Timeline
+
+In user timeline mode twarc will use Twitter's 
+[user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)
+to collect the most recent tweets posted by the user indicated by screen_name:
+
+	twarc.py --timeline screen_name > tweets.json
+
+or by user_id:
+
+	twarc.py --timeline_user_id user_id > tweets.json
+
+## User Lookup
+
+In user lookup mode twarc will use Twitter's 
+[user lookup API](https://dev.twitter.com/rest/reference/get/users/lookup)
+to collect fully hydrated [user objects](https://dev.twitter.com/overview/api/users) 
+for up to 100 users per request as specified by a list of one or more user screen names:
+
+	twarc.py --lookup_screen_names screen_names > users.json
+
+or user_ids:
+
+	twarc.py --lookup_user_ids user_ids > users.json
 
 ## Archive
 
@@ -213,6 +256,16 @@ Optionally you can export GeoJSON with centroids replacing bounding boxes:
 And if you do export GeoJSON with centroids, you can add some random fuzzing:
 
     % utils/geojson.py tweets.json --centroid --fuzz 0.01 > tweets.geojson
+
+To filter tweets by presence or absence of geo coordinates (or Place, see [API documentation](https://dev.twitter.com/overview/api/places)):
+
+    % utils/geofilter.py tweets.json --yes-coordinates > tweets-with-geocoords.json
+    % cat tweets.json | utils/geofilter.py --no-place > tweets-with-no-place.json
+
+To filter tweets by a GeoJSON fence (requires [Shapely](https://github.com/Toblerity/Shapely)):
+
+    % utils/geofilter.py tweets.json --fence limits.geojson > fenced-tweets.json
+    % cat tweets.json | utils/geofilter.py --fence limits.geojson > fenced-tweets.json
 
 If you suspect you have duplicate in your tweets you can dedupe them:
 
