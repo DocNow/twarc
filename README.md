@@ -182,7 +182,7 @@ the resulting follower id list as `--lookup_user_ids`:
 
 ## Friend ids
 
-Like follower id mode, in friend id mode twars will use Twitter's
+Like follower id mode, in friend id mode twarc will use Twitter's
 [friend id API](https://dev.twitter.com/rest/reference/get/friends/ids)
 to collect the most recent 5000 friend user ids for exactly one user screen
 name per request as specified as an argument:
