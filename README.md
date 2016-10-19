@@ -1,14 +1,14 @@
 twarc
 =====
 
-[![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc) 
+[![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc)
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/edsu/twarc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![DOI](https://zenodo.org/badge/12737/edsu/twarc.svg)](http://dx.doi.org/10.5281/zenodo.17385)
 
 twarc is a command line tool and Python library for archiving Twitter JSON
-data. Each tweet is represented as a JSON object that is exactly what was 
-returned from the Twitter API. Tweets are stored as line-oriented JSON. Twarc runs in three modes: search, filter stream and hydrate. When running in 
-each mode twarc will stop and resume activity in order to work within the 
+data. Each tweet is represented as a JSON object that is exactly what was
+returned from the Twitter API. Tweets are stored as line-oriented JSON. Twarc runs in three modes: search, filter stream and hydrate. When running in
+each mode twarc will stop and resume activity in order to work within the
 Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting).
 
 ## Install
@@ -22,19 +22,19 @@ Before using twarc you will need to register an application at
 [apps.twitter.com](http://apps.twitter.com). Once you've created your
 application, note down the consumer key, consumer secret and then click to
 generate an access token and access token secret. With these four variables
-in hand you are ready to start using twarc. 
+in hand you are ready to start using twarc.
 
-The first time you run twarc it will prompt you for these keys and store them 
+The first time you run twarc it will prompt you for these keys and store them
 in a `.twarc` file in your home directory. Sometimes it can be handy to store
 multiple authorization keys for different Twitter accounts in your config
-file.  So if you can have multiple profiles to your `.twarc` file, for 
+file.  So if you can have multiple profiles to your `.twarc` file, for
 example:
 
     [main]
     consumer_key=lksdfljklksdjf
     consumer_secret=lkjsdflkjsdlkfj
     access_token=lkslksjksljk3039jklj
-    access_token_secret=lksdjfljsdkjfsdlkfj 
+    access_token_secret=lksdjfljsdkjfsdlkfj
 
     [another]
     consumer_key=lkjsdflsj
@@ -46,7 +46,7 @@ You then use the other profile with the `--profile` option:
 
     twarc.py --profile another --search ferguson
 
-twarc will also look for authentication keys in the environment if you 
+twarc will also look for authentication keys in the environment if you
 would prefer to set them there using the following names:
 
 * CONSUMER\_KEY
@@ -85,8 +85,8 @@ See the [API documentation](https://dev.twitter.com/rest/reference/get/search/tw
 
 In filter stream mode twarc will listen to Twitter's [filter stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) for
 tweets that match a particular filter. You can filter by keywords using
-`--track`, user identifiers using `--follow` and places using `--locations`. 
-Similar to search mode twarc will write these tweets to stdout as line 
+`--track`, user identifiers using `--follow` and places using `--locations`.
+Similar to search mode twarc will write these tweets to stdout as line
 oriented JSON:
 
 ### Stream tweets containing a keyword
@@ -95,7 +95,7 @@ oriented JSON:
 
 ### Stream tweets from/to users
 
-Note: you must use the user identifiers, for example these are the 
+Note: you must use the user identifiers, for example these are the
 user ids for the @guardian and @nytimes:
 
     twarc.py --follow "87818409,807095" > tweets.json
@@ -129,8 +129,8 @@ fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
 
 ## Sample Stream
 
-In sample stream mode twarc will listen to Twitter's 
-[sample stream API](https://dev.twitter.com/streaming/reference/get/statuses/sample) 
+In sample stream mode twarc will listen to Twitter's
+[sample stream API](https://dev.twitter.com/streaming/reference/get/statuses/sample)
 for a random sample of recent public statuses. Similar to search mode and filter stream
 mode, twarc will write these tweets to stdout as line oriented JSON:
 
@@ -138,7 +138,7 @@ mode, twarc will write these tweets to stdout as line oriented JSON:
 
 ## User Timeline
 
-In user timeline mode twarc will use Twitter's 
+In user timeline mode twarc will use Twitter's
 [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)
 to collect the most recent tweets posted by the user indicated by screen_name:
 
@@ -150,9 +150,9 @@ or by user_id:
 
 ## User Lookup
 
-In user lookup mode twarc will use Twitter's 
+In user lookup mode twarc will use Twitter's
 [user lookup API](https://dev.twitter.com/rest/reference/get/users/lookup)
-to collect fully hydrated [user objects](https://dev.twitter.com/overview/api/users) 
+to collect fully hydrated [user objects](https://dev.twitter.com/overview/api/users)
 for up to 100 users per request as specified by a list of one or more user screen names:
 
 	twarc.py --lookup_screen_names screen_names > users.json
@@ -161,9 +161,24 @@ or user_ids:
 
 	twarc.py --lookup_user_ids user_ids > users.json
 
+
+## Follower Ids
+
+In follower id mode twarc will use Twitter's
+[follower id API](https://dev.twitter.com/rest/reference/get/followers/ids)
+to collect the most recent 5000 user ids for exactly one user screen name
+per request as specified as an argument:
+
+        twarc.py --follower_ids screen_name > follower_ids.txt
+
+This can work in concert with user lookup mode, where you can invoke
+the resulting follower id list as `--lookup_user_ids`:
+
+        twarc.py --lookup_user_ids `cat follower_ids.txt` > followers.json
+
 ## Archive
 
-In addition to `twarc.py` when you install twarc you will also get the 
+In addition to `twarc.py` when you install twarc you will also get the
 `twarc-archive.py` command line tool. This uses twarc as a library to
 periodically collect data matching a particular search query. It's useful if you
 don't necessarily want to collect tweets as they happen with the streaming
@@ -177,7 +192,7 @@ no duplicates.
 For example this will collect all the tweets mentioning the word "ferguson" from
 the search API and write them to a unique file in `/mnt/tweets/ferguson`.
 
-    twarc-archive.py ferguson /mnt/tweets/ferguson 
+    twarc-archive.py ferguson /mnt/tweets/ferguson
 
 ## Use as a Library
 

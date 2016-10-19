@@ -67,6 +67,8 @@ def main():
                                          returns user objects")
     parser.add_argument("--lookup_user_ids", dest="lookup_user_ids", nargs='+',
                         help="look up users by user id; returns user objects")
+    parser.add_argument("--follower_ids", dest="follower_ids", nargs=1,
+                        help="retrieve follower lists; returns follower ids")
     parser.add_argument("--hydrate", action="append", dest="hydrate",
                         help="rehydrate tweets from a file of tweet ids, \
                               use - for stdin")
@@ -131,6 +133,7 @@ def main():
 
     tweets = []
     users = []
+    user_ids = []
 
     # Calls that return tweets
     if args.search or args.geocode:
@@ -164,6 +167,11 @@ def main():
         users = t.user_lookup(user_ids=args.lookup_user_ids)
     elif args.lookup_screen_names:
         users = t.user_lookup(screen_names=args.lookup_screen_names)
+
+    # Calls that return lists of user ids
+    elif args.follower_ids:
+        # Note: only one at a time, so assume exactly one
+        user_ids = t.follower_ids(screen_name=args.follower_ids[0])
 
     else:
         raise argparse.ArgumentTypeError(
@@ -206,6 +214,10 @@ def main():
                              user['screen_name'], user['id_str'])
         else:
             logging.warn(json.dumps(user))
+
+    # iterate through the user ids and write them to stdout
+    for user_id in user_ids:
+        print(str(user_id))
 
 
 def load_config(filename, profile):
@@ -491,6 +503,22 @@ class Twarc(object):
                 yield user
 
             ids = ids[100:]
+
+    def follower_ids(self, screen_name):
+        """
+        Returns Twitter user id lists up to 5000 for the specified
+        screen_name.  No cursoring for now.
+        """
+        screen_name = screen_name.lstrip('@')
+        url = 'https://api.twitter.com/1.1/followers/ids.json'
+        params = {screen_name: screen_name}
+        try:
+            resp = self.get(url, params=params, allow_404=True)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                logging.info("no users matching %s", screen_name)
+            raise e
+        return resp.json()['ids']
 
     def filter(self, track=None, follow=None, locations=None):
         """
