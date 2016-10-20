@@ -34,12 +34,12 @@ access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
 t = twarc.Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
 
 
-def test_version():
+def atest_version():
     import setup
     assert setup.__version__ == twarc.__version__
 
 
-def test_search():
+def atest_search():
     count = 0
     for tweet in t.search('obama'):
         assert tweet['id_str']
@@ -49,7 +49,7 @@ def test_search():
     assert count == 10
 
 
-def test_since_id():
+def atest_since_id():
     for tweet in t.search('obama'):
         id = tweet['id_str']
         break
@@ -59,7 +59,7 @@ def test_since_id():
         assert tweet['id_str'] > id
 
 
-def test_max_id():
+def atest_max_id():
     for tweet in t.search('obama'):
         id = tweet['id_str']
         break
@@ -73,7 +73,7 @@ def test_max_id():
             break
 
 
-def test_max_and_since_ids():
+def atest_max_and_since_ids():
     max_id = since_id = None
     count = 0
     for tweet in t.search('obama'):
@@ -90,7 +90,7 @@ def test_max_and_since_ids():
         assert tweet['id_str'] > since_id
 
 
-def test_paging():
+def atest_paging():
     # pages are 100 tweets big so if we can get 500 paging is working
     count = 0
     for tweet in t.search('obama'):
@@ -100,7 +100,7 @@ def test_paging():
     assert count == 500
 
 
-def test_geocode():
+def atest_geocode():
     # look for tweets from New York ; the search radius is larger than NYC
     # so hopefully we'll find one from New York in the first 100?
     count = 0
@@ -117,7 +117,7 @@ def test_geocode():
     assert found
 
 
-def test_track():
+def atest_track():
     tweet = next(t.filter(track="obama"))
     json_str = json.dumps(tweet)
 
@@ -127,7 +127,7 @@ def test_track():
     t.connect()
 
 
-def test_follow():
+def atest_follow():
     user_ids = [
         "87818409",    # @guardian
         "428333",      # @cnnbrk
@@ -165,7 +165,7 @@ def test_follow():
     t.connect()
 
 
-def test_locations():
+def atest_locations():
     # look for tweets from New York ; the bounding box is larger than NYC
     # so hopefully we'll find one from New York in the first 100?
     count = 0
@@ -185,7 +185,7 @@ def test_locations():
     t.connect()
 
 
-def test_timeline_by_user_id():
+def atest_timeline_by_user_id():
     # looks for recent tweets and checks if tweets are of provided user_id
     user_id = "87818409"
 
@@ -193,7 +193,7 @@ def test_timeline_by_user_id():
         assert tweet['user']['id_str'] == user_id
 
 
-def test_timeline_by_screen_name():
+def atest_timeline_by_screen_name():
     # looks for recent tweets and checks if tweets are of provided screen_name
     screen_name = "guardian"
 
@@ -201,7 +201,27 @@ def test_timeline_by_screen_name():
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
 
 
-def test_user_lookup_by_user_id():
+def test_follower_ids():
+    # you can only get 5000 at a time, so this will test the cursor
+    count = 0
+    for id in t.follower_ids(screen_name='justinbieber'):
+        count += 1
+        if count == 10001:
+            break
+    assert count == 10001
+
+
+def test_friend_ids():
+    # you can only get 5000 at a time, so this will test the cursor
+    count = 0
+    for id in t.friend_ids(screen_name='justinbieber'):
+        count += 1
+        if count == 10001:
+            break
+    assert count == 10001
+
+
+def atest_user_lookup_by_user_id():
     # looks for the user with given user_id
 
     user_ids = [
@@ -226,7 +246,7 @@ def test_user_lookup_by_user_id():
     assert set(user_ids) == set(uids)
 
 
-def test_user_lookup_by_screen_name():
+def atest_user_lookup_by_screen_name():
     # looks for the user with given screen_names
     screen_names = ["guardian", "nytimes", "cnnbrk", "BBCBreaking",
                     "washingtonpost", "BuzzFeedNews", "WSJbreakingnews",
@@ -240,7 +260,7 @@ def test_user_lookup_by_screen_name():
     assert set(names) == set(map(lambda x: x.lower(), screen_names))
 
 
-def test_hydrate():
+def atest_hydrate():
     ids = [
         "501064188211765249", "501064196642340864", "501064197632167936",
         "501064196931330049", "501064198005481472", "501064198009655296",
@@ -314,7 +334,7 @@ def test_hydrate():
 
 
 @patch("twarc.OAuth1Session", autospec=True)
-def test_connection_error_get(oauth1session_class):
+def atest_connection_error_get(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.get.side_effect = requests.exceptions.ConnectionError
@@ -326,7 +346,7 @@ def test_connection_error_get(oauth1session_class):
 
 
 @patch("twarc.OAuth1Session", autospec=True)
-def test_connection_error_post(oauth1session_class):
+def atest_connection_error_post(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.post.side_effect = requests.exceptions.ConnectionError
@@ -337,17 +357,17 @@ def test_connection_error_post(oauth1session_class):
     assert 2 == mock_oauth1session.post.call_count
 
 
-def test_http_error_sample():
+def atest_http_error_sample():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=2)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.sample())
 
-def test_http_error_filter():
+def atest_http_error_filter():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=3)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.filter(track="test"))
 
-def test_http_error_timeline():
+def atest_http_error_timeline():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=4)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.timeline(user_id="test"))
