@@ -34,12 +34,12 @@ access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
 t = twarc.Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
 
 
-def atest_version():
+def test_version():
     import setup
     assert setup.__version__ == twarc.__version__
 
 
-def atest_search():
+def test_search():
     count = 0
     for tweet in t.search('obama'):
         assert tweet['id_str']
@@ -49,7 +49,7 @@ def atest_search():
     assert count == 10
 
 
-def atest_since_id():
+def test_since_id():
     for tweet in t.search('obama'):
         id = tweet['id_str']
         break
@@ -59,7 +59,7 @@ def atest_since_id():
         assert tweet['id_str'] > id
 
 
-def atest_max_id():
+def test_max_id():
     for tweet in t.search('obama'):
         id = tweet['id_str']
         break
@@ -73,7 +73,7 @@ def atest_max_id():
             break
 
 
-def atest_max_and_since_ids():
+def test_max_and_since_ids():
     max_id = since_id = None
     count = 0
     for tweet in t.search('obama'):
@@ -90,7 +90,7 @@ def atest_max_and_since_ids():
         assert tweet['id_str'] > since_id
 
 
-def atest_paging():
+def test_paging():
     # pages are 100 tweets big so if we can get 500 paging is working
     count = 0
     for tweet in t.search('obama'):
@@ -100,7 +100,7 @@ def atest_paging():
     assert count == 500
 
 
-def atest_geocode():
+def test_geocode():
     # look for tweets from New York ; the search radius is larger than NYC
     # so hopefully we'll find one from New York in the first 100?
     count = 0
@@ -117,7 +117,7 @@ def atest_geocode():
     assert found
 
 
-def atest_track():
+def test_track():
     tweet = next(t.filter(track="obama"))
     json_str = json.dumps(tweet)
 
@@ -127,7 +127,7 @@ def atest_track():
     t.connect()
 
 
-def atest_follow():
+def test_follow():
     user_ids = [
         "87818409",    # @guardian
         "428333",      # @cnnbrk
@@ -165,7 +165,7 @@ def atest_follow():
     t.connect()
 
 
-def atest_locations():
+def test_locations():
     # look for tweets from New York ; the bounding box is larger than NYC
     # so hopefully we'll find one from New York in the first 100?
     count = 0
@@ -185,7 +185,7 @@ def atest_locations():
     t.connect()
 
 
-def atest_timeline_by_user_id():
+def test_timeline_by_user_id():
     # looks for recent tweets and checks if tweets are of provided user_id
     user_id = "87818409"
 
@@ -193,7 +193,7 @@ def atest_timeline_by_user_id():
         assert tweet['user']['id_str'] == user_id
 
 
-def atest_timeline_by_screen_name():
+def test_timeline_by_screen_name():
     # looks for recent tweets and checks if tweets are of provided screen_name
     screen_name = "guardian"
 
@@ -221,7 +221,7 @@ def test_friend_ids():
     assert count == 10001
 
 
-def atest_user_lookup_by_user_id():
+def test_user_lookup_by_user_id():
     # looks for the user with given user_id
 
     user_ids = [
@@ -246,7 +246,7 @@ def atest_user_lookup_by_user_id():
     assert set(user_ids) == set(uids)
 
 
-def atest_user_lookup_by_screen_name():
+def test_user_lookup_by_screen_name():
     # looks for the user with given screen_names
     screen_names = ["guardian", "nytimes", "cnnbrk", "BBCBreaking",
                     "washingtonpost", "BuzzFeedNews", "WSJbreakingnews",
@@ -260,7 +260,7 @@ def atest_user_lookup_by_screen_name():
     assert set(names) == set(map(lambda x: x.lower(), screen_names))
 
 
-def atest_hydrate():
+def test_hydrate():
     ids = [
         "501064188211765249", "501064196642340864", "501064197632167936",
         "501064196931330049", "501064198005481472", "501064198009655296",
@@ -334,7 +334,7 @@ def atest_hydrate():
 
 
 @patch("twarc.OAuth1Session", autospec=True)
-def atest_connection_error_get(oauth1session_class):
+def test_connection_error_get(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.get.side_effect = requests.exceptions.ConnectionError
@@ -346,7 +346,7 @@ def atest_connection_error_get(oauth1session_class):
 
 
 @patch("twarc.OAuth1Session", autospec=True)
-def atest_connection_error_post(oauth1session_class):
+def test_connection_error_post(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.post.side_effect = requests.exceptions.ConnectionError
@@ -357,17 +357,17 @@ def atest_connection_error_post(oauth1session_class):
     assert 2 == mock_oauth1session.post.call_count
 
 
-def atest_http_error_sample():
+def test_http_error_sample():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=2)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.sample())
 
-def atest_http_error_filter():
+def test_http_error_filter():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=3)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.filter(track="test"))
 
-def atest_http_error_timeline():
+def test_http_error_timeline():
     t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=4)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.timeline(user_id="test"))
