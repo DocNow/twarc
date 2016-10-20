@@ -165,15 +165,14 @@ or user_ids:
 ## Follower Ids
 
 In follower id mode twarc will use Twitter's
-[follower id API](https://dev.twitter.com/rest/reference/get/followers/ids)
-to collect the most recent 5000 follower user ids for exactly one user screen
-name per request as specified as an argument:
+[follower id API](https://dev.twitter.com/rest/reference/get/followers/ids) to
+collect the follower user ids for exactly one user screen name per request as
+specified as an argument:
 
         twarc.py --follower_ids screen_name > follower_ids.txt
 
-The result will include exactly one user id per line for at most 5000 followers
-for the screen name.  The response order is reverse chronological, or most recent
-followers first.
+The result will include exactly one user id per line.  The response order is
+reverse chronological, or most recent followers first.
 
 This can work in concert with user lookup mode, where you can invoke
 the resulting follower id list as `--lookup_user_ids`:
@@ -183,9 +182,9 @@ the resulting follower id list as `--lookup_user_ids`:
 ## Friend ids
 
 Like follower id mode, in friend id mode twarc will use Twitter's
-[friend id API](https://dev.twitter.com/rest/reference/get/friends/ids)
-to collect the most recent 5000 friend user ids for exactly one user screen
-name per request as specified as an argument:
+[friend id API](https://dev.twitter.com/rest/reference/get/friends/ids) to
+collect the friend user ids for exactly one user screen name per request as
+specified as an argument:
 
     twarc.py --friend_ids screen_name > friend_ids.txt
 
