@@ -516,7 +516,7 @@ class Twarc(object):
         """
         screen_name = screen_name.lstrip('@')
         url = 'https://api.twitter.com/1.1/followers/ids.json'
-        params = {screen_name: screen_name}
+        params = {'screen_name': screen_name}
         try:
             resp = self.get(url, params=params, allow_404=True)
         except requests.exceptions.HTTPError as e:
@@ -534,7 +534,7 @@ class Twarc(object):
         """
         screen_name = screen_name.lstrip('@')
         url = 'https://api.twitter.com/1.1/friends/ids.json'
-        params = {screen_name: screen_name}
+        params = {'screen_name': screen_name}
         try:
             resp = self.get(url, params=params, allow_404=True)
         except requests.exceptions.HTTPError as e:
