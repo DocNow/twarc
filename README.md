@@ -191,6 +191,60 @@ specified as an argument:
 Also like in follower id mode, the results will be reverse chronological, and
 they can be fed to --lookup_user_ids in the same way demonstrated above.
 
+## Trend modes
+
+Twitter's API offers three calls for fetching information about trends.  All
+three return JSON data, but each has its own focus.  To keep things simple, twarc
+returns the JSON data straight from the API, but with one result per line, unless
+specified otherwise.  Details about each call follow.
+
+### Trends available
+
+As of October 2016, Twitter gathers trend information for 467 distinct regions,
+including "Worldwide", 62 countries, 402 towns, and two areas that don't neatly
+fit into these categories, Ahsa and Soweto.  In trends available mode, twarc
+returns the entire list of all of these regions from the
+[trends available API](https://dev.twitter.com/rest/reference/get/trends/available):
+
+        twarc.py --trends_available
+
+Each region will be written to stdout, one JSON record per line.
+
+### Trends place
+
+The [trends place API](https://dev.twitter.com/rest/reference/get/trends/place)
+returns a list of all trends for a particular region (one of the regions listed)
+in the results for `--trends_available`).  It also includes three extra values,
+`as_of` and `created_at`, which are both
+[W3C Date Time](https://www.w3.org/TR/NOTE-datetime) compatible timestamps, and
+a list of regions for which trends are provided in the results, including a
+region name and [WOE id](http://developer.yahoo.com/geo/geoplanet/) for each.
+The API call only accepts one id at a time, though, and the dates do not provide
+terribly much information, so twarc's response simplifies the result to just the
+list of applicable trends.
+
+        twarc.py --trends_place WOEID
+
+Each trend will be written to stdout, one JSON record per line.
+
+A variation on this call will exclude hashtags from trend lists:
+
+        twarc.py --trends_place_exclude WOEID
+
+The result format is the same, it will simply exclude hashtags.  This is a
+feature of the Twitter API call, not post-processing in twarc.
+
+### Trends closest
+
+The
+[trends closest API](https://dev.twitter.com/rest/reference/get/trends/closest)
+returns a list of regions bounded a specific latitude and longitude.  This API
+call only accepts one lat, lon pair per call.
+
+        twarc.py --trends_closest 39.9062,-79.4679
+
+The result format is the same as for trends available.
+
 ## Archive
 
 In addition to `twarc.py` when you install twarc you will also get the

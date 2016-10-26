@@ -74,6 +74,18 @@ def main():
     parser.add_argument("--hydrate", action="append", dest="hydrate",
                         help="rehydrate tweets from a file of tweet ids, \
                               use - for stdin")
+    parser.add_argument("--trends_available", action="store_true",
+                        help="show all regions available for trend summaries")
+    parser.add_argument("--trends_place", dest="trends_place", nargs=1,
+                        type=int, metavar="WOEID",
+                        help="recent trends for WOEID specified")
+    parser.add_argument("--trends_closest", dest="trends_closest", nargs=1,
+                        metavar="LAT,LONG",
+                        help="show available trend regions for LAT,LONG")
+    parser.add_argument("--trends_place_exclude",
+                        dest="trends_place_exclude", nargs=1,
+                        type=int, metavar="WOEID",
+                        help="recent trends for WOEID specified sans hashtags")
     parser.add_argument("--log", dest="log",
                         default="twarc.log", help="log file")
     parser.add_argument("--consumer_key",
@@ -136,6 +148,7 @@ def main():
     tweets = []
     users = []
     user_ids = []
+    trends_json = []
 
     # Calls that return tweets
     if args.search or args.geocode:
@@ -178,11 +191,33 @@ def main():
         # Note: same here, only one at a time, so assume exactly one
         user_ids = t.friend_ids(screen_name=args.friend_ids[0])
 
+    # Calls that return JSON relating to trends
+    elif args.trends_available:
+        trends_json = t.trends_available()
+    elif args.trends_place:
+        trends_json = t.trends_place(args.trends_place)
+    elif args.trends_place_exclude:
+        trends_json = t.trends_place(args.trends_place_exclude,
+                                     exclude='hashtags')
+    elif args.trends_closest:
+        # Note: using "lon" as var name instead of restricted "long"
+        try:
+            lat, lon = [float(s.strip())
+                        for s in args.trends_closest[0].split(',')]
+            if lat > 180 or lat < -180 or lon > 180 or lon < -180:
+                raise "Unacceptable values"
+        except Exception as e:
+            parser.error('LAT and LONG must be floats within [-180.0, 180.0]')
+        trends_json = t.trends_closest(lat, lon)
+
     else:
         raise argparse.ArgumentTypeError(
             'must supply one of:  --search --track --follow --locations'
             ' --timeline --timeline_user_id'
             ' --lookup_screen_names --lookup_user_ids'
+            ' --follower_ids --friend_ids'
+            ' --trends_available --trends_closest'
+            ' --trends_place --trends_place_exclude'
             ' --sample --hydrate')
 
     # iterate through the tweets and write them to stdout
@@ -223,6 +258,10 @@ def main():
     # iterate through the user ids and write them to stdout
     for user_id in user_ids:
         print(str(user_id))
+
+    # iterate through trend JSON and write each to stdout
+    for trend_info in trends_json:
+        print(json.dumps(trend_info))
 
 
 def load_config(filename, profile):
@@ -511,7 +550,7 @@ class Twarc(object):
 
     def follower_ids(self, screen_name):
         """
-        Returns Twitter user id lists for the specified screen_name's 
+        Returns Twitter user id lists for the specified screen_name's
         followers.
         """
         screen_name = screen_name.lstrip('@')
@@ -531,7 +570,7 @@ class Twarc(object):
 
     def friend_ids(self, screen_name):
         """
-        Returns Twitter user id lists for the specified screen_name's friends 
+        Returns Twitter user id lists for the specified screen_name's friends
         (following).
         """
         screen_name = screen_name.lstrip('@')
@@ -548,6 +587,53 @@ class Twarc(object):
             for user_id in user_ids['ids']:
                 yield user_id
             params['cursor'] = user_ids['next_cursor']
+
+    def trends_available(self):
+        """
+        Returns JSON list of regions for which Twitter tracks trends.
+        """
+        url = 'https://api.twitter.com/1.1/trends/available.json'
+        try:
+            resp = self.get(url)
+        except requests.exceptions.HTTPError as e:
+            raise e
+        regions = resp.json()
+        for region in regions:
+            yield region
+
+    def trends_place(self, woeid, exclude=None):
+        """
+        Returns recent Twitter trends for the specified WOEID.  If
+        exclude == 'hashtags', Twitter will remove hashtag trends from the
+        response.
+        """
+        url = 'https://api.twitter.com/1.1/trends/place.json'
+        params = {'id': woeid}
+        if exclude:
+            params['exclude'] = exclude
+        try:
+            resp = self.get(url, params=params, allow_404=True)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                logging.info("no region matching WOEID %s", woeid)
+            raise e
+        trends = resp.json()
+        for trend in trends[0]['trends']:
+            yield trend
+
+    def trends_closest(self, lat, lon):
+        """
+        Returns JSON list of regions bounding the specified lat, long pair.
+        """
+        url = 'https://api.twitter.com/1.1/trends/closest.json'
+        params = {'lat': lat, 'long': lon}
+        try:
+            resp = self.get(url, params=params)
+        except requests.exceptions.HTTPError as e:
+            raise e
+        regions = resp.json()
+        for region in regions:
+            yield region
 
     def filter(self, track=None, follow=None, locations=None):
         """

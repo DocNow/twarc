@@ -201,6 +201,32 @@ def test_timeline_by_screen_name():
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
 
 
+def test_trends_available():
+    # fetches all available trend regions and checks presence of likely member
+    trends = t.trends_available()
+    worldwide = [t for t in trends if t['placeType']['name'] == 'Supername']
+    assert worldwide[0]['name'] == 'Worldwide'
+
+
+def test_trends_place():
+    # fetches recent trends for Amsterdam, WOEID 727232
+    trends = t.trends_place(727232)
+    assert len(list(trends)) > 0
+
+
+def test_trends_closest():
+    # fetches regions bounding the specified lat and lon
+    trends = t.trends_closest(38.883137, -76.990228)
+    assert len(list(trends)) > 0
+
+
+def test_trends_place_exclude():
+    # fetches recent trends for Amsterdam, WOEID 727232, sans hashtags
+    trends = t.trends_place(727232, exclude='hashtags')
+    hashtag_trends = [t for t in trends if t['name'].startswith('#')]
+    assert len(hashtag_trends) == 0
+
+
 def test_follower_ids():
     # you can only get 5000 at a time, so this will test the cursor
     count = 0
