@@ -70,3 +70,4 @@ img/
 *.ini
 .eggs
 *.swp
+.DS_Store
