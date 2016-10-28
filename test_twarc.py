@@ -31,7 +31,7 @@ consumer_key = os.environ.get('CONSUMER_KEY')
 consumer_secret = os.environ.get('CONSUMER_SECRET')
 access_token = os.environ.get('ACCESS_TOKEN')
 access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
-t = twarc.Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
+T = twarc.Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
 
 
 def test_version():
@@ -41,7 +41,7 @@ def test_version():
 
 def test_search():
     count = 0
-    for tweet in t.search('obama'):
+    for tweet in T.search('obama'):
         assert tweet['id_str']
         count += 1
         if count == 10:
@@ -50,23 +50,23 @@ def test_search():
 
 
 def test_since_id():
-    for tweet in t.search('obama'):
+    for tweet in T.search('obama'):
         id = tweet['id_str']
         break
     assert id
     time.sleep(5)
-    for tweet in t.search('obama', since_id=id):
+    for tweet in T.search('obama', since_id=id):
         assert tweet['id_str'] > id
 
 
 def test_max_id():
-    for tweet in t.search('obama'):
+    for tweet in T.search('obama'):
         id = tweet['id_str']
         break
     assert id
     time.sleep(5)
     count = 0
-    for tweet in t.search('obama', max_id=id):
+    for tweet in T.search('obama', max_id=id):
         count += 1
         assert tweet['id_str'] <= id
         if count > 100:
@@ -76,7 +76,7 @@ def test_max_id():
 def test_max_and_since_ids():
     max_id = since_id = None
     count = 0
-    for tweet in t.search('obama'):
+    for tweet in T.search('obama'):
         count += 1
         if not max_id:
             max_id = tweet['id_str']
@@ -84,7 +84,7 @@ def test_max_and_since_ids():
         if count > 500:
             break
     count = 0
-    for tweet in t.search('obama', max_id=max_id, since_id=since_id):
+    for tweet in T.search('obama', max_id=max_id, since_id=since_id):
         count += 1
         assert tweet['id_str'] <= max_id
         assert tweet['id_str'] > since_id
@@ -93,7 +93,7 @@ def test_max_and_since_ids():
 def test_paging():
     # pages are 100 tweets big so if we can get 500 paging is working
     count = 0
-    for tweet in t.search('obama'):
+    for tweet in T.search('obama'):
         count += 1
         if count == 500:
             break
@@ -106,7 +106,7 @@ def test_geocode():
     count = 0
     found = False
 
-    for tweet in t.search(None, geocode='40.7484,-73.9857,1mi'):
+    for tweet in T.search(None, geocode='40.7484,-73.9857,1mi'):
         if (tweet['place'] or {}).get('name') == 'Manhattan':
             found = True
             break
@@ -118,13 +118,13 @@ def test_geocode():
 
 
 def test_track():
-    tweet = next(t.filter(track="obama"))
+    tweet = next(T.filter(track="obama"))
     json_str = json.dumps(tweet)
 
     assert re.search('obama', json_str, re.IGNORECASE)
 
     # reconnect to close streaming connection for other tests
-    t.connect()
+    T.connect()
 
 
 def test_follow():
@@ -142,7 +142,7 @@ def test_follow():
     ]
     found = False
 
-    for tweet in t.filter(follow=','.join(user_ids)):
+    for tweet in T.filter(follow=','.join(user_ids)):
         assert tweet['id_str']
         if tweet['user']['id_str'] in user_ids:
             found = True
@@ -162,7 +162,7 @@ def test_follow():
     assert found
 
     # reconnect to close streaming connection for other tests
-    t.connect()
+    T.connect()
 
 
 def test_locations():
@@ -171,7 +171,7 @@ def test_locations():
     count = 0
     found = False
 
-    for tweet in t.filter(locations="-74,40,-73,41"):
+    for tweet in T.filter(locations="-74,40,-73,41"):
         if tweet['place']['name'] == 'Manhattan':
             found = True
             break
@@ -182,14 +182,14 @@ def test_locations():
     assert found
 
     # reconnect to close streaming connection for other tests
-    t.connect()
+    T.connect()
 
 
 def test_timeline_by_user_id():
     # looks for recent tweets and checks if tweets are of provided user_id
     user_id = "87818409"
 
-    for tweet in t.timeline(user_id=user_id):
+    for tweet in T.timeline(user_id=user_id):
         assert tweet['user']['id_str'] == user_id
 
 
@@ -197,32 +197,32 @@ def test_timeline_by_screen_name():
     # looks for recent tweets and checks if tweets are of provided screen_name
     screen_name = "guardian"
 
-    for tweet in t.timeline(screen_name=screen_name):
+    for tweet in T.timeline(screen_name=screen_name):
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
 
 
 def test_trends_available():
     # fetches all available trend regions and checks presence of likely member
-    trends = t.trends_available()
+    trends = T.trends_available()
     worldwide = [t for t in trends if t['placeType']['name'] == 'Supername']
     assert worldwide[0]['name'] == 'Worldwide'
 
 
 def test_trends_place():
     # fetches recent trends for Amsterdam, WOEID 727232
-    trends = t.trends_place(727232)
+    trends = T.trends_place(727232)
     assert len(list(trends)) > 0
 
 
 def test_trends_closest():
     # fetches regions bounding the specified lat and lon
-    trends = t.trends_closest(38.883137, -76.990228)
+    trends = T.trends_closest(38.883137, -76.990228)
     assert len(list(trends)) > 0
 
 
 def test_trends_place_exclude():
     # fetches recent trends for Amsterdam, WOEID 727232, sans hashtags
-    trends = t.trends_place(727232, exclude='hashtags')
+    trends = T.trends_place(727232, exclude='hashtags')
     hashtag_trends = [t for t in trends if t['name'].startswith('#')]
     assert len(hashtag_trends) == 0
 
@@ -230,7 +230,7 @@ def test_trends_place_exclude():
 def test_follower_ids():
     # you can only get 5000 at a time, so this will test the cursor
     count = 0
-    for id in t.follower_ids(screen_name='justinbieber'):
+    for id in T.follower_ids(screen_name='justinbieber'):
         count += 1
         if count == 10001:
             break
@@ -240,7 +240,7 @@ def test_follower_ids():
 def test_friend_ids():
     # you can only get 5000 at a time, so this will test the cursor
     count = 0
-    for id in t.friend_ids(screen_name='justinbieber'):
+    for id in T.friend_ids(screen_name='justinbieber'):
         count += 1
         if count == 10001:
             break
@@ -266,7 +266,7 @@ def test_user_lookup_by_user_id():
 
     uids = []
 
-    for user in t.user_lookup(user_ids=user_ids):
+    for user in T.user_lookup(user_ids=user_ids):
         uids.append(user['id_str'])
 
     assert set(user_ids) == set(uids)
@@ -280,7 +280,7 @@ def test_user_lookup_by_screen_name():
 
     names = []
 
-    for user in t.user_lookup(screen_names=screen_names):
+    for user in T.user_lookup(screen_names=screen_names):
         names.append(user['screen_name'].lower())
 
     assert set(names) == set(map(lambda x: x.lower(), screen_names))
@@ -353,7 +353,7 @@ def test_hydrate():
         "618602288781860864"
     ]
     count = 0
-    for tweet in t.hydrate(iter(ids)):
+    for tweet in T.hydrate(iter(ids)):
         assert tweet['id_str']
         count += 1
     assert count > 100  # may need to adjust as these might get deleted
