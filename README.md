@@ -1,9 +1,7 @@
 twarc
 =====
 
-[![Build Status](https://secure.travis-ci.org/edsu/twarc.png)](http://travis-ci.org/edsu/twarc)
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/edsu/twarc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![DOI](https://zenodo.org/badge/12737/edsu/twarc.svg)](http://dx.doi.org/10.5281/zenodo.17385)
+[![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
 twarc is a command line tool and Python library for archiving Twitter JSON
 data. Each tweet is represented as a JSON object that is exactly what was
