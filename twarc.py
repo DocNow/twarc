@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-__version__ = '0.8.2' # also in setup.py
+__version__ = '0.8.3' # also in setup.py
 
 import fileinput
 import os
