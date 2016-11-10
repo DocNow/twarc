@@ -86,6 +86,7 @@ def main():
                         dest="trends_place_exclude", nargs=1,
                         type=int, metavar="WOEID",
                         help="recent trends for WOEID specified sans hashtags")
+    parser.add_argument("--retweets", dest="retweets", help="get retweets for a tweet")
     parser.add_argument("--log", dest="log",
                         default="twarc.log", help="log file")
     parser.add_argument("--consumer_key",
@@ -176,6 +177,8 @@ def main():
         tweets = t.timeline(screen_name=args.timeline)
     elif args.timeline_user_id:
         tweets = t.timeline(user_id=args.timeline_user_id)
+    elif args.retweets:
+        tweets = t.retweets(args.retweets)
 
     # Calls that return user profile objects
     elif args.lookup_user_ids:
@@ -218,7 +221,7 @@ def main():
             ' --follower_ids --friend_ids'
             ' --trends_available --trends_closest'
             ' --trends_place --trends_place_exclude'
-            ' --sample --hydrate')
+            ' --sample --hydrate --retweets')
 
     # iterate through the tweets and write them to stdout
     for tweet in tweets:
@@ -767,6 +770,18 @@ class Twarc(object):
             resp = self.client.post(url, data={"id": ','.join(ids)})
             for tweet in resp.json():
                 yield tweet
+
+    def retweets(self, tweet_id):
+        """
+        Retrieves up to the last 100 retweets for the provided
+        tweet.
+        """
+        logging.info("retrieving retweets of %s", tweet_id)
+        url = "https://api.twitter.com/1.1/statuses/retweets/{}.json".format(tweet_id)
+
+        resp = self.get(url)
+        for tweet in resp.json():
+            yield tweet
 
     @rate_limit
     @catch_conn_reset
