@@ -30,9 +30,148 @@ else:
 
 
 def main():
+    parser = get_argparser()
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        filename=args.log,
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
+
+    t = Twarc(
+        consumer_key=args.consumer_key,
+        consumer_secret=args.consumer_secret,
+        access_token=args.access_token,
+        access_token_secret=args.access_token_secret,
+        connection_errors=args.connection_errors,
+        http_errors=args.http_errors,
+        config=args.config,
+        profile=args.profile
+    )
+
+    tweets = []
+    users = []
+    user_ids = []
+    trends_json = []
+
+    # calls that return tweets
+    if args.search or args.geocode:
+        tweets = t.search(
+            args.search,
+            since_id=args.since_id,
+            max_id=args.max_id,
+            lang=args.lang,
+            result_type=args.result_type,
+            geocode=args.geocode
+        )
+    elif args.track or args.follow or args.locations:
+        tweets = t.filter(track=args.track, follow=args.follow,
+                          locations=args.locations)
+    elif args.hydrate:
+        input_iterator = fileinput.FileInput(
+            args.hydrate,
+            mode='rU',
+            openhook=fileinput.hook_compressed,
+        )
+        tweets = t.hydrate(input_iterator)
+    elif args.sample:
+        tweets = t.sample()
+    elif args.timeline:
+        tweets = t.timeline(screen_name=args.timeline)
+    elif args.timeline_user_id:
+        tweets = t.timeline(user_id=args.timeline_user_id)
+    elif args.retweets:
+        tweets = t.retweets(args.retweets)
+
+    # calls that return user profile objects
+    elif args.lookup_user_ids:
+        users = t.user_lookup(user_ids=args.lookup_user_ids)
+    elif args.lookup_screen_names:
+        users = t.user_lookup(screen_names=args.lookup_screen_names)
+
+    # calls that return lists of user ids
+    elif args.follower_ids:
+        # Note: only one at a time, so assume exactly one
+        user_ids = t.follower_ids(screen_name=args.follower_ids[0])
+    elif args.friend_ids:
+        # Note: same here, only one at a time, so assume exactly one
+        user_ids = t.friend_ids(screen_name=args.friend_ids[0])
+
+    # calls that return JSON relating to trends
+    elif args.trends_available:
+        trends_json = t.trends_available()
+    elif args.trends_place:
+        trends_json = t.trends_place(args.trends_place)
+    elif args.trends_place_exclude:
+        trends_json = t.trends_place(args.trends_place_exclude,
+                                     exclude='hashtags')
+    elif args.trends_closest:
+        try:
+            lat, lon = [float(s.strip())
+                        for s in args.trends_closest[0].split(',')]
+            if lat > 180 or lat < -180 or lon > 180 or lon < -180:
+                raise "Unacceptable values"
+        except Exception as e:
+            parser.error('LAT and LONG must be floats within [-180.0, 180.0]')
+        trends_json = t.trends_closest(lat, lon)
+
+    else:
+        parser.print_help()
+        sys.exit(1)
+
+    # iterate through the tweets and write them to stdout
+    for tweet in tweets:
+
+        # include warnings in output only if they asked for it
+        if 'id_str' in tweet or args.warnings:
+            print(json.dumps(tweet))
+
+        # add some info to the log
+        if 'id_str' in tweet:
+            if 'user' in tweet:
+                logging.info("archived https://twitter.com/%s/status/%s",
+                             tweet['user']['screen_name'], tweet['id_str'])
+        elif 'limit' in tweet:
+            t = datetime.datetime.utcfromtimestamp(
+                float(tweet['limit']['timestamp_ms']) / 1000)
+            t = t.isoformat("T") + "Z"
+            logging.warn("%s tweets undelivered at %s",
+                         tweet['limit']['track'], t)
+        elif 'warning' in tweet:
+            logging.warn(tweet['warning']['message'])
+        else:
+            logging.warn(json.dumps(tweet))
+
+    # iterate through the user objects and write them to stdout
+    for user in users:
+        # include warnings in output only if they asked for it
+        if 'id_str' in user or args.warnings:
+            print(json.dumps(user))
+
+            # add some info to the log
+            if 'screen_name' in user:
+                logging.info("archived user profile for @%s / id_str=%s",
+                             user['screen_name'], user['id_str'])
+        else:
+            logging.warn(json.dumps(user))
+
+    # iterate through the user ids and write them to stdout
+    for user_id in user_ids:
+        print(str(user_id))
+
+    # iterate through trend JSON and write each to stdout
+    for trend_info in trends_json:
+        print(json.dumps(trend_info))
+
+
+def get_argparser():
     """
-    The twarc command line.
+    Get the command line argument parser.
     """
+    
+    config = os.path.join(os.path.expanduser("~"), ".twarc")
+
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(
@@ -97,8 +236,7 @@ def main():
                         default=None, help="Twitter API access key")
     parser.add_argument("--access_token_secret",
                         default=None, help="Twitter API access token secret")
-    parser.add_argument('-c', '--config',
-                        default=default_config_filename(),
+    parser.add_argument('-c', '--config', default=config,
                         help="Config file containing Twitter keys and secrets")
     parser.add_argument('-p', '--profile', default='main',
                         help="Name of a profile in your configuration file")
@@ -109,213 +247,7 @@ def main():
     parser.add_argument("--http_errors", type=int, default="0",
                         help="Number of http errors before giving up. Default is to keep trying.")
 
-    args = parser.parse_args()
-
-    logging.basicConfig(
-        filename=args.log,
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
-    )
-
-    consumer_key = args.consumer_key or os.environ.get('CONSUMER_KEY')
-    consumer_secret = args.consumer_secret or os.environ.get('CONSUMER_SECRET')
-    access_token = args.access_token or os.environ.get('ACCESS_TOKEN')
-    access_token_secret = args.access_token_secret or os.environ.get('ACCESS_TOKEN_SECRET')
-
-    if not (consumer_key and consumer_secret and
-            access_token and access_token_secret):
-        credentials = load_config(args.config, args.profile)
-        if credentials:
-            consumer_key = credentials['consumer_key']
-            consumer_secret = credentials['consumer_secret']
-            access_token = credentials['access_token']
-            access_token_secret = credentials['access_token_secret']
-        else:
-            print("Please enter Twitter authentication credentials")
-            consumer_key = get_input('consumer key: ')
-            consumer_secret = get_input('consumer secret: ')
-            access_token = get_input('access_token: ')
-            access_token_secret = get_input('access token secret: ')
-            save_keys(args.profile, consumer_key, consumer_secret,
-                      access_token, access_token_secret)
-
-    t = Twarc(consumer_key=consumer_key,
-              consumer_secret=consumer_secret,
-              access_token=access_token,
-              access_token_secret=access_token_secret,
-              connection_errors=args.connection_errors,
-              http_errors=args.http_errors)
-
-    tweets = []
-    users = []
-    user_ids = []
-    trends_json = []
-
-    # Calls that return tweets
-    if args.search or args.geocode:
-        tweets = t.search(
-            args.search,
-            since_id=args.since_id,
-            max_id=args.max_id,
-            lang=args.lang,
-            result_type=args.result_type,
-            geocode=args.geocode
-        )
-    elif args.track or args.follow or args.locations:
-        tweets = t.filter(track=args.track, follow=args.follow,
-                          locations=args.locations)
-    elif args.hydrate:
-        input_iterator = fileinput.FileInput(
-            args.hydrate,
-            mode='rU',
-            openhook=fileinput.hook_compressed,
-        )
-        tweets = t.hydrate(input_iterator)
-    elif args.sample:
-        tweets = t.sample()
-    elif args.timeline:
-        tweets = t.timeline(screen_name=args.timeline)
-    elif args.timeline_user_id:
-        tweets = t.timeline(user_id=args.timeline_user_id)
-    elif args.retweets:
-        tweets = t.retweets(args.retweets)
-
-    # Calls that return user profile objects
-    elif args.lookup_user_ids:
-        users = t.user_lookup(user_ids=args.lookup_user_ids)
-    elif args.lookup_screen_names:
-        users = t.user_lookup(screen_names=args.lookup_screen_names)
-
-    # Calls that return lists of user ids
-    elif args.follower_ids:
-        # Note: only one at a time, so assume exactly one
-        user_ids = t.follower_ids(screen_name=args.follower_ids[0])
-    elif args.friend_ids:
-        # Note: same here, only one at a time, so assume exactly one
-        user_ids = t.friend_ids(screen_name=args.friend_ids[0])
-
-    # Calls that return JSON relating to trends
-    elif args.trends_available:
-        trends_json = t.trends_available()
-    elif args.trends_place:
-        trends_json = t.trends_place(args.trends_place)
-    elif args.trends_place_exclude:
-        trends_json = t.trends_place(args.trends_place_exclude,
-                                     exclude='hashtags')
-    elif args.trends_closest:
-        # Note: using "lon" as var name instead of restricted "long"
-        try:
-            lat, lon = [float(s.strip())
-                        for s in args.trends_closest[0].split(',')]
-            if lat > 180 or lat < -180 or lon > 180 or lon < -180:
-                raise "Unacceptable values"
-        except Exception as e:
-            parser.error('LAT and LONG must be floats within [-180.0, 180.0]')
-        trends_json = t.trends_closest(lat, lon)
-
-    else:
-        raise argparse.ArgumentTypeError(
-            'must supply one of:  --search --track --follow --locations'
-            ' --timeline --timeline_user_id'
-            ' --lookup_screen_names --lookup_user_ids'
-            ' --follower_ids --friend_ids'
-            ' --trends_available --trends_closest'
-            ' --trends_place --trends_place_exclude'
-            ' --sample --hydrate --retweets')
-
-    # iterate through the tweets and write them to stdout
-    for tweet in tweets:
-        # include warnings in output only if they asked for it
-        if 'id_str' in tweet or args.warnings:
-            print(json.dumps(tweet))
-
-        # add some info to the log
-        if 'id_str' in tweet:
-            if 'user' in tweet:
-                logging.info("archived https://twitter.com/%s/status/%s",
-                             tweet['user']['screen_name'], tweet['id_str'])
-        elif 'limit' in tweet:
-            t = datetime.datetime.utcfromtimestamp(
-                float(tweet['limit']['timestamp_ms']) / 1000)
-            t = t.isoformat("T") + "Z"
-            logging.warn("%s tweets undelivered at %s",
-                         tweet['limit']['track'], t)
-        elif 'warning' in tweet:
-            logging.warn(tweet['warning']['message'])
-        else:
-            logging.warn(json.dumps(tweet))
-
-    # iterate through the user objects and write them to stdout
-    for user in users:
-        # include warnings in output only if they asked for it
-        if 'id_str' in user or args.warnings:
-            print(json.dumps(user))
-
-            # add some info to the log
-            if 'screen_name' in user:
-                logging.info("archived user profile for @%s / id_str=%s",
-                             user['screen_name'], user['id_str'])
-        else:
-            logging.warn(json.dumps(user))
-
-    # iterate through the user ids and write them to stdout
-    for user_id in user_ids:
-        print(str(user_id))
-
-    # iterate through trend JSON and write each to stdout
-    for trend_info in trends_json:
-        print(json.dumps(trend_info))
-
-
-def load_config(filename, profile):
-    if not os.path.isfile(filename):
-        return None
-    config = configparser.ConfigParser()
-    config.read(filename)
-    data = {}
-    for key in ['access_token', 'access_token_secret',
-                'consumer_key', 'consumer_secret']:
-        try:
-            data[key] = config.get(profile, key)
-        except configparser.NoSectionError:
-            sys.exit("no such profile %s in %s" % (profile, filename))
-        except configparser.NoOptionError:
-            sys.exit("missing %s from profile %s in %s" % (
-                     key, profile, filename))
-    return data
-
-
-def save_config(filename, profile,
-                consumer_key, consumer_secret,
-                access_token, access_token_secret):
-    config = configparser.ConfigParser()
-    config.add_section(profile)
-    config.set(profile, 'consumer_key', consumer_key)
-    config.set(profile, 'consumer_secret', consumer_secret)
-    config.set(profile, 'access_token', access_token)
-    config.set(profile, 'access_token_secret', access_token_secret)
-    with open(filename, 'w') as config_file:
-        config.write(config_file)
-
-
-def default_config_filename():
-    """
-    Return the default filename for storing Twitter keys.
-    """
-    home = os.path.expanduser("~")
-    return os.path.join(home, ".twarc")
-
-
-def save_keys(profile, consumer_key, consumer_secret,
-              access_token, access_token_secret):
-    """
-    Save keys to ~/.twarc
-    """
-    filename = default_config_filename()
-    save_config(filename, profile,
-                consumer_key, consumer_secret,
-                access_token, access_token_secret)
-    print("Keys saved to", filename)
+    return parser
 
 
 def rate_limit(f):
@@ -410,21 +342,19 @@ def catch_gzip_errors(f):
 
 class Twarc(object):
     """
-    Your friendly neighborhood Twitter archiving class. Twarc allows
-    you to search for existing tweets, stream live tweets that match
-    a filter query and lookup (hdyrate) a list of tweet ids.
-
-    Each method search, stream and hydrate returns a tweet iterator which
-    allows you to do what you want with the data. Twarc handles rate limiting
-    in the API, so it will go to sleep when Twitter tells it to, and wake back
-    up when it is able to get more data from the API.
+    Twarc allows you retrieve data from the Twitter API. Each method
+    is an iterator that runs to completion, and handles rate limiting so 
+    that it will go to sleep when Twitter tells it to, and wake back up
+    when it is able to retrieve data from the API again.
     """
 
-    def __init__(self, consumer_key, consumer_secret, access_token,
-                 access_token_secret, connection_errors=0, http_errors=0):
+    def __init__(self, consumer_key=None, consumer_secret=None,
+                 access_token=None, access_token_secret=None, 
+                 connection_errors=0, http_errors=0, config=None, 
+                 profile="main"):
         """
-        Instantiate a Twarc instance. Make sure your environment variables
-        are set.
+        Instantiate a Twarc instance. If keys aren't set we'll try to 
+        discover them in the environment or a supplied profile.
         """
 
         self.consumer_key = consumer_key
@@ -433,8 +363,12 @@ class Twarc(object):
         self.access_token_secret = access_token_secret
         self.connection_errors = connection_errors
         self.http_errors = http_errors
+        self.config = config
+        self.profile = profile
         self.client = None
         self.last_response = None
+
+        self.check_keys()
         self.connect()
 
     def search(self, q, max_id=None, since_id=None, lang=None,
@@ -849,6 +783,76 @@ class Twarc(object):
             resource_owner_key=self.access_token,
             resource_owner_secret=self.access_token_secret
         )
+
+    def check_keys(self):
+        (ck, cs, at, ats) = (self.consumer_key, self.consumer_secret, 
+                             self.access_token, self.access_token_secret)
+
+        env = os.environ.get
+        if not ck: ck = env('CONSUMER_KEY')
+        if not cs: cs = env('CONSUMER_SECRET')
+        if not at: at = env('ACCESS_TOKEN')
+        if not ats: ats = env('ACCESS_TOKEN_SECRET')
+
+        entered_keys = False
+        if self.config and not (ck and cs and at and ats):
+            credentials = self.load_config()
+            if credentials:
+                ck = credentials['consumer_key']
+                cs = credentials['consumer_secret']
+                at = credentials['access_token']
+                ats = credentials['access_token_secret']
+            else:
+                print("Please enter Twitter authentication credentials")
+                ck = get_input('consumer key: ')
+                cs = get_input('consumer secret: ')
+                at = get_input('access_token: ')
+                ats = get_input('access token secret: ')
+                entered_keys = True
+
+        # set discovered keys
+        self.consumer_key = ck
+        self.consumer_secret = cs
+        self.access_token = at
+        self.access_token_secret = ats
+
+        # save config if we had one
+        if entered_keys:
+            self.save_config()
+
+    def load_config(self):
+        path = self.config
+        profile = self.profile
+        if not os.path.isfile(path):
+            return None
+
+        config = configparser.ConfigParser()
+        config.read(self.config)
+        data = {}
+        for key in ['access_token', 'access_token_secret',
+                    'consumer_key', 'consumer_secret']:
+            try:
+                data[key] = config.get(profile, key)
+            except configparser.NoSectionError:
+                sys.exit("no such profile %s in %s" % (profile, path))
+            except configparser.NoOptionError:
+                sys.exit("missing %s from profile %s in %s" % (
+                         key, profile, path))
+        return data
+
+    def save_config(self):
+        if not self.config:
+            return
+        config = configparser.ConfigParser()
+        config.add_section(self.profile)
+        config.set(self.profile, 'consumer_key', self.consumer_key)
+        config.set(self.profile, 'consumer_secret', self.consumer_secret)
+        config.set(self.profile, 'access_token', self.access_token)
+        config.set(self.profile, 'access_token_secret', 
+                   self.access_token_secret)
+        with open(self.config, 'w') as config_file:
+            config.write(config_file)
+
 
 if __name__ == "__main__":
     main()
