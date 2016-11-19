@@ -21,7 +21,9 @@ in hand you are ready to start using twarc.
 
 First you're going to need to tell twarc about your API keys:
 
-    twarc configure
+```bash 
+twarc configure
+```
 
 Then try out a search:
 
