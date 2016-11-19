@@ -32,7 +32,7 @@ Then try out a search:
 
     twarc search blacklivesmatter > search.json
 
-Or maybe you'd like to collect tweet as they happen?
+Or maybe you'd like to collect tweets as they happen?
 
     twarc filter blacklivesmatter > stream.json
 
