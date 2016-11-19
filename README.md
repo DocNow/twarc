@@ -21,92 +21,106 @@ in hand you are ready to start using twarc.
 
 ### Configure
 
-    twarc configure 
 
 Once you've got your application keys you can tell twarc what they are with the
-`configure` command. This will story your credentials in a file called .twarc in
-your home directory. If you would rather supply them directly you can set them
-in the environment (`CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`,
-`ACCESS_TOKEN_SECRET`) or using command line options (`--consumer_key`,
-`--consumer_secret`, `access_token`, `access_token_secret`).
+`configure` command.
+
+    twarc configure 
+
+This will story your credentials in a file called .twarc in your home directory
+so you don't have to keep entering them in. If you would rather supply them
+directly you can set them in the environment (`CONSUMER_KEY`, `CONSUMER_SECRET`,
+`ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) or using command line options
+(`--consumer_key`, `--consumer_secret`, `access_token`, `access_token_secret`).
 
 ### Search
 
+The uses [Twitter's Search API] to download *pre-existing* tweets matching a
+given query.
+
     twarc search blacklivesmatter > tweets.json 
 
-The search command is why twarc came into existence in the first place. It uses
-[Twitter's Search API] to download tweets matching a given query. The best way
-to get familiar with Twitter's search syntax is to experiment with [Twitter's
-Advanced Search](https://twitter.com/search-advanced) and copy and pasting the
-resulting query from the search box.
+It's important to note that `search` will return tweets that are found within a
+7 day window that Twitter's search API imposes. If this seems like a small
+window, it is, but you may be interested in collecting tweets as they happen
+using the `track`, `follow`, `locations` and `sample` commands below.
+
+The best way to get familiar with Twitter's search syntax is to experiment with
+[Twitter's Advanced Search](https://twitter.com/search-advanced) and copy and
+pasting the resulting query from the search box. For example here is a more
+complicated query that searches for tweets containing either the
+\#blacklivesmatter or #blm hashtags that were sent to deray.
 
     twarc search '#blacklivesmatter OR #blm to:deray' > tweets.json
 
-Searching with geolocation requires that you use a command line option:
+Searching with geolocation requires that you use an additional command 
+line option:
 
     twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi
    
-If a search query isn't supplied you will get tweets relevant for that location
-and radius:
+If a search query isn't supplied when using `--geocode` you will get all tweets
+relevant for that location and radius:
     
     twarc.py search --geocode 38.7442,-90.3054,1mi
 
 ### Track
 
+The `track` command will use Twitter's [Filter Stream
+API](https://dev.twitter.com/streaming/reference/post/statuses/filter) to
+collect tweets as they happen.
+
     twarc track blacklivesmatter,blm > tweets.json
 
-The `track` command will use Twitter's [Filter Stream API](https://dev.twitter.com/streaming/reference/post/statuses/filter) to collect tweets as they happen. Note the syntax for the Twitter's track queries is slightly different than what queries in their search API. So please consult the documentation on how best to express the filter option you are using.
+Note the syntax for the Twitter's track queries is slightly different than what
+queries in their search API. So please consult the documentation on how best to
+express the filter option you are using.
+
+### Follow
+
+Use the `follow` command if you would like to collect tweets from a given user
+id as they happen.
+
+    twarc follow 123455 > tweets.json
 
 ### Locations
 
-    twarc locations "\-74,40,-73,41" > tweets.json
 
 You can also collect tweets from the [Filter Stream API] using a bounding box.
 Note: the leading dash needs to be escaped in the bounding box or else it will
 be interpreted as a command line argument!
 
+    twarc locations "\-74,40,-73,41" > tweets.json
+
 ### Sample
 
-    twarc sample > tweets.json
 
 In sample stream mode twarc will listen to Twitter's [sample stream API](https://dev.twitter.com/streaming/reference/get/statuses/sample) for a random sample of recent public statuses.
 
+    twarc sample > tweets.json
+
 ### Hydrate
+
+Twarc's `hydrate` command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
 
     twarc hydrate ids.txt > tweets.json
 
-The Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)
-prevent people from making large amounts of raw Twitter data available on the
-Web. The data can be used for research and archived for local use, but not
-shared with the world. Twitter does allow files of tweet identifiers to be
-shared, which can be useful when you would like to make a dataset of tweets
-available. You can then use Twitter's API to *hydrate* the data, or to retrieve
-the full JSON for each identifier. This is particularly important for
-[verification](https://en.wikipedia.org/wiki/Reproducibility) of social media
-research.
+Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) prevent people from making large amounts of raw Twitter data available on the Web. The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available. You can then use Twitter's API to *hydrate* the data, or to retrieve the full JSON for each identifier. This is particularly important for [verification](https://en.wikipedia.org/wiki/Reproducibility) of social media research.
 
-In hydrate mode twarc will read a file of tweet identifiers and use Twitter's
-[lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API to
-fetch the full JSON for each tweet and write it to stdout as line-oriented JSON:
-
-### Follow
-
-    twarc follow 123455 > tweets.json
-
-Use the `follow` command if you would like to collect tweets from a given user
-id as they happen.
+to fetch the full JSON for each tweet and write it to stdout as line-oriented
+JSON:
 
 ### Users
 
+The `users` command will return User metadata for the given screen names.
+
     twarc users deray,Nettaaaaaaaa > users.json
 
-The `users` command will return User metadata for the given screen names. You
-can also give it user ids:
+You can also give it user ids:
 
     twarc users 1232134,1413213 > users.json
 
-You can also use a file of user ids, which can happen with the `followers` and
-`friends` commands below:
+If you want you can also use a file of user ids, which can be useful if you are
+using the `followers` and `friends` commands below:
 
     twarc users ids.txt > users.json
 
@@ -131,36 +145,37 @@ specified as an argument:
 ### Trends
 
 The trends command lets you retrieve information from Twitter's API about
-trending hashtags.
-
-    twarc trends
-
-When run without an argument it will return a list of all the available locations. You can use the location's [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifier or `woeid` to then get trends for a particular place.
-
-Using a `woedid` of 1 will return trends for the entire planet:
-
-    twarc trends 1
-
-Or you can get trends for a specific location, like St Louis:
+trending hashtags. You need to supply a [Where On
+Earth](http://developer.yahoo.com/geo/geoplanet/) identifier or `woeid` to
+indicate what trends you are interested in. For example here's how you can get
+the current trends for St Louis:
 
     twarc trends 2486982
 
-If you want you can also supply geo-coordinates, which will make twarc lookup
-the location using Twitter's [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) API to find the nearest `woeid` 
+Using a `woeid` of 1 will return trends for the entire planet:
+
+    twarc trends 1
+
+If you aren't sure what to use as a `woeid` omit it and you will get a list of
+information for places that Twitter tracks trends:
+
+    twarc trends
+
+You can also supply geo-coordinates, which will make twarc lookup the location using Twitter's [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) API to find the nearest `woeid` and then return trends for it:
 
     twarc trends 39.9062,-79.4679
 
-
 ### Timeline
 
-	  twarc timeline deray > tweets.json
+The timeline command will use Twitter's [user timeline
+API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to
+collect the most recent tweets posted by the user indicated by screen_name.
 
-The timeline command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
+    twarc timeline deray > tweets.json
 
 You can also look up users using a user id:
 
 	  twarc timeline 12345 > tweets.json
-
 
 ## Use as a Library
 
