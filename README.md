@@ -19,7 +19,7 @@ in hand you are ready to start using twarc.
 
 ## Usage:
 
-If you like to learn by trying here's a quick overview of the main commands:
+If you like to learn by doing here's a quick overview of the main commands:
 
     twarc configure
     twarc search blacklivesmatter > search.json
