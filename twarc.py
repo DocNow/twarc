@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-__version__ = '0.8.3' # also in setup.py
+__version__ = '0.9.0' # also in setup.py
 
 import os
 import re
