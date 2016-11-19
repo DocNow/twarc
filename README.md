@@ -95,9 +95,9 @@ The `filter` command will use Twitter's [statuses/filter](https://dev.twitter.co
 
     twarc filter blacklivesmatter,blm > tweets.json
 
-Note the syntax for the Twitter's track queries is slightly different than what
-queries in their search API. So please consult the documentation on how best to
-express the filter option you are using.
+Please note that the syntax for the Twitter's track queries is slightly
+different than what queries in their search API. So please consult the
+documentation on how best to express the filter option you are using.
 
 Use the `follow` command line argument if you would like to collect tweets from
 a given user id as they happen. This includes retweets. For example this will
