@@ -21,26 +21,15 @@ in hand you are ready to start using twarc.
 
 First you're going to need to tell twarc about your API keys:
 
-```bash 
-twarc configure
-```
+    twarc configure
 
 Then try out a search:
 
     twarc search blacklivesmatter > search.json
 
-or a more complicated search:
-
-    twarc search "blacklivesmatter OR blm" > search.json
-
-Instead of searching for tweets that already exist you can also collect
-tweets as they happen:
+Or maybe you'd like to collect tweet as they happen?
 
     twarc filter blacklivesmatter > stream.json
-
-or maybe:
-
-    twarc filter "blacklivesmatter,blm" > stream.json
 
 See below for the details about these commands and more.
 
