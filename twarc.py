@@ -4,8 +4,8 @@ from __future__ import print_function
 
 __version__ = '0.8.3' # also in setup.py
 
-import fileinput
 import os
+import re
 import sys
 import json
 import time
@@ -13,6 +13,7 @@ import logging
 import argparse
 import datetime
 import requests
+import fileinput
 
 from requests_oauthlib import OAuth1Session
 
@@ -28,10 +29,30 @@ else:
     # Python 3
     get_input = input
 
+commands = [
+    "configure",
+    'follow',
+    'followers',
+    'friends',
+    'help',
+    'hydrate',
+    'locations',
+    'retweets',
+    'sample',
+    'search',
+    'timeline',
+    'track',
+    'trends', 
+    'users',
+    'version',
+]
 
 def main():
     parser = get_argparser()
     args = parser.parse_args()
+
+    command = args.command
+    query = args.query or ""
 
     logging.basicConfig(
         filename=args.log,
@@ -50,119 +71,110 @@ def main():
         profile=args.profile
     )
 
-    tweets = []
-    users = []
-    user_ids = []
-    trends_json = []
-
     # calls that return tweets
-    if args.search or args.geocode:
-        tweets = t.search(
-            args.search,
+    if command == "search":
+        things = t.search(
+            query,
             since_id=args.since_id,
             max_id=args.max_id,
             lang=args.lang,
             result_type=args.result_type,
             geocode=args.geocode
         )
-    elif args.track or args.follow or args.locations:
-        tweets = t.filter(track=args.track, follow=args.follow,
-                          locations=args.locations)
-    elif args.hydrate:
+
+    elif command == "track":
+        things = t.filter(track=query)
+        
+    elif command == "follow":
+        things = t.filter(follow=query)
+
+    elif command == "locations":
+        things = t.filter(locations=query)
+
+    elif command == "hydrate":
         input_iterator = fileinput.FileInput(
-            args.hydrate,
+            query,
             mode='rU',
             openhook=fileinput.hook_compressed,
         )
-        tweets = t.hydrate(input_iterator)
-    elif args.sample:
-        tweets = t.sample()
-    elif args.timeline:
-        tweets = t.timeline(screen_name=args.timeline)
-    elif args.timeline_user_id:
-        tweets = t.timeline(user_id=args.timeline_user_id)
-    elif args.retweets:
-        tweets = t.retweets(args.retweets)
+        things = t.hydrate(input_iterator)
 
-    # calls that return user profile objects
-    elif args.lookup_user_ids:
-        users = t.user_lookup(user_ids=args.lookup_user_ids)
-    elif args.lookup_screen_names:
-        users = t.user_lookup(screen_names=args.lookup_screen_names)
+    elif command == "sample":
+        things = t.sample()
 
-    # calls that return lists of user ids
-    elif args.follower_ids:
-        # Note: only one at a time, so assume exactly one
-        user_ids = t.follower_ids(screen_name=args.follower_ids[0])
-    elif args.friend_ids:
-        # Note: same here, only one at a time, so assume exactly one
-        user_ids = t.friend_ids(screen_name=args.friend_ids[0])
+    elif command == "timeline":
+        if re.match('^[0-9]+$', query):
+            things = t.timeline(user_id=query)
+        else:
+            things = t.timeline(screen_name=query)
 
-    # calls that return JSON relating to trends
-    elif args.trends_available:
-        trends_json = t.trends_available()
-    elif args.trends_place:
-        trends_json = t.trends_place(args.trends_place)
-    elif args.trends_place_exclude:
-        trends_json = t.trends_place(args.trends_place_exclude,
-                                     exclude='hashtags')
-    elif args.trends_closest:
-        try:
-            lat, lon = [float(s.strip())
-                        for s in args.trends_closest[0].split(',')]
+    elif command == "retweets":
+        things = t.retweets(query)
+
+    elif command == "users":
+        if os.path.isfile(query):
+            iterator = fileinput.FileInput(
+                query,
+                mode='rU',
+                openhook=fileinput.hook_compressed,
+            )
+            things = t.user_lookup(iterator=iterator)
+        elif re.match('^[0-9,]+$', query):
+            things = t.user_lookup(user_ids=query.split(","))
+        else:
+            things = t.user_lookup(screen_names=query.split(","))
+
+    elif command == "followers":
+        things = t.follower_ids(screen_name=query)
+
+    elif command == "friends":
+        things = t.friend_ids(screen_name=query)
+
+    elif command == "trends":
+        # lookup woeid for geo-coordinate if appropriate
+        geo = re.match('^([0-9\-\.]+),([0-9\-\.]+)$', query)
+        if geo:
+            lat, lon = map(float, geo.groups())
             if lat > 180 or lat < -180 or lon > 180 or lon < -180:
-                raise "Unacceptable values"
-        except Exception as e:
-            parser.error('LAT and LONG must be floats within [-180.0, 180.0]')
-        trends_json = t.trends_closest(lat, lon)
+                parser.error('LAT and LONG must be within [-180.0, 180.0]')
+            places = list(t.trends_closest(lat, lon))
+            if len(places) == 0:
+                parser.error("Couldn't find WOE ID for %s" % query)
+            query = places[0]["woeid"]
+
+        if not query:
+            things = t.trends_available()
+        else:
+            trends = t.trends_place(query)
+            if trends:
+                things = trends[0]['trends']
+
+    elif command == "configure":
+        t.input_keys()
+        sys.exit()
 
     else:
         parser.print_help()
+        print("\nPlease use one of the following commands:\n")
+        for cmd in commands:
+            print(" - %s" % cmd)
+        print("\nFor example:\n\n    twarc search obama")
         sys.exit(1)
 
-    # iterate through the tweets and write them to stdout
-    for tweet in tweets:
-
-        # include warnings in output only if they asked for it
-        if 'id_str' in tweet or args.warnings:
-            print(json.dumps(tweet))
-
-        # add some info to the log
-        if 'id_str' in tweet:
-            if 'user' in tweet:
-                logging.info("archived https://twitter.com/%s/status/%s",
-                             tweet['user']['screen_name'], tweet['id_str'])
-        elif 'limit' in tweet:
-            t = datetime.datetime.utcfromtimestamp(
-                float(tweet['limit']['timestamp_ms']) / 1000)
-            t = t.isoformat("T") + "Z"
-            logging.warn("%s tweets undelivered at %s",
-                         tweet['limit']['track'], t)
-        elif 'warning' in tweet:
-            logging.warn(tweet['warning']['message'])
-        else:
-            logging.warn(json.dumps(tweet))
-
-    # iterate through the user objects and write them to stdout
-    for user in users:
-        # include warnings in output only if they asked for it
-        if 'id_str' in user or args.warnings:
-            print(json.dumps(user))
-
-            # add some info to the log
-            if 'screen_name' in user:
-                logging.info("archived user profile for @%s / id_str=%s",
-                             user['screen_name'], user['id_str'])
-        else:
-            logging.warn(json.dumps(user))
-
-    # iterate through the user ids and write them to stdout
-    for user_id in user_ids:
-        print(str(user_id))
-
-    # iterate through trend JSON and write each to stdout
-    for trend_info in trends_json:
-        print(json.dumps(trend_info))
+    
+    for thing in things:
+        print(json.dumps(thing))
+        if type(thing) == dict:
+            if 'id_str' in thing:
+                logging.info("archived %s", thing['id_str'])
+            elif 'limit' in thing:
+                t = datetime.datetime.utcfromtimestamp(
+                    float(thing['limit']['timestamp_ms']) / 1000)
+                t = t.isoformat("T") + "Z"
+                logging.warn("%s tweets undelivered at %s",
+                             thing['limit']['track'], t)
+            elif 'warning' in thing:
+                logging.warn(thing['warning']['message'])
 
 
 def get_argparser():
@@ -173,11 +185,28 @@ def get_argparser():
     config = os.path.join(os.path.expanduser("~"), ".twarc")
 
     parser = argparse.ArgumentParser("twarc")
-    parser.add_argument('-v', '--version', action='version',
-                        version='%(prog)s {version}'.format(
-                            version=__version__))
-    parser.add_argument("--search", dest="search",
-                        help="search for tweets matching a query")
+    parser.add_argument('command', choices=commands)
+    parser.add_argument('query', nargs='?', default=None)
+    parser.add_argument("--log", dest="log",
+                        default="twarc.log", help="log file")
+    parser.add_argument("--consumer_key",
+                        default=None, help="Twitter API consumer key")
+    parser.add_argument("--consumer_secret",
+                        default=None, help="Twitter API consumer secret")
+    parser.add_argument("--access_token",
+                        default=None, help="Twitter API access key")
+    parser.add_argument("--access_token_secret",
+                        default=None, help="Twitter API access token secret")
+    parser.add_argument('--config', default=config,
+                        help="Config file containing Twitter keys and secrets")
+    parser.add_argument('--profile', default='main',
+                        help="Name of a profile in your configuration file")
+    parser.add_argument('--warnings', action='store_true',
+                        help="Include warning messages in output")
+    parser.add_argument("--connection_errors", type=int, default="0",
+                        help="Number of connection errors before giving up")
+    parser.add_argument("--http_errors", type=int, default="0",
+                        help="Number of http errors before giving up")
     parser.add_argument("--max_id", dest="max_id",
                         help="maximum tweet id to search for")
     parser.add_argument("--since_id", dest="since_id",
@@ -189,63 +218,8 @@ def get_argparser():
                         help="limit to ISO 639-1 language code"),
     parser.add_argument("--geocode", dest="geocode",
                         help="limit by latitude,longitude,radius")
-    parser.add_argument("--track", dest="track",
-                        help="stream tweets matching track filter")
-    parser.add_argument("--follow", dest="follow",
-                        help="stream tweets from user ids")
-    parser.add_argument("--locations", dest="locations",
-                        help="stream tweets from a particular location")
-    parser.add_argument("--sample", action="store_true",
-                        help="stream sample live tweets")
-    parser.add_argument("--timeline", dest="timeline",
-                        help="get user timeline for a screen name")
-    parser.add_argument("--timeline_user_id", dest="timeline_user_id",
-                        help="get user timeline for a user id")
-    parser.add_argument("--lookup_screen_names", dest="lookup_screen_names",
-                        nargs='+', help="look up users by screen name; \
-                                         returns user objects")
-    parser.add_argument("--lookup_user_ids", dest="lookup_user_ids", nargs='+',
-                        help="look up users by user id; returns user objects")
-    parser.add_argument("--follower_ids", dest="follower_ids", nargs=1,
-                        help="retrieve follower lists; returns follower ids")
-    parser.add_argument("--friend_ids", dest="friend_ids", nargs=1,
-                        help="retrieve friend (following) list; returns friend ids")
-    parser.add_argument("--hydrate", action="append", dest="hydrate",
-                        help="rehydrate tweets from a file of tweet ids, \
-                              use - for stdin")
-    parser.add_argument("--trends_available", action="store_true",
-                        help="show all regions available for trend summaries")
-    parser.add_argument("--trends_place", dest="trends_place", nargs=1,
-                        type=int, metavar="WOEID",
-                        help="recent trends for WOEID specified")
-    parser.add_argument("--trends_closest", dest="trends_closest", nargs=1,
-                        metavar="LAT,LONG",
-                        help="show available trend regions for LAT,LONG")
-    parser.add_argument("--trends_place_exclude",
-                        dest="trends_place_exclude", nargs=1,
-                        type=int, metavar="WOEID",
-                        help="recent trends for WOEID specified sans hashtags")
-    parser.add_argument("--retweets", dest="retweets", help="get retweets for a tweet")
-    parser.add_argument("--log", dest="log",
-                        default="twarc.log", help="log file")
-    parser.add_argument("--consumer_key",
-                        default=None, help="Twitter API consumer key")
-    parser.add_argument("--consumer_secret",
-                        default=None, help="Twitter API consumer secret")
-    parser.add_argument("--access_token",
-                        default=None, help="Twitter API access key")
-    parser.add_argument("--access_token_secret",
-                        default=None, help="Twitter API access token secret")
-    parser.add_argument('-c', '--config', default=config,
-                        help="Config file containing Twitter keys and secrets")
-    parser.add_argument('-p', '--profile', default='main',
-                        help="Name of a profile in your configuration file")
-    parser.add_argument('-w', '--warnings', action='store_true',
-                        help="Include warning messages in output")
-    parser.add_argument("--connection_errors", type=int, default="0",
-                        help="Number of connection errors before giving up. Default is to keep trying.")
-    parser.add_argument("--http_errors", type=int, default="0",
-                        help="Number of http errors before giving up. Default is to keep trying.")
+    parser.add_argument("--closest", dest="closest",
+                        help="get trends closest to latitude,longitude")
 
     return parser
 
@@ -456,34 +430,46 @@ class Twarc(object):
 
             max_id = str(int(status["id_str"]) - 1)
 
-    def user_lookup(self, screen_names=None, user_ids=None):
+    def user_lookup(self, screen_names=None, user_ids=None, iterator=None):
         """
-        Returns fully-hydrated user objects for a list of up to 100
-        screen_names or user_ids.  Provide screen_names or user_ids.
+        A generator that returns users for supplied screen_names,
+        user_ids or an iterator of user_ids.
         """
-        # Strip if any screen names are prefixed with '@'
         if screen_names:
             screen_names = [s.lstrip('@') for s in screen_names]
         ids = screen_names or user_ids
         id_type = "screen_name" if screen_names else "user_id"
-        while ids:
-            ids_str = ",".join(ids[:100])
-            logging.info("Looking up users %s", ids_str)
+
+        if not iterator:
+            iterator = iter(ids)
+      
+        # TODO: this is similar to hydrate, maybe they could share code?
+
+        lookup_ids = []
+        def do_lookup():
+            ids_str = ",".join(lookup_ids)
+            logging.info("looking up users %s", ids_str)
             url = 'https://api.twitter.com/1.1/users/lookup.json'
             params = {id_type: ids_str}
             try:
                 resp = self.get(url, params=params, allow_404=True)
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
-                    logging.info("no users matching %s", ids_str)
-                    break
+                    logging.warn("no users matching %s", ids_str)
                 raise e
+            return resp.json()
 
-            users = resp.json()
-            for user in users:
-                yield user
+        for id in iterator:
+            if len(lookup_ids) == 100:
+                for u in do_lookup():
+                    yield u
+                lookup_ids = []
+            else:
+                lookup_ids.append(id.strip())
 
-            ids = ids[100:]
+        if len(lookup_ids) > 0:
+            for u in do_lookup():
+                yield u
 
     def follower_ids(self, screen_name):
         """
@@ -525,53 +511,6 @@ class Twarc(object):
                 yield user_id
             params['cursor'] = user_ids['next_cursor']
 
-    def trends_available(self):
-        """
-        Returns JSON list of regions for which Twitter tracks trends.
-        """
-        url = 'https://api.twitter.com/1.1/trends/available.json'
-        try:
-            resp = self.get(url)
-        except requests.exceptions.HTTPError as e:
-            raise e
-        regions = resp.json()
-        for region in regions:
-            yield region
-
-    def trends_place(self, woeid, exclude=None):
-        """
-        Returns recent Twitter trends for the specified WOEID.  If
-        exclude == 'hashtags', Twitter will remove hashtag trends from the
-        response.
-        """
-        url = 'https://api.twitter.com/1.1/trends/place.json'
-        params = {'id': woeid}
-        if exclude:
-            params['exclude'] = exclude
-        try:
-            resp = self.get(url, params=params, allow_404=True)
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
-                logging.info("no region matching WOEID %s", woeid)
-            raise e
-        trends = resp.json()
-        for trend in trends[0]['trends']:
-            yield trend
-
-    def trends_closest(self, lat, lon):
-        """
-        Returns JSON list of regions bounding the specified lat, long pair.
-        """
-        url = 'https://api.twitter.com/1.1/trends/closest.json'
-        params = {'lat': lat, 'long': lon}
-        try:
-            resp = self.get(url, params=params)
-        except requests.exceptions.HTTPError as e:
-            raise e
-        regions = resp.json()
-        for region in regions:
-            yield region
-
     def filter(self, track=None, follow=None, locations=None):
         """
         Returns an iterator for tweets that match a given filter track from
@@ -597,7 +536,7 @@ class Twarc(object):
                 logging.info("connecting to filter stream for %s", params)
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
-                for line in resp.iter_lines(chunk_size=512):
+                for line in resp.iter_lines(chunk_size=1024):
                     if not line:
                         logging.info("keep-alive")
                         continue
@@ -717,6 +656,47 @@ class Twarc(object):
         for tweet in resp.json():
             yield tweet
 
+    def trends_available(self):
+        """
+        Returns a list of regions for which Twitter tracks trends.
+        """
+        url = 'https://api.twitter.com/1.1/trends/available.json'
+        try:
+            resp = self.get(url)
+        except requests.exceptions.HTTPError as e:
+            raise e
+        return resp.json()
+
+    def trends_place(self, woeid, exclude=None):
+        """
+        Returns recent Twitter trends for the specified WOEID. If
+        exclude == 'hashtags', Twitter will remove hashtag trends from the
+        response.
+        """
+        url = 'https://api.twitter.com/1.1/trends/place.json'
+        params = {'id': woeid}
+        if exclude:
+            params['exclude'] = exclude
+        try:
+            resp = self.get(url, params=params, allow_404=True)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                logging.info("no region matching WOEID %s", woeid)
+            raise e
+        return resp.json()
+
+    def trends_closest(self, lat, lon):
+        """
+        Returns the closest regions for the supplied lat/lon.
+        """
+        url = 'https://api.twitter.com/1.1/trends/closest.json'
+        params = {'lat': lat, 'long': lon}
+        try:
+            resp = self.get(url, params=params)
+        except requests.exceptions.HTTPError as e:
+            raise e
+        return resp.json()
+
     @rate_limit
     @catch_conn_reset
     @catch_timeout
@@ -785,46 +765,36 @@ class Twarc(object):
         )
 
     def check_keys(self):
-        (ck, cs, at, ats) = (self.consumer_key, self.consumer_secret, 
-                             self.access_token, self.access_token_secret)
-
+        """
+        Get the Twitter API keys. Order of precedence is command line,
+        environment, config file.
+        """
         env = os.environ.get
-        if not ck: ck = env('CONSUMER_KEY')
-        if not cs: cs = env('CONSUMER_SECRET')
-        if not at: at = env('ACCESS_TOKEN')
-        if not ats: ats = env('ACCESS_TOKEN_SECRET')
-
-        entered_keys = False
-        if self.config and not (ck and cs and at and ats):
+        if not self.consumer_key:
+            self.consumer_key = env('CONSUMER_KEY')
+        if not self.consumer_secret: 
+            self.consumer_secret = env('CONSUMER_SECRET')
+        if not self.access_token: 
+            self.access_token = env('ACCESS_TOKEN')
+        if not self.access_token_secret: 
+            self.access_token_secret = env('ACCESS_TOKEN_SECRET')
+        
+        if self.config and not (self.consumer_key and self.consumer_secret 
+                and self.access_token and self.access_token_secret):
             credentials = self.load_config()
             if credentials:
-                ck = credentials['consumer_key']
-                cs = credentials['consumer_secret']
-                at = credentials['access_token']
-                ats = credentials['access_token_secret']
+                self.consumer_key = credentials['consumer_key']
+                self.consumer_secret = credentials['consumer_secret']
+                self.access_token = credentials['access_token']
+                self.access_token_secret = credentials['access_token_secret']
             else:
-                print("Please enter Twitter authentication credentials")
-                ck = get_input('consumer key: ')
-                cs = get_input('consumer secret: ')
-                at = get_input('access_token: ')
-                ats = get_input('access token secret: ')
-                entered_keys = True
-
-        # set discovered keys
-        self.consumer_key = ck
-        self.consumer_secret = cs
-        self.access_token = at
-        self.access_token_secret = ats
-
-        # save config if we had one
-        if entered_keys:
-            self.save_config()
+                self.input_keys()
 
     def load_config(self):
         path = self.config
         profile = self.profile
         if not os.path.isfile(path):
-            return None
+            return {}
 
         config = configparser.ConfigParser()
         config.read(self.config)
@@ -852,6 +822,22 @@ class Twarc(object):
                    self.access_token_secret)
         with open(self.config, 'w') as config_file:
             config.write(config_file)
+
+    def input_keys(self):
+        print("Please enter Twitter authentication credentials")
+
+        config = self.load_config()
+        def i(name):
+            prompt = name.replace('_', ' ')
+            if name in config:
+                prompt += ' [%s]' % config[name]
+            return get_input(prompt + ": ") or config.get(name)
+
+        self.consumer_key = i('consumer_key') 
+        self.consumer_secret = i('consumer_secret')
+        self.access_token = i('access_token')
+        self.access_token_secret = i('access_token_secret')
+        self.save_config()
 
 
 if __name__ == "__main__":

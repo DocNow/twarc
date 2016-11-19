@@ -211,7 +211,7 @@ def test_trends_available():
 def test_trends_place():
     # fetches recent trends for Amsterdam, WOEID 727232
     trends = T.trends_place(727232)
-    assert len(list(trends)) > 0
+    assert len(list(trends[0]['trends'])) > 0
 
 
 def test_trends_closest():
@@ -222,7 +222,7 @@ def test_trends_closest():
 
 def test_trends_place_exclude():
     # fetches recent trends for Amsterdam, WOEID 727232, sans hashtags
-    trends = T.trends_place(727232, exclude='hashtags')
+    trends = T.trends_place(727232, exclude='hashtags')[0]['trends']
     hashtag_trends = [t for t in trends if t['name'].startswith('#')]
     assert len(hashtag_trends) == 0
 
