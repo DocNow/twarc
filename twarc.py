@@ -31,17 +31,15 @@ else:
 
 commands = [
     "configure",
-    'follow',
+    'filter',
     'followers',
     'friends',
     'help',
     'hydrate',
-    'locations',
     'retweets',
     'sample',
     'search',
     'timeline',
-    'track',
     'trends', 
     'users',
     'version',
@@ -82,15 +80,13 @@ def main():
             geocode=args.geocode
         )
 
-    elif command == "track":
-        things = t.filter(track=query)
+    elif command == "filter":
+        things = t.filter(
+            track=query,
+            follow=args.follow,
+            locations=args.locations
+        )
         
-    elif command == "follow":
-        things = t.filter(follow=query)
-
-    elif command == "locations":
-        things = t.filter(locations=query)
-
     elif command == "hydrate":
         input_iterator = fileinput.FileInput(
             query,
@@ -218,8 +214,10 @@ def get_argparser():
                         help="limit to ISO 639-1 language code"),
     parser.add_argument("--geocode", dest="geocode",
                         help="limit by latitude,longitude,radius")
-    parser.add_argument("--closest", dest="closest",
-                        help="get trends closest to latitude,longitude")
+    parser.add_argument("--locations", dest="locations",
+                        help="limit filter stream to location(s)")
+    parser.add_argument("--follow", dest="follow",
+                        help="limit filter to tweets from given user id(s)")
 
     return parser
 

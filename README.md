@@ -35,15 +35,14 @@ directly you can set them in the environment (`CONSUMER_KEY`, `CONSUMER_SECRET`,
 
 ### Search
 
-The uses [Twitter's Search API] to download *pre-existing* tweets matching a
-given query.
+The uses Twitter's [search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) to download *pre-existing* tweets matching a given query.
 
     twarc search blacklivesmatter > tweets.json 
 
 It's important to note that `search` will return tweets that are found within a
 7 day window that Twitter's search API imposes. If this seems like a small
 window, it is, but you may be interested in collecting tweets as they happen
-using the `track`, `follow`, `locations` and `sample` commands below.
+using the `filter` and `sample` commands below.
 
 The best way to get familiar with Twitter's search syntax is to experiment with
 [Twitter's Advanced Search](https://twitter.com/search-advanced) and copy and
@@ -57,42 +56,42 @@ Searching with geolocation requires that you use an additional command
 line option:
 
     twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi
-   
+
 If a search query isn't supplied when using `--geocode` you will get all tweets
 relevant for that location and radius:
     
     twarc.py search --geocode 38.7442,-90.3054,1mi
 
-### Track
+### Filter
 
-The `track` command will use Twitter's [Filter Stream
-API](https://dev.twitter.com/streaming/reference/post/statuses/filter) to
-collect tweets as they happen.
+The `filter` command will use Twitter's [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API to collect tweets as they happen.
 
-    twarc track blacklivesmatter,blm > tweets.json
+    twarc filter blacklivesmatter,blm > tweets.json
 
 Note the syntax for the Twitter's track queries is slightly different than what
 queries in their search API. So please consult the documentation on how best to
 express the filter option you are using.
 
-### Follow
+Use the `follow` command line argument if you would like to collect tweets from
+a given user id as they happen. This includes retweets. For example this will
+collect tweets and retweets from CNN:
 
-Use the `follow` command if you would like to collect tweets from a given user
-id as they happen.
+    twarc filter --follow 759251 > tweets.json
 
-    twarc follow 123455 > tweets.json
+You can also collect tweets using a bounding box. Note: the leading dash needs
+to be escaped in the bounding box or else it will be interpreted as a command
+line argument!
 
-### Locations
+    twarc filter --locations "\-74,40,-73,41" > tweets.json
 
 
-You can also collect tweets from the [Filter Stream API] using a bounding box.
-Note: the leading dash needs to be escaped in the bounding box or else it will
-be interpreted as a command line argument!
+If you combine options they are OR'ed together. For example this will collect
+tweets that use the blacklivesmatter or blm hashtags and also tweets from user
+CNN:
 
-    twarc locations "\-74,40,-73,41" > tweets.json
+    twarc filter blacklivesmatter,blm --follow 759251 > tweets.json
 
 ### Sample
-
 
 In sample stream mode twarc will listen to Twitter's [sample stream API](https://dev.twitter.com/streaming/reference/get/statuses/sample) for a random sample of recent public statuses.
 
