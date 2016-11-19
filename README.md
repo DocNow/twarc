@@ -19,8 +19,15 @@ in hand you are ready to start using twarc.
 
 ## Usage:
 
-### Configure
+If you like to learn by trying here's a quick overview of the main commands:
 
+    twarc configure
+    twarc search blacklivesmatter > search.json
+    twarc filter blacklivesmatter > stream.json
+    twarc hydrate tweet-ids.txt > tweets.json
+    twarc users user-ids.txt > users.json
+
+### Configure
 
 Once you've got your application keys you can tell twarc what they are with the
 `configure` command.
