@@ -17,15 +17,32 @@ in hand you are ready to start using twarc.
 1. install [Python](http://python.org/download) (2 or 3)
 2. pip install twarc
 
-## Usage:
+## Quickstart:
 
-If you like to learn by doing here's a quick overview of the main commands:
+First you're going to need to tell twarc about your API keys:
 
     twarc configure
+
+Then try out a search:
+
     twarc search blacklivesmatter > search.json
+
+or a more complicated search:
+
+    twarc search "blacklivesmatter OR blm" > search.json
+
+Instead of searching for tweets that already exist you can also collect
+tweets as they happen:
+
     twarc filter blacklivesmatter > stream.json
-    twarc hydrate tweet-ids.txt > tweets.json
-    twarc users user-ids.txt > users.json
+
+or maybe:
+
+    twarc filter "blacklivesmatter,blm" > stream.json
+
+See below for the details about these commands and more.
+
+## Usage
 
 ### Configure
 
