@@ -20,7 +20,7 @@ if __name__ == "__main__":
         author='Ed Summers',
         author_email='ehs@pobox.com',
         py_modules=['twarc', ],
-        scripts=['twarc.py', 'utils/twarc-archive.py'],
+        scripts=['bin/twarc'],
         description='command line utility to archive Twitter search results '
                     'as line-oriented-json',
         install_requires=dependencies,
