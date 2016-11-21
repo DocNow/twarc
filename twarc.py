@@ -154,7 +154,7 @@ def main():
         print("\nPlease use one of the following commands:\n")
         for cmd in commands:
             print(" - %s" % cmd)
-        print("\nFor example:\n\n    twarc search obama")
+        print("\nFor example:\n\n    twarc search blacklivesmatter")
         sys.exit(1)
 
     
