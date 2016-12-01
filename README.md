@@ -54,8 +54,8 @@ This will store your credentials in a file called `.twarc` in your home
 directory so you don't have to keep entering them in. If you would rather supply
 them directly you can set them in the environment (`CONSUMER_KEY`,
 `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) or using command line
-options (`--consumer_key`, `--consumer_secret`, `access_token`,
-`access_token_secret`).
+options (`--consumer_key`, `--consumer_secret`, `--access_token`,
+`--access_token_secret`).
 
 ### Search
 
