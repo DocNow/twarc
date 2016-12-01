@@ -90,7 +90,7 @@ Missouri:
 If a search query isn't supplied when using `--geocode` you will get all tweets
 relevant for that location and radius:
     
-    twarc.py search --geocode 38.7442,-90.3054,1mi > tweets.json
+    twarc search --geocode 38.7442,-90.3054,1mi > tweets.json
 
 ### Filter
 
