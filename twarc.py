@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-__version__ = '1.0.0' # also in setup.py
+__version__ = '1.0.1' # also in setup.py
 
 import os
 import re
@@ -57,6 +57,17 @@ def main():
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
+
+    if command == "version":
+        print("twarc v%s" % __version__)
+        sys.exit()
+    elif command == "help" or not command:
+        parser.print_help()
+        print("\nPlease use one of the following commands:\n")
+        for cmd in commands:
+            print(" - %s" % cmd)
+        print("\nFor example:\n\n    twarc search blacklivesmatter")
+        sys.exit(1)
 
     t = Twarc(
         consumer_key=args.consumer_key,
