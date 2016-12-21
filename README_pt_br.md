@@ -38,56 +38,55 @@ Ou talvez você gostaria de coletar tweets como eles acontecem?
 
 Veja abaixo os detalhes sobre esses comandos e muito mais.
 
-## Usage
+## Uso
 
 ### Configure
 
-Once you've got your application keys you can tell twarc what they are with the
-`configure` command.
+Uma vez que você tem suas chaves de aplicativo, você pode dizer ao twarc quais são com o comando 
+`configure`.
 
     twarc configure 
 
-This will store your credentials in a file called `.twarc` in your home
-directory so you don't have to keep entering them in. If you would rather supply
-them directly you can set them in the environment (`CONSUMER_KEY`,
-`CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) or using command line
-options (`--consumer_key`, `--consumer_secret`, `--access_token`,
+Isso irá armazenar as credenciais em um arquivo chamado `.twarc` em seu 
+diretório home. Este arquivo será usado como padrão em outras chamadas.
+Se preferir, você pode fornecer diretamente as chaves (`CONSUMER_KEY`,
+`CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) ou usando a linha de comando 
+com as opções (`--consumer_key`, `--consumer_secret`, `--access_token`,
 `--access_token_secret`).
 
-### Search
+### Pesquisar 
 
-The uses Twitter's [search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) to download *pre-existing* tweets matching a given query.
+Os usuários do Twitter [Pesquisar/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) para baixar *pre-existing* tweets, correspondendo a uma determinada consulta que desejar.
 
     twarc search blacklivesmatter > tweets.json 
 
-It's important to note that `search` will return tweets that are found within a
-7 day window that Twitter's search API imposes. If this seems like a small
-window, it is, but you may be interested in collecting tweets as they happen
-using the `filter` and `sample` commands below.
+É importante notar que `search` Irá retornar tweets encontrados dentro de uma
+Janela de 7 dias imposta pela API de pesquisa do Twitter. Se isso parece uma pequena
+Janela,e é, mas você pode estar interessado em coletar tweets como eles acontecem
+Usando o `filter` e `sample` comandos abaixo.
 
-The best way to get familiar with Twitter's search syntax is to experiment with
-[Twitter's Advanced Search](https://twitter.com/search-advanced) and copy and
-pasting the resulting query from the search box. For example here is a more
-complicated query that searches for tweets containing either the
-\#blacklivesmatter or #blm hashtags that were sent to deray.
+A melhor maneira de se familiarizar com a sintaxe de pesquisa do Twitter é experimentando
+[Pesquisa Avançada do Twitter](https://twitter.com/search-advanced) E copiar e
+colar a consulta resultante da caixa de pesquisa. Por exemplo, aqui está uma
+consulta complicada que procura por tweets que contenham
+\#blacklivesmatter ou #blm hashtags que foram enviados para deray.
 
     twarc search '#blacklivesmatter OR #blm to:deray' > tweets.json
 
-Twitter attempts to code the language of a tweet, and you can limit your search
-to a particular language if you want:
+O Twitter tenta codificar o idioma de um tweet ou você pode limitar sua pesquisa.
+Para um idioma específico caso você queira só português:
 
-    twarc search '#blacklivesmatter' --lang fr > tweets.json
+    twarc search '#blacklivesmatter' --lang pt > tweets.json
 
-You can also search for tweets with a given location, for example tweets
-mentioning *blacklivesmatter* that are 1 mile from the center of Ferguson,
-Missouri:
+Você também pode pesquisar tweets com um determinado local, por exemplo tweets
+Mencionando *foratemer* das pessoas situadas a 1 milha na região de Brasília:
 
-    twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.json
+    twarc search foratemer --geocode -16.050561,-47.814708,1mi > tweets.json
 
-If a search query isn't supplied when using `--geocode` you will get all tweets
-relevant for that location and radius:
+Se uma consulta de pesquisa não for fornecida`--geocode` Você receberá todos os tweets
+Relevantes para esse local e raio:
     
-    twarc search --geocode 38.7442,-90.3054,1mi > tweets.json
+    twarc search --geocode -16.050561,-47.814708,1mi > tweets.json
 
 ### Filter
 
