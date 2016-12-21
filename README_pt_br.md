@@ -15,30 +15,27 @@ Projecto financiado pelo [Mellon Foundation](https://mellon.org/).
 
 ## Instalação
 
-Before using twarc you will need to register an application at
-[apps.twitter.com](http://apps.twitter.com). Once you've created your
-application, note down the consumer key, consumer secret and then click to
-generate an access token and access token secret. With these four variables
-in hand you are ready to start using twarc.
+Antes de usar twarc você precisa registrar um aplicativo em
+[apps.twitter.com](http://apps.twitter.com). Depois de criar o aplicativo, anote a [consumer_key], [consumer_secret] e clique em  Gerar um [access_token] e um [access_token_secret]. Com estas quatro variáveis na mão você está pronto para começar a usar twarc.
 
-1. install [Python](http://python.org/download) (2 or 3)
+1. instalação [Python](http://python.org/download) (2 ou 3)
 2. pip install twarc
 
-## Quickstart:
+## Início Rápido:
 
-First you're going to need to tell twarc about your API keys:
+Primeiro você vai precisar configurar o twarc mostrando a ele suas chaves de API:
 
     twarc configure
 
-Then try out a search:
+Em seguida, experimente uma pesquisa rápida:
 
     twarc search blacklivesmatter > search.json
 
-Or maybe you'd like to collect tweets as they happen?
+Ou talvez você gostaria de coletar tweets como eles acontecem?
 
     twarc filter blacklivesmatter > stream.json
 
-See below for the details about these commands and more.
+Veja abaixo os detalhes sobre esses comandos e muito mais.
 
 ## Usage
 
