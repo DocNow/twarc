@@ -16,7 +16,8 @@ Projecto financiado pelo [Mellon Foundation](https://mellon.org/).
 ## Instalação
 
 Antes de usar twarc você precisa registrar um aplicativo em
-[apps.twitter.com](http://apps.twitter.com). Depois de criar o aplicativo, anote a [consumer_key], [consumer_secret] e clique em  Gerar um [access_token] e um [access_token_secret]. Com estas quatro variáveis na mão você está pronto para começar a usar twarc.
+[apps.twitter.com](http://apps.twitter.com). Depois de criar o aplicativo, anote a [consumer_key], [consumer_secret] e clique em  Gerar um [access_token] e um [access_token_secret]. Com estas quatro variáveis na mão você está pronto para começar a usar twarc. 
+OBS: Se tiver alguma dúvida de como criar o aplicativo, consulte [como criar um app](http://blog.difluir.com/2013/06/como-criar-uma-app-no-twitter/)
 
 1. instalação [Python](http://python.org/download) (2 ou 3)
 2. pip install twarc
