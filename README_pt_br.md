@@ -3,18 +3,17 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-twarc is a command line tool and Python library for archiving Twitter JSON data.
-Each tweet is represented as a JSON object that is
-[exactly](https://dev.twitter.com/overview/api/tweets) what was returned from
-the Twitter API.  Tweets are stored as line-oriented JSON.  Twarc will handle
-Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
-for you. In addition to letting you collect tweets Twarc can also help you
-collect users, trends and hydrate tweet ids. 
+twarc é uma ferramenta de linha de comando e usa a biblioteca Python para arquivamento de dados do Twitter com JSON.
+Cada tweet será representado como um objeto JSON 
+[exatamente](https://dev.twitter.com/overview/api/tweets) o que foi devolvido pela
+API do Twitter.  Os Tweets serão armazenados como JSON, um por linha.  Twarc controla totalmente a API [limites de uso](https://dev.twitter.com/rest/public/rate-limiting)
+para você. Além de permitir que você colete Tweets, Twarc também pode ajudá-lo
+Coletar usuários, tendências e hidratar tweet ids. 
 
-twarc was developed as part of the [Documenting the Now](https://www.docnow.io)
-project which was funded by the [Mellon Foundation](https://mellon.org/).
+twarc Foi desenvolvido como parte [Documenting the Now](https://www.docnow.io)
+Projecto financiado pelo [Mellon Foundation](https://mellon.org/).
 
-## Install
+## Instalação
 
 Before using twarc you will need to register an application at
 [apps.twitter.com](http://apps.twitter.com). Once you've created your
