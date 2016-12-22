@@ -40,7 +40,7 @@ Veja abaixo os detalhes sobre esses comandos e muito mais.
 
 ## Uso
 
-### Configure
+### Configurar
 
 Uma vez que você tem suas chaves de aplicativo, você pode dizer ao twarc quais são com o comando 
 `configure`.
@@ -76,7 +76,7 @@ consulta complicada que procura por tweets que contenham
 O Twitter tenta codificar o idioma de um tweet ou você pode limitar sua pesquisa.
 Para um idioma específico caso você queira só português:
 
-    twarc search '#blacklivesmatter' --lang pt > tweets.json
+    twarc search '#foratemer' --lang pt > tweets.json
 
 Você também pode pesquisar tweets com um determinado local, por exemplo tweets
 Mencionando *foratemer* das pessoas situadas a 1 milha na região de Brasília:
@@ -90,114 +90,115 @@ Relevantes para esse local e raio:
 
 ### Filter
 
-The `filter` command will use Twitter's [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API to collect tweets as they happen.
+O comando `filter` Vai usar o Twitter [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API to collect tweets as they happen.
 
-    twarc filter blacklivesmatter,blm > tweets.json
+    twarc filter foratemer,blm > tweets.json
 
-Please note that the syntax for the Twitter's track queries is slightly
-different than what queries in their search API. So please consult the
-documentation on how best to express the filter option you are using.
+Observe que a sintaxe para consultas de queries do Twitter é ligeiramente
+diferente do que as consultas em sua API de pesquisa. Por favor, consulte a
+documentação sobre a melhor forma de expressar a opção de filtro que você deseja.
 
-Use the `follow` command line argument if you would like to collect tweets from
-a given user id as they happen. This includes retweets. For example this will
-collect tweets and retweets from CNN:
+Use o comando de linha `follow` com argumento se você quer coletar tweets de
+um determinado ID de usuário. Isso inclui retweets. Por exemplo, isso vai
+coletar tweets e os retweets da CNN:
 
     twarc filter --follow 759251 > tweets.json
 
-You can also collect tweets using a bounding box. Note: the leading dash needs
-to be escaped in the bounding box or else it will be interpreted as a command
-line argument!
+Você também pode coletar tweets usando uma caixa delimitadora. 
+Nota: o traço principal precisa ser escapado na caixa delimitadora ou então 
+ele será interpretado como um comando de linha como argumento!
+Exemplo: escapando com a barra invertida após aspas "\
 
     twarc filter --locations "\-74,40,-73,41" > tweets.json
 
 
-If you combine options they are OR'ed together. For example this will collect
-tweets that use the blacklivesmatter or blm hashtags and also tweets from user
-CNN:
+Se você combinar opções eles serão um OU outro juntos. 
+Por exemplo, isso irá coletar Tweets que usam o hashtags foratemer 
+OU blm e também tweets do usuário CNN:
 
     twarc filter blacklivesmatter,blm --follow 759251 > tweets.json
 
 ### Sample
 
-Use the `sample` command to listen to Twitter's [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API for a "random" sample of recent public statuses.
+Use o comando de linha `sample` para ouvir/Status do Twitter [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API para uma amostra "aleatória/ramdom" de tweets  públicos recentes. O status será do usuário ativo na API twarc. 
 
     twarc sample > tweets.json
 
 ### Hydrate
 
-Twarc's `hydrate` command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
+O comando do Twarc `hydrate` Lê um arquivo de IDs de tweets identificados e escreve o tweet em JSON para eles usando Twitter [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
 
     twarc hydrate ids.txt > tweets.json
 
-Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) discourage people from making large amounts of raw Twitter data available on the Web.  The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available.  You can then use Twitter's API to *hydrate* the data, or to retrieve the full JSON for each identifier. This is particularly important for [verification](https://en.wikipedia.org/wiki/Reproducibility) of social media research.
+O [Termos do Serviço](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) do Twitter API's desencoraja pessoas na busca de grandes quantidades de dados brutos do Twitter e disponíbilizar na Web. Os dados podem ser usados para pesquisa e arquivados para uso local, mas não devem ser compartilhados com o mundo. O Twitter permite que arquivos de identificadores de tweet sejam compartilhados, o que pode ser útil quando você quer fazer um conjunto de dados de tweets disponíveis. Você pode usar a API do Twitter para *hydrate* dados ou para recuperar o JSON completo para cada identificador/usuário ID. Isto é particularmente importante para [verificação](https://en.wikipedia.org/wiki/Reproducibility) da rede social mundial.
 
-### Users
+### Usuários
 
-The `users` command will return User metadata for the given screen names.
+O comando `users` retorna metadados do usuário fornecidos na tela,exemplo:
 
     twarc users deray,Nettaaaaaaaa > users.json
 
-You can also give it user ids:
+Você também pode usar os ids do usuário:
 
     twarc users 1232134,1413213 > users.json
 
-If you want you can also use a file of user ids, which can be useful if you are
-using the `followers` and `friends` commands below:
+Se você quiser, você também pode usar um arquivo com ids de usuário, o que pode ser útil se você estiver
+usando o `followers` e o `friends` conforme comando abaixo:
 
     twarc users ids.txt > users.json
 
-### Followers
+### Seguidores (Quem me segue)
 
-The `followers` command  will use Twitter's [follower id API](https://dev.twitter.com/rest/reference/get/followers/ids) to collect the follower user ids for exactly one user screen name per request as specified as an argument:
+O comando `followers` Vai usar o Twitter [API seguidores ID](https://dev.twitter.com/rest/reference/get/followers/ids) Para coletar os ids dos usuários que estão seguindo exatamente o nome informado na tela. Veja como é feita a solicitação usando o nome do user como argumento:
 
     twarc followers deray > follower_ids.txt
 
-The result will include exactly one user id per line. The response order is
-reverse chronological, or most recent followers first.
+O resultado incluirá exatamente um ID de usuário por linha. 
+A ordem de resposta é Invertida cronológicamente, o mais recente seguidores em primeiro lugar.
 
-### Friends
+### Amigos (Quem eu sigo)
 
-Like the `followers` command, the `friends` command will use Twitter's [friend id API](https://dev.twitter.com/rest/reference/get/friends/ids) to collect the friend user ids for exactly one user screen name per request as specified as an argument:
+Igual o comando `followers`, o comando` friends` usará o Twitter [API amigos ID](https://dev.twitter.com/rest/reference/get/friends/ids) Para coletar os IDs de usuário amigo/friends com o nome que foi informado na tela no momento da solicitação,conforme especificado abaixo no argumento:
 
     twarc friends deray > friend_ids.txt
 
-### Trends
+### Trends / tendências 
 
-The `trends` command lets you retrieve information from Twitter's API about trending hashtags. You need to supply a [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifier (`woeid`) to indicate what trends you are interested in. For example here's how you can get the current trends for St Louis:
+O comando `trends` permite recuperar informações da API do Twitter sobre hashtags tendências. Você precisa fornecer um  [Onde na Terra](http://developer.yahoo.com/geo/geoplanet/) identificador (`woeid`) para indicar quais as tendências que você está interessado. Por exemplo, aqui é como você pode obter as tendências atuais para St Louis:
 
     twarc trends 2486982
 
-Using a `woeid` of 1 will return trends for the entire planet:
+Usando um `woeid` de 1 irá retornar tendências para todo o planeta, ou trends mundiais:
 
     twarc trends 1
 
-If you aren't sure what to use as a `woeid` just omit it and you will get a list
-of all the places for which Twitter tracks trends:
+Se você não tem certeza do que usar como um "woeid", não se preocupe, apenas omita seu valor e você receberá uma lista
+de todos os lugares para os quais o Twitter acompanha as tendências:
 
     twarc trends
 
-If you have a geo-location you can use it instead of the `woedid`.
+Se você já tem uma [geo-location/geo localização], você pode usar diretamente no seu `woedid`.
 
     twarc trends 39.9062,-79.4679
 
-Behind the scenes twarc will lookup the location using Twitter's [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) API to find the nearest `woeid`.
+Por trás das cenas, o twarc buscará o local usando o Twitter [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) API para encontrar a `woeid`.
 
 ### Timeline
 
-The timeline command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
+O comando timeline usará do Twitter [API user timeline](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) Para coletar os tweets mais recentes postados pelo usuário indicado por um screen_name.
 
     twarc timeline deray > tweets.json
 
-You can also look up users using a user id:
+Você também pode procurar usuários usando um id de usuário:
 
     twarc timeline 12345 > tweets.json
 
-## Use as a Library
+## Usar twarc como uma biblioteca
 
-If you want you can use twarc programmatically as a library to collect
-tweets. You first need to create a `Twarc` instance (using your Twitter
-credentials), and then use it to iterate through search results, filter
-results or lookup results.
+Se você quiser pode usar `twarc` programaticamente como uma biblioteca 
+para coletar Tweets. Primeiro você precisa criar uma instância do `Twarc` 
+(usando as suas Credenciais do Twitter) e, em seguida, usá-lo para iterar 
+através de resultados de pesquisa ou filtrar resultados de pesquisa.
 
 ```python
 from twarc import Twarc
@@ -207,30 +208,30 @@ for tweet in t.search("ferguson"):
     print(tweet["text"])
 ```
 
-You can do the same for a filter stream of new tweets that match a track
-keyword
+Você pode fazer o mesmo para um fluxo de filtro de novos tweets que 
+correspondem a uma determinada faixa usando palavra-chave.
 
 ```python
 for tweet in t.filter(track="ferguson"):
     print(tweet["text"])
 ```
 
-or location:
+ou localização:
 
 ```python
 for tweet in t.filter(locations="-74,40,-73,41"):
     print(tweet["text"])
 ```
 
-or user ids:
+ou IDS do usuário:
 
 ```python
 for tweet in t.filter(follow='12345,678910'):
     print(tweet["text"])
 ```
 
-Similarly you can hydrate tweet identifiers by passing in a list of ids
-or a generator:
+Da mesma forma você pode hidratar os identificadores de tweet passando 
+em uma lista de ids ou um gerador:
 
 ```python
 for tweet in t.hydrate(open('ids.txt')):
