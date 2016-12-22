@@ -36,6 +36,21 @@ T = twarc.Twarc(consumer_key, consumer_secret,
                 access_token, access_token_secret)
 
 
+def _travis_ci_but_no_secure_env_vars():
+    """Helper function to say if we're testing on Travis CI,
+    but don't have secure env vars
+    """
+    try:
+        travis = os.environ['TRAVIS']
+        travis_secure_env_vars = os.environ['TRAVIS_SECURE_ENV_VARS']
+        if travis and not travis_secure_env_vars:
+            return True
+        else:
+            return False
+    except KeyError:
+        return False
+
+
 class TestTwarc(unittest.TestCase):
 
     def test_version(self):
@@ -114,6 +129,8 @@ class TestTwarc(unittest.TestCase):
 
         assert found
 
+    @unittest.skipIf(_travis_ci_but_no_secure_env_vars(),
+                     "Travis CI requires encrypted vars")
     def test_track(self):
         tweet = next(T.filter(track="obama"))
         json_str = json.dumps(tweet)
