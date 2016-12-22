@@ -238,85 +238,88 @@ for tweet in t.hydrate(open('ids.txt')):
     print(tweet["text"])
 ```
 
-## Utilities
+## Utilitários
 
-In the utils directory there are some simple command line utilities for
-working with the line-oriented JSON, like printing out the archived tweets as
-text or html, extracting the usernames, referenced URLs, etc.  If you create a
-script that you find handy please send a pull request.
+No diretório utils existem alguns utilitários via linha de comando simples para
+Trabalhar com o JSON gravando linha por por linha, tais como. 
+- Imprimir os tweets arquivados como Texto ou html. 
+- Extraindo os nomes de usuários. 
+- URLs referenciadas. 
+- Etc. 
+Se você criar um Script e achar útil, por favor envie um pedido de pull no github do projeto.
 
-When you've got some tweets you can create a rudimentary wall of them:
+Quando você tem alguns tweets você pode criar um paralelo rudimentar deles:
 
     % utils/wall.py tweets.json > tweets.html
 
-You can create a word cloud of tweets you collected about nasa:
+Você pode criar uma nuvem de palavras de tweets coletados sobre a nasa:
 
     % utils/wordcloud.py tweets.json > wordcloud.html
 
-gender.py is a filter which allows you to filter tweets based on a guess about
-the gender of the author. So for example you can filter out all the tweets that
-look like they were from women, and create a word cloud for them:
+gender.py É um filtro que permite filtrar tweets com base em um palpite sobre
+o gênero do autor. Assim, por exemplo, você pode filtrar todos os tweets que
+em tese foram feitos por mulheres, e criar uma nuvem de palavras para eles:
 
     % utils/gender.py --gender female tweets.json | utils/wordcloud.py > tweets-female.html
 
-You can output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
+Você pode com [GeoJSON](http://geojson.org/) ver os tweets de determinadas coordenadas geográficas:
 
     % utils/geojson.py tweets.json > tweets.geojson
 
-Optionally you can export GeoJSON with centroids replacing bounding boxes:
+Opcionalmente você pode exportar GeoJSON com centróides substituindo as caixas delimitadoras:
 
     % utils/geojson.py tweets.json --centroid > tweets.geojson
 
-And if you do export GeoJSON with centroids, you can add some random fuzzing:
+E se você exportar GeoJSON com centróides, você pode adicionar alguns fuzzing aleatórios:
 
     % utils/geojson.py tweets.json --centroid --fuzz 0.01 > tweets.geojson
 
-To filter tweets by presence or absence of geo coordinates (or Place, see [API documentation](https://dev.twitter.com/overview/api/places)):
+Para filtrar tweets pela presença ou ausência de coordenadas geográficas (Ou Local, veja [Documentação da API locais](https://dev.twitter.com/overview/api/places)):
 
     % utils/geofilter.py tweets.json --yes-coordinates > tweets-with-geocoords.json
     % cat tweets.json | utils/geofilter.py --no-place > tweets-with-no-place.json
 
-To filter tweets by a GeoJSON fence (requires [Shapely](https://github.com/Toblerity/Shapely)):
+Para filtrar tweets por uma área com GeoJSON (Requer [Shapely](https://github.com/Toblerity/Shapely)):
 
     % utils/geofilter.py tweets.json --fence limits.geojson > fenced-tweets.json
     % cat tweets.json | utils/geofilter.py --fence limits.geojson > fenced-tweets.json
 
-If you suspect you have duplicate in your tweets you can dedupe them:
+Se você suspeitar ter duplicado seus tweets, você pode remove-los:
 
     % utils/deduplicate.py tweets.json > deduped.json
 
-You can sort by ID, which is analogous to sorting by time:
+Você pode classificar por ID, o que é análogo à classificação por tempo:
 
     % utils/sort_by_id.py tweets.json > sorted.json
 
-You can filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
+Você pode filtrar todos os tweets antes de uma determinada data (por exemplo, se uma hashtag foi usada para outro evento antes do que você está interessado):
 
     % utils/filter_date.py --mindate 1-may-2014 tweets.json > filtered.json
 
-You can get an HTML list of the clients used:
+Você pode obter uma lista HTML dos usuários usados:
 
     % utils/source.py tweets.json > sources.html
 
-If you want to remove the retweets:
+Se você quiser remover os retweets:
 
     % utils/noretweets.py tweets.json > tweets_noretweets.json
 
-Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
+Ou unshorten urls (Requer [unshrtn](https://github.com/edsu/unshrtn)):
 
     % cat tweets.json | utils/unshorten.py > unshortened.json
 
-Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
+Depois de desfazer masca de seus URLs, você pode obter uma lista classificada dos URLs mais tweeted:
 
     % cat unshortened.json | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
 
 ## twarc-report
 
-Some further utility scripts to generate csv or json output suitable for
-use with [D3.js](http://d3js.org/) visualizations are found in the
-[twarc-report](https://github.com/pbinkley/twarc-report) project. The
-util directed.py, formerly part of twarc, has moved to twarc-report as
+Alguns scripts de utilitários adicionais para gerar saída csv ou json adequada foi 
+feito com [D3.js](http://d3js.org/) Visualizações são encontradas
+[twarc-report](https://github.com/pbinkley/twarc-report) projeto. O
+Util direct.py, anteriormente parte do twarc, mudou-se para twarc-report como
 d3graph.py.
 
-Each script can also generate an html demo of a D3 visualization, e.g.
+Cada script também pode gerar uma demo html de uma visualização D3, e.g.
 [timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
