@@ -3,7 +3,7 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-Translations: [pt-BR]
+**Translations: [pt-BR]**
 
 twarc is a command line tool and Python library for archiving Twitter JSON data.
 Each tweet is represented as a JSON object that is
