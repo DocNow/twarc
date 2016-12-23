@@ -140,6 +140,8 @@ class TestTwarc(unittest.TestCase):
         # reconnect to close streaming connection for other tests
         T.connect()
 
+    @unittest.skipIf(_travis_ci_but_no_secure_env_vars(),
+                     "Travis CI requires encrypted vars")
     def test_follow(self):
         user_ids = [
             "87818409",    # @guardian
