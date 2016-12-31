@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-__version__ = '1.0.1' # also in setup.py
+__version__ = '1.0.2' # also in setup.py
 
 import os
 import re
