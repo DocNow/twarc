@@ -168,20 +168,36 @@ def main():
         print("\nFor example:\n\n    twarc search blacklivesmatter")
         sys.exit(1)
 
-    
     for thing in things:
-        print(json.dumps(thing))
-        if type(thing) == dict:
-            if 'id_str' in thing:
-                logging.info("archived %s", thing['id_str'])
-            elif 'limit' in thing:
-                t = datetime.datetime.utcfromtimestamp(
-                    float(thing['limit']['timestamp_ms']) / 1000)
-                t = t.isoformat("T") + "Z"
-                logging.warn("%s tweets undelivered at %s",
-                             thing['limit']['track'], t)
-            elif 'warning' in thing:
-                logging.warn(thing['warning']['message'])
+        kind_of = type(thing)
+        if kind_of == int:
+            # user ids
+            print(thing)
+            logging.info("archived %s" % thing)
+        elif 'id_str' in thing:
+            # tweets and users
+            print(json.dumps(thing))
+            logging.info("archived %s", thing['id_str'])
+        elif 'woeid' in thing:
+            # places
+            print(json.dumps(thing))
+        elif 'tweet_volume' in thing:
+            # trends
+            print(json.dumps(thing))
+        elif 'limit' in thing:
+            # rate limits
+            t = datetime.datetime.utcfromtimestamp(
+                float(thing['limit']['timestamp_ms']) / 1000)
+            t = t.isoformat("T") + "Z"
+            logging.warn("%s tweets undelivered at %s",
+                         thing['limit']['track'], t)
+            if args.warnings:
+                print(json.dumps(thing))
+        elif 'warning' in thing:
+            # other warnings
+            logging.warn(thing['warning']['message'])
+            if args.warnings:
+                print(json.dumps(thing))
 
 
 def get_argparser():
