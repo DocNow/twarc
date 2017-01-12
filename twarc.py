@@ -592,6 +592,8 @@ class Twarc(object):
                 for line in resp.iter_lines(chunk_size=1024):
                     if event and event.is_set():
                         logging.info("Stopping filter")
+                        # Explicitly close response
+                        resp.close()
                         return
                     if not line:
                         logging.info("keep-alive")
@@ -646,6 +648,8 @@ class Twarc(object):
                 for line in resp.iter_lines(chunk_size=512):
                     if event and event.is_set():
                         logging.info("Stopping sample")
+                        # Explicitly close response
+                        resp.close()
                         return
                     if line == "":
                         logging.info("keep-alive")
