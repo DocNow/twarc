@@ -275,6 +275,19 @@ class TestTwarc(unittest.TestCase):
         self.assertEqual(set(names),
                          set(map(lambda x: x.lower(), screen_names)))
 
+    def test_dehydrate(self):
+        tweets = [
+            '{"text": "test tweet 1", "id": 800000000000000000}',
+            '{"text": "test tweet 2", "id": 800000000000000001}',
+            '{"text": "test tweet 2", "id": 800000000000000001}'
+        ]
+        count = 0
+        for id in T.dehydrate(iter(tweets)):
+            self.assertIsInstance(id, int)
+            self.assertIn(id, [800000000000000000, 800000000000000001])
+            count += 1
+        self.assertEqual(count, 2)  # Duplicate removed
+
     def test_hydrate(self):
         ids = [
             "501064188211765249", "501064196642340864", "501064197632167936",

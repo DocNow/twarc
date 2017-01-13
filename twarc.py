@@ -31,6 +31,7 @@ else:
 
 commands = [
     "configure",
+    'dehydrate',
     'filter',
     'followers',
     'friends',
@@ -40,7 +41,7 @@ commands = [
     'sample',
     'search',
     'timeline',
-    'trends', 
+    'trends',
     'users',
     'version',
 ]
@@ -97,7 +98,15 @@ def main():
             follow=args.follow,
             locations=args.locations
         )
-        
+
+    elif command == "dehydrate":
+        input_iterator = fileinput.FileInput(
+            query,
+            mode='rU',
+            openhook=fileinput.hook_compressed,
+        )
+        things = t.dehydrate(input_iterator)
+
     elif command == "hydrate":
         input_iterator = fileinput.FileInput(
             query,
@@ -171,7 +180,7 @@ def main():
     for thing in things:
         kind_of = type(thing)
         if kind_of == int:
-            # user ids
+            # user or tweet IDs
             print(thing)
             logging.info("archived %s" % thing)
         elif 'id_str' in thing:
@@ -204,7 +213,7 @@ def get_argparser():
     """
     Get the command line argument parser.
     """
-    
+
     config = os.path.join(os.path.expanduser("~"), ".twarc")
 
     parser = argparse.ArgumentParser("twarc")
@@ -342,17 +351,17 @@ def catch_gzip_errors(f):
 class Twarc(object):
     """
     Twarc allows you retrieve data from the Twitter API. Each method
-    is an iterator that runs to completion, and handles rate limiting so 
+    is an iterator that runs to completion, and handles rate limiting so
     that it will go to sleep when Twitter tells it to, and wake back up
     when it is able to retrieve data from the API again.
     """
 
     def __init__(self, consumer_key=None, consumer_secret=None,
-                 access_token=None, access_token_secret=None, 
-                 connection_errors=0, http_errors=0, config=None, 
+                 access_token=None, access_token_secret=None,
+                 connection_errors=0, http_errors=0, config=None,
                  profile="main"):
         """
-        Instantiate a Twarc instance. If keys aren't set we'll try to 
+        Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile.
         """
 
@@ -467,7 +476,7 @@ class Twarc(object):
 
         if not iterator:
             iterator = iter(ids)
-      
+
         # TODO: this is similar to hydrate, maybe they could share code?
 
         lookup_ids = []
@@ -641,6 +650,23 @@ class Twarc(object):
                 logging.info("sleeping %s", t)
                 time.sleep(t)
 
+    def dehydrate(self, iterator):
+        """
+        Pass in an iterator of tweets' JSON and get back an iterator of the
+        IDs of each tweet, without duplicates.
+        """
+        ids = set()
+
+        for tweet in iterator:
+            try:
+                tweet = json.loads(tweet)
+                id = tweet["id"]
+                if id not in ids:
+                    ids.add(id)
+                    yield id
+            except Exception as e:
+                logging.error("uhoh: %s\n" % e)
+
     def hydrate(self, iterator):
         """
         Pass in an iterator of tweet ids and get back an iterator for the
@@ -797,14 +823,14 @@ class Twarc(object):
         env = os.environ.get
         if not self.consumer_key:
             self.consumer_key = env('CONSUMER_KEY')
-        if not self.consumer_secret: 
+        if not self.consumer_secret:
             self.consumer_secret = env('CONSUMER_SECRET')
-        if not self.access_token: 
+        if not self.access_token:
             self.access_token = env('ACCESS_TOKEN')
-        if not self.access_token_secret: 
+        if not self.access_token_secret:
             self.access_token_secret = env('ACCESS_TOKEN_SECRET')
-        
-        if self.config and not (self.consumer_key and self.consumer_secret 
+
+        if self.config and not (self.consumer_key and self.consumer_secret
                 and self.access_token and self.access_token_secret):
             credentials = self.load_config()
             if credentials:
@@ -843,7 +869,7 @@ class Twarc(object):
         config.set(self.profile, 'consumer_key', self.consumer_key)
         config.set(self.profile, 'consumer_secret', self.consumer_secret)
         config.set(self.profile, 'access_token', self.access_token)
-        config.set(self.profile, 'access_token_secret', 
+        config.set(self.profile, 'access_token_secret',
                    self.access_token_secret)
         with open(self.config, 'w') as config_file:
             config.write(config_file)
@@ -858,7 +884,7 @@ class Twarc(object):
                 prompt += ' [%s]' % config[name]
             return get_input(prompt + ": ") or config.get(name)
 
-        self.consumer_key = i('consumer_key') 
+        self.consumer_key = i('consumer_key')
         self.consumer_secret = i('consumer_secret')
         self.access_token = i('access_token')
         self.access_token_secret = i('access_token_secret')
