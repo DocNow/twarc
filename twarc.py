@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-
-__version__ = '1.0.2' # also in setup.py
+from requests_oauthlib import OAuth1Session
 
 import os
 import re
@@ -15,12 +14,12 @@ import datetime
 import requests
 import fileinput
 
-from requests_oauthlib import OAuth1Session
-
 try:
     import configparser  # Python 3
 except ImportError:
     import ConfigParser as configparser  # Python 2
+
+__version__ = '1.0.2'  # also in setup.py
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -45,6 +44,7 @@ commands = [
     'users',
     'version',
 ]
+
 
 def main():
     parser = get_argparser()
@@ -347,7 +347,6 @@ def catch_gzip_errors(f):
     return new_f
 
 
-
 class Twarc(object):
     """
     Twarc allows you retrieve data from the Twitter API. Each method
@@ -480,6 +479,7 @@ class Twarc(object):
         # TODO: this is similar to hydrate, maybe they could share code?
 
         lookup_ids = []
+
         def do_lookup():
             ids_str = ",".join(lookup_ids)
             logging.info("looking up users %s", ids_str)
@@ -701,7 +701,8 @@ class Twarc(object):
         tweet.
         """
         logging.info("retrieving retweets of %s", tweet_id)
-        url = "https://api.twitter.com/1.1/statuses/retweets/{}.json".format(tweet_id)
+        url = "https://api.twitter.com/1.1/statuses/retweets/""{}.json".format(
+                tweet_id)
 
         resp = self.get(url)
         for tweet in resp.json():
@@ -767,8 +768,10 @@ class Twarc(object):
             return r
         except requests.exceptions.ConnectionError as e:
             connection_error_count += 1
-            logging.error("caught connection error %s on %s try", e, connection_error_count)
-            if self.connection_errors and connection_error_count == self.connection_errors:
+            logging.error("caught connection error %s on %s try", e,
+                          connection_error_count)
+            if (self.connection_errors and
+                    connection_error_count == self.connection_errors):
                 logging.error("received too many connection errors")
                 raise e
             else:
@@ -787,8 +790,10 @@ class Twarc(object):
             return self.last_response
         except requests.exceptions.ConnectionError as e:
             connection_error_count += 1
-            logging.error("caught connection error %s on %s try", e, connection_error_count)
-            if self.connection_errors and connection_error_count == self.connection_errors:
+            logging.error("caught connection error %s on %s try", e,
+                          connection_error_count)
+            if (self.connection_errors and
+                    connection_error_count == self.connection_errors):
                 logging.error("received too many connection errors")
                 raise e
             else:
@@ -830,8 +835,10 @@ class Twarc(object):
         if not self.access_token_secret:
             self.access_token_secret = env('ACCESS_TOKEN_SECRET')
 
-        if self.config and not (self.consumer_key and self.consumer_secret
-                and self.access_token and self.access_token_secret):
+        if self.config and not (self.consumer_key and
+                                self.consumer_secret and
+                                self.access_token and
+                                self.access_token_secret):
             credentials = self.load_config()
             if credentials:
                 self.consumer_key = credentials['consumer_key']
@@ -878,6 +885,7 @@ class Twarc(object):
         print("Please enter Twitter authentication credentials")
 
         config = self.load_config()
+
         def i(name):
             prompt = name.replace('_', ' ')
             if name in config:
