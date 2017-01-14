@@ -24,9 +24,11 @@ __version__ = '1.0.2'  # also in setup.py
 if sys.version_info[:2] <= (2, 7):
     # Python 2
     get_input = raw_input
+    str_type = unicode
 else:
     # Python 3
     get_input = input
+    str_type = str
 
 commands = [
     "configure",
@@ -179,7 +181,7 @@ def main():
 
     for thing in things:
         kind_of = type(thing)
-        if kind_of == int:
+        if kind_of == str_type:
             # user or tweet IDs
             print(thing)
             logging.info("archived %s" % thing)
@@ -522,7 +524,7 @@ class Twarc(object):
                 raise e
             user_ids = resp.json()
             for user_id in user_ids['ids']:
-                yield user_id
+                yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
 
     def friend_ids(self, screen_name):
@@ -542,7 +544,7 @@ class Twarc(object):
                 raise e
             user_ids = resp.json()
             for user_id in user_ids['ids']:
-                yield user_id
+                yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
 
     def filter(self, track=None, follow=None, locations=None):
@@ -653,17 +655,11 @@ class Twarc(object):
     def dehydrate(self, iterator):
         """
         Pass in an iterator of tweets' JSON and get back an iterator of the
-        IDs of each tweet, without duplicates.
+        IDs of each tweet.
         """
-        ids = set()
-
-        for tweet in iterator:
+        for line in iterator:
             try:
-                tweet = json.loads(tweet)
-                id = tweet["id"]
-                if id not in ids:
-                    ids.add(id)
-                    yield id
+                yield json.loads(line)['id_str']
             except Exception as e:
                 logging.error("uhoh: %s\n" % e)
 
