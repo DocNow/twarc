@@ -76,7 +76,7 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    lockfile = os.path.join(args.archive_dir, '') + ".lockfile"
+    lockfile = os.path.join(args.archive_dir, '') + "lockfile"
     if not os.path.exists(lockfile):
         pid = os.getpid()
         lockfile_handle = open(lockfile, "w")
