@@ -87,7 +87,7 @@ def main():
         with open(lockfile, "r") as lockfile_handle:
             old_pid = lockfile_handle.read()
         
-        sys.exit("another twarc-archive.py process with pid " + old_pid + " is running")
+        sys.exit("Another twarc-archive.py process with pid " + old_pid + " is running. If the process is no longer active then it may have been interrupted. In that case remove the 'lockfile' in " + args.archive_dir + " and run the command again.")
                 
     logging.info("logging search for %s to %s", args.search, args.archive_dir)
 
