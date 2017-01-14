@@ -11,9 +11,9 @@ Each tweet is represented as a JSON object that is
 the Twitter API.  Tweets are stored as line-oriented JSON.  Twarc will handle
 Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
 for you. In addition to letting you collect tweets Twarc can also help you
-collect users, trends and hydrate tweet ids. 
+collect users, trends and hydrate tweet ids.
 
-twarc was developed as part of the [Documenting the Now](https://www.docnow.io)
+twarc was developed as part of the [Documenting the Now](http://www.docnow.io)
 project which was funded by the [Mellon Foundation](https://mellon.org/).
 
 ## Install
@@ -50,7 +50,7 @@ See below for the details about these commands and more.
 Once you've got your application keys you can tell twarc what they are with the
 `configure` command.
 
-    twarc configure 
+    twarc configure
 
 This will store your credentials in a file called `.twarc` in your home
 directory so you don't have to keep entering them in. If you would rather supply
@@ -63,7 +63,7 @@ options (`--consumer_key`, `--consumer_secret`, `--access_token`,
 
 The uses Twitter's [search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) to download *pre-existing* tweets matching a given query.
 
-    twarc search blacklivesmatter > tweets.json 
+    twarc search blacklivesmatter > tweets.json
 
 It's important to note that `search` will return tweets that are found within a
 7 day window that Twitter's search API imposes. If this seems like a small
@@ -91,7 +91,7 @@ Missouri:
 
 If a search query isn't supplied when using `--geocode` you will get all tweets
 relevant for that location and radius:
-    
+
     twarc search --geocode 38.7442,-90.3054,1mi > tweets.json
 
 ### Filter
