@@ -129,6 +129,12 @@ Use the `sample` command to listen to Twitter's [statuses/sample](https://dev.tw
 
     twarc sample > tweets.json
 
+### Dehydrate
+
+The `dehydrate` command generates an id list from a file of tweets:
+
+    twarc dehydrate tweets.json > tweet-ids.txt
+
 ### Hydrate
 
 Twarc's `hydrate` command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
