@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-
-__version__ = '1.0.2' # also in setup.py
+from requests_oauthlib import OAuth1Session
 
 import os
 import re
@@ -15,22 +14,25 @@ import datetime
 import requests
 import fileinput
 
-from requests_oauthlib import OAuth1Session
-
 try:
     import configparser  # Python 3
 except ImportError:
     import ConfigParser as configparser  # Python 2
 
+__version__ = '1.0.2'  # also in setup.py
+
 if sys.version_info[:2] <= (2, 7):
     # Python 2
     get_input = raw_input
+    str_type = unicode
 else:
     # Python 3
     get_input = input
+    str_type = str
 
 commands = [
     "configure",
+    'dehydrate',
     'filter',
     'followers',
     'friends',
@@ -40,10 +42,11 @@ commands = [
     'sample',
     'search',
     'timeline',
-    'trends', 
+    'trends',
     'users',
     'version',
 ]
+
 
 def main():
     parser = get_argparser()
@@ -97,7 +100,15 @@ def main():
             follow=args.follow,
             locations=args.locations
         )
-        
+
+    elif command == "dehydrate":
+        input_iterator = fileinput.FileInput(
+            query,
+            mode='rU',
+            openhook=fileinput.hook_compressed,
+        )
+        things = t.dehydrate(input_iterator)
+
     elif command == "hydrate":
         input_iterator = fileinput.FileInput(
             query,
@@ -170,8 +181,8 @@ def main():
 
     for thing in things:
         kind_of = type(thing)
-        if kind_of == int:
-            # user ids
+        if kind_of == str_type:
+            # user or tweet IDs
             print(thing)
             logging.info("archived %s" % thing)
         elif 'id_str' in thing:
@@ -204,7 +215,7 @@ def get_argparser():
     """
     Get the command line argument parser.
     """
-    
+
     config = os.path.join(os.path.expanduser("~"), ".twarc")
 
     parser = argparse.ArgumentParser("twarc")
@@ -338,21 +349,20 @@ def catch_gzip_errors(f):
     return new_f
 
 
-
 class Twarc(object):
     """
     Twarc allows you retrieve data from the Twitter API. Each method
-    is an iterator that runs to completion, and handles rate limiting so 
+    is an iterator that runs to completion, and handles rate limiting so
     that it will go to sleep when Twitter tells it to, and wake back up
     when it is able to retrieve data from the API again.
     """
 
     def __init__(self, consumer_key=None, consumer_secret=None,
-                 access_token=None, access_token_secret=None, 
-                 connection_errors=0, http_errors=0, config=None, 
+                 access_token=None, access_token_secret=None,
+                 connection_errors=0, http_errors=0, config=None,
                  profile="main"):
         """
-        Instantiate a Twarc instance. If keys aren't set we'll try to 
+        Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile.
         """
 
@@ -467,10 +477,11 @@ class Twarc(object):
 
         if not iterator:
             iterator = iter(ids)
-      
+
         # TODO: this is similar to hydrate, maybe they could share code?
 
         lookup_ids = []
+
         def do_lookup():
             ids_str = ",".join(lookup_ids)
             logging.info("looking up users %s", ids_str)
@@ -513,7 +524,7 @@ class Twarc(object):
                 raise e
             user_ids = resp.json()
             for user_id in user_ids['ids']:
-                yield user_id
+                yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
 
     def friend_ids(self, screen_name):
@@ -533,7 +544,7 @@ class Twarc(object):
                 raise e
             user_ids = resp.json()
             for user_id in user_ids['ids']:
-                yield user_id
+                yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
 
     def filter(self, track=None, follow=None, locations=None):
@@ -641,6 +652,17 @@ class Twarc(object):
                 logging.info("sleeping %s", t)
                 time.sleep(t)
 
+    def dehydrate(self, iterator):
+        """
+        Pass in an iterator of tweets' JSON and get back an iterator of the
+        IDs of each tweet.
+        """
+        for line in iterator:
+            try:
+                yield json.loads(line)['id_str']
+            except Exception as e:
+                logging.error("uhoh: %s\n" % e)
+
     def hydrate(self, iterator):
         """
         Pass in an iterator of tweet ids and get back an iterator for the
@@ -675,7 +697,8 @@ class Twarc(object):
         tweet.
         """
         logging.info("retrieving retweets of %s", tweet_id)
-        url = "https://api.twitter.com/1.1/statuses/retweets/{}.json".format(tweet_id)
+        url = "https://api.twitter.com/1.1/statuses/retweets/""{}.json".format(
+                tweet_id)
 
         resp = self.get(url)
         for tweet in resp.json():
@@ -741,8 +764,10 @@ class Twarc(object):
             return r
         except requests.exceptions.ConnectionError as e:
             connection_error_count += 1
-            logging.error("caught connection error %s on %s try", e, connection_error_count)
-            if self.connection_errors and connection_error_count == self.connection_errors:
+            logging.error("caught connection error %s on %s try", e,
+                          connection_error_count)
+            if (self.connection_errors and
+                    connection_error_count == self.connection_errors):
                 logging.error("received too many connection errors")
                 raise e
             else:
@@ -761,8 +786,10 @@ class Twarc(object):
             return self.last_response
         except requests.exceptions.ConnectionError as e:
             connection_error_count += 1
-            logging.error("caught connection error %s on %s try", e, connection_error_count)
-            if self.connection_errors and connection_error_count == self.connection_errors:
+            logging.error("caught connection error %s on %s try", e,
+                          connection_error_count)
+            if (self.connection_errors and
+                    connection_error_count == self.connection_errors):
                 logging.error("received too many connection errors")
                 raise e
             else:
@@ -797,15 +824,17 @@ class Twarc(object):
         env = os.environ.get
         if not self.consumer_key:
             self.consumer_key = env('CONSUMER_KEY')
-        if not self.consumer_secret: 
+        if not self.consumer_secret:
             self.consumer_secret = env('CONSUMER_SECRET')
-        if not self.access_token: 
+        if not self.access_token:
             self.access_token = env('ACCESS_TOKEN')
-        if not self.access_token_secret: 
+        if not self.access_token_secret:
             self.access_token_secret = env('ACCESS_TOKEN_SECRET')
-        
-        if self.config and not (self.consumer_key and self.consumer_secret 
-                and self.access_token and self.access_token_secret):
+
+        if self.config and not (self.consumer_key and
+                                self.consumer_secret and
+                                self.access_token and
+                                self.access_token_secret):
             credentials = self.load_config()
             if credentials:
                 self.consumer_key = credentials['consumer_key']
@@ -843,7 +872,7 @@ class Twarc(object):
         config.set(self.profile, 'consumer_key', self.consumer_key)
         config.set(self.profile, 'consumer_secret', self.consumer_secret)
         config.set(self.profile, 'access_token', self.access_token)
-        config.set(self.profile, 'access_token_secret', 
+        config.set(self.profile, 'access_token_secret',
                    self.access_token_secret)
         with open(self.config, 'w') as config_file:
             config.write(config_file)
@@ -852,13 +881,14 @@ class Twarc(object):
         print("Please enter Twitter authentication credentials")
 
         config = self.load_config()
+
         def i(name):
             prompt = name.replace('_', ' ')
             if name in config:
                 prompt += ' [%s]' % config[name]
             return get_input(prompt + ": ") or config.get(name)
 
-        self.consumer_key = i('consumer_key') 
+        self.consumer_key = i('consumer_key')
         self.consumer_secret = i('consumer_secret')
         self.access_token = i('access_token')
         self.access_token_secret = i('access_token_secret')

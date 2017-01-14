@@ -286,6 +286,17 @@ def test_user_lookup_by_screen_name():
     assert set(names) == set(map(lambda x: x.lower(), screen_names))
 
 
+def test_dehydrate():
+    tweets = [
+        '{"text": "test tweet 1", "id_str": "800000000000000000"}',
+        '{"text": "test tweet 2", "id_str": "800000000000000001"}',
+    ]
+    ids = list(T.dehydrate(iter(tweets)))
+    assert len(ids) == 2
+    assert "800000000000000000" in ids
+    assert "800000000000000001" in ids
+
+
 def test_hydrate():
     ids = [
         "501064188211765249", "501064196642340864", "501064197632167936",
