@@ -414,3 +414,19 @@ def test_http_error_timeline():
 
 def test_retweets():
     assert len(list(T.retweets('795972820413140992'))) == 2
+
+
+def test_replies():
+    # the assumption in this test is that there will be at least 50
+    # replies to the most popular tweet that uses the most popular hashtag
+    # which seems like a pretty safe bet
+    top_hashtag = T.trends_place("1")[0]["trends"][0]["name"]
+    top_tweet = next(T.search(top_hashtag, result_type="popular"))
+    count = 0
+    for reply in T.replies([top_tweet]):
+        assert 'id_str' in reply
+        assert 'text' in reply
+        count += 1
+        if count == 50:
+            break
+    assert count == 50

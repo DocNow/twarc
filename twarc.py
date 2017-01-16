@@ -38,6 +38,7 @@ commands = [
     'friends',
     'help',
     'hydrate',
+    'replies',
     'retweets',
     'sample',
     'search',
@@ -166,6 +167,14 @@ def main():
             trends = t.trends_place(query)
             if trends:
                 things = trends[0]['trends']
+
+    elif command == "replies":
+        iterator = fileinput.FileInput(
+            query,
+            mode='rU',
+            openhook=fileinput.hook_compressed,
+        )
+        things = t.replies(iterator)
 
     elif command == "configure":
         t.input_keys()
@@ -744,6 +753,31 @@ class Twarc(object):
         except requests.exceptions.HTTPError as e:
             raise e
         return resp.json()
+
+    def replies(self, tweet_iterator, recursive=True):
+        """
+        Pass in an iterator of tweet objects and get back an iterator for
+        replies to that tweet. By default replies to replies will be returned,
+        but you can disable that by using recursive=False
+        """
+        for tweet in tweet_iterator:
+            # optionally parse
+            if type(tweet) != dict:
+                tweet = json.loads(tweet)
+            screen_name = tweet['user']['screen_name']
+            tweet_id = tweet['id_str']
+            logging.info("looking for replies to: %s", tweet_id)
+            for reply in self.search("to:%s" % screen_name, since_id=tweet_id):
+
+                if reply['in_reply_to_status_id_str'] != tweet_id:
+                    continue
+
+                logging.info("found reply: %s", reply["id_str"])
+                yield reply
+
+                if recursive:
+                    for reply_to_reply in self.replies([reply]):
+                        yield reply_to_reply
 
     @rate_limit
     @catch_conn_reset
