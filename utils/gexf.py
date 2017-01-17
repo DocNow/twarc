@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-# read tweets and write out a gexf file for loading into Gephi
+# read tweets and write out a gexf file for loading into Gephi. You'll
+# need to have networkx installed.
 # 
-#     ./gephi.py tweets.json > tweets.gexf 
+#     ./gexf.py tweets.json > tweets.gexf 
 # 
-# TODO: this is mostly here some someone can improve it
+# TODO: this is mostly here some someone can improve it :)
 
 import json
 import fileinput
