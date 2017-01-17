@@ -268,7 +268,7 @@ def get_argparser():
                         help="limit filter stream to location(s)")
     parser.add_argument("--follow", dest="follow",
                         help="limit filter to tweets from given user id(s)")
-    parser.add_argument("--recursive", dest="recursive",
+    parser.add_argument("--recursive", dest="recursive", action="store_true",
                         help="also fetch replies to replies")
 
     return parser
