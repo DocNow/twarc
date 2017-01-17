@@ -419,7 +419,7 @@ def test_retweets():
 def test_replies():
     # get the top hashtag that is trending
     trends = T.trends_place("1")[0]["trends"]
-    trends.sort(lambda a, b: cmp(b['tweet_volume'], a['tweet_volume']))
+    trends.sort(key=lambda a: a['tweet_volume'] or 0, reverse=True)
     top_hashtag = trends[0]["name"]
 
     # get the most popular tweet with that hashtag
