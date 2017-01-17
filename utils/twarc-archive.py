@@ -31,6 +31,7 @@ into a separate utility.
 from __future__ import print_function
 
 import os
+import sys
 import re
 import json
 import twarc
@@ -75,6 +76,19 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
+    lockfile = os.path.join(args.archive_dir, '') + "lockfile"
+    if not os.path.exists(lockfile):
+        pid = os.getpid()
+        lockfile_handle = open(lockfile, "w")
+        lockfile_handle.write(str(pid))
+        lockfile_handle.close()
+    else:
+        old_pid = "unknown"
+        with open(lockfile, "r") as lockfile_handle:
+            old_pid = lockfile_handle.read()
+        
+        sys.exit("Another twarc-archive.py process with pid " + old_pid + " is running. If the process is no longer active then it may have been interrupted. In that case remove the 'lockfile' in " + args.archive_dir + " and run the command again.")
+                
     logging.info("logging search for %s to %s", args.search, args.archive_dir)
 
     t = twarc.Twarc(consumer_key=args.consumer_key,
@@ -107,6 +121,9 @@ def main():
         fh.close()
     else: 
         logging.info("no new tweets found for %s", args.search)
+        
+    if os.path.exists(lockfile):
+        os.remove(lockfile)
 
 def get_last_archive(archive_dir):
     count = 0
