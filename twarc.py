@@ -561,10 +561,13 @@ class Twarc(object):
                 yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
 
-    def filter(self, track=None, follow=None, locations=None):
+    def filter(self, track=None, follow=None, locations=None, event=None):
         """
         Returns an iterator for tweets that match a given filter track from
         the livestream of tweets happening right now.
+
+        If a threading.Event is provided for event and the event is set,
+        the filter will be interrupted.
         """
         if locations is not None:
             if type(locations) == list:
@@ -587,6 +590,11 @@ class Twarc(object):
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=1024):
+                    if event and event.is_set():
+                        logging.info("Stopping filter")
+                        # Explicitly close response
+                        resp.close()
+                        return
                     if not line:
                         logging.info("keep-alive")
                         continue
@@ -619,11 +627,14 @@ class Twarc(object):
                 logging.info("sleeping %s", t)
                 time.sleep(t)
 
-    def sample(self):
+    def sample(self, event=None):
         """
         Returns a small random sample of all public statuses. The Tweets
         returned by the default access level are the same, so if two different
         clients connect to this endpoint, they will see the same Tweets.
+
+        If a threading.Event is provided for event and the event is set,
+        the sample will be interrupted.
         """
         url = 'https://stream.twitter.com/1.1/statuses/sample.json'
         params = {"stall_warning": True}
@@ -635,6 +646,11 @@ class Twarc(object):
                 resp = self.post(url, params, headers=headers, stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
+                    if event and event.is_set():
+                        logging.info("Stopping sample")
+                        # Explicitly close response
+                        resp.close()
+                        return
                     if line == "":
                         logging.info("keep-alive")
                         continue
