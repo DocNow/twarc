@@ -428,17 +428,3 @@ def test_replies():
     # see if we can get a reply to that tweet
     reply = next(T.replies([top_tweet]))
     assert reply['in_reply_to_status_id_str'] == top_tweet['id_str']
-
-    # see if we can find a reply to a reply with recursive in the first
-    # 1000 replies
-    count = 0
-    found = False
-    for reply in T.replies([top_tweet], recursive=True):
-        count += 1
-        if reply['in_reply_to_status_id_str'] != top_tweet['id_str']:
-            found = True
-            break
-        if count > 1000:
-            # give up
-            break
-    assert found
