@@ -210,22 +210,22 @@ You can get retweets for a given tweet id like so:
 
     twarc retweets 9308398098342 > retweets.json
 
-Replies to a given tweet work differently since the Twitter API does not support
-getting replies to a given tweet directly. If you have the tweet you would like
-to find replies for you can extract the screen name, and the twitter id and then
-use the search API to find tweets that are in response to the user, and then
-filter them for ones that are in reply to the tweet id. For this to work you
-need to pass in a file of tweets:
+If you want to get the replies to a given tweet you can: 
+
+    twarc replies 9308398098342 > replies.json
+
+Using the `--recursive` option will also fetch replies to the replies. But this
+can take a long time to complete for a large thread because of rate limiting on
+the search API.
+
+Unfortunately Twitter's API does not currently support getting replies to a
+tweet. So twarc approximates it by using the search API. Since the search API
+does not support getting tweets older than a week twarc can only get replies to
+a tweet that have been sent in the last week.
+
+You can use the replies command to read in a file of tweets and get the replies:
 
     twarc replies tweets.json > tweet-replies.json
-
-If you are only interested in one tweet you can pass in the id string and twarc
-will hydrate it:
-
-    twarc replies 923908202042 > replies.json
-
-The big caveat with this approach is that since it uses the search API you can
-only find replies in the last week!
 
 ## Use as a Library
 

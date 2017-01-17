@@ -417,16 +417,28 @@ def test_retweets():
 
 
 def test_replies():
-    # the assumption in this test is that there will be at least 50
-    # replies to the most popular tweet that uses the most popular hashtag
-    # which seems like a pretty safe bet
-    top_hashtag = T.trends_place("1")[0]["trends"][0]["name"]
+    # get the top hashtag that is trending
+    trends = T.trends_place("1")[0]["trends"]
+    trends.sort(lambda a, b: cmp(b['tweet_volume'], a['tweet_volume']))
+    top_hashtag = trends[0]["name"]
+
+    # get the most popular tweet with that hashtag
     top_tweet = next(T.search(top_hashtag, result_type="popular"))
+
+    # see if we can get a reply to that tweet
+    reply = next(T.replies([top_tweet]))
+    assert reply['in_reply_to_status_id_str'] == top_tweet['id_str']
+
+    # see if we can find a reply to a reply with recursive in the first
+    # 1000 replies
     count = 0
-    for reply in T.replies([top_tweet]):
-        assert 'id_str' in reply
-        assert 'text' in reply
+    found = False
+    for reply in T.replies([top_tweet], recursive=True):
         count += 1
-        if count == 50:
+        if reply['in_reply_to_status_id_str'] != top_tweet['id_str']:
+            found = True
             break
-    assert count == 50
+        if count > 1000:
+            # give up
+            break
+    assert found

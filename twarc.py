@@ -169,12 +169,15 @@ def main():
                 things = trends[0]['trends']
 
     elif command == "replies":
-        iterator = fileinput.FileInput(
-            query,
-            mode='rU',
-            openhook=fileinput.hook_compressed,
-        )
-        things = t.replies(iterator)
+        if re.match('^[0-9]+$', query):
+            things = t.replies(t.hydrate([query]), args.recursive)
+        else:
+            iterator = fileinput.FileInput(
+                query,
+                mode='rU',
+                openhook=fileinput.hook_compressed,
+            )
+            things = t.replies(iterator, args.recursive)
 
     elif command == "configure":
         t.input_keys()
@@ -265,6 +268,8 @@ def get_argparser():
                         help="limit filter stream to location(s)")
     parser.add_argument("--follow", dest="follow",
                         help="limit filter to tweets from given user id(s)")
+    parser.add_argument("--recursive", dest="recursive",
+                        help="also fetch replies to replies")
 
     return parser
 
@@ -757,8 +762,9 @@ class Twarc(object):
     def replies(self, tweet_iterator, recursive=True):
         """
         Pass in an iterator of tweet objects and get back an iterator for
-        replies to that tweet. By default replies to replies will be returned,
-        but you can disable that by using recursive=False
+        replies to that tweet. If you want to fetch replies to the replies
+        use the recursive=True. By default only initial replies will be 
+        returned.
         """
         for tweet in tweet_iterator:
             # optionally parse
