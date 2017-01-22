@@ -19,7 +19,7 @@ try:
 except ImportError:
     import ConfigParser as configparser  # Python 2
 
-__version__ = '1.0.4'  # also in setup.py
+__version__ = '1.0.5'  # also in setup.py
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
