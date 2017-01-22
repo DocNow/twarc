@@ -788,6 +788,8 @@ class Twarc(object):
                 tweet = json.loads(tweet)
             screen_name = tweet['user']['screen_name']
             tweet_id = tweet['id_str']
+            if recursive:
+                yield tweet
             logging.info("looking for replies to: %s", tweet_id)
             for reply in self.search("to:%s" % screen_name, since_id=tweet_id):
 
@@ -795,11 +797,12 @@ class Twarc(object):
                     continue
 
                 logging.info("found reply: %s", reply["id_str"])
-                yield reply
 
                 if recursive:
                     for reply_to_reply in self.replies([reply]):
                         yield reply_to_reply
+                else:
+                    yield reply
 
     @rate_limit
     @catch_conn_reset
