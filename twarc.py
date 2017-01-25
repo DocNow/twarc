@@ -32,6 +32,7 @@ else:
 
 commands = [
     "configure",
+    "conversation",
     'dehydrate',
     'filter',
     'followers',
@@ -169,15 +170,10 @@ def main():
                 things = trends[0]['trends']
 
     elif command == "replies":
-        if re.match('^[0-9]+$', query):
-            things = t.replies(t.hydrate([query]), args.recursive)
-        else:
-            iterator = fileinput.FileInput(
-                query,
-                mode='rU',
-                openhook=fileinput.hook_compressed,
-            )
-            things = t.replies(iterator, args.recursive)
+        things = t.replies(next(t.hydrate([query])), args.recursive)
+
+    elif command == "conversation":
+        things = t.conversation(next(t.hydrate([query])), args.recursive)
 
     elif command == "configure":
         t.input_keys()
@@ -775,34 +771,38 @@ class Twarc(object):
             raise e
         return resp.json()
 
-    def replies(self, tweet_iterator, recursive=False):
+    def replies(self, tweet, recursive=False, _ignore=None):
         """
         Pass in an iterator of tweet objects and get back an iterator for
         replies to that tweet. If you want to fetch replies to the replies
         use the recursive=True. By default only initial replies will be 
         returned.
         """
-        for tweet in tweet_iterator:
-            # optionally parse
-            if type(tweet) != dict:
-                tweet = json.loads(tweet)
-            screen_name = tweet['user']['screen_name']
-            tweet_id = tweet['id_str']
+        yield tweet
+        screen_name = tweet['user']['screen_name']
+        tweet_id = tweet['id_str']
+        logging.info("looking for replies to: %s", tweet_id)
+        for reply in self.search("to:%s" % screen_name, since_id=tweet_id):
+
+            if reply['in_reply_to_status_id_str'] != tweet_id:
+                continue
+
+            logging.info("found reply: %s", reply["id_str"])
+
             if recursive:
-                yield tweet
-            logging.info("looking for replies to: %s", tweet_id)
-            for reply in self.search("to:%s" % screen_name, since_id=tweet_id):
+                if reply['id_str'] != _ignore:
+                    yield from self.replies(reply, recursive)
+            else:
+                yield reply
 
-                if reply['in_reply_to_status_id_str'] != tweet_id:
-                    continue
+    def conversation(self, tweet, _ignore=None):
+        yield from self.replies(tweet, True, _ignore)
 
-                logging.info("found reply: %s", reply["id_str"])
-
-                if recursive:
-                    for reply_to_reply in self.replies([reply]):
-                        yield reply_to_reply
-                else:
-                    yield reply
+        reply_to_id = tweet.get('in_reply_to_status_id_str')
+        if reply_to_id:
+            t = next(self.hydrate([reply_to_id]))
+            if t:
+                yield from self.conversation(t, _ignore=tweet['id_str'])
 
     @rate_limit
     @catch_conn_reset

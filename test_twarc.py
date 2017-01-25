@@ -425,6 +425,11 @@ def test_replies():
     # get the most popular tweet with that hashtag
     top_tweet = next(T.search(top_hashtag, result_type="popular"))
 
-    # see if we can get a reply to that tweet
-    reply = next(T.replies([top_tweet]))
+    replies = T.replies(top_tweet)
+
+    me = next(replies)
+    assert me['id_str'] == top_tweet['id_str']
+
+    reply = next(replies)
     assert reply['in_reply_to_status_id_str'] == top_tweet['id_str']
+
