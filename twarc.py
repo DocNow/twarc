@@ -785,18 +785,21 @@ class Twarc(object):
 
             if recursive:
                 if reply['id_str'] != _ignore:
-                    yield from self.replies(reply, recursive)
+                    for r in self.replies(reply, recursive):
+                        yield r
             else:
                 yield reply
 
     def conversation(self, tweet, _ignore=None):
-        yield from self.replies(tweet, True, _ignore)
+        for r in self.replies(tweet, True, _ignore):
+            yield r
 
         reply_to_id = tweet.get('in_reply_to_status_id_str')
         if reply_to_id:
             t = next(self.hydrate([reply_to_id]))
             if t:
-                yield from self.conversation(t, _ignore=tweet['id_str'])
+                for r in self.conversation(t, _ignore=tweet['id_str']):
+                    yield r
 
     @rate_limit
     @catch_conn_reset
