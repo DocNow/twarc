@@ -173,7 +173,7 @@ def main():
         things = t.replies(next(t.hydrate([query])), args.recursive)
 
     elif command == "conversation":
-        things = t.conversation(next(t.hydrate([query])), args.recursive)
+        things = t.conversation(next(t.hydrate([query])))
 
     elif command == "configure":
         t.input_keys()
@@ -397,7 +397,6 @@ class Twarc(object):
         and get back an iterator for decoded tweets. Defaults to recent (i.e.
         not mixed, the API default, or popular) tweets.
         """
-        logging.info("starting search for %s", q)
         url = "https://api.twitter.com/1.1/search/tweets.json"
         params = {
             "count": 100,
@@ -418,6 +417,7 @@ class Twarc(object):
             if max_id:
                 params['max_id'] = max_id
 
+            logging.info("searching for %s", params)
             resp = self.get(url, params=params)
             statuses = resp.json()["statuses"]
 
@@ -771,7 +771,14 @@ class Twarc(object):
             raise e
         return resp.json()
 
-    def replies(self, tweet, recursive=False, _ignore=None):
+    def replies(self, tweet, recursive=False, prune=[]):
+        """
+        replies returns a generator of replies for a given tweet. It
+        includes the original tweet. If you would like to fetch the
+        replies to the replies use recursive=True which will do a depth-first
+        recursive walk of the replies. You can supply a list of tweet ids 
+        to ignore during this traversal using the prune parameter.
+        """
         yield tweet
         screen_name = tweet['user']['screen_name']
         tweet_id = tweet['id_str']
@@ -784,21 +791,21 @@ class Twarc(object):
             logging.info("found reply: %s", reply["id_str"])
 
             if recursive:
-                if reply['id_str'] != _ignore:
-                    for r in self.replies(reply, recursive):
+                if reply['id_str'] not in prune:
+                    for r in self.replies(reply, recursive, prune):
                         yield r
             else:
                 yield reply
 
-    def conversation(self, tweet, _ignore=None):
-        for r in self.replies(tweet, True, _ignore):
+    def conversation(self, tweet, prune=[]):
+        for r in self.replies(tweet, True, prune):
             yield r
 
         reply_to_id = tweet.get('in_reply_to_status_id_str')
         if reply_to_id:
             t = next(self.hydrate([reply_to_id]))
             if t:
-                for r in self.conversation(t, _ignore=tweet['id_str']):
+                for r in self.conversation(t, prune=[tweet['id_str']]):
                     yield r
 
     @rate_limit
