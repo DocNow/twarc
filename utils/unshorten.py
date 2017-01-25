@@ -45,19 +45,20 @@ def rewrite_line(line):
         else:
             url = url_dict['url']
 
-        url = url.encode('utf8')
-        u = '{}/?{}'.format(unshrtn_url, urllib.urlencode({'url': url}))
+        if url:
+            url = url.encode('utf8')
+            u = '{}/?{}'.format(unshrtn_url, urllib.urlencode({'url': url}))
 
-        resp = None
-        for retry in range(1, retries+1):
-            try:
-                resp = json.loads(urllib.urlopen(u).read())
-                break
-            except Exception as e:
-                logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
-                time.sleep(wait)
-        if resp and resp['long']:
-            url_dict['unshortened_url'] = resp['long']
+            resp = None
+            for retry in range(1, retries+1):
+                try:
+                    resp = json.loads(urllib.urlopen(u).read())
+                    break
+                except Exception as e:
+                    logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
+                    time.sleep(wait)
+            if resp and resp['long']:
+                url_dict['unshortened_url'] = resp['long']
 
     return json.dumps(tweet)
 
