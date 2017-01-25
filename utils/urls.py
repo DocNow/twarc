@@ -13,7 +13,7 @@ for line in fileinput.input():
     for url in tweet["entities"]["urls"]:
         if 'unshortened_url' in url:
             print(url['unshortened_url'].encode('utf8'))
-        elif "expanded_url" in url:
+        elif url.get('expanded_url'):
             print(url['expanded_url'].encode('utf8'))
-        else:
+        elif url.get('url'):
             print(url['url'].encode('utf8'))
