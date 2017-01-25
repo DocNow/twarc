@@ -772,12 +772,6 @@ class Twarc(object):
         return resp.json()
 
     def replies(self, tweet, recursive=False, _ignore=None):
-        """
-        Pass in an iterator of tweet objects and get back an iterator for
-        replies to that tweet. If you want to fetch replies to the replies
-        use the recursive=True. By default only initial replies will be 
-        returned.
-        """
         yield tweet
         screen_name = tweet['user']['screen_name']
         tweet_id = tweet['id_str']
