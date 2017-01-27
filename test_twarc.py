@@ -286,6 +286,10 @@ def test_user_lookup_by_screen_name():
     assert set(names) == set(map(lambda x: x.lower(), screen_names))
 
 
+def test_tweet():
+    t = T.tweet("20")
+    assert t['text'] == 'just setting up my twttr'
+
 def test_dehydrate():
     tweets = [
         '{"text": "test tweet 1", "id_str": "800000000000000000"}',
