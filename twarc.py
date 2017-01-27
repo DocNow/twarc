@@ -717,6 +717,9 @@ class Twarc(object):
             for tweet in resp.json():
                 yield tweet
 
+    def tweet(self, tweet_id):
+        return next(self.hydrate([tweet_id]))
+
     def retweets(self, tweet_id):
         """
         Retrieves up to the last 100 retweets for the provided
@@ -726,7 +729,7 @@ class Twarc(object):
         url = "https://api.twitter.com/1.1/statuses/retweets/""{}.json".format(
                 tweet_id)
 
-        resp = self.get(url)
+        resp = self.get(url, params={"count": 100})
         for tweet in resp.json():
             yield tweet
 
@@ -798,12 +801,24 @@ class Twarc(object):
                 yield reply
 
     def conversation(self, tweet, prune=[]):
+        # replies
         for r in self.replies(tweet, True, prune):
             yield r
 
+        # quotes
+        quote = tweet.get('quoted_status')
+        if quote:
+            for r in self.conversation(quote, prune=[tweet['id_str']]):
+                yield r
+
+        # retweets
+        for r in self.retweets(tweet['id_str']):
+            yield r
+
+        # in reply to
         reply_to_id = tweet.get('in_reply_to_status_id_str')
         if reply_to_id:
-            t = next(self.hydrate([reply_to_id]))
+            t = self.tweet(reply_to_id)
             if t:
                 for r in self.conversation(t, prune=[tweet['id_str']]):
                     yield r
