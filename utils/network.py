@@ -12,16 +12,20 @@
 import sys
 import json
 import networkx
+import optparse
 
 from networkx import nx_pydot
 from networkx.readwrite import json_graph
 
+usage = "network.py tweets.json graph.html"
+opt_parser = optparse.OptionParser(usage=usage)
+opt_parser.add_option("--retweets", dest="retweets", action="store_true")
+options, args = opt_parser.parse_args()
 
-if len(sys.argv) != 3:
-    sys.exit("usage: network.py tweets.json network.dot")
+if len(args) != 2:
+    opt_parser.error("must supply input and output file names")
 
-tweets = sys.argv[1]
-output = sys.argv[2]
+tweets, output = args
 
 G = networkx.DiGraph()
 
@@ -42,7 +46,7 @@ for line in open(tweets):
         to_id = t['quoted_status']['id_str']
         type = "quote"
         to_user = t['quoted_status']['user']['screen_name']
-    if 'retweeted_status' in t:
+    if options.retweets and 'retweeted_status' in t:
         to_id = t['retweeted_status']['id_str']
         type = "retweet"
         to_user = t['retweeted_status']['user']['screen_name']
@@ -88,22 +92,38 @@ elif output.endswith(".html"):
 
 .links line {
   stroke: #999;
-  stroke-opacity: 0.80;
+  stroke-opacity: 0.8;
   stroke-width: 2px;
 }
 
+line.reply {
+  stroke: #999;
+}
 
 line.retweet {
-  stroke: red;
+  stroke-dasharray: 10;
 }
 
 line.quote {
-  stroke: yellow;
+  stroke-dasharray: 10;
 }
 
 .nodes circle {
   stroke: #fff;
   stroke-width: 1.5px;
+}
+
+circle.retweet {
+  fill: white;
+  stroke: #999;
+}
+
+circle.reply {
+  fill: #999;
+}
+
+circle.quote {
+  fill: yellow;
 }
 
 #graph {
@@ -129,9 +149,10 @@ var svg = d3.select("svg")
     .attr("height", height)
     .attr("width", width);
 
-var color = d3.scaleOrdinal(d3.schemeCategory20);
+var color = d3.scaleOrdinal(d3.schemeCategory20c);
 
 var simulation = d3.forceSimulation()
+    .velocityDecay(0.6)
     .force("link", d3.forceLink().id(function(d) { return d.id; }))
     .force("charge", d3.forceManyBody())
     .force("center", d3.forceCenter(width / 2, height / 2));
@@ -151,7 +172,7 @@ var node = svg.append("g")
   .data(graph.nodes)
   .enter().append("circle")
     .attr("r", 5)
-    //.attr("fill", function(d) { return color(d.group); })
+    .attr("class", function(d) { return d.type; })
     .call(d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
