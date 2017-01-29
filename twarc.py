@@ -45,6 +45,7 @@ commands = [
     'search',
     'timeline',
     'trends',
+    'tweet',
     'users',
     'version',
 ]
@@ -118,6 +119,9 @@ def main():
             openhook=fileinput.hook_compressed,
         )
         things = t.hydrate(input_iterator)
+
+    elif command == "tweet":
+        things = [t.tweet(query)]
 
     elif command == "sample":
         things = t.sample()
@@ -774,15 +778,20 @@ class Twarc(object):
             raise e
         return resp.json()
 
-    def replies(self, tweet, recursive=False, prune=[]):
+    def replies(self, tweet, recursive=False, prune=()):
         """
-        replies returns a generator of replies for a given tweet. It
-        includes the original tweet. If you would like to fetch the
+        replies returns a generator of tweets that are replies for a given 
+        tweet. It includes the original tweet. If you would like to fetch the
         replies to the replies use recursive=True which will do a depth-first
-        recursive walk of the replies. You can supply a list of tweet ids 
-        to ignore during this traversal using the prune parameter.
+        recursive walk of the replies. It also walk up the reply chain if you
+        supply a tweet that is itself a reply to another tweet. You can
+        optionally supply a tuple of tweet ids to ignore during this traversal 
+        using the prune parameter.
         """
+
         yield tweet
+
+        # get replies to the tweet
         screen_name = tweet['user']['screen_name']
         tweet_id = tweet['id_str']
         logging.info("looking for replies to: %s", tweet_id)
@@ -791,36 +800,43 @@ class Twarc(object):
             if reply['in_reply_to_status_id_str'] != tweet_id:
                 continue
 
+            if reply['id_str'] in prune:
+                logging.info("ignoring pruned tweet id %s", reply['id_str'])
+                continue
+
             logging.info("found reply: %s", reply["id_str"])
 
             if recursive:
                 if reply['id_str'] not in prune:
+                    prune = prune + (tweet_id,)
                     for r in self.replies(reply, recursive, prune):
                         yield r
             else:
                 yield reply
 
-    def conversation(self, tweet, prune=[]):
-        # replies
-        for r in self.replies(tweet, True, prune):
-            yield r
+        # if this tweet is itself a reply to another tweet get it and 
+        # get other potential replies to it
 
-        # quotes
-        quote = tweet.get('quoted_status')
-        if quote:
-            for r in self.conversation(quote, prune=[tweet['id_str']]):
-                yield r
-
-        # retweets
-        for r in self.retweets(tweet['id_str']):
-            yield r
-
-        # in reply to
         reply_to_id = tweet.get('in_reply_to_status_id_str')
-        if reply_to_id:
+        logging.info("prune=%s", prune)
+        if recursive and reply_to_id and reply_to_id not in prune:
             t = self.tweet(reply_to_id)
             if t:
-                for r in self.conversation(t, prune=[tweet['id_str']]):
+                logging.info("found reply-to: %s", t['id_str'])
+                prune = prune + (tweet['id_str'],)
+                for r in self.replies(t, recursive=True, prune=prune):
+                    yield r
+
+        # if this tweet is a quote go get that too whatever tweets it
+        # may be in reply to
+
+        quote_id = tweet.get('quotes_status_id_str')
+        if recursive and quote_id and quote_id not in prune:
+            t = self.tweet(quote_id)
+            if t:
+                logging.info("found quote: %s", t['id_str'])
+                prune = prune + (tweet['id_str'],)
+                for r in self.replies(t, recursive=True, prune=prune):
                     yield r
 
     @rate_limit
@@ -926,6 +942,7 @@ class Twarc(object):
     def load_config(self):
         path = self.config
         profile = self.profile
+        logging.info("loading config %s", path)
         if not os.path.isfile(path):
             return {}
 

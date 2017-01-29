@@ -208,24 +208,22 @@ You can also look up users using a user id:
 
 You can get retweets for a given tweet id like so:
 
-    twarc retweets 9308398098342 > retweets.json
+    twarc retweets 824077910927691778 > retweets.json
 
 If you want to get the replies to a given tweet you can: 
 
-    twarc replies 9308398098342 > replies.json
+    twarc replies 824077910927691778 > replies.json
 
-Using the `--recursive` option will also fetch replies to the replies. But this
-can take a long time to complete for a large thread because of rate limiting on
-the search API.
+Using the `--recursive` option will also fetch replies to the replies as well as
+quotes.  This can take a long time to complete for a large thread because of
+rate limiting by the search API.
+
+    twarc replies 824077910927691778 --recursive
 
 Unfortunately Twitter's API does not currently support getting replies to a
 tweet. So twarc approximates it by using the search API. Since the search API
-does not support getting tweets older than a week twarc can only get replies to
-a tweet that have been sent in the last week.
-
-You can use the replies command to read in a file of tweets and get the replies:
-
-    twarc replies tweets.json > tweet-replies.json
+does not support getting tweets older than a week twarc can only get all the
+replies to a tweet that have been sent in the last week.
 
 ## Use as a Library
 
@@ -286,6 +284,11 @@ When you've got some tweets you can create a rudimentary wall of them:
 You can create a word cloud of tweets you collected about nasa:
 
     % utils/wordcloud.py tweets.json > wordcloud.html
+
+If you've collected some tweets using `conversation` you can create a static D3
+visualization of them with:
+
+    % utils/network.py conversation.json > conversation.html
 
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that

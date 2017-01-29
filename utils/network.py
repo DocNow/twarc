@@ -2,10 +2,17 @@
 
 # build a reply, quote, retweet network from a file of tweets and write it 
 # out as a gexf, dot, json or  html file. You will need to have networkx 
-# installed # and pydotplus if you want to use dot. The html presentation 
+# installed and pydotplus if you want to use dot. The html presentation 
 # uses d3 to display the network graph in your browser.
 # 
-#     ./network.py tweets.json network.html
+#   ./network.py tweets.json network.html
+#
+# or 
+#   ./network.py tweets.json network.dot
+#
+# or
+# 
+#  ./network.py tweets.json network.gexf
 # 
 # TODO: this is mostly here some someone can improve it :)
 
@@ -36,6 +43,7 @@ for line in open(tweets):
         continue
     from_id = t['id_str'] 
     from_user = t['user']['screen_name']
+    to_user = None
     to_id = None
     type = None
 
@@ -44,16 +52,19 @@ for line in open(tweets):
         type = "reply"
     if 'quoted_status' in t:
         to_id = t['quoted_status']['id_str']
-        type = "quote"
         to_user = t['quoted_status']['user']['screen_name']
+        type = "quote"
     if options.retweets and 'retweeted_status' in t:
         to_id = t['retweeted_status']['id_str']
-        type = "retweet"
         to_user = t['retweeted_status']['user']['screen_name']
+        type = "retweet"
 
     if to_id:
         G.add_node(from_id, screen_name=from_user, type=type)
-        G.add_node(to_id, screen_name=to_user)
+        if to_user:
+            G.add_node(to_id, screen_name=to_user)
+        else:
+            G.add_node(to_id)
         G.add_edge(from_id, to_id, type=type)
 
 def to_json(g):
@@ -62,7 +73,7 @@ def to_json(g):
         j["nodes"].append({
             "id": node_id,
             "type": node_attrs.get("type"),
-            "screen_name": node_attrs["screen_name"]
+            "screen_name": node_attrs.get("screen_name")
         })
     for source, target, attrs in g.edges(data=True):
         j["links"].append({
@@ -87,7 +98,7 @@ elif output.endswith(".html"):
 <meta charset="utf-8">
 <script src="https://platform.twitter.com/widgets.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <style>
 
 .links line {
@@ -101,15 +112,16 @@ line.reply {
 }
 
 line.retweet {
-  stroke-dasharray: 10;
+  stroke-dasharray: 5;
 }
 
 line.quote {
-  stroke-dasharray: 10;
+  stroke-dasharray: 5;
 }
 
 .nodes circle {
-  stroke: #fff;
+  stroke: red;
+  fill: red;
   stroke-width: 1.5px;
 }
 
@@ -120,10 +132,12 @@ circle.retweet {
 
 circle.reply {
   fill: #999;
+  stroke: #999;
 }
 
 circle.quote {
   fill: yellow;
+  stroke: yellow;
 }
 
 #graph {
