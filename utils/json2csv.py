@@ -5,17 +5,16 @@ A sample JSON to CSV program. Multivalued JSON properties are space delimited
 CSV columns. If you'd like it adjusted send a pull request!
 """
 
+import csv
 import sys
 import json
 import fileinput
 
 if sys.version_info[0] < 3:
-    import unicodecsv as csv
-else:
-    import csv
+    sys.exit("Sorry, json2csv.py requires python v3")
 
 def main():
-    sheet = csv.writer(sys.stdout, encoding="utf-8")
+    sheet = csv.writer(sys.stdout)
     sheet.writerow(get_headings())
     for line in fileinput.input():
         tweet = json.loads(line)
