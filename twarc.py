@@ -380,6 +380,10 @@ class Twarc(object):
         discover them in the environment or a supplied profile.
         """
 
+        default_profile = os.path.join(os.path.expanduser("~"), ".twarc")
+        if config is None and os.path.isfile(default_profile):
+            config = default_profile
+
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
         self.access_token = access_token
@@ -521,14 +525,19 @@ class Twarc(object):
             for u in do_lookup():
                 yield u
 
-    def follower_ids(self, screen_name):
+    def follower_ids(self, user):
         """
-        Returns Twitter user id lists for the specified screen_name's
-        followers.
+        Returns Twitter user id lists for the specified user's followers. 
+        A user can be a specific using their screen_name or user_id
         """
-        screen_name = screen_name.lstrip('@')
+        user = user.lstrip('@')
         url = 'https://api.twitter.com/1.1/followers/ids.json'
-        params = {'screen_name': screen_name, 'cursor': -1}
+
+        if re.match('^\d+$', user):
+            params = {'user_id': user, 'cursor': -1}
+        else:
+            params = {'screen_name': user, 'cursor': -1}
+
         while params['cursor'] != 0:
             try:
                 resp = self.get(url, params=params, allow_404=True)
@@ -541,14 +550,19 @@ class Twarc(object):
                 yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
 
-    def friend_ids(self, screen_name):
+    def friend_ids(self, user):
         """
-        Returns Twitter user id lists for the specified screen_name's friends
-        (following).
+        Returns Twitter user id lists for the specified user's friend. A user
+        can be specified using their screen_name or user_id.
         """
-        screen_name = screen_name.lstrip('@')
+        user = user.lstrip('@')
         url = 'https://api.twitter.com/1.1/friends/ids.json'
-        params = {'screen_name': screen_name, 'cursor': -1}
+
+        if re.match('^\d+$', user):
+            params = {'user_id': user, 'cursor': -1}
+        else:
+            params = {'screen_name': user, 'cursor': -1}
+
         while params['cursor'] != 0:
             try:
                 resp = self.get(url, params=params, allow_404=True)
@@ -897,6 +911,10 @@ class Twarc(object):
         Sets up the HTTP session to talk to Twitter. If one is active it is
         closed and another one is opened.
         """
+        if not (self.consumer_key and self.consumer_secret and self.access_token
+                and self.access_token_secret):
+            raise Exception("Missing Twitter keys, please set them in your environment or run twarc configure")
+
         if self.client:
             logging.info("closing existing http session")
             self.client.close()
@@ -904,6 +922,7 @@ class Twarc(object):
             logging.info("closing last response")
             self.last_response.close()
         logging.info("creating http session")
+
         self.client = OAuth1Session(
             client_key=self.consumer_key,
             client_secret=self.consumer_secret,
@@ -943,8 +962,13 @@ class Twarc(object):
         path = self.config
         profile = self.profile
         logging.info("loading config %s", path)
-        if not os.path.isfile(path):
+
+        if not path:
             return {}
+        
+        if not os.path.isfile(path):
+            logging.error("no such config file %s", path)
+            raise Exception("no such config file %s" % path)
 
         config = configparser.ConfigParser()
         config.read(self.config)
