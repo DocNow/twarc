@@ -27,6 +27,7 @@ from networkx.readwrite import json_graph
 usage = "network.py tweets.json graph.html"
 opt_parser = optparse.OptionParser(usage=usage)
 opt_parser.add_option("--retweets", dest="retweets", action="store_true")
+opt_parser.add_option("--degree", dest="degree", type="int")
 options, args = opt_parser.parse_args()
 
 if len(args) != 2:
@@ -67,6 +68,9 @@ for line in open(tweets):
             G.add_node(to_id)
         G.add_edge(from_id, to_id, type=type)
 
+if options.degree:
+    pass
+
 def to_json(g):
     j = {"nodes": [], "links": []}
     for node_id, node_attrs in g.nodes(True):
@@ -85,6 +89,9 @@ def to_json(g):
 
 if output.endswith(".gexf"):
     networkx.write_gexf(G, output)
+
+elif output.endswith(".gml"):
+    networkx.write_gml(G, output)
 
 elif output.endswith(".dot"):
     nx_pydot.write_dot(G, output)

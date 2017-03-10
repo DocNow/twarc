@@ -228,23 +228,39 @@ def test_trends_place_exclude():
 
 
 def test_follower_ids():
-    # you can only get 5000 at a time, so this will test the cursor
     count = 0
-    for id in T.follower_ids(screen_name='justinbieber'):
+    for id in T.follower_ids('justinbieber'):
         count += 1
         if count == 10001:
             break
     assert count == 10001
+
+
+def test_follower_ids_with_user_id():
+    count = 0
+    for id in T.follower_ids(27260086):
+        count += 1
+        if count > 10001:
+            break
+    assert count > 10001
 
 
 def test_friend_ids():
-    # you can only get 5000 at a time, so this will test the cursor
     count = 0
-    for id in T.friend_ids(screen_name='justinbieber'):
+    for id in T.friend_ids('justinbieber'):
         count += 1
         if count == 10001:
             break
     assert count == 10001
+
+
+def test_friend_ids_with_user_id():
+    count = 0
+    for id in T.friend_ids(27260086):
+        count += 1
+        if count > 10001:
+            break
+    assert count > 10001
 
 
 def test_user_lookup_by_user_id():

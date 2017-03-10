@@ -19,7 +19,7 @@ try:
 except ImportError:
     import ConfigParser as configparser  # Python 2
 
-__version__ = '1.0.6'  # also in setup.py
+__version__ = '1.0.7'  # also in setup.py
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -149,10 +149,10 @@ def main():
             things = t.user_lookup(screen_names=query.split(","))
 
     elif command == "followers":
-        things = t.follower_ids(screen_name=query)
+        things = t.follower_ids(query)
 
     elif command == "friends":
-        things = t.friend_ids(screen_name=query)
+        things = t.friend_ids(query)
 
     elif command == "trends":
         # lookup woeid for geo-coordinate if appropriate
@@ -228,7 +228,7 @@ def get_argparser():
     Get the command line argument parser.
     """
 
-    config = os.path.join(os.path.expanduser("~"), ".twarc")
+    #config = os.path.join(os.path.expanduser("~"), ".twarc")
 
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument('command', choices=commands)
@@ -243,7 +243,7 @@ def get_argparser():
                         default=None, help="Twitter API access key")
     parser.add_argument("--access_token_secret",
                         default=None, help="Twitter API access token secret")
-    parser.add_argument('--config', default=config,
+    parser.add_argument('--config',
                         help="Config file containing Twitter keys and secrets")
     parser.add_argument('--profile', default='main',
                         help="Name of a profile in your configuration file")
@@ -380,23 +380,22 @@ class Twarc(object):
         discover them in the environment or a supplied profile.
         """
 
-        default_profile = os.path.join(os.path.expanduser("~"), ".twarc")
-        if config is None and os.path.isfile(default_profile):
-            config = default_profile
-
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
         self.access_token = access_token
         self.access_token_secret = access_token_secret
         self.connection_errors = connection_errors
         self.http_errors = http_errors
-        self.config = config
         self.profile = profile
         self.client = None
         self.last_response = None
 
+        if config:
+            self.config = config
+        else:
+            self.config = self.default_config()
+
         self.check_keys()
-        self.connect()
 
     def search(self, q, max_id=None, since_id=None, lang=None,
                result_type='recent', geocode=None):
@@ -530,6 +529,7 @@ class Twarc(object):
         Returns Twitter user id lists for the specified user's followers. 
         A user can be a specific using their screen_name or user_id
         """
+        user = str(user)
         user = user.lstrip('@')
         url = 'https://api.twitter.com/1.1/followers/ids.json'
 
@@ -555,6 +555,7 @@ class Twarc(object):
         Returns Twitter user id lists for the specified user's friend. A user
         can be specified using their screen_name or user_id.
         """
+        user = str(user)
         user = user.lstrip('@')
         url = 'https://api.twitter.com/1.1/friends/ids.json'
 
@@ -568,8 +569,9 @@ class Twarc(object):
                 resp = self.get(url, params=params, allow_404=True)
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
-                    logging.info("no users matching %s", screen_name)
+                    logging.error("no users matching %s", user)
                 raise e
+
             user_ids = resp.json()
             for user_id in user_ids['ids']:
                 yield str_type(user_id)
@@ -858,6 +860,9 @@ class Twarc(object):
     @catch_timeout
     @catch_gzip_errors
     def get(self, *args, **kwargs):
+        if not self.client:
+            self.connect()
+
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)
         connection_error_count = kwargs.pop('connection_error_count', 0)
@@ -889,6 +894,9 @@ class Twarc(object):
     @catch_timeout
     @catch_gzip_errors
     def post(self, *args, **kwargs):
+        if not self.client:
+            self.connect()
+
         connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
             self.last_response = self.client.post(*args, **kwargs)
@@ -913,7 +921,7 @@ class Twarc(object):
         """
         if not (self.consumer_key and self.consumer_secret and self.access_token
                 and self.access_token_secret):
-            raise Exception("Missing Twitter keys, please set them in your environment or run twarc configure")
+            raise MissingKeys()
 
         if self.client:
             logging.info("closing existing http session")
@@ -933,7 +941,8 @@ class Twarc(object):
     def check_keys(self):
         """
         Get the Twitter API keys. Order of precedence is command line,
-        environment, config file.
+        environment, config file. Return True if all the keys were found
+        and False if not.
         """
         env = os.environ.get
         if not self.consumer_key:
@@ -949,34 +958,26 @@ class Twarc(object):
                                 self.consumer_secret and
                                 self.access_token and
                                 self.access_token_secret):
-            credentials = self.load_config()
-            if credentials:
-                self.consumer_key = credentials['consumer_key']
-                self.consumer_secret = credentials['consumer_secret']
-                self.access_token = credentials['access_token']
-                self.access_token_secret = credentials['access_token_secret']
-            else:
-                self.input_keys()
+            self.load_config()
+
+        return self.consumer_key and self.consumer_secret and \
+               self.access_token and self.access_token_secret
 
     def load_config(self):
         path = self.config
         profile = self.profile
-        logging.info("loading config %s", path)
+        logging.info("loading %s profile from config %s", profile, path)
 
-        if not path:
+        if not path or not os.path.isfile(path):
             return {}
         
-        if not os.path.isfile(path):
-            logging.error("no such config file %s", path)
-            raise Exception("no such config file %s" % path)
-
         config = configparser.ConfigParser()
         config.read(self.config)
         data = {}
         for key in ['access_token', 'access_token_secret',
                     'consumer_key', 'consumer_secret']:
             try:
-                data[key] = config.get(profile, key)
+                setattr(self, key, config.get(profile, key))
             except configparser.NoSectionError:
                 sys.exit("no such profile %s in %s" % (profile, path))
             except configparser.NoOptionError:
@@ -998,15 +999,10 @@ class Twarc(object):
             config.write(config_file)
 
     def input_keys(self):
-        print("Please enter Twitter authentication credentials")
-
-        config = self.load_config()
+        print("\nPlease enter Twitter authentication credentials.\n")
 
         def i(name):
-            prompt = name.replace('_', ' ')
-            if name in config:
-                prompt += ' [%s]' % config[name]
-            return get_input(prompt + ": ") or config.get(name)
+            return get_input(name.replace('_', ' ') + ": ")
 
         self.consumer_key = i('consumer_key')
         self.consumer_secret = i('consumer_secret')
@@ -1014,6 +1010,17 @@ class Twarc(object):
         self.access_token_secret = i('access_token_secret')
         self.save_config()
 
+    def default_config(self):
+        return os.path.join(os.path.expanduser("~"), ".twarc")
+
+
+class MissingKeys(Exception):
+    def __str__(self):
+        return "\nUnable to find your Twitter keys!\n\nPlease set them in your environment or use: twarc configure.\nhttps://github.com/docnow/twarc#configure\n"
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except MissingKeys as e:
+        print(e)
