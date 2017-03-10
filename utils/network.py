@@ -13,7 +13,12 @@
 # or
 # 
 #  ./network.py tweets.json network.gexf
-# 
+#
+# if you would rather have the network oriented around nodes that are users
+# instead of tweets use the --users flag
+#
+#  ./network.py --users tweets.json network.gexf
+#
 # TODO: this is mostly here some someone can improve it :)
 
 import sys
