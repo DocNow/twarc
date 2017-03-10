@@ -28,6 +28,7 @@ usage = "network.py tweets.json graph.html"
 opt_parser = optparse.OptionParser(usage=usage)
 opt_parser.add_option("--retweets", dest="retweets", action="store_true")
 opt_parser.add_option("--degree", dest="degree", type="int")
+opt_parser.add_option("--users", dest="users", action="store_true")
 options, args = opt_parser.parse_args()
 
 if len(args) != 2:
@@ -44,6 +45,7 @@ for line in open(tweets):
         continue
     from_id = t['id_str'] 
     from_user = t['user']['screen_name']
+    from_user_id = t['user']['id_str']
     to_user = None
     to_id = None
     type = None
@@ -54,13 +56,20 @@ for line in open(tweets):
     if 'quoted_status' in t:
         to_id = t['quoted_status']['id_str']
         to_user = t['quoted_status']['user']['screen_name']
+        to_user_id = t['quoted_status']['user']['id_str']
         type = "quote"
     if options.retweets and 'retweeted_status' in t:
         to_id = t['retweeted_status']['id_str']
         to_user = t['retweeted_status']['user']['screen_name']
+        to_user_id = t['retweeted_status']['user']['id_str']
         type = "retweet"
 
-    if to_id:
+    if options.users and to_user:
+        G.add_node(from_user_id, screen_name=from_user)
+        G.add_node(to_user_id, screen_name=to_user)
+        G.add_edge(from_user_id, to_user_id, type=type)
+
+    elif to_id:
         G.add_node(from_id, screen_name=from_user, type=type)
         if to_user:
             G.add_node(to_id, screen_name=to_user)
