@@ -83,7 +83,8 @@ def main():
         connection_errors=args.connection_errors,
         http_errors=args.http_errors,
         config=args.config,
-        profile=args.profile
+        profile=args.profile,
+        tweet_mode=args.tweet_mode
     )
 
     # calls that return tweets
@@ -270,6 +271,9 @@ def get_argparser():
                         help="limit filter to tweets from given user id(s)")
     parser.add_argument("--recursive", dest="recursive", action="store_true",
                         help="also fetch replies to replies")
+    parser.add_argument("--tweet_mode", nargs="+", default="compat", 
+                        dest="tweet_mode", choices=["compat", "extended"],
+                        help="set tweet mode")
 
     return parser
 
@@ -374,7 +378,7 @@ class Twarc(object):
     def __init__(self, consumer_key=None, consumer_secret=None,
                  access_token=None, access_token_secret=None,
                  connection_errors=0, http_errors=0, config=None,
-                 profile="main"):
+                 profile="main", tweet_mode="compat"):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile.
@@ -389,6 +393,7 @@ class Twarc(object):
         self.profile = profile
         self.client = None
         self.last_response = None
+        self.tweet_mode = tweet_mode
 
         if config:
             self.config = config
@@ -862,6 +867,8 @@ class Twarc(object):
     def get(self, *args, **kwargs):
         if not self.client:
             self.connect()
+
+        kwargs["params"]["tweet_mode"] = self.tweet_mode
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)

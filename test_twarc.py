@@ -26,13 +26,7 @@ You will need to have these environment variables set to run these tests:
 """
 
 logging.basicConfig(filename="test.log", level=logging.INFO)
-
-consumer_key = os.environ.get('CONSUMER_KEY')
-consumer_secret = os.environ.get('CONSUMER_SECRET')
-access_token = os.environ.get('ACCESS_TOKEN')
-access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
-T = twarc.Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
-
+T = twarc.Twarc()
 
 def test_version():
     import setup
@@ -453,3 +447,13 @@ def test_replies():
     reply = next(replies)
     assert reply['in_reply_to_status_id_str'] == top_tweet['id_str']
 
+def test_extended():
+    # create a new twarc client that has extended tweets turned on
+    # but the existing twarc client (T) is in default "compat" mode 
+    t_ext = twarc.Twarc(tweet_mode="extended")
+
+    assert 'full_text' not in next(T.search('obama'))
+    assert 'full_text' in next(t_ext.search("obama"))
+
+    assert 'full_text' not in next(T.timeline(screen_name="BarackObama"))
+    assert 'full_text' in next(t_ext.timeline(screen_name="BarackObama"))
