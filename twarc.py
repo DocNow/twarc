@@ -271,7 +271,7 @@ def get_argparser():
                         help="limit filter to tweets from given user id(s)")
     parser.add_argument("--recursive", dest="recursive", action="store_true",
                         help="also fetch replies to replies")
-    parser.add_argument("--tweet_mode", nargs="+", default="compat", 
+    parser.add_argument("--tweet_mode", action="store", default="compat", 
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
 
@@ -429,7 +429,6 @@ class Twarc(object):
             if max_id:
                 params['max_id'] = max_id
 
-            logging.info("searching for %s", params)
             resp = self.get(url, params=params)
             statuses = resp.json()["statuses"]
 
@@ -874,6 +873,7 @@ class Twarc(object):
         allow_404 = kwargs.pop('allow_404', False)
         connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
+            logging.info("getting %s %s", args, kwargs)
             r = self.last_response = self.client.get(*args, **kwargs)
             # this has been noticed, believe it or not
             # https://github.com/edsu/twarc/issues/75
@@ -906,6 +906,7 @@ class Twarc(object):
 
         connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
+            logging.info("posting %s %s", args, kwargs)
             self.last_response = self.client.post(*args, **kwargs)
             return self.last_response
         except requests.exceptions.ConnectionError as e:
