@@ -65,6 +65,10 @@ def main():
     parser.add_argument('-c', '--config',
                         default=config,
                         help="Config file containing Twitter keys and secrets. Overridden by environment config.")
+    parser.add_argument("--tweet_mode", action="store", default="compat", 
+                        dest="tweet_mode", choices=["compat", "extended"],
+                        help="set tweet mode")
+
     args = parser.parse_args()
 
     if not os.path.isdir(args.archive_dir):
@@ -95,7 +99,8 @@ def main():
                     consumer_secret=args.consumer_secret,
                     access_token=args.access_token,
                     access_token_secret=args.access_token_secret,
-                    config=args.config)
+                    config=args.config,
+                    tweet_mode=args.tweet_mode)
 
     last_archive = get_last_archive(args.archive_dir)
     if last_archive:
