@@ -19,7 +19,7 @@ try:
 except ImportError:
     import ConfigParser as configparser  # Python 2
 
-__version__ = '1.0.8'  # also in setup.py
+__version__ = '1.0.9'  # also in setup.py
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -867,7 +867,8 @@ class Twarc(object):
         if not self.client:
             self.connect()
 
-        kwargs["params"]["tweet_mode"] = self.tweet_mode
+        if "params" in kwargs:
+            kwargs["params"]["tweet_mode"] = self.tweet_mode
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)
