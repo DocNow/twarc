@@ -5,12 +5,12 @@ This little utility uses twarc to write Twitter search results to a directory
 of your choosing. It will use the previous results to determine when to stop
 searching.
 
-So for example if you want to search for tweets mentioning "ferguson" you can 
+So for example if you want to search for tweets mentioning "ferguson" you can
 run it:
 
     % twarc-archive.py ferguson /mnt/tweets/ferguson
 
-The first time you run this it will search twitter for tweets matching 
+The first time you run this it will search twitter for tweets matching
 "ferguson" and write them to a file:
 
     /mnt/tweets/ferguson/tweets-0001.json
@@ -19,7 +19,7 @@ When you run the exact same command again:
 
     % twarc-archive.py ferguson /mnt/tweets/ferguson
 
-it will get the first tweet id in tweets-0001.json and use it to write another 
+it will get the first tweet id in tweets-0001.json and use it to write another
 file which includes any new tweets since that tweet:
 
     /mnt/tweets/ferguson/tweets-0002.json
@@ -65,9 +65,12 @@ def main():
     parser.add_argument('-c', '--config',
                         default=config,
                         help="Config file containing Twitter keys and secrets. Overridden by environment config.")
-    parser.add_argument("--tweet_mode", action="store", default="compat", 
+    parser.add_argument("--tweet_mode", action="store", default="compat",
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
+    parser.add_argument("--twarc_command", action="store", default="search",
+                        dest="twarc_command", choices=["search", "timeline"],
+                        help="select twarc command to be used for harvest, currently supports search and timeline")
 
     args = parser.parse_args()
 
@@ -90,9 +93,9 @@ def main():
         old_pid = "unknown"
         with open(lockfile, "r") as lockfile_handle:
             old_pid = lockfile_handle.read()
-        
+
         sys.exit("Another twarc-archive.py process with pid " + old_pid + " is running. If the process is no longer active then it may have been interrupted. In that case remove the 'lockfile' in " + args.archive_dir + " and run the command again.")
-                
+
     logging.info("logging search for %s to %s", args.search, args.archive_dir)
 
     t = twarc.Twarc(consumer_key=args.consumer_key,
@@ -105,15 +108,15 @@ def main():
     last_archive = get_last_archive(args.archive_dir)
     if last_archive:
         last_id = json.loads(next(open(last_archive)))['id_str']
-        tweets = t.search(args.search, since_id=last_id)
+        tweets = getattr(t, args.twarc_command)(args.search, since_id=last_id)
     else:
-        tweets = t.search(args.search)
+        tweets = getattr(t, args.twarc_command)(args.search)
 
     next_archive = get_next_archive(args.archive_dir)
 
-    # we only create the file if there are new tweets to save 
+    # we only create the file if there are new tweets to save
     # this prevents empty archive files
-    fh = None 
+    fh = None
 
     for tweet in tweets:
         if not fh:
@@ -124,9 +127,9 @@ def main():
 
     if fh:
         fh.close()
-    else: 
+    else:
         logging.info("no new tweets found for %s", args.search)
-        
+
     if os.path.exists(lockfile):
         os.remove(lockfile)
 
@@ -153,5 +156,3 @@ def get_next_archive(archive_dir):
 
 if __name__ == "__main__":
     main()
-
-
