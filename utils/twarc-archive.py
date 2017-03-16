@@ -68,8 +68,7 @@ def main():
     parser.add_argument("--tweet_mode", action="store", default="compat",
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
-    parser.add_argument("--twarc_command", action="store", default="search",
-                        dest="twarc_command", choices=["search", "timeline"],
+    parser.add_argument("--twarc_command", action="store", default="search", choices=["search", "timeline"],
                         help="select twarc command to be used for harvest, currently supports search and timeline")
 
     args = parser.parse_args()
