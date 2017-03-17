@@ -107,9 +107,18 @@ def main():
     last_archive = get_last_archive(args.archive_dir)
     if last_archive:
         last_id = json.loads(next(open(last_archive)))['id_str']
-        tweets = getattr(t, args.twarc_command)(args.search, since_id=last_id)
     else:
-        tweets = getattr(t, args.twarc_command)(args.search)
+        last_id = None
+
+    if args.twarc_command == "search":
+        tweets = t.search(args.search, since_id=last_id)
+    elif args.twarc_command == "timeline":
+        if re.match("^\d+$", args.search):
+            tweets = t.timeline(userid=args.search, since_id=last_id)
+        else:
+            tweets = t.timeline(screen_name=args.search, since_id=last_id)
+    else:
+        raise Exception("invalid twarc_command %s" % args.twarc_command)
 
     next_archive = get_next_archive(args.archive_dir)
 
