@@ -737,12 +737,15 @@ class Twarc(object):
         # hydrate any remaining ones
         if len(ids) > 0:
             logging.info("hydrating %s", ids)
-            resp = self.client.post(url, data={"id": ','.join(ids)})
+            resp = self.post(url, data={"id": ','.join(ids)})
             for tweet in resp.json():
                 yield tweet
 
     def tweet(self, tweet_id):
-        return next(self.hydrate([tweet_id]))
+        try:
+            return next(self.hydrate([tweet_id]))
+        except StopIteration:
+            return []
 
     def retweets(self, tweet_id):
         """
@@ -904,6 +907,9 @@ class Twarc(object):
     def post(self, *args, **kwargs):
         if not self.client:
             self.connect()
+
+        if "data" in kwargs:
+            kwargs["data"]["tweet_mode"] = self.tweet_mode
 
         connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
