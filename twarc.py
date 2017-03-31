@@ -727,7 +727,7 @@ class Twarc(object):
             ids.append(tweet_id)
             if len(ids) == 100:
                 logging.info("hydrating %s ids", len(ids))
-                resp = self.post(url, data={"id": ','.join(ids)})
+                resp = self.post(url, data={"id": ','.join(ids), "tweet_mode": self.tweet_mode})
                 tweets = resp.json()
                 tweets.sort(key=lambda t: t['id_str'])
                 for tweet in tweets:
@@ -737,7 +737,7 @@ class Twarc(object):
         # hydrate any remaining ones
         if len(ids) > 0:
             logging.info("hydrating %s", ids)
-            resp = self.client.post(url, data={"id": ','.join(ids)})
+            resp = self.post(url, data={"id": ','.join(ids), "tweet_mode": self.tweet_mode})
             for tweet in resp.json():
                 yield tweet
 
