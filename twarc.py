@@ -271,7 +271,7 @@ def get_argparser():
                         help="limit filter to tweets from given user id(s)")
     parser.add_argument("--recursive", dest="recursive", action="store_true",
                         help="also fetch replies to replies")
-    parser.add_argument("--tweet_mode", action="store", default="compat", 
+    parser.add_argument("--tweet_mode", action="store", default="compat",
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
 
@@ -466,8 +466,8 @@ class Twarc(object):
             try:
                 resp = self.get(url, params=params, allow_404=True)
             except requests.exceptions.HTTPError as e:
-                if e.response.status_code == 404:
-                    logging.info("no timeline available for %s", id)
+                if e.response.status_code >= 400:
+                    logging.info("HTTP Response: %s - No timeline available for user %s",e.response.status_code,id)
                     break
                 raise e
 
@@ -530,7 +530,7 @@ class Twarc(object):
 
     def follower_ids(self, user):
         """
-        Returns Twitter user id lists for the specified user's followers. 
+        Returns Twitter user id lists for the specified user's followers.
         A user can be a specific using their screen_name or user_id
         """
         user = str(user)
@@ -800,12 +800,12 @@ class Twarc(object):
 
     def replies(self, tweet, recursive=False, prune=()):
         """
-        replies returns a generator of tweets that are replies for a given 
+        replies returns a generator of tweets that are replies for a given
         tweet. It includes the original tweet. If you would like to fetch the
         replies to the replies use recursive=True which will do a depth-first
         recursive walk of the replies. It also walk up the reply chain if you
         supply a tweet that is itself a reply to another tweet. You can
-        optionally supply a tuple of tweet ids to ignore during this traversal 
+        optionally supply a tuple of tweet ids to ignore during this traversal
         using the prune parameter.
         """
 
@@ -834,7 +834,7 @@ class Twarc(object):
             else:
                 yield reply
 
-        # if this tweet is itself a reply to another tweet get it and 
+        # if this tweet is itself a reply to another tweet get it and
         # get other potential replies to it
 
         reply_to_id = tweet.get('in_reply_to_status_id_str')
@@ -979,7 +979,7 @@ class Twarc(object):
 
         if not path or not os.path.isfile(path):
             return {}
-        
+
         config = configparser.ConfigParser()
         config.read(self.config)
         data = {}
