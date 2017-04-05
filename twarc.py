@@ -466,8 +466,8 @@ class Twarc(object):
             try:
                 resp = self.get(url, params=params, allow_404=True)
             except requests.exceptions.HTTPError as e:
-                if e.response.status_code >= 400:
-                    logging.info("HTTP Response: %s - No timeline available for user %s",e.response.status_code,id)
+                if e.response.status_code in [401, 404, 502, 503, 504]:
+                    logging.info("HTTP Response: %s - No timeline available for user %s", e.response.status_code, id)
                     break
                 raise e
 
