@@ -128,10 +128,12 @@ def main():
         things = t.sample()
 
     elif command == "timeline":
+        kwargs = {"max_id": args.max_id, "since_id": args.since_id}
         if re.match('^[0-9]+$', query):
-            things = t.timeline(user_id=query)
+            kwargs["user_id"] = query
         else:
-            things = t.timeline(screen_name=query)
+            kwargs["screen_name"] = query
+        things = t.timeline(**kwargs)
 
     elif command == "retweets":
         things = t.retweets(query)
