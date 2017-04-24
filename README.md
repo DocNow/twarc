@@ -288,7 +288,7 @@ You can create a word cloud of tweets you collected about nasa:
 If you've collected some tweets using `conversation` you can create a static D3
 visualization of them with:
 
-    % utils/network.py conversation.json > conversation.html
+    % utils/network.py conversation.json conversation.html
 
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that
