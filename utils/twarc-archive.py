@@ -45,9 +45,9 @@ def main():
     config = os.path.join(os.path.expanduser("~"), ".twarc")
     e = os.environ.get
     parser = argparse.ArgumentParser("archive")
-    parser.add_argument("search", action="store",
+    parser.add_argument("search", type=commandline_unicode, action="store",
                         help="search for tweets matching a query")
-    parser.add_argument("archive_dir", action="store",
+    parser.add_argument("archive_dir", action="store", type=commandline_unicode,
                         help="a directory where results are stored")
     parser.add_argument("--consumer_key", action="store",
                         default=e('CONSUMER_KEY'),
@@ -161,6 +161,10 @@ def get_next_archive(archive_dir):
         count = 1
     return os.path.join(archive_dir, archive_file_fmt % count)
 
+#Function to decode args to unicode
+def commandline_unicode(bytestring):
+    unicode_string = bytestring.decode(sys.getfilesystemencoding())
+    return unicode_string
 
 if __name__ == "__main__":
     main()
