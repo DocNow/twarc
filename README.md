@@ -295,7 +295,7 @@ Optionally you can consolidate tweets by user, allowing you to see central accou
     % utils/network.py --users conversation.json conversation.html
 
 And if you want to use the network graph in a program like [Gephi](https://gephi.org/),
-you can generate a GEXF file with teh following:
+you can generate a GEXF file with the following:
 
     % utils/network.py --users conversation.json conversation.gexf
 
