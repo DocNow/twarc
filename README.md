@@ -285,19 +285,19 @@ You can create a word cloud of tweets you collected about nasa:
 
     % utils/wordcloud.py tweets.json > wordcloud.html
 
-If you've collected some tweets using `conversation` you can create a static D3
+If you've collected some tweets using `replies` you can create a static D3
 visualization of them with:
 
-    % utils/network.py conversation.json conversation.html
+    % utils/network.py tweets.json tweets.html
 
 Optionally you can consolidate tweets by user, allowing you to see central accounts:
 
-    % utils/network.py --users conversation.json conversation.html
+    % utils/network.py --users tweets.json tweets.html
 
 And if you want to use the network graph in a program like [Gephi](https://gephi.org/),
 you can generate a GEXF file with the following:
 
-    % utils/network.py --users conversation.json conversation.gexf
+    % utils/network.py --users tweets.json tweets.gexf
 
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that

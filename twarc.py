@@ -19,7 +19,7 @@ try:
 except ImportError:
     import ConfigParser as configparser  # Python 2
 
-__version__ = '1.1.1'  # also in setup.py
+__version__ = '1.1.2'  # also in setup.py
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -32,7 +32,6 @@ else:
 
 commands = [
     "configure",
-    "conversation",
     'dehydrate',
     'filter',
     'followers',
@@ -178,9 +177,6 @@ def main():
 
     elif command == "replies":
         things = t.replies(next(t.hydrate([query])), args.recursive)
-
-    elif command == "conversation":
-        things = t.conversation(next(t.hydrate([query])))
 
     elif command == "configure":
         t.input_keys()
