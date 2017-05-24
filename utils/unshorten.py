@@ -45,6 +45,9 @@ def rewrite_line(line):
         else:
             url = url_dict['url']
 
+        if not url or url == '':
+            return line
+
         url = url.encode('utf8')
         u = '{}/?{}'.format(unshrtn_url, urllib.urlencode({'url': url}))
 
