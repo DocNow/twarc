@@ -176,7 +176,10 @@ def main():
                 things = trends[0]['trends']
 
     elif command == "replies":
-        things = t.replies(next(t.hydrate([query])), args.recursive)
+        tweet = t.tweet(query)
+        if not tweet:
+            parser.error("tweet with id %s does not exist" % query)
+        things = t.replies(tweet, args.recursive)
 
     elif command == "configure":
         t.input_keys()
