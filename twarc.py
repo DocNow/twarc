@@ -19,7 +19,7 @@ try:
 except ImportError:
     import ConfigParser as configparser  # Python 2
 
-__version__ = '1.0.10'  # also in setup.py
+__version__ = '1.1.3'  # also in setup.py
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -32,7 +32,6 @@ else:
 
 commands = [
     "configure",
-    "conversation",
     'dehydrate',
     'filter',
     'followers',
@@ -128,10 +127,12 @@ def main():
         things = t.sample()
 
     elif command == "timeline":
+        kwargs = {"max_id": args.max_id, "since_id": args.since_id}
         if re.match('^[0-9]+$', query):
-            things = t.timeline(user_id=query)
+            kwargs["user_id"] = query
         else:
-            things = t.timeline(screen_name=query)
+            kwargs["screen_name"] = query
+        things = t.timeline(**kwargs)
 
     elif command == "retweets":
         things = t.retweets(query)
@@ -175,10 +176,10 @@ def main():
                 things = trends[0]['trends']
 
     elif command == "replies":
-        things = t.replies(next(t.hydrate([query])), args.recursive)
-
-    elif command == "conversation":
-        things = t.conversation(next(t.hydrate([query])))
+        tweet = t.tweet(query)
+        if not tweet:
+            parser.error("tweet with id %s does not exist" % query)
+        things = t.replies(tweet, args.recursive)
 
     elif command == "configure":
         t.input_keys()
@@ -367,6 +368,21 @@ def catch_gzip_errors(f):
     return new_f
 
 
+def interruptible_sleep(t, event=None):
+    """
+    Sleeps for a specified duration, optionally stopping early for event.
+    
+    Returns True if interrupted
+    """
+    logging.info("sleeping %s", t)
+    total_t = 0
+    while total_t < t and (event is None or not event.is_set()):
+        time.sleep(1)
+        total_t += 1
+
+    return True if event and event.is_set() else False
+
+
 class Twarc(object):
     """
     Twarc allows you retrieve data from the Twitter API. Each method
@@ -517,12 +533,11 @@ class Twarc(object):
             return resp.json()
 
         for id in iterator:
+            lookup_ids.append(id.strip())
             if len(lookup_ids) == 100:
                 for u in do_lookup():
                     yield u
                 lookup_ids = []
-            else:
-                lookup_ids.append(id.strip())
 
         if len(lookup_ids) > 0:
             for u in do_lookup():
@@ -611,7 +626,7 @@ class Twarc(object):
                 errors = 0
                 for line in resp.iter_lines(chunk_size=1024):
                     if event and event.is_set():
-                        logging.info("Stopping filter")
+                        logging.info("stopping filter")
                         # Explicitly close response
                         resp.close()
                         return
@@ -629,23 +644,23 @@ class Twarc(object):
                     logging.warn("too many errors")
                     raise e
                 if e.response.status_code == 420:
-                    t = errors * 60
-                    logging.info("sleeping %s", t)
-                    time.sleep(t)
+                    if interruptible_sleep(errors * 60, event):
+                        logging.info("stopping filter")
+                        return
                 else:
-                    t = errors * 5
-                    logging.info("sleeping %s", t)
-                    time.sleep(t)
+                    if interruptible_sleep(errors * 5, event):
+                        logging.info("stopping filter")
+                        return
             except Exception as e:
                 errors += 1
                 logging.error("caught exception %s on %s try", e, errors)
                 if self.http_errors and errors == self.http_errors:
                     logging.warn("too many exceptions")
                     raise e
-                t = errors * 1
                 logging.error(e)
-                logging.info("sleeping %s", t)
-                time.sleep(t)
+                if interruptible_sleep(errors, event):
+                    logging.info("stopping filter")
+                    return
 
     def sample(self, event=None):
         """
@@ -667,7 +682,7 @@ class Twarc(object):
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
                     if event and event.is_set():
-                        logging.info("Stopping sample")
+                        logging.info("stopping sample")
                         # Explicitly close response
                         resp.close()
                         return
@@ -685,22 +700,23 @@ class Twarc(object):
                     logging.warn("too many errors")
                     raise e
                 if e.response.status_code == 420:
-                    t = errors * 60
-                    logging.info("sleeping %s", t)
-                    time.sleep(t)
+                    if interruptible_sleep(errors * 60, event):
+                        logging.info("stopping filter")
+                        return
                 else:
-                    t = errors * 5
-                    logging.info("sleeping %s", t)
-                    time.sleep(t)
+                    if interruptible_sleep(errors * 5, event):
+                        logging.info("stopping filter")
+                        return
+
             except Exception as e:
                 errors += 1
                 logging.error("caught exception %s on %s try", e, errors)
                 if self.http_errors and errors == self.http_errors:
                     logging.warn("too many errors")
                     raise e
-                t = errors * 1
-                logging.info("sleeping %s", t)
-                time.sleep(t)
+                if interruptible_sleep(errors, event):
+                    logging.info("stopping filter")
+                    return
 
     def dehydrate(self, iterator):
         """

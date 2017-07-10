@@ -31,9 +31,35 @@ from networkx.readwrite import json_graph
 
 usage = "network.py tweets.json graph.html"
 opt_parser = optparse.OptionParser(usage=usage)
-opt_parser.add_option("--retweets", dest="retweets", action="store_true")
-opt_parser.add_option("--degree", dest="degree", type="int")
-opt_parser.add_option("--users", dest="users", action="store_true")
+
+opt_parser.add_option(
+    "--retweets", 
+    dest="retweets", 
+    action="store_true",
+    help="include retweets"
+)
+
+opt_parser.add_option(
+    "--min_subgraph_size", 
+    dest="min_subgraph_size", 
+    type="int", 
+    help="remove any subgraphs with a size smaller than this number"
+)
+
+opt_parser.add_option(
+    "--max_subgraph_size",
+    dest="max_subgraph_size",
+    type="int",
+    help="remove any subgraphs with a size larger than this number"
+)
+
+opt_parser.add_option(
+    "--users",
+    dest="users",
+    action="store_true",
+    help="show user relations instead of tweet relations"
+)
+
 options, args = opt_parser.parse_args()
 
 if len(args) != 2:
@@ -41,49 +67,23 @@ if len(args) != 2:
 
 tweets, output = args
 
-G = networkx.DiGraph()
+G = networkx.Graph()
 
-for line in open(tweets):
-    try:
-        t = json.loads(line)
-    except:
-        continue
-    from_id = t['id_str'] 
-    from_user = t['user']['screen_name']
-    from_user_id = t['user']['id_str']
-    to_user = None
-    to_id = None
-    type = None
-
-    if 'in_reply_to_status_id_str' in t:
-        to_id = t['in_reply_to_status_id_str']
-        type = "reply"
-    if 'quoted_status' in t:
-        to_id = t['quoted_status']['id_str']
-        to_user = t['quoted_status']['user']['screen_name']
-        to_user_id = t['quoted_status']['user']['id_str']
-        type = "quote"
-    if options.retweets and 'retweeted_status' in t:
-        to_id = t['retweeted_status']['id_str']
-        to_user = t['retweeted_status']['user']['screen_name']
-        to_user_id = t['retweeted_status']['user']['id_str']
-        type = "retweet"
+def add(from_user, from_id, to_user, to_id, type):
+    "adds a relation to the graph"
 
     if options.users and to_user:
-        G.add_node(from_user_id, screen_name=from_user)
-        G.add_node(to_user_id, screen_name=to_user)
-        G.add_edge(from_user_id, to_user_id, type=type)
+        G.add_node(from_user, screen_name=from_user)
+        G.add_node(to_user, screen_name=to_user)
+        G.add_edge(from_user, to_user, type=type)
 
-    elif to_id:
+    elif not options.users and to_id:
         G.add_node(from_id, screen_name=from_user, type=type)
         if to_user:
             G.add_node(to_id, screen_name=to_user)
         else:
             G.add_node(to_id)
         G.add_edge(from_id, to_id, type=type)
-
-if options.degree:
-    pass
 
 def to_json(g):
     j = {"nodes": [], "links": []}
@@ -100,6 +100,49 @@ def to_json(g):
             "type": attrs.get("type")
         })
     return j
+
+for line in open(tweets):
+    try:
+        t = json.loads(line)
+    except:
+        continue
+    from_id = t['id_str'] 
+    from_user = t['user']['screen_name']
+    from_user_id = t['user']['id_str']
+    to_user = None
+    to_id = None
+
+    if options.users:
+        for u in t['entities'].get('user_mentions', []):
+            add(from_user, from_id, u['screen_name'], None, 'reply')
+
+    else:
+
+        if t.get('in_reply_to_status_id_str'):
+            to_id = t['in_reply_to_status_id_str']
+            to_user = t['in_reply_to_screen_name']
+            add(from_user, from_id, to_user, to_id, "reply")
+
+        if t.get('quoted_status'):
+            to_id = t['quoted_status']['id_str']
+            to_user = t['quoted_status']['user']['screen_name']
+            to_user_id = t['quoted_status']['user']['id_str']
+            add(from_user, from_id, to_user, to_id, "quote")
+
+        if options.retweets and t.get('retweeted_status'):
+            to_id = t['retweeted_status']['id_str']
+            to_user = t['retweeted_status']['user']['screen_name']
+            to_user_id = t['retweeted_status']['user']['id_str']
+            add(from_user, from_id, to_user, to_id, "retweet")
+
+if options.min_subgraph_size or options.max_subgraph_size:
+    g_copy = G.copy()
+    for g in networkx.connected_component_subgraphs(G):
+        if options.min_subgraph_size and len(g) < options.min_subgraph_size:
+            g_copy.remove_nodes_from(g.nodes())
+        elif options.max_subgraph_size and len(g) > options.max_subgraph_size:
+            g_copy.remove_nodes_from(g.nodes())
+    G = g_copy
 
 if output.endswith(".gexf"):
     networkx.write_gexf(G, output)

@@ -194,6 +194,18 @@ def test_timeline_by_screen_name():
     for tweet in T.timeline(screen_name=screen_name):
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
 
+def test_timeline_with_since_id():
+    count = 0
+    tweet_id = None
+    for tweet in T.timeline(screen_name='guardian'):
+        tweet_id = tweet['id_str']
+        count += 1
+        if count > 10:
+            break
+
+    tweets = list(T.timeline(screen_name='guardian', since_id=tweet_id))
+    assert len(tweets) == 10
+
 
 def test_trends_available():
     # fetches all available trend regions and checks presence of likely member
