@@ -21,7 +21,7 @@ if __name__ == "__main__":
     setup(
         name='twarc',
         version=__version__,
-        url='http://github.com/docnow/twarc',
+        url='https://github.com/docnow/twarc',
         author='Ed Summers',
         author_email='ehs@pobox.com',
         py_modules=['twarc', ],
