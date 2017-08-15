@@ -360,10 +360,9 @@ Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
 Some further utility scripts to generate csv or json output suitable for
 use with [D3.js](http://d3js.org/) visualizations are found in the
 [twarc-report](https://github.com/pbinkley/twarc-report) project. The
-util directed.py, formerly part of twarc, has moved to twarc-report as
-d3graph.py.
+util `directed.py`, formerly part of twarc, has moved to twarc-report as
+`d3graph.py`.
 
 Each script can also generate an html demo of a D3 visualization, e.g.
 [timelines](https://wallandbinkley.com/twarc/bill10/) or a
-[directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
-[pt-BR]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
+[directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html); https://github.com/DocNow/twarc/blob/master/README_pt_br.md
