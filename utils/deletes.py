@@ -125,7 +125,7 @@ def get_tweet_status(tweet):
     return result
 
 
-UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0"
+UA = "twarc-deletes (+https://github.com/DocNow/twarc/blob/master/utils/deletes.py)"
 
 def get(url):
     time.sleep(.5)
