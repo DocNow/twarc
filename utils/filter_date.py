@@ -6,7 +6,7 @@ For example, if a hashtag was used for another event before the one you're
 interested in, you can filter out the old ones.
 
 Example usage:
-utils\filter_date.py --mindate 1-may-2014 tweets.json > filtered.json
+utils\filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
 """
 from __future__ import print_function
 
@@ -26,7 +26,7 @@ if len(sys.argv) > 1:
         del sys.argv[0]
         del sys.argv[0]
 
-# fh = open('date_filtered.json', 'w')
+# fh = open('date_filtered.jsonl', 'w')
 # kept, discarded = 0, 0
 
 for line in fileinput.input():

@@ -5,7 +5,7 @@
 Feed wall.py your JSON and get a wall of tweets as HTML. If you want to get the
 wall in chronological order, a handy trick is:
 
-    % tail -r tweets.json | ./wall.py > wall.html
+    % tail -r tweets.jsonl | ./wall.py > wall.html
 
 """
 from __future__ import print_function

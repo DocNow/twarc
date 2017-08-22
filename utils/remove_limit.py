@@ -9,7 +9,7 @@ If --warnings was used, you will have the following in output:
 This utility removes any limit warnings from output.
 
 Usage:
-    remove_limit.py aleppo.json > aleppo_no_warnings.json
+    remove_limit.py aleppo.jsonl > aleppo_no_warnings.jsonl
 """
 
 from __future__ import print_function

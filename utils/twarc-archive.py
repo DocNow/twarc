@@ -13,16 +13,16 @@ run it:
 The first time you run this it will search twitter for tweets matching
 "ferguson" and write them to a file:
 
-    /mnt/tweets/ferguson/tweets-0001.json
+    /mnt/tweets/ferguson/tweets-0001.jsonl
 
 When you run the exact same command again:
 
     % twarc-archive.py ferguson /mnt/tweets/ferguson
 
-it will get the first tweet id in tweets-0001.json and use it to write another
+it will get the first tweet id in tweets-0001.jsonl and use it to write another
 file which includes any new tweets since that tweet:
 
-    /mnt/tweets/ferguson/tweets-0002.json
+    /mnt/tweets/ferguson/tweets-0002.jsonl
 
 This functionality was initially part of twarc.py itself, but has been split out
 into a separate utility.
@@ -38,8 +38,8 @@ import twarc
 import logging
 import argparse
 
-archive_file_fmt = "tweets-%04i.json"
-archive_file_pat = "tweets-(\d{4}).json$"
+archive_file_fmt = "tweets-%04i.jsonl"
+archive_file_pat = "tweets-(\d{4}).jsonl$"
 
 def main():
     config = os.path.join(os.path.expanduser("~"), ".twarc")

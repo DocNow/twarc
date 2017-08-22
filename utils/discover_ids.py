@@ -8,7 +8,7 @@ queries. Once you have the tweet ids for a given query you can hydrate
 them with twarc.py. For example:
 
     discover_ids.py '#code4lib' > ids.txt
-    twarc.py --hydrate ids.txt > tweets.json
+    twarc.py --hydrate ids.txt > tweets.jsonl
 
 """
 from __future__ import print_function

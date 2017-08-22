@@ -8,7 +8,7 @@ twarc
 twarc is a command line tool and Python library for archiving Twitter JSON data.
 Each tweet is represented as a JSON object that is
 [exactly](https://dev.twitter.com/overview/api/tweets) what was returned from
-the Twitter API.  Tweets are stored as line-oriented JSON.  Twarc will handle
+the Twitter API.  Tweets are stored as [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line_delimited_JSON).  Twarc will handle
 Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
 for you. In addition to letting you collect tweets Twarc can also help you
 collect users, trends and hydrate tweet ids.
@@ -35,11 +35,11 @@ First you're going to need to tell twarc about your API keys:
 
 Then try out a search:
 
-    twarc search blacklivesmatter > search.json
+    twarc search blacklivesmatter > search.jsonl
 
 Or maybe you'd like to collect tweets as they happen?
 
-    twarc filter blacklivesmatter > stream.json
+    twarc filter blacklivesmatter > stream.jsonl
 
 See below for the details about these commands and more.
 
@@ -63,7 +63,7 @@ options (`--consumer_key`, `--consumer_secret`, `--access_token`,
 
 The uses Twitter's [search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) to download *pre-existing* tweets matching a given query.
 
-    twarc search blacklivesmatter > tweets.json
+    twarc search blacklivesmatter > tweets.jsonl
 
 It's important to note that `search` will return tweets that are found within a
 7 day window that Twitter's search API imposes. If this seems like a small
@@ -76,29 +76,29 @@ pasting the resulting query from the search box. For example here is a more
 complicated query that searches for tweets containing either the
 \#blacklivesmatter or #blm hashtags that were sent to deray.
 
-    twarc search '#blacklivesmatter OR #blm to:deray' > tweets.json
+    twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
 
 Twitter attempts to code the language of a tweet, and you can limit your search
 to a particular language if you want:
 
-    twarc search '#blacklivesmatter' --lang fr > tweets.json
+    twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
 
 You can also search for tweets with a given location, for example tweets
 mentioning *blacklivesmatter* that are 1 mile from the center of Ferguson,
 Missouri:
 
-    twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.json
+    twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 
 If a search query isn't supplied when using `--geocode` you will get all tweets
 relevant for that location and radius:
 
-    twarc search --geocode 38.7442,-90.3054,1mi > tweets.json
+    twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 
 ### Filter
 
 The `filter` command will use Twitter's [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API to collect tweets as they happen.
 
-    twarc filter blacklivesmatter,blm > tweets.json
+    twarc filter blacklivesmatter,blm > tweets.jsonl
 
 Please note that the syntax for the Twitter's track queries is slightly
 different than what queries in their search API. So please consult the
@@ -108,38 +108,38 @@ Use the `follow` command line argument if you would like to collect tweets from
 a given user id as they happen. This includes retweets. For example this will
 collect tweets and retweets from CNN:
 
-    twarc filter --follow 759251 > tweets.json
+    twarc filter --follow 759251 > tweets.jsonl
 
 You can also collect tweets using a bounding box. Note: the leading dash needs
 to be escaped in the bounding box or else it will be interpreted as a command
 line argument!
 
-    twarc filter --locations "\-74,40,-73,41" > tweets.json
+    twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
 
 If you combine options they are OR'ed together. For example this will collect
 tweets that use the blacklivesmatter or blm hashtags and also tweets from user
 CNN:
 
-    twarc filter blacklivesmatter,blm --follow 759251 > tweets.json
+    twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
 
 ### Sample
 
 Use the `sample` command to listen to Twitter's [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API for a "random" sample of recent public statuses.
 
-    twarc sample > tweets.json
+    twarc sample > tweets.jsonl
 
 ### Dehydrate
 
 The `dehydrate` command generates an id list from a file of tweets:
 
-    twarc dehydrate tweets.json > tweet-ids.txt
+    twarc dehydrate tweets.jsonl > tweet-ids.txt
 
 ### Hydrate
 
 Twarc's `hydrate` command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
 
-    twarc hydrate ids.txt > tweets.json
+    twarc hydrate ids.txt > tweets.jsonl
 
 Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) discourage people from making large amounts of raw Twitter data available on the Web.  The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available.  You can then use Twitter's API to *hydrate* the data, or to retrieve the full JSON for each identifier. This is particularly important for [verification](https://en.wikipedia.org/wiki/Reproducibility) of social media research.
 
@@ -147,16 +147,16 @@ Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6
 
 The `users` command will return User metadata for the given screen names.
 
-    twarc users deray,Nettaaaaaaaa > users.json
+    twarc users deray,Nettaaaaaaaa > users.jsonl
 
 You can also give it user ids:
 
-    twarc users 1232134,1413213 > users.json
+    twarc users 1232134,1413213 > users.jsonl
 
 If you want you can also use a file of user ids, which can be useful if you are
 using the `followers` and `friends` commands below:
 
-    twarc users ids.txt > users.json
+    twarc users ids.txt > users.jsonl
 
 ### Followers
 
@@ -198,21 +198,21 @@ Behind the scenes twarc will lookup the location using Twitter's [trends/closest
 
 The timeline command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
 
-    twarc timeline deray > tweets.json
+    twarc timeline deray > tweets.jsonl
 
 You can also look up users using a user id:
 
-    twarc timeline 12345 > tweets.json
+    twarc timeline 12345 > tweets.jsonl
 
 ### Retweets and Replies
 
 You can get retweets for a given tweet id like so:
 
-    twarc retweets 824077910927691778 > retweets.json
+    twarc retweets 824077910927691778 > retweets.jsonl
 
-If you want to get the replies to a given tweet you can: 
+If you want to get the replies to a given tweet you can:
 
-    twarc replies 824077910927691778 > replies.json
+    twarc replies 824077910927691778 > replies.jsonl
 
 Using the `--recursive` option will also fetch replies to the replies as well as
 quotes.  This can take a long time to complete for a large thread because of
@@ -279,81 +279,81 @@ script that you find handy please send a pull request.
 
 When you've got some tweets you can create a rudimentary wall of them:
 
-    % utils/wall.py tweets.json > tweets.html
+    % utils/wall.py tweets.jsonl > tweets.html
 
 You can create a word cloud of tweets you collected about nasa:
 
-    % utils/wordcloud.py tweets.json > wordcloud.html
+    % utils/wordcloud.py tweets.jsonl > wordcloud.html
 
 If you've collected some tweets using `replies` you can create a static D3
 visualization of them with:
 
-    % utils/network.py tweets.json tweets.html
+    % utils/network.py tweets.jsonl tweets.html
 
 Optionally you can consolidate tweets by user, allowing you to see central accounts:
 
-    % utils/network.py --users tweets.json tweets.html
+    % utils/network.py --users tweets.jsonl tweets.html
 
 And if you want to use the network graph in a program like [Gephi](https://gephi.org/),
 you can generate a GEXF file with the following:
 
-    % utils/network.py --users tweets.json tweets.gexf
+    % utils/network.py --users tweets.jsonl tweets.gexf
 
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that
 look like they were from women, and create a word cloud for them:
 
-    % utils/gender.py --gender female tweets.json | utils/wordcloud.py > tweets-female.html
+    % utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
 
 You can output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
 
-    % utils/geojson.py tweets.json > tweets.geojson
+    % utils/geojson.py tweets.jsonl > tweets.geojson
 
 Optionally you can export GeoJSON with centroids replacing bounding boxes:
 
-    % utils/geojson.py tweets.json --centroid > tweets.geojson
+    % utils/geojson.py tweets.jsonl --centroid > tweets.geojson
 
 And if you do export GeoJSON with centroids, you can add some random fuzzing:
 
-    % utils/geojson.py tweets.json --centroid --fuzz 0.01 > tweets.geojson
+    % utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
 
 To filter tweets by presence or absence of geo coordinates (or Place, see [API documentation](https://dev.twitter.com/overview/api/places)):
 
-    % utils/geofilter.py tweets.json --yes-coordinates > tweets-with-geocoords.json
-    % cat tweets.json | utils/geofilter.py --no-place > tweets-with-no-place.json
+    % utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
+    % cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
 
 To filter tweets by a GeoJSON fence (requires [Shapely](https://github.com/Toblerity/Shapely)):
 
-    % utils/geofilter.py tweets.json --fence limits.geojson > fenced-tweets.json
-    % cat tweets.json | utils/geofilter.py --fence limits.geojson > fenced-tweets.json
+    % utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
+    % cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
 
 If you suspect you have duplicate in your tweets you can dedupe them:
 
-    % utils/deduplicate.py tweets.json > deduped.json
+    % utils/deduplicate.py tweets.jsonl > deduped.jsonl
 
 You can sort by ID, which is analogous to sorting by time:
 
-    % utils/sort_by_id.py tweets.json > sorted.json
+    % utils/sort_by_id.py tweets.jsonl > sorted.jsonl
 
 You can filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
 
-    % utils/filter_date.py --mindate 1-may-2014 tweets.json > filtered.json
+    % utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
 
 You can get an HTML list of the clients used:
 
-    % utils/source.py tweets.json > sources.html
+    % utils/source.py tweets.jsonl > sources.html
 
 If you want to remove the retweets:
 
-    % utils/noretweets.py tweets.json > tweets_noretweets.json
+    % utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
 
 Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
 
-    % cat tweets.json | utils/unshorten.py > unshortened.json
+    % cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
 
 Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
 
-    % cat unshortened.json | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+    % cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
 
 ## twarc-report
 
