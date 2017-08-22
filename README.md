@@ -365,4 +365,6 @@ util `directed.py`, formerly part of twarc, has moved to twarc-report as
 
 Each script can also generate an html demo of a D3 visualization, e.g.
 [timelines](https://wallandbinkley.com/twarc/bill10/) or a
-[directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html); https://github.com/DocNow/twarc/blob/master/README_pt_br.md
+[directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
+
+[pt-BR]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
