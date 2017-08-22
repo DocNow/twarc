@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 
-# build a reply, quote, retweet network from a file of tweets and write it 
-# out as a gexf, dot, json or  html file. You will need to have networkx 
-# installed and pydotplus if you want to use dot. The html presentation 
+# build a reply, quote, retweet network from a file of tweets and write it
+# out as a gexf, dot, json or  html file. You will need to have networkx
+# installed and pydotplus if you want to use dot. The html presentation
 # uses d3 to display the network graph in your browser.
-# 
-#   ./network.py tweets.json network.html
 #
-# or 
-#   ./network.py tweets.json network.dot
+#   ./network.py tweets.jsonl network.html
 #
 # or
-# 
-#  ./network.py tweets.json network.gexf
+#   ./network.py tweets.jsonl network.dot
+#
+# or
+#
+#  ./network.py tweets.jsonl network.gexf
 #
 # if you would rather have the network oriented around nodes that are users
 # instead of tweets use the --users flag
 #
-#  ./network.py --users tweets.json network.gexf
+#  ./network.py --users tweets.jsonl network.gexf
 #
 # TODO: this is mostly here some someone can improve it :)
 
@@ -29,20 +29,20 @@ import optparse
 from networkx import nx_pydot
 from networkx.readwrite import json_graph
 
-usage = "network.py tweets.json graph.html"
+usage = "network.py tweets.jsonl graph.html"
 opt_parser = optparse.OptionParser(usage=usage)
 
 opt_parser.add_option(
-    "--retweets", 
-    dest="retweets", 
+    "--retweets",
+    dest="retweets",
     action="store_true",
     help="include retweets"
 )
 
 opt_parser.add_option(
-    "--min_subgraph_size", 
-    dest="min_subgraph_size", 
-    type="int", 
+    "--min_subgraph_size",
+    dest="min_subgraph_size",
+    type="int",
     help="remove any subgraphs with a size smaller than this number"
 )
 
@@ -106,7 +106,7 @@ for line in open(tweets):
         t = json.loads(line)
     except:
         continue
-    from_id = t['id_str'] 
+    from_id = t['id_str']
     from_user = t['user']['screen_name']
     from_user_id = t['user']['id_str']
     to_user = None

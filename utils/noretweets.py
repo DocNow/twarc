@@ -3,7 +3,7 @@
 Given a JSON file, remove any retweets.
 
 Example usage:
-utils/noretweets.py tweets.json > tweets_noretweets.json
+utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
 """
 from __future__ import print_function
 import json

@@ -5,7 +5,7 @@ Given a JSON file, remove any tweets with duplicate IDs.
 (`twarc.py --scrape` may result in duplicate tweets.)
 
 Example usage:
-utils/deduplicate.py tweets.json > tweets_deduped.json
+utils/deduplicate.py tweets.jsonl > tweets_deduped.jsonl
 """
 
 from __future__ import print_function

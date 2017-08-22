@@ -4,7 +4,7 @@
 Print out the URLs of images uploaded to Twitter in a tweet json stream.
 Useful for piping to wget or curl to mass download. In Bash:
 
-% wget $(./utils/image_urls.py tweets.json)
+% wget $(./utils/image_urls.py tweets.jsonl)
 """
 from __future__ import print_function
 

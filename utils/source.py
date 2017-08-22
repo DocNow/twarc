@@ -3,7 +3,7 @@
 Util to count which clients are most used.
 
 Example usage:
-utils/source.py tweets.json > sources.html
+utils/source.py tweets.jsonl > sources.html
 """
 from __future__ import print_function
 import json

@@ -9,7 +9,7 @@ The output of `twarc --scrape` isn't necessarily in strict (reverse)
 chronological order.
 
 Example usage:
-utils/sort_by_id.py tweets.json > sorted.json
+utils/sort_by_id.py tweets.jsonl > sorted.jsonl
 """
 from __future__ import print_function
 
