@@ -38,10 +38,10 @@ class attriObject:
 def tweets_files(string, path):
     """Iterates over json files in path."""
     for filename in os.listdir(path):
-        if re.match(string, filename) and ".json" in filename:
+        if re.match(string, filename) and ".jsonl" in filename:
             f = gzip.open if ".gz" in filename else open
             yield path + filename, f
-            
+
             Ellipsis
 
 def parse(args):
@@ -105,10 +105,10 @@ def extract(json_object, args, csv_writer):
                 for row in new:
                     row.append(value)
                 found1.extend(new)
-            found = found1    
+            found = found1
 
     for row in found:
-        
+
         csv_writer.writerow(row)
     return len(found)
 
@@ -132,5 +132,5 @@ if __name__ == "__main__":
     args.attributes = [attriObject(i) for i in args.attributes]
     args.string = re.compile(args.string)
     args.hashtag = args.hashtag.lower()
-    
+
     parse(args)
