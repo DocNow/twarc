@@ -464,13 +464,11 @@ def test_replies():
         if tries > 10:
             break
 
-def test_extended():
-    # create a new twarc client that has extended tweets turned on
-    # but the existing twarc client (T) is in default "compat" mode 
-    t_ext = twarc.Twarc(tweet_mode="extended")
+def test_extended_compat():
+    t_compat = twarc.Twarc(tweet_mode="compat")
 
-    assert 'full_text' not in next(T.search('obama'))
-    assert 'full_text' in next(t_ext.search("obama"))
+    assert 'full_text' in next(T.search('obama'))
+    assert 'full_text' not in next(t_compat.search("obama"))
 
-    assert 'full_text' not in next(T.timeline(screen_name="BarackObama"))
-    assert 'full_text' in next(t_ext.timeline(screen_name="BarackObama"))
+    assert 'full_text' in next(T.timeline(screen_name="BarackObama"))
+    assert 'full_text' not in next(t_compat.timeline(screen_name="BarackObama"))
