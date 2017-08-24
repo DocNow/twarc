@@ -7,6 +7,7 @@ CSV columns. If you'd like it adjusted send a pull request!
 
 import sys
 import json
+import codecs
 import fileinput
 
 if sys.version_info[0] < 3:
@@ -16,6 +17,9 @@ if sys.version_info[0] < 3:
         sys.exit("unicodecsv is required for python 2")
 else:
     import csv
+
+if sys.stdout.encoding != 'UTF-8':
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout, 'strict')
 
 def main():
     sheet = csv.writer(sys.stdout)
