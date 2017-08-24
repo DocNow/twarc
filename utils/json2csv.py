@@ -24,7 +24,7 @@ if sys.stdout.encoding != 'UTF-8':
 def main():
     sheet = csv.writer(sys.stdout)
     sheet.writerow(get_headings())
-    for line in fileinput.input():
+    for line in fileinput.input(openhook=fileinput.hook_encoded("utf-8")):
         tweet = json.loads(line)
         sheet.writerow(get_row(tweet))
 
