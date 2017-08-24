@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import re
+import sys
 import json
 import fileinput
 
@@ -48,7 +49,7 @@ for word in top_words:
 
 wordcloud_js = urlopen('https://raw.githubusercontent.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js').read()
 
-print(("""<!DOCTYPE html>
+output = """<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -93,4 +94,6 @@ print(("""<!DOCTYPE html>
 </script>
 </body>
 </html>
-""" % (wordcloud_js.decode('utf8'), json.dumps(words, indent=2))).encode('utf8'))
+""" % (wordcloud_js.decode('utf8'), json.dumps(words, indent=2))
+
+sys.stdout.write(output)
