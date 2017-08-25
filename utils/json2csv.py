@@ -26,7 +26,7 @@ def main():
     args = parser.parse_args()
 
     if args.output:
-        sheet = csv.writer(open(args.output, "w"))
+        sheet = csv.writer(codecs.open(args.output, 'wb', 'utf-8'))
     else:
         sheet = csv.writer(sys.stdout)
 
