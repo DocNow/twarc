@@ -8,6 +8,7 @@ CSV columns. If you'd like it adjusted send a pull request!
 import sys
 import json
 import codecs
+import argparse
 import fileinput
 
 if sys.version_info[0] < 3:
@@ -18,13 +19,22 @@ if sys.version_info[0] < 3:
 else:
     import csv
 
-if sys.stdout.encoding != 'UTF-8':
-    sys.stdout = codecs.getwriter('utf8')(sys.stdout, 'strict')
-
 def main():
-    sheet = csv.writer(sys.stdout)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output', '-o', help='write output to file instead of stdout')
+    parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
+    args = parser.parse_args()
+
+    if args.output:
+        sheet = csv.writer(open(args.output, "w"))
+    else:
+        sheet = csv.writer(sys.stdout)
+
     sheet.writerow(get_headings())
-    for line in fileinput.input(openhook=fileinput.hook_encoded("utf-8")):
+
+    files = args.files if len(args.files) > 0 else ('-',)
+    for line in fileinput.input(files, openhook=fileinput.hook_encoded("utf-8")):
+
         tweet = json.loads(line)
         sheet.writerow(get_row(tweet))
 
