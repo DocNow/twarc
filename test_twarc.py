@@ -468,7 +468,7 @@ def test_extended_compat():
     t_compat = twarc.Twarc(tweet_mode="compat")
 
     assert 'full_text' in next(T.search('obama'))
-    assert 'full_text' not in next(t_compat.search("obama"))
+    assert 'text' in next(t_compat.search("obama"))
 
     assert 'full_text' in next(T.timeline(screen_name="BarackObama"))
-    assert 'full_text' not in next(t_compat.timeline(screen_name="BarackObama"))
+    assert 'text' in next(t_compat.timeline(screen_name="BarackObama"))
