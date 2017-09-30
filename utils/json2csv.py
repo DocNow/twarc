@@ -96,7 +96,7 @@ def get_row(t):
       retweet_id(t),
       retweet_screen_name(t),
       get('source'),
-      get('text'),
+      text(t),
       tweet_url(t),
       user('created_at'),
       user('screen_name'),
@@ -115,6 +115,11 @@ def get_row(t):
     ]
     return row
 
+def text(t):
+    if 'full_text' in t:
+        return t['full_text']
+    return t['text']
+
 def coordinates(t):
     if 'coordinates' in t and t['coordinates']:
         return '%f %f' % tuple(t['coordinates']['coordinates'])
@@ -124,7 +129,9 @@ def hashtags(t):
     return ' '.join([h['text'] for h in t['entities']['hashtags']])
 
 def media(t):
-    if 'media' in t['entities']: 
+    if 'extended_entities' in t and 'media' in t['extended_entities']:
+        return ' '.join([h['expanded_url'] for h in t['extended_entities']['media']])
+    elif 'media' in t['entities']: 
         return ' '.join([h['expanded_url'] for h in t['entities']['media']])
     else:
         return None

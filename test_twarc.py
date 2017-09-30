@@ -150,8 +150,7 @@ def test_follow():
         break
 
     if not found:
-        print("couldn't find user in response")
-        print(json.dumps(tweet, indent=2))
+        logging.warn("couldn't find user in response: %s", json.dumps(tweet, indent=2))
 
     assert found
 
@@ -310,7 +309,7 @@ def test_user_lookup_by_screen_name():
 
 def test_tweet():
     t = T.tweet("20")
-    assert t['text'] == 'just setting up my twttr'
+    assert t['full_text'] == 'just setting up my twttr'
 
 def test_dehydrate():
     tweets = [
@@ -443,29 +442,45 @@ def test_retweets():
 
 
 def test_replies():
+    # this test will look at trending hashtags, and do a search
+    # to find a popular tweet that uses it, and then makes a
+    # big assumption that someone must have responded to the tweet
+
     # get the top hashtag that is trending
     trends = T.trends_place("1")[0]["trends"]
     trends.sort(key=lambda a: a['tweet_volume'] or 0, reverse=True)
-    top_hashtag = trends[0]["name"]
+    top_hashtag = trends[0]["name"].strip('#')
 
-    # get the most popular tweet with that hashtag
-    top_tweet = next(T.search(top_hashtag, result_type="popular"))
+    logging.info("top hashtag %s" % top_hashtag)
+    tries = 0
+    for top_tweet in T.search(top_hashtag, result_type="popular"):
+        logging.info("testing %s" % top_tweet['id_str'])
+        
+        # get replies to the top tweet
+        replies = T.replies(top_tweet)
 
-    replies = T.replies(top_tweet)
+        # the first tweet should be the base tweet, or the tweet that 
+        # we are looking for replies to
+        me = next(replies)
+        assert me['id_str'] == top_tweet['id_str']
 
-    me = next(replies)
-    assert me['id_str'] == top_tweet['id_str']
+        try: 
+            reply = next(replies)
+            assert reply['in_reply_to_status_id_str'] == top_tweet['id_str']
+            break
 
-    reply = next(replies)
-    assert reply['in_reply_to_status_id_str'] == top_tweet['id_str']
+        except StopIteration:
+            pass # didn't find a reply
 
-def test_extended():
-    # create a new twarc client that has extended tweets turned on
-    # but the existing twarc client (T) is in default "compat" mode 
-    t_ext = twarc.Twarc(tweet_mode="extended")
+        tries += 1
+        if tries > 10:
+            break
 
-    assert 'full_text' not in next(T.search('obama'))
-    assert 'full_text' in next(t_ext.search("obama"))
+def test_extended_compat():
+    t_compat = twarc.Twarc(tweet_mode="compat")
 
-    assert 'full_text' not in next(T.timeline(screen_name="BarackObama"))
-    assert 'full_text' in next(t_ext.timeline(screen_name="BarackObama"))
+    assert 'full_text' in next(T.search('obama'))
+    assert 'text' in next(t_compat.search("obama"))
+
+    assert 'full_text' in next(T.timeline(screen_name="BarackObama"))
+    assert 'text' in next(t_compat.timeline(screen_name="BarackObama"))

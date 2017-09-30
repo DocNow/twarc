@@ -19,7 +19,7 @@ try:
 except ImportError:
     import ConfigParser as configparser  # Python 2
 
-__version__ = '1.1.3'  # also in setup.py
+__version__ = '1.2.0'  # also in setup.py
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -272,7 +272,7 @@ def get_argparser():
                         help="limit filter to tweets from given user id(s)")
     parser.add_argument("--recursive", dest="recursive", action="store_true",
                         help="also fetch replies to replies")
-    parser.add_argument("--tweet_mode", action="store", default="compat", 
+    parser.add_argument("--tweet_mode", action="store", default="extended",
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
 
@@ -394,7 +394,7 @@ class Twarc(object):
     def __init__(self, consumer_key=None, consumer_secret=None,
                  access_token=None, access_token_secret=None,
                  connection_errors=0, http_errors=0, config=None,
-                 profile="main", tweet_mode="compat"):
+                 profile="main", tweet_mode="extended"):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile.
@@ -888,6 +888,8 @@ class Twarc(object):
 
         if "params" in kwargs:
             kwargs["params"]["tweet_mode"] = self.tweet_mode
+        else:
+            kwargs["params"] = {"tweet_node": self.tweet_mode}
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)
