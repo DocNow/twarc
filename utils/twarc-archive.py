@@ -13,16 +13,16 @@ run it:
 The first time you run this it will search twitter for tweets matching
 "ferguson" and write them to a file:
 
-    /mnt/tweets/ferguson/tweets-0001.jsonl
+    /mnt/tweets/ferguson/tweets-0001.jsonl.gz
 
 When you run the exact same command again:
 
     % twarc-archive.py ferguson /mnt/tweets/ferguson
 
-it will get the first tweet id in tweets-0001.jsonl and use it to write another
-file which includes any new tweets since that tweet:
+it will get the first tweet id in tweets-0001.jsonl.gz and use it to write 
+another file which includes any new tweets since that tweet:
 
-    /mnt/tweets/ferguson/tweets-0002.jsonl
+    /mnt/tweets/ferguson/tweets-0002.jsonl.gz
 
 This functionality was initially part of twarc.py itself, but has been split out
 into a separate utility.
@@ -31,15 +31,16 @@ into a separate utility.
 from __future__ import print_function
 
 import os
-import sys
 import re
+import sys
+import gzip
 import json
 import twarc
 import logging
 import argparse
 
-archive_file_fmt = "tweets-%04i.jsonl"
-archive_file_pat = "tweets-(\d{4}).jsonl$"
+archive_file_fmt = "tweets-%04i.jsonl.gz"
+archive_file_pat = "tweets-(\d+).jsonl.gz$"
 
 def main():
     config = os.path.join(os.path.expanduser("~"), ".twarc")
@@ -106,7 +107,7 @@ def main():
 
     last_archive = get_last_archive(args.archive_dir)
     if last_archive:
-        last_id = json.loads(next(open(last_archive)))['id_str']
+        last_id = json.loads(next(gzip.open(last_archive, 'rt')))['id_str']
     else:
         last_id = None
 
@@ -128,7 +129,7 @@ def main():
 
     for tweet in tweets:
         if not fh:
-            fh = open(next_archive, "w")
+            fh = gzip.open(next_archive, "wt")
         logging.info("archived %s", tweet["id_str"])
         fh.write(json.dumps(tweet))
         fh.write("\n")
