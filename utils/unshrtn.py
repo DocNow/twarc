@@ -59,7 +59,7 @@ def rewrite_line(line):
                     time.sleep(wait)
             # finally assign the long url, giving preference to a 
             # canonical url if one was found
-            if resp and resp['long'] or resp['canonical']:
+            if resp and resp['long']:
                 url_dict['unshortened_url'] = resp['canonical'] or resp['long']
 
     return json.dumps(tweet)
