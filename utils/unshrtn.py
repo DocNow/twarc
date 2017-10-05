@@ -33,7 +33,11 @@ logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
 
 def rewrite_line(line):
-    tweet = json.loads(line)
+    try:
+        tweet = json.loads(line)
+    except:
+        # garbage in, garbage out
+        return line
 
     # don't do the same work again
     if 'unshortened_url' in tweet and tweet['unshortened_url']:
