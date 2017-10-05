@@ -4,7 +4,7 @@
 Unfortunately the "expanded_url" as supplied by Twitter aren't fully
 expanded one hop past t.co.
 
-unshorten.py will attempt to completely unshorten URLs and add them as the
+unshrtn.py will attempt to completely unshorten URLs and add them as the
 "unshortened_url" key to each url, and emit the tweet as JSON again on stdout.
 
 This script starts 10 seaprate processes which talk to an instance of unshrtn
