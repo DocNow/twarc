@@ -8,7 +8,7 @@ unshorten.py will attempt to completely unshorten URLs and add them as the
 "unshortened_url" key to each url, and emit the tweet as JSON again on stdout.
 
 This script starts 10 seaprate processes which talk to an instance of unshrtn
-that is running.
+that is running:
 
     http://github.com/edsu/unshrtn
 
@@ -57,8 +57,10 @@ def rewrite_line(line):
                 except Exception as e:
                     logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
                     time.sleep(wait)
-            if resp and resp['long']:
-                url_dict['unshortened_url'] = resp['long']
+            # finally assign the long url, giving preference to a 
+            # canonical url if one was found
+            if resp and resp['long'] or resp['canonical']:
+                url_dict['unshortened_url'] = resp['canonical'] or resp['long']
 
     return json.dumps(tweet)
 
