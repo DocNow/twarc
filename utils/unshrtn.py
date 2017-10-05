@@ -51,7 +51,7 @@ def rewrite_line(line):
         else:
             url = url_dict['url']
 
-        if url and re.match(r'^https?://twitter.com/'):
+        if url and re.match(r'^https?://twitter.com/', url):
             # don't hammer on twitter.com urls that we know are not short
             url_dict['unshortened_url'] = url
         elif url:
