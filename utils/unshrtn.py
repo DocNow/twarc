@@ -35,8 +35,9 @@ logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 def rewrite_line(line):
     try:
         tweet = json.loads(line)
-    except:
+    except Exception as e:
         # garbage in, garbage out
+        logging.error(e)
         return line
 
     # don't do the same work again
