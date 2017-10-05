@@ -15,13 +15,14 @@ that is running:
 """
 from __future__ import print_function
 
+import re
 import json
+import time
 import urllib
 import logging
+import argparse
 import fileinput
 import multiprocessing
-import argparse
-import time
 
 # number of urls to look up in parallel
 POOL_SIZE = 10
@@ -50,7 +51,11 @@ def rewrite_line(line):
         else:
             url = url_dict['url']
 
-        if url:
+        if url and re.match(r'^https?://twitter.com/'):
+            # don't hammer on twitter.com urls that we know are not short
+            url_dict['unshortened_url'] = url
+        elif url:
+            # otherwise we've got work to do
             url = url.encode('utf8')
             u = '{}/?{}'.format(unshrtn_url, urllib.urlencode({'url': url}))
 
@@ -62,6 +67,7 @@ def rewrite_line(line):
                 except Exception as e:
                     logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
                     time.sleep(wait)
+
             # finally assign the long url, giving preference to a 
             # canonical url if one was found
             if resp and resp['long']:
