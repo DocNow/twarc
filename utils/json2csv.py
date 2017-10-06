@@ -139,7 +139,7 @@ def media(t):
         return None
 
 def urls(t):
-    return ' '.join([h['expanded_url'] for h in t['entities']['urls']])
+    return ' '.join([h['expanded_url'] or '' for h in t['entities']['urls']])
 
 def place(t):
     if t['place']:
