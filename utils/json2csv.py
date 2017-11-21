@@ -191,7 +191,7 @@ def urls(t):
 
 
 def place(t):
-    if t['place']:
+    if 'place' in t and t['place']:
         return t['place']['full_name']
 
 
