@@ -25,6 +25,8 @@ if __name__ == "__main__":
         author='Ed Summers',
         author_email='ehs@pobox.com',
         py_modules=['twarc', ],
+        packages=['twarc_utils', ],
+        package_dir={'twarc_utils': 'utils'},
         scripts=scripts,
         description='Archive tweets from the command line',
         install_requires=dependencies,
