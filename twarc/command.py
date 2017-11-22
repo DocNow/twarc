@@ -1,9 +1,13 @@
+import os
 import sys
 import json
-import twarc
+import codecs
 import logging
 import argparse
 import fileinput
+
+from twarc.client import Twarc
+from twarc.json2csv import csv, get_headings, get_row
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -61,7 +65,7 @@ def main():
         print("\nFor example:\n\n    twarc search blacklivesmatter")
         sys.exit(1)
 
-    t = twarc.Twarc(
+    t = Twarc(
         consumer_key=args.consumer_key,
         consumer_secret=args.consumer_secret,
         access_token=args.access_token,
@@ -180,22 +184,55 @@ def main():
         print("\nFor example:\n\n    twarc search blacklivesmatter")
         sys.exit(1)
 
+    # get the output filehandle
+    if args.output:
+        fh = codecs.open(args.output, 'wb', 'utf8')
+    else:
+        fh = sys.stdout
+
+    # optionally create a csv writer
+    csv_writer = None
+    if args.format == "csv" and command not in ["filter", "hydrate", "replies",
+            "retweets", "sample", "search", "timeline", "tweet"]:
+        parser.error("csv output not available for %s" % command)
+    elif args.format == "csv":
+        csv_writer = csv.writer(fh)
+        csv_writer.writerow(get_headings())
+
+    line_count = 0
+    file_count = 0
     for thing in things:
+
+        # rotate the files if necessary
+        if args.output and args.split and line_count % args.split == 0:
+            file_count += 1
+            fh = codecs.open(numbered_filepath(args.output, file_count), 'wb', 'utf8')
+            if csv_writer:
+                csv_writer = csv.writer(fh)
+                csv_writer.writerow(get_headings())
+
+        line_count += 1
+
+        # ready to output
+
         kind_of = type(thing)
         if kind_of == str_type:
             # user or tweet IDs
-            print(thing)
+            print(thing, file=fh)
             logging.info("archived %s" % thing)
         elif 'id_str' in thing:
             # tweets and users
-            print(json.dumps(thing))
+            if (args.format == "json"):
+                print(json.dumps(thing), file=fh)
+            elif (args.format == "csv"):
+                csv_writer.writerow(get_row(thing))
             logging.info("archived %s", thing['id_str'])
         elif 'woeid' in thing:
             # places
-            print(json.dumps(thing))
+            print(json.dump(thing), file=fh)
         elif 'tweet_volume' in thing:
             # trends
-            print(json.dumps(thing))
+            print(json.dump(thing), file=fh)
         elif 'limit' in thing:
             # rate limits
             t = datetime.datetime.utcfromtimestamp(
@@ -204,20 +241,18 @@ def main():
             logging.warn("%s tweets undelivered at %s",
                          thing['limit']['track'], t)
             if args.warnings:
-                print(json.dumps(thing))
+                print(json.dump(thing), file=fh)
         elif 'warning' in thing:
             # other warnings
             logging.warn(thing['warning']['message'])
             if args.warnings:
-                print(json.dumps(thing))
+                print(json.dump(thing), file=fh)
 
 
 def get_argparser():
     """
     Get the command line argument parser.
     """
-
-    #config = os.path.join(os.path.expanduser("~"), ".twarc")
 
     parser = argparse.ArgumentParser("twarc")
     parser.add_argument('command', choices=commands)
@@ -262,7 +297,18 @@ def get_argparser():
     parser.add_argument("--tweet_mode", action="store", default="extended",
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
+    parser.add_argument("--output", action="store", default=None,
+                        dest="output", help="write output to file path")
+    parser.add_argument("--format", action="store", default="json",
+                        dest="format", choices=["json", "csv"],
+                        help="set output format")
+    parser.add_argument("--split", action="store", type=int, default=0,
+                        help="used with --output to split into numbered files")
 
     return parser
 
+
+def numbered_filepath(filepath, num):
+    path, ext = os.path.splitext(filepath)
+    return os.path.join('{}-{:0>3}{}'.format(path, num, ext))
 
