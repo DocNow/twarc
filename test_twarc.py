@@ -110,7 +110,6 @@ def test_geocode():
 
     assert found
 
-
 def test_track():
     tweet = next(T.filter(track="obama"))
     json_str = json.dumps(tweet)
@@ -119,7 +118,6 @@ def test_track():
 
     # reconnect to close streaming connection for other tests
     T.connect()
-
 
 def test_follow():
     user_ids = [
@@ -395,7 +393,7 @@ def test_hydrate():
     assert count > 100  # may need to adjust as these might get deleted
 
 
-@patch("twarc.OAuth1Session", autospec=True)
+@patch("twarc.client.OAuth1Session", autospec=True)
 def test_connection_error_get(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
@@ -407,7 +405,7 @@ def test_connection_error_get(oauth1session_class):
     assert 3 == mock_oauth1session.get.call_count
 
 
-@patch("twarc.OAuth1Session", autospec=True)
+@patch("twarc.client.OAuth1Session", autospec=True)
 def test_connection_error_post(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
