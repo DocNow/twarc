@@ -9,6 +9,7 @@ import logging
 import argparse
 import fileinput
 
+from twarc import __version__
 from twarc.client import Twarc
 from twarc.json2csv import csv, get_headings, get_row
 
