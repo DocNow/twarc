@@ -5,7 +5,7 @@ from os.path import join
 from setuptools import setup
 
 # Also in twarc.py
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 
 if sys.version_info[0] < 3:
     dependencies = open(join('requirements', 'python2.txt')).read().split()
@@ -24,7 +24,7 @@ if __name__ == "__main__":
         url='https://github.com/docnow/twarc',
         author='Ed Summers',
         author_email='ehs@pobox.com',
-        py_modules=['twarc', ],
+        packages=['twarc'],
         scripts=scripts,
         description='Archive tweets from the command line',
         install_requires=dependencies,
