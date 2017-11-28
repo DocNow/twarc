@@ -178,6 +178,3 @@ def tweet_type(t):
         return 'quote'
     return 'original'
 
-
-if __name__ == "__main__":
-    main()
