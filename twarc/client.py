@@ -534,7 +534,8 @@ class Twarc(object):
         connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
             logging.info("getting %s %s", args, kwargs)
-            r = self.last_response = self.client.get(*args, **kwargs)
+            r = self.last_response = self.client.get(*args, timeout=(3.05, 31),
+                                                     **kwargs)
             # this has been noticed, believe it or not
             # https://github.com/edsu/twarc/issues/75
             if r.status_code == 404 and not allow_404:
@@ -570,7 +571,8 @@ class Twarc(object):
         connection_error_count = kwargs.pop('connection_error_count', 0)
         try:
             logging.info("posting %s %s", args, kwargs)
-            self.last_response = self.client.post(*args, **kwargs)
+            self.last_response = self.client.post(*args, timeout=(3.05, 31),
+                                                  **kwargs)
             return self.last_response
         except requests.exceptions.ConnectionError as e:
             connection_error_count += 1
