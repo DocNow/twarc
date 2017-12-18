@@ -516,6 +516,37 @@ class Twarc(object):
                 for r in self.replies(t, recursive=True, prune=prune):
                     yield r
 
+    def lists_members(self, list_id=None, slug=None, owner_screen_name=None, owner_id=None):
+        """
+        Returns the members of a list.
+
+        List id or (slug and (owner_screen_name or owner_id)) are required
+        """
+        assert list_id or (slug and (owner_screen_name or owner_id))
+        url = 'https://api.twitter.com/1.1/lists/members.json'
+        params = {'cursor': -1}
+        if list_id:
+            params['list_id'] = list_id
+        else:
+            params['slug'] = slug
+            if owner_screen_name:
+                params['owner_screen_name'] = owner_screen_name
+            else:
+                params['owner_id'] = owner_id
+
+        while params['cursor'] != 0:
+            try:
+                resp = self.get(url, params=params, allow_404=True)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    logging.error("no matching list")
+                raise e
+
+            users = resp.json()
+            for user in users['users']:
+                yield user
+            params['cursor'] = users['next_cursor']
+
     @rate_limit
     @catch_conn_reset
     @catch_timeout

@@ -27,7 +27,7 @@ else:
 
 
 commands = [
-    "configure",
+    'configure',
     'dehydrate',
     'filter',
     'followers',
@@ -42,6 +42,7 @@ commands = [
     'trends',
     'tweet',
     'users',
+    'list',
     'version',
 ]
 
@@ -176,6 +177,12 @@ def main():
         if not tweet:
             parser.error("tweet with id %s does not exist" % query)
         things = t.replies(tweet, args.recursive)
+
+    elif command == "list":
+        list_parts = re.match('^https://twitter.com/(.+)/lists/(.+)$', query)
+        if not list_parts:
+            parser.error("provide the url for the list, e.g., https://twitter.com/USAFacts/lists/us-armed-forces")
+        things = t.lists_members(slug=list_parts.groups()[1], owner_screen_name=list_parts.groups()[0])
 
     elif command == "configure":
         t.input_keys()
