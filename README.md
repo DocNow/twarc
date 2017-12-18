@@ -61,7 +61,7 @@ options (`--consumer_key`, `--consumer_secret`, `--access_token`,
 
 ### Search
 
-The uses Twitter's [search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) to download *pre-existing* tweets matching a given query.
+This uses Twitter's [search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) to download *pre-existing* tweets matching a given query.
 
     twarc search blacklivesmatter > tweets.jsonl
 
