@@ -225,6 +225,11 @@ tweet. So twarc approximates it by using the search API. Since the search API
 does not support getting tweets older than a week twarc can only get all the
 replies to a tweet that have been sent in the last week.
 
+To get the users that are on a list you can use the list URL with the
+`listmembers` command:
+
+    twarc listmembers https://twitter.com/edsu/lists/bots
+
 ## Use as a Library
 
 If you want you can use twarc programmatically as a library to collect

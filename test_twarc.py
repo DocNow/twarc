@@ -474,6 +474,29 @@ def test_replies():
         if tries > 10:
             break
 
+
+def test_lists_members():
+    slug = 'bots'
+    screen_name = 'edsu'
+    members = list(T.list_members(slug=slug, owner_screen_name=screen_name))
+    assert len(members) > 0
+    assert members[0]['screen_name']
+
+
+def test_lists_members_owner_id():
+    slug = 'bots'
+    owner_id = '14331818'
+    members = list(T.list_members(slug=slug, owner_id=owner_id))
+    assert len(members) > 0
+    assert members[0]['screen_name']
+
+
+def test_lists_list_id():
+    members = list(T.list_members(list_id='197880909'))
+    assert len(members) > 0
+    assert members[0]['screen_name']
+
+
 def test_extended_compat():
     t_compat = twarc.Twarc(tweet_mode="compat")
 

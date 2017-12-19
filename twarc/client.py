@@ -516,7 +516,7 @@ class Twarc(object):
                 for r in self.replies(t, recursive=True, prune=prune):
                     yield r
 
-    def lists_members(self, list_id=None, slug=None, owner_screen_name=None, owner_id=None):
+    def list_members(self, list_id=None, slug=None, owner_screen_name=None, owner_id=None):
         """
         Returns the members of a list.
 
