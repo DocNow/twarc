@@ -625,7 +625,7 @@ class Twarc(object):
         """
         if not (self.consumer_key and self.consumer_secret and self.access_token
                 and self.access_token_secret):
-            raise MissingKeys()
+            raise RuntimeError("MissingKeys")
 
         if self.client:
             logging.info("closing existing http session")
