@@ -28,6 +28,9 @@ import argparse
 import fileinput
 import dateutil.parser
 
+def text(t):
+    return (t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']).replace('\n', ' ')
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
@@ -69,7 +72,7 @@ for line in fileinput.input(files=args.files):
             "name": tweet["user"]["name"],
             "screen_name": tweet["user"]["screen_name"],
             "created_at": t.isoformat("T") + "Z",
-            "text": tweet["text"],
+            "text": text(tweet),
             "profile_image_url": tweet["user"]["profile_image_url"],
             "url": "http://twitter.com/%s/status/%s" % (
                 tweet["user"]["screen_name"],
