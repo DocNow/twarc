@@ -33,6 +33,8 @@ def download_file(url):
                     f.flush()
     return local_filename
 
+def text(t):
+    return (t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']).replace('\n', ' ')
 
 print("""<!doctype html>
 <html>
@@ -56,7 +58,7 @@ print("""<!doctype html>
       margin: 10px;
       width: 270px;
       padding: 10px;
-      height: 170px;
+      height: 220px;
     }
 
     .name {
@@ -80,6 +82,11 @@ print("""<!doctype html>
 
     .tweet a {
       text-decoration: none;
+    }
+
+    .tweet .text {
+      height: 130px;
+      overflow: auto;
     }
 
     footer#page {
@@ -142,7 +149,7 @@ for line in lines:
         "name": tweet["user"]["name"],
         "username": tweet["user"]["screen_name"],
         "user_url": "http://twitter.com/" + tweet["user"]["screen_name"],
-        "text": tweet["text"],
+        "text": text(tweet),
         "avatar": AVATAR_DIR + "/" + filename,
         "url": "http://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
     }
@@ -160,18 +167,18 @@ for line in lines:
     for url in tweet['entities']['urls']:
         a = '<a href="%(expanded_url)s">%(url)s</a>' % url
         start, end = url['indices']
-        t['text'] = t['text'][0:start] + a + tweet['text'][end:]
+        t['text'] = t['text'][0:start] + a + t['text'][end:]
 
     t['text'] = re.sub(' @([^ ]+)', ' <a href="http://twitter.com/\g<1>">@\g<1></a>', t['text'])
     t['text'] = re.sub(' #([^ ]+)', ' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
 
-    html = """
+    html = u"""
     <article class="tweet">
       <img class="avatar" src="%(avatar)s">
       <a href="%(user_url)s" class="name">%(name)s</a><br>
       <span class="username">%(username)s</span><br>
       <br>
-      <span class="text">%(text)s</span><br>
+      <div class="text">%(text)s</div><br>
       <footer>
       %(retweet_count)s %(retweet_string)s<br>
       <a href="%(url)s"><time>%(created_at)s</time></a>
@@ -179,7 +186,10 @@ for line in lines:
     </article>
     """ % t
 
-    print(html.encode("utf-8"))
+    if sys.version_info.major == 2:
+        print(html.encode('utf8'))
+    else:
+        print(html)
 
 print("""
 
