@@ -21,14 +21,17 @@ def main():
     # TODO: maybe this index should be on disk berkeleydb or something?
     seen = set()
     for line in fileinput.input(argv):
-        tweet = json.loads(line)
+        try:
+            tweet = json.loads(line)
+        except:
+            continue
         if 'retweeted_status' not in tweet:
             continue
         if tweet['retweeted_status']['id_str'] in seen:
             # TODO: make this work for data that is not reverse-chrono?
             continue
         rt = tweet['retweeted_status']
-        if rt['retweet_count'] > min_rt:
+        if rt['retweet_count'] > min_rt or len(retweets) < options.results:
             seen.add(rt['id_str'])
             insert(rt, retweets, options.results)
             min_rt = retweets[-1]['retweet_count']
@@ -37,7 +40,9 @@ def main():
         print(json.dumps(rt))
 
 def insert(rt, retweets, num_results):
-    if len(retweets) == 0:
+    num_retweets = len(retweets)
+
+    if num_retweets == 0:
         retweets.append(rt)
         return
 
@@ -46,6 +51,9 @@ def insert(rt, retweets, num_results):
         if rt['retweet_count'] > retweets[i]['retweet_count']:
             retweets.insert(i, rt)
             break
+
+    if len(retweets) == num_retweets:
+        retweets.append(rt)
 
     # trim less popular ones
     while len(retweets) > num_results:
