@@ -58,7 +58,7 @@ def get_headings():
 def get_row(t):
     get = t.get
     user = t.get('user').get
-    return [
+    return [v.encode('utf-8') if isinstance(v, str) else v for v in [
       get('id_str'),
       tweet_url(t),
       get('created_at'),
@@ -96,7 +96,7 @@ def get_row(t):
       user('time_zone'),
       user_urls(t),
       user('verified'),
-    ]
+    ]]
 
 
 def text(t):
