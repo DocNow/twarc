@@ -242,10 +242,10 @@ def main():
             logging.info("archived %s", thing['id_str'])
         elif 'woeid' in thing:
             # places
-            print(json.dump(thing), file=fh)
+            print(json.dumps(thing), file=fh)
         elif 'tweet_volume' in thing:
             # trends
-            print(json.dump(thing), file=fh)
+            print(json.dumps(thing), file=fh)
         elif 'limit' in thing:
             # rate limits
             t = datetime.datetime.utcfromtimestamp(
@@ -254,12 +254,12 @@ def main():
             logging.warn("%s tweets undelivered at %s",
                          thing['limit']['track'], t)
             if args.warnings:
-                print(json.dump(thing), file=fh)
+                print(json.dumps(thing), file=fh)
         elif 'warning' in thing:
             # other warnings
             logging.warn(thing['warning']['message'])
             if args.warnings:
-                print(json.dump(thing), file=fh)
+                print(json.dumps(thing), file=fh)
 
 
 def get_argparser():
