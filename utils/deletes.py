@@ -23,8 +23,11 @@ USER_PROTECTED = "USER_PROTECTED"
 USER_SUSPENDED = "USER_SUSPENDED"
 TWEET_OK = "TWEET_OK"
 TWEET_DELETED = "TWEET_DELETED"
+# You have been blocked by the user.
+TWEET_BLOCKED = "TWEET_BLOCKED"
 RETWEET_DELETED = "RETWEET_DELETED"
 ORIGINAL_TWEET_DELETED = "ORIGINAL_TWEET_DELETED"
+ORIGINAL_TWEET_BLOCKED = "ORIGINAL_TWEET_BLOCKED"
 ORIGINAL_USER_DELETED = "ORIGINAL_USER_DELETED"
 ORIGINAL_USER_PROTECTED = "ORIGINAL_USER_PROTECTED"
 ORIGINAL_USER_SUSPENDED = "ORIGINAL_USER_SUSPENDED"
@@ -63,7 +66,7 @@ def examine(tweet):
 
         if tweet_status == TWEET_OK:
             return TWEET_OK
-        elif retweet is None:
+        elif retweet is None or tweet_status == TWEET_BLOCKED:
             return tweet_status
         else:
             rt_status = examine(retweet)
@@ -75,6 +78,8 @@ def examine(tweet):
                 return ORIGINAL_USER_SUSPENDED
             elif rt_status == TWEET_DELETED:
                 return ORIGINAL_TWEET_DELETED
+            elif rt_status == TWEET_BLOCKED:
+                return ORIGINAL_TWEET_BLOCKED
             elif rt_status == TWEET_OK:
                 return RETWEET_DELETED
             else:
@@ -147,6 +152,8 @@ def get_tweet_status(tweet):
             result = USER_SUSPENDED
         elif e.response.status_code == 403 and has_error_code(resp_json, 179):
             result = USER_PROTECTED
+        elif e.response.status_code == 401 and has_error_code(resp_json, 136):
+            result = TWEET_BLOCKED
         else:
             raise e
 
