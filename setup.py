@@ -12,11 +12,6 @@ if sys.version_info[0] < 3:
 else:
     dependencies = open(join('requirements', 'python3.txt')).read().split()
 
-if os.name == "nt":
-    scripts = ['bin/twarc.py']
-else:
-    scripts = ['bin/twarc']
-
 if __name__ == "__main__":
     setup(
         name='twarc',
@@ -25,9 +20,9 @@ if __name__ == "__main__":
         author='Ed Summers',
         author_email='ehs@pobox.com',
         packages=['twarc',],
-        scripts=scripts,
         description='Archive tweets from the command line',
         install_requires=dependencies,
         setup_requires=['pytest-runner'],
         tests_require=['pytest'],
+        entry_points={'console_scripts': ['twarc = twarc:main']}
     )
