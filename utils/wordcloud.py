@@ -39,7 +39,7 @@ def main():
 	top_words = sorted_words[0:MAX_WORDS]
 
 	words = []
-	count_range = word_counts[top_words[0]] - word_counts[top_words[-1]]
+	count_range = word_counts[top_words[0]] - word_counts[top_words[-1]] + 1
 	size_ratio = 100.0 / count_range
 	for word in top_words:
 		size = int(word_counts[word] * size_ratio) + 15
