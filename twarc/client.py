@@ -377,6 +377,7 @@ class Twarc(object):
 
         # lookup 100 tweets at a time
         for tweet_id in iterator:
+            tweet_id = str(tweet_id)
             tweet_id = tweet_id.strip()  # remove new line if present
             ids.append(tweet_id)
             if len(ids) == 100:
