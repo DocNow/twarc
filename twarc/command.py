@@ -199,9 +199,9 @@ def main():
 
     # get the output filehandle
     if args.output:
-        fh = codecs.open(args.output, 'wb', 'utf-8')
+        fh = codecs.open(args.output, 'wb', 'utf8')
     else:
-        fh = codecs.getwriter('utf-8')(sys.stdout.buffer)
+        fh = sys.stdout
 
     # optionally create a csv writer
     csv_writer = None
