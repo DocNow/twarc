@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import json
+import signal
 import codecs
 import logging
 import datetime
@@ -59,6 +60,9 @@ def main():
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
+
+    # catch ctrl-c so users don't see a stack trace
+    signal.signal(signal.SIGINT, lambda signal, frame: sys.exit(0))
 
     if command == "version":
         print("twarc v%s" % __version__)
