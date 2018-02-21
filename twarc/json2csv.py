@@ -55,7 +55,7 @@ def get_headings():
     ]
 
 
-def get_row(t):
+def get_row(t, excel=False):
     get = t.get
     user = t.get('user').get
     return [
@@ -64,7 +64,7 @@ def get_row(t):
       get('created_at'),
       date_parse(get('created_at')),
       user('screen_name'),
-      text(t),
+      text(t) if not excel else tweet_url(t),
       tweet_type(t),
       coordinates(t),
       hashtags(t),
@@ -85,13 +85,13 @@ def get_row(t):
       user('id_str'),
       user('created_at'),
       user('default_profile_image'),
-      user('description'),
+      user('description') if not excel else clean_str(user('description')),
       user('favourites_count'),
       user('followers_count'),
       user('friends_count'),
       user('listed_count'),
-      user('location'),
-      user('name'),
+      user('location') if not excel else clean_str(user('location')),
+      user('name') if not excel else clean_str(user('name')),
       user('statuses_count'),
       user('time_zone'),
       user_urls(t),
@@ -99,8 +99,14 @@ def get_row(t):
     ]
 
 
+def clean_str(string):
+    if isinstance(string, str):
+        return string.replace('\n', ' ').replace('\r', '')
+    return None
+
+
 def text(t):
-    return (t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']).replace('\n', ' ')
+    return t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']
 
 
 def coordinates(t):
