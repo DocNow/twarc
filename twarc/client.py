@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import json
+import types
 import logging
 import requests
 
@@ -140,17 +141,17 @@ class Twarc(object):
 
             max_id = str(int(status["id_str"]) - 1)
 
-    def user_lookup(self, screen_names=None, user_ids=None, iterator=None):
+    def user_lookup(self, ids, id_type="user_id"):
         """
-        A generator that returns users for supplied screen_names,
-        user_ids or an iterator of user_ids.
+        A generator that returns users for supplied user ids, screen_names,
+        or an iterator of user_ids of either. Use the id_type to indicate
+        which you are supplying (user_id or screen_name)
         """
-        if screen_names:
-            screen_names = [s.lstrip('@') for s in screen_names]
-        ids = screen_names or user_ids
-        id_type = "screen_name" if screen_names else "user_id"
 
-        if not iterator:
+        if id_type not in ['user_id', 'screen_name']:
+            raise RuntimeError("id_type must be user_id or screen_name")
+
+        if not isinstance(ids, types.GeneratorType):
             iterator = iter(ids)
 
         # TODO: this is similar to hydrate, maybe they could share code?

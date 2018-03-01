@@ -145,11 +145,15 @@ def main():
                 mode='rU',
                 openhook=fileinput.hook_compressed,
             )
-            things = t.user_lookup(iterator=iterator)
+            if re.match('^[0-9,]+$', next(open(query))):
+                id_type = 'user_id'
+            else:
+                id_type = 'screen_name'
+            things = t.user_lookup(ids=iterator, id_type=id_type)
         elif re.match('^[0-9,]+$', query):
-            things = t.user_lookup(user_ids=query.split(","))
+            things = t.user_lookup(ids=query.split(","))
         else:
-            things = t.user_lookup(screen_names=query.split(","))
+            things = t.user_lookup(ids=query.split(","), id_type='screen_name')
 
     elif command == "followers":
         things = t.follower_ids(query)

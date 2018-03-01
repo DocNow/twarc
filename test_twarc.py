@@ -285,7 +285,7 @@ def test_user_lookup_by_user_id():
 
     uids = []
 
-    for user in T.user_lookup(user_ids=user_ids):
+    for user in T.user_lookup(ids=user_ids):
         uids.append(user['id_str'])
 
     assert set(user_ids) == set(uids)
@@ -299,7 +299,7 @@ def test_user_lookup_by_screen_name():
 
     names = []
 
-    for user in T.user_lookup(screen_names=screen_names):
+    for user in T.user_lookup(ids=screen_names, id_type="screen_name"):
         names.append(user['screen_name'].lower())
 
     assert set(names) == set(map(lambda x: x.lower(), screen_names))
