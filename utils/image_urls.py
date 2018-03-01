@@ -13,7 +13,20 @@ import fileinput
 
 for line in fileinput.input():
     tweet = json.loads(line)
+
     if 'media' in tweet['entities']:
         for media in tweet['entities']['media']:
             if media['type'] == 'photo':
-                print(media['media_url'])
+                print(media['media_url_https'])
+
+    if 'extended_entities' in tweet and 'media' in tweet['extended_entities']:
+        for media in tweet['extended_entities']['media']:
+
+            if media['type'] == 'animated_gif':
+                print(media['media_url_https'])
+
+            if 'video_info' in media:
+                for v in media['video_info']['variants']:
+                    print(v['url'])
+
+
