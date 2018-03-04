@@ -31,6 +31,7 @@ def main():
     parser.add_argument('--extra-field', '-e', help='extra fields to include. Provide a field name and a pointer to '
                                                     'the field. Example: -e verified user.verified',
                         nargs=2, action='append')
+    parser.add_argument('--excel', '-x', help='create file compatible with Excel', action='store_true')
     parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
     args = parser.parse_args()
 
@@ -64,7 +65,7 @@ def main():
             sheet.writerow(get_headings(extra_headings=extra_headings))
             file_count += 1
         tweet = json.loads(line)
-        sheet.writerow(get_row(tweet, extra_fields=extra_fields))
+        sheet.writerow(get_row(tweet, extra_fields=extra_fields, excel=args.excel))
 
 
 def numbered_filepath(filepath, num):
@@ -79,8 +80,8 @@ def get_headings(extra_headings=None):
     return fields
 
 
-def get_row(t, extra_fields=None):
-    row = json2csv.get_row(t)
+def get_row(t, extra_fields=None, excel=False):
+    row = json2csv.get_row(t, excel=excel)
     if extra_fields:
         for field in extra_fields:
             row.append(extra_field(t, field))

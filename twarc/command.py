@@ -213,10 +213,10 @@ def main():
 
     # optionally create a csv writer
     csv_writer = None
-    if args.format == "csv" and command not in ["filter", "hydrate", "replies",
+    if args.format in ("csv", "csv-excel") and command not in ["filter", "hydrate", "replies",
             "retweets", "sample", "search", "timeline", "tweet"]:
         parser.error("csv output not available for %s" % command)
-    elif args.format == "csv":
+    elif args.format in ("csv", "csv-excel"):
         csv_writer = csv.writer(fh)
         csv_writer.writerow(get_headings())
 
@@ -247,6 +247,8 @@ def main():
                 print(json.dumps(thing), file=fh)
             elif (args.format == "csv"):
                 csv_writer.writerow(get_row(thing))
+            elif (args.format == "csv-excel"):
+                csv_writer.writerow(get_row(thing, excel=True))
             logging.info("archived %s", thing['id_str'])
         elif 'woeid' in thing:
             # places
@@ -321,7 +323,7 @@ def get_argparser():
     parser.add_argument("--output", action="store", default=None,
                         dest="output", help="write output to file path")
     parser.add_argument("--format", action="store", default="json",
-                        dest="format", choices=["json", "csv"],
+                        dest="format", choices=["json", "csv", "csv-excel"],
                         help="set output format")
     parser.add_argument("--split", action="store", type=int, default=0,
                         help="used with --output to split into numbered files")
