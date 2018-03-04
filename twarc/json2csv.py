@@ -64,7 +64,7 @@ def get_row(t, excel=False):
       get('created_at'),
       date_parse(get('created_at')),
       user('screen_name'),
-      text(t) if not excel else tweet_url(t),
+      text(t) if not excel else clean_str(text(t)),
       tweet_type(t),
       coordinates(t),
       hashtags(t),
