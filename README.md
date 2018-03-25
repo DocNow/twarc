@@ -204,11 +204,18 @@ You can also look up users using a user id:
 
     twarc timeline 12345 > tweets.jsonl
 
-### Retweets and Replies
+### Retweets
 
 You can get retweets for a given tweet id like so:
 
     twarc retweets 824077910927691778 > retweets.jsonl
+
+### Replies
+
+Unfortunately Twitter's API does not currently support getting replies to a
+tweet. So twarc approximates it by using the search API. Since the search API
+does not support getting tweets older than a week twarc can only get all the
+replies to a tweet that have been sent in the last week.
 
 If you want to get the replies to a given tweet you can:
 
@@ -220,10 +227,7 @@ rate limiting by the search API.
 
     twarc replies 824077910927691778 --recursive
 
-Unfortunately Twitter's API does not currently support getting replies to a
-tweet. So twarc approximates it by using the search API. Since the search API
-does not support getting tweets older than a week twarc can only get all the
-replies to a tweet that have been sent in the last week.
+### Lists
 
 To get the users that are on a list you can use the list URL with the
 `listmembers` command:

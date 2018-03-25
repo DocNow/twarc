@@ -1,4 +1,4 @@
-__version__ = '1.3.9'  # also in setup.py
+__version__ = '1.4.0'  # also in setup.py
 
 from .client import Twarc
 from .command import main

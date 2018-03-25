@@ -108,7 +108,7 @@ def main():
     elif command == "dehydrate":
         input_iterator = fileinput.FileInput(
             query,
-            mode='rU',
+            mode='r',
             openhook=fileinput.hook_compressed,
         )
         things = t.dehydrate(input_iterator)
@@ -116,7 +116,7 @@ def main():
     elif command == "hydrate":
         input_iterator = fileinput.FileInput(
             query,
-            mode='rU',
+            mode='r',
             openhook=fileinput.hook_compressed,
         )
         things = t.hydrate(input_iterator)
@@ -142,7 +142,7 @@ def main():
         if os.path.isfile(query):
             iterator = fileinput.FileInput(
                 query,
-                mode='rU',
+                mode='r',
                 openhook=fileinput.hook_compressed,
             )
             if re.match('^[0-9,]+$', next(open(query))):
