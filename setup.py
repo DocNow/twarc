@@ -21,6 +21,7 @@ if __name__ == "__main__":
         author_email='ehs@pobox.com',
         packages=['twarc',],
         description='Archive tweets from the command line',
+        python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
         install_requires=dependencies,
         setup_requires=['pytest-runner'],
         tests_require=['pytest'],
