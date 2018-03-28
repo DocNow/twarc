@@ -13,12 +13,12 @@ that is running:
     http://github.com/edsu/unshrtn
 
 """
-from __future__ import print_function
+
 
 import re
 import json
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 import argparse
 import fileinput
@@ -57,12 +57,12 @@ def rewrite_line(line):
         elif url:
             # otherwise we've got work to do
             url = url.encode('utf8')
-            u = '{}/?{}'.format(unshrtn_url, urllib.urlencode({'url': url}))
-
+            u = '{}/?{}'.format(unshrtn_url, urllib.parse.urlencode({'url': url}))
+            
             resp = None
             for retry in range(1, retries+1):
                 try:
-                    resp = json.loads(urllib.urlopen(u).read())
+                    resp = json.loads(urllib.request.urlopen(u).read().decode('utf-8'))
                     break
                 except Exception as e:
                     logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
