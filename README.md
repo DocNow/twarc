@@ -358,7 +358,7 @@ If you want to remove the retweets:
 
 Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
 
-    % cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
+    % cat tweets.jsonl | utils/unshrtn.py > unshortened.jsonl
 
 Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
 
