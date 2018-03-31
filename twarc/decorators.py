@@ -98,11 +98,9 @@ def interruptible_sleep(t, event=None):
     Returns True if interrupted
     """
     logging.info("sleeping %s", t)
-    total_t = 0
-    while total_t < t and (event is None or not event.is_set()):
-        time.sleep(1)
-        total_t += 1
 
-    return True if event and event.is_set() else False
-
-
+    if event is None:
+        time.sleep(t)
+        return False
+    else:
+        return not event.wait(t)
