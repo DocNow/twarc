@@ -1,3 +1,7 @@
+# twarc
+
+*Translations: [pt-BR] (https://github.com/DocNow/twarc/blob/master/README_pt_br.md)*
+
 Twarc es una recurso de línea de commando y catálogo de Python para archivar JSON dato de Twitter. Cada tweet se representa como
 un artículo de JSON que es exactamente lo que fue capturado del API de Twitter. Los Tweets se archivan como JSON de linea orientado.
 Twarc también puede falicitar la colleción de usarios, tendencias y detallar los identificaciones de los tweets.
@@ -79,19 +83,16 @@ Tambien se puede colecionar tweets usando un "bounding box". Nota: el primer gui
 
 twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
-
-
-
-
-
-
-If you combine options they are OR'ed together. For example this will collect tweets that use the blacklivesmatter or blm hashtags and also tweets from user CNN:
+Si combina las opciones seran "OR'ed" juntos. Por ejemplo, esto coleciona los tweets que usan los hashtags de blacklivesmatter o blm y tambien tweets del usario CNN:
 
 twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
-Sample
-Use the sample command to listen to Twitter's statuses/sample API for a "random" sample of recent public statuses.
+
+SAMPLE
+
+Usa el mando "sample" para probar a los statuses/API de muestra para una muestra "azar" de tweets recientes. 
 
 twarc sample > tweets.jsonl
+
 Dehydrate
 The dehydrate command generates an id list from a file of tweets:
 
