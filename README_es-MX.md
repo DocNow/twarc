@@ -6,9 +6,9 @@ Twarc es una recurso de línea de commando y catálogo de Python para archivar J
 un artículo de JSON que es [exactamente](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object) lo que fue capturado del API de Twitter. Los Tweets se archivan como [JSON de linea orientado](https://en.wikipedia.org/wiki/JSON_streaming#Line_delimited_JSON). Twarc se encarga del [límite de tarifa](https://developer.twitter.com/en/docs/basics/rate-limiting) del API de Twitter. 
 Twarc también puede falicitar la colleción de usarios, tendencias y detallar los identificaciones de los tweets.
 
-Twarc fue desarroyado como parte del proyecto Documenting the Now el cual fue financiado por el Mellon Foundation.
+Twarc fue desarroyado como parte del proyecto [Documenting the Now](http://www.docnow.io/) el cual fue financiado por el [Mellon Foundation](https://mellon.org/).
 
-LA INSTALACION
+# LA INSTALACION
 
 Antes de usar Twarc es necesario registrarse por apps.twitter.com. Despues de establecer la solicitud, se anota la clabe del consumidor,
 el secreto del consumidor, y entoces clickear para generar un access token y el secretro del access token. Con estos quatros requisitos,
