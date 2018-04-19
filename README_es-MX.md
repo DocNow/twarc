@@ -24,83 +24,89 @@ Para empezar, se nececita dirigir a twarc sobre los claves de API:
   
 Prueba una búsqueda:
 
-  twarc search blacklivesmatter > search.josnl
+  `twarc search blacklivesmatter > search.josnl`
   
 O quisas, preferirá colecionar tweets en tiempo real?
 
-  twarc filter blacklivesmatter > stream.josnl
+  `twarc filter blacklivesmatter > stream.josnl`
   
 Vea abajo por detalles sobre estos mandos y más.
 
-USO
+## USO
 
-Configura
-Una vez que tenga sus claves de applicacion, puede dirigir a twarc lo que son con el mando "configure".
+### Configura
+Una vez que tenga sus claves de applicacion, puede dirigir a twarc lo que son con el mando `configure`.
 
-  twarc configure
-Esto se archiva sus credenciales en un archivo que se llama .twarc en su directorio personal
+  `twarc configure`
+  
+Esto se archiva sus credenciales en un archivo que se llama `.twarc` en su directorio personal
 para que no tenga que volver a ingresar los datos. Si prefiere ingresar los datos directamente, se
-puede establecerlos en el ambiente (CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET) 
-o usando las opciones de linea commando (--consumer_key, --consumer_secret, --access_token, --access_token_secret).
+puede establecerlos en el ambiente `(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)` 
+o usando las opciones de linea commando `(--consumer_key, --consumer_secret, --access_token, --access_token_secret)`.
 
-SEARCH
+### Search
 
-Esto se usa las busquedas de Twitter para descargar preexistente tweets que corresponde a una consulta en particular.
+Esto se usa [las busquedas](https://developer.twitter.com/en/docs/api-reference-index) de Twitter para descargar *preexistente* tweets que corresponde a una consulta en particular.
 
-twarc search blacklivesmatter > tweets.jsonl
+`twarc search blacklivesmatter > tweets.jsonl`
 
-Es importante a notar que usando a "search" resultera los tweets que se encuentran dentro de una ventana de siete dias como se imposa la busqueda del Twitter API. Si parece una ventana minima, lo es, pero puede ser que el interes es en colecionar tweets en tiempo real usando "filter" y mandos detallados abajo.
+Es importante a notar que usando a `search` resultera los tweets que se encuentran dentro de una ventana de siete dias como se imposa la busqueda del Twitter API. Si parece una ventana minima, lo es, pero puede ser que el interes es en colecionar tweets en tiempo real usando `filter` y `sample` mandos detallados abajo.
 
-La mejor manera de familiarse con la busqueda de syntax de Twitter es con experementar con el Búsqueda Avanzada de Twitter y copiar y pegar la consulta de la caja de busqueda. Por ejemplo, abajo hay una consulta mas complicado que busca los tweets que contienen #blacklivesmatter o #blm hastags se enviaron a deray.
+La mejor manera de familiarse con la busqueda de syntax de Twitter es con experementar con el [Búsqueda Avanzada de Twitter](https://twitter.com/search-advanced) y copiar y pegar la consulta de la caja de busqueda. Por ejemplo, abajo hay una consulta mas complicado que busca los tweets que contienen #blacklivesmatter o #blm hastags se enviaron a deray.
 
-twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
+`twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl`
 
 Twitter puede codificar el lenguaje de un tweet, y puede limitar su busqueda a un lenguaje particular:
 
-twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
+`twarc search '#blacklivesmatter' --lang fr > tweets.jsonl`
 
 Tambien, puede buscar tweets dentro de un sitio geografico, por ejemplo los tweets que menciona blacklivesmatter que estan una milla del centro de Ferguson, Missouri:
 
-twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+`twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl`
 
 Si una busqueda no esta identificado cuando se usa "--geocode" se regresa los tweets en esa ubicacion y radio:
 
-twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+`twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl`
 
-FILTER
+### Filter
 
-El mando "filter" se usa Twitter's "status/filter" API para coleccionar tweets en tiempo real.
+El mando "filter" se usa Twitter's ["status/filter"](https://developer.twitter.com/en/docs/tutorials/consuming-streaming-data) API para coleccionar tweets en tiempo real.
 
-twarc filter blacklivesmatter,blm > tweets.jsonl
+`twarc filter blacklivesmatter,blm > tweets.jsonl`
 
 Favor de notar que el sintaxis para los track queries de Twitter es differente de las busquedas en el search API. Favor de consultar la documentación.
 
 Use el mando "follow" para colecionar tweets de un identificacion de usario en particular en tiempo real. Incluye retweets. Por ejemplo, esto coleciona tweets y retweets de CNN:
 
-twarc filter --follow 759251 > tweets.jsonl
+`twarc filter --follow 759251 > tweets.jsonl`
 
 Tambien se puede colecionar tweets usando un "bounding box". Nota: el primer guión necesita estar escapado en el "bounding box" si no, estara interpretado como un argumento de linea de commando!
 
-twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
+`twarc filter --locations "\-74,40,-73,41" > tweets.jsonl`
 
 Si combina las opciones seran "OR'ed" juntos. Por ejemplo, esto coleciona los tweets que usan los hashtags de blacklivesmatter o blm y tambien tweets del usario CNN:
 
-twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
+`twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl`
 
-SAMPLE
+### Sample
 
-Usa el mando "sample" para probar a los statuses/API de muestra para una muestra "azar" de tweets recientes. 
+Usa el mando `sample` para probar a los [statuses/API de muestra](https://developer.twitter.com/en/docs/tutorials/consuming-streaming-data) para una muestra "azar" de tweets recientes. 
 
-twarc sample > tweets.jsonl
+`twarc sample > tweets.jsonl`
 
-Dehydrate
-The dehydrate command generates an id list from a file of tweets:
+### Dehydrate
 
-twarc dehydrate tweets.jsonl > tweet-ids.txt
-Hydrate
-Twarc's hydrate command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's status/lookup API.
+El mando `dehydrate` genera una lista de id's de un archivo de tweets:
 
-twarc hydrate ids.txt > tweets.jsonl
+`twarc dehydrate tweets.jsonl > tweet-ids.txt`
+
+### Hydrate
+
+El mando `hydrate` busca a través de un archivo de identificadores y regresa el JSON del tweet usando el ["status/lookup API"](https://developer.twitter.com/en/docs/api-reference-index). 
+
+`twarc hydrate ids.txt > tweets.jsonl` 
+
+
 Twitter API's Terms of Service discourage people from making large amounts of raw Twitter data available on the Web. The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available. You can then use Twitter's API to hydrate the data, or to retrieve the full JSON for each identifier. This is particularly important for verification of social media research.
 
 Users
