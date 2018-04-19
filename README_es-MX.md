@@ -34,7 +34,7 @@ Vea abajo por detalles sobre estos mandos y más.
 
 ## Uso
 
-### Configura
+### Configure
 Una vez que tenga sus claves de applicacion, puede dirigir a twarc lo que son con el mando `configure`.
 
   `twarc configure`
