@@ -106,23 +106,29 @@ El mando `hydrate` busca a través de un archivo de identificadores y regresa el
 
 `twarc hydrate ids.txt > tweets.jsonl` 
 
+Los [términos de servicio](https://developer.twitter.com/en/developer-terms/policy#6._Be_a_Good_Partner_to_Twitter) de el API de Twitter desalentan los usarios a hacer público por el internet los datos de Twitter. Los datos se puede usar para el estudio y archivado para uso local, pero no para compartir público. Aún, Twitter permite archivos de identificadores de Twitter ser compartido. Puede usar el API de Twitter para hidratar los datos, o recuperar el completo JSON dato. Esto es importante para la [verificación](https://en.wikipedia.org/wiki/Reproducibility) de el estudio de los redes sociales.
 
-Twitter API's Terms of Service discourage people from making large amounts of raw Twitter data available on the Web. The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available. You can then use Twitter's API to hydrate the data, or to retrieve the full JSON for each identifier. This is particularly important for verification of social media research.
+### Users
 
-Users
-The users command will return User metadata for the given screen names.
+El mando `user` regresa metadata de usario para los nobres de pantalla.
 
-twarc users deray,Nettaaaaaaaa > users.jsonl
-You can also give it user ids:
+`twarc users deray,Nettaaaaaaaa > users.jsonl`
 
-twarc users 1232134,1413213 > users.jsonl
+También puede acceder ids de usario:
+
+`twarc users 1232134,1413213 > users.jsonl`
+
+Si 
 If you want you can also use a file of user ids, which can be useful if you are using the followers and friends commands below:
 
-twarc users ids.txt > users.jsonl
-Followers
+`twarc users ids.txt > users.jsonl`
+
+### Followers
+
 The followers command will use Twitter's follower id API to collect the follower user ids for exactly one user screen name per request as specified as an argument:
 
-twarc followers deray > follower_ids.txt
+`twarc followers deray > follower_ids.txt`
+
 The result will include exactly one user id per line. The response order is reverse chronological, or most recent followers first.
 
 Friends
