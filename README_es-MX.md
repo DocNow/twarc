@@ -13,8 +13,8 @@ Twarc fue desarroyado como parte del proyecto [Documenting the Now](http://www.d
 Antes de usar Twarc es necesario registrarse por [apps.twitter.com](https://apps.twitter.com/). Despues de establecer la solicitud, se anota la clabe del consumidor,
 el secreto del consumidor, y entoces clickear para generar un access token y el secretro del access token. Con estos quatros requisitos,
 está listo para usar Twarc.
-    1. Instala [Python](https://www.python.org/downloads/) (2 ó 3)
-    2. Instala Twarc atraves de pip (si estas ascendando de categoría: instala de pip--mejorar twarc)
+1. Instala [Python](https://www.python.org/downloads/) (2 ó 3)
+2. Instala Twarc atraves de pip (si estas ascendando de categoría: instala de pip--mejorar twarc)
    
 ## Quickstart:
 
