@@ -8,7 +8,7 @@ Twarc también puede falicitar la colleción de usarios, tendencias y detallar l
 
 Twarc fue desarroyado como parte del proyecto [Documenting the Now](http://www.docnow.io/) el cual fue financiado por el [Mellon Foundation](https://mellon.org/).
 
-# LA INSTALACION
+## LA INSTALACION
 
 Antes de usar Twarc es necesario registrarse por apps.twitter.com. Despues de establecer la solicitud, se anota la clabe del consumidor,
 el secreto del consumidor, y entoces clickear para generar un access token y el secretro del access token. Con estos quatros requisitos,
