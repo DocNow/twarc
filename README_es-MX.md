@@ -188,91 +188,115 @@ Para conseguir los usuarios en una lista, se puede usar el list URL con el comma
 `twarc listmembers https://twitter.com/edsu/lists/bots`
 
 ## Use as a Library
-If you want you can use twarc programmatically as a library to collect tweets. You first need to create a Twarc instance (using your Twitter credentials), and then use it to iterate through search results, filter results or lookup results.
 
-from twarc import Twarc
+Twarc se puede usar programáticamente como una biblioteca para coleccionar tweets. Necesitas usar un `Twarc` instance (usando tus credenciales de Twitter), y luego lo usas para buscar por resultados de búsqueda.
+
+`from twarc import Twarc
 
 t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
 for tweet in t.search("ferguson"):
-    print(tweet["text"])
-You can do the same for a filter stream of new tweets that match a track keyword
+    print(tweet["text"])`
+    
+Puedes usar lo mismo para el filtro de stream de nuevos de tweets que sean iguales al track keyword.
 
-for tweet in t.filter(track="ferguson"):
-    print(tweet["text"])
-or location:
+`for tweet in t.filter(track="ferguson"):
+    print(tweet["text"])`
+    
+o lugar:
 
-for tweet in t.filter(locations="-74,40,-73,41"):
-    print(tweet["text"])
-or user ids:
+`for tweet in t.filter(locations="-74,40,-73,41"):
+    print(tweet["text"])`
+    
+o user ids:
 
-for tweet in t.filter(follow='12345,678910'):
-    print(tweet["text"])
-Similarly you can hydrate tweet identifiers by passing in a list of ids or a generator:
+`for tweet in t.filter(follow='12345,678910'):
+    print(tweet["text"])`
+    
+También los identificados de tweets se pueden hydratar: 
 
-for tweet in t.hydrate(open('ids.txt')):
-    print(tweet["text"])
-Utilities
-In the utils directory there are some simple command line utilities for working with the line-oriented JSON, like printing out the archived tweets as text or html, extracting the usernames, referenced URLs, etc. If you create a script that you find handy please send a pull request.
+`for tweet in t.hydrate(open('ids.txt')):
+    print(tweet["text"])`
+    
+## Utilities
 
-When you've got some tweets you can create a rudimentary wall of them:
+En el directorio de utilidades hay algunos commando simple de line utilities para trabajar conel line-oriented JSON, Como imprimiendo out the archived tweets as texto o html, extracting the usernames, referenced URLs, etc. Si creas un script que tú puedas encontrar fácilmente por favor envía un pull request.
 
-% utils/wall.py tweets.jsonl > tweets.html
-You can create a word cloud of tweets you collected about nasa:
+Cuando tengas algunos tweets puedes crear una pared rudimentaria de ellos:
 
-% utils/wordcloud.py tweets.jsonl > wordcloud.html
-If you've collected some tweets using replies you can create a static D3 visualization of them with:
+`% utils/wall.py tweets.jsonl > tweets.html`
 
-% utils/network.py tweets.jsonl tweets.html
-Optionally you can consolidate tweets by user, allowing you to see central accounts:
+Puedes crear un word cloud de tweets que has coleccionado sobre nasa:
 
-% utils/network.py --users tweets.jsonl tweets.html
-And if you want to use the network graph in a program like Gephi, you can generate a GEXF file with the following:
+`% utils/wordcloud.py tweets.jsonl > wordcloud.html`
 
-% utils/network.py --users tweets.jsonl tweets.gexf
-gender.py is a filter which allows you to filter tweets based on a guess about the gender of the author. So for example you can filter out all the tweets that look like they were from women, and create a word cloud for them:
+Si has coleccionado algunos tweets usando `replies` puedes crear a static D3 visualization de ellos con:
 
-% utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
-You can output GeoJSON from tweets where geo coordinates are available:
+`% utils/network.py tweets.jsonl tweets.html`
 
-% utils/geojson.py tweets.jsonl > tweets.geojson
-Optionally you can export GeoJSON with centroids replacing bounding boxes:
+Tienes la opción de consolidar tweets por user, permitiéndote ver las cuentas centrales:
 
-% utils/geojson.py tweets.jsonl --centroid > tweets.geojson
-And if you do export GeoJSON with centroids, you can add some random fuzzing:
+`% utils/network.py --users tweets.jsonl tweets.html`
 
-% utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
-To filter tweets by presence or absence of geo coordinates (or Place, see API documentation):
+Y si quieres usar la graficas del network en un programa como [Gephi](https://gephi.org/), puedes generar un GEXF file con lo siguiente:
 
-% utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
-% cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
-To filter tweets by a GeoJSON fence (requires Shapely):
+`% utils/network.py --users tweets.jsonl tweets.gexf`
 
-% utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
-% cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
-If you suspect you have duplicate in your tweets you can dedupe them:
+gender.py es un filtro que te permite filtrar tweets basados en un guess sobre el género del autor. Por ejemplo, puedes filtrar todos los tweets que parecen ser de mujeres, y crear un word cloud para ellos:
 
-% utils/deduplicate.py tweets.jsonl > deduped.jsonl
-You can sort by ID, which is analogous to sorting by time:
+`% utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html`
 
-% utils/sort_by_id.py tweets.jsonl > sorted.jsonl
-You can filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
+Se puede usar [GeoJSON](http://geojson.org/) de tweets que tienen geo coordiates:
 
-% utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
-You can get an HTML list of the clients used:
+`% utils/geojson.py tweets.jsonl > tweets.geojson`
 
-% utils/source.py tweets.jsonl > sources.html
-If you want to remove the retweets:
+Tienes la opcion de exportar GeoJSON con centroids replacing bounding boxes:
 
-% utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
-Or unshorten urls (requires unshrtn):
+`% utils/geojson.py tweets.jsonl --centroid > tweets.geojson`
 
-% cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
-Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
+Y si exportas GeoJSON with centroids, puedes añadir algunos random fuzzing:
 
-% cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
-twarc-report
-Some further utility scripts to generate csv or json output suitable for use with D3.js visualizations are found in the twarc-report project. The util directed.py, formerly part of twarc, has moved to twarc-report as d3graph.py.
+`% utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson`
 
-Each script can also generate an html demo of a D3 visualization, e.g. timelines or a directed graph of retweets.
+Para filtrar tweets por presencia o ausencia de coordenadas geo (o por lugar Place, verifica [API documentacion](https://developer.twitter.com/en/docs/basics/getting-started)):
 
+`% utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
+% cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl`
 
+Para filtrar con GeoJSON fence (se necesita [Shapely](https://github.com/Toblerity/Shapely)):
+
+`% utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
+% cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl`
+
+Si sospechas que tienes un duplicado en tus tweets se puede usar "dedupe":
+
+`% utils/deduplicate.py tweets.jsonl > deduped.jsonl`
+
+Para ordernar por ID:
+
+`% utils/sort_by_id.py tweets.jsonl > sorted.jsonl`
+
+Puedes filtrar todos los tweets antes de una fecha exacta (Por ejemplo, si un hashtag fue usado para otro evento antes del que te interesaba):
+
+`% utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl`
+
+Puedes conseguir un listado de  HTML  de clientes usados:
+
+`% utils/source.py tweets.jsonl > sources.html`
+
+Si deseas remover los retweets:
+
+`% utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl`
+
+O unshorten urls (se necesita [unshrtn](https://github.com/DocNow/unshrtn)):
+
+`% cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl`
+
+Una vez hayas unshorten tus URLs puedes obtener un listado de los  most-tweeted URLs:
+
+`% cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt`
+
+## twarc-report
+
+Más commandos de "utility" para generar csv or json output con uso con [D3.js](https://d3js.org/) visualizaciónes son encontrados en el [twarc-report](https://github.com/pbinkley/twarc-report) project. El util `directed.py` ahora es `d3graph.py`.
+
+Cada script también puede generar un html demo de D3 visualization, e.g. [timelines](https://www.wallandbinkley.com/twarc/bill10/) o una [gráfica dirigida de retweets](https://www.wallandbinkley.com/twarc/bill10/directed-retweets.html).
