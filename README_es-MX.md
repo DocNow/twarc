@@ -138,7 +138,7 @@ El mando `friends` usa el [friend id API](https://developer.twitter.com/en/docs/
 
 ### Trends
 
-El mando `trends` regresa información del Twitter API sobre los hashtags populares. Necesita ingresar un [Where on Earth idenfier (woeid)](https://en.wikipedia.org/wiki/WOEID) para indicar cual temas quieres buscar. Por ejemplo:
+El mando `trends` regresa información del Twitter API sobre los hashtags populares. Necesita ingresar un [Where on Earth idenfier (`woeid`)](https://en.wikipedia.org/wiki/WOEID) para indicar cual temas quieres buscar. Por ejemplo:
 
 `twarc trends 2486982`
 
@@ -146,32 +146,42 @@ Usando un woeid de 1 regresara temas para la planeta:
 
 `twarc trends 1`
 
-If you aren't sure what to use as a woeid just omit it and you will get a list of all the places for which Twitter tracks trends:
+También se puede omitir el `woeid` y los datos que regresan sera una lista de los lugares por donde Twitter localiza las temas:
 
-twarc trends
-If you have a geo-location you can use it instead of the woedid.
+`twarc trends`
 
-twarc trends 39.9062,-79.4679
-Behind the scenes twarc will lookup the location using Twitter's trends/closest API to find the nearest woeid.
+Si tiene un geo-location, puede usarlo.
 
-Timeline
-The timeline command will use Twitter's user timeline API to collect the most recent tweets posted by the user indicated by screen_name.
+`twarc trends 39.9062,-79.4679` 
 
-twarc timeline deray > tweets.jsonl
-You can also look up users using a user id:
+Twarc buscara el lugar usando el [trends/closest](https://developer.twitter.com/en/docs/api-reference-index)API para encontrar el `woeid` mas cerca.
 
-twarc timeline 12345 > tweets.jsonl
-Retweets
-You can get retweets for a given tweet id like so:
+### Timeline
 
-twarc retweets 824077910927691778 > retweets.jsonl
-Replies
-Unfortunately Twitter's API does not currently support getting replies to a tweet. So twarc approximates it by using the search API. Since the search API does not support getting tweets older than a week twarc can only get all the replies to a tweet that have been sent in the last week.
+El mando `timeline` usa el [user timeline API](https://developer.twitter.com/en/docs/api-reference-index) para coleccionar los tweets mas recientes del usuario indicado por el nombre de pantalla.
 
-If you want to get the replies to a given tweet you can:
+`twarc timeline deray > tweets.jsonl`
 
-twarc replies 824077910927691778 > replies.jsonl
-Using the --recursive option will also fetch replies to the replies as well as quotes. This can take a long time to complete for a large thread because of rate limiting by the search API.
+También se puede buscar usuarios usando un user id:
+
+`twarc timeline 12345 > tweets.jsonl`
+
+### Retweets
+
+Se puede buscar retweets de un tweet específico:
+
+`twarc retweets 824077910927691778 > retweets.jsonl`
+
+### Replies
+
+Desafortunadamente, el API de Twitter no soporte buscando respuestas a un tweet. Entonces, twarc usa el search API. EL search API no regresa tweets mayor de siete dias.
+
+Si quiere buscar las respuestas de un tweet:
+
+`twarc replies 824077910927691778 > replies.jsonl`
+
+El mando `--recursive`
+will also fetch replies to the replies as well as quotes. This can take a long time to complete for a large thread because of rate limiting by the search API.
 
 twarc replies 824077910927691778 --recursive
 Lists
