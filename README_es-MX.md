@@ -14,8 +14,8 @@ Antes de usar Twarc es necesario registrarse por [apps.twitter.com](https://apps
 el secreto del consumidor, y entoces clickear para generar un access token y el secretro del access token. Con estos quatros requisitos,
 está listo para usar Twarc.
 1. Instala [Python](https://www.python.org/downloads/) (2 ó 3)
-2. Instala Twarc atraves de pip (si estas ascendando de categoría: instala de pip--mejorar twarc)
-   
+2. Instala Twarc atraves de pip (si estas ascendando de categoría: pip install --upgrade twarc)
+
 ## Quickstart:
 
 Para empezar, se nececita dirigir a twarc sobre los claves de API:
