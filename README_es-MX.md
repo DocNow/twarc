@@ -118,30 +118,34 @@ También puede acceder ids de usario:
 
 `twarc users 1232134,1413213 > users.jsonl`
 
-Si 
-If you want you can also use a file of user ids, which can be useful if you are using the followers and friends commands below:
+Si quiere, también se puede usar un archivo de user ids:
 
 `twarc users ids.txt > users.jsonl`
 
 ### Followers
 
-The followers command will use Twitter's follower id API to collect the follower user ids for exactly one user screen name per request as specified as an argument:
+El mando `followers` usa el [follower id API] (https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-followers-ids) para coleccionar los user ids para un nombre de pantalla por búsqueda:
 
 `twarc followers deray > follower_ids.txt`
 
-The result will include exactly one user id per line. The response order is reverse chronological, or most recent followers first.
+El resultado incluye un user id por cada linea. La orden es en crononoligal reverso, o los followers mas recientes.
 
-Friends
-Like the followers command, the friends command will use Twitter's friend id API to collect the friend user ids for exactly one user screen name per request as specified as an argument:
+### Friends
 
-twarc friends deray > friend_ids.txt
-Trends
-The trends command lets you retrieve information from Twitter's API about trending hashtags. You need to supply a Where On Earth identifier (woeid) to indicate what trends you are interested in. For example here's how you can get the current trends for St Louis:
+El mando `friends` usa el [friend id API](https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-friends-ids) de Twitter para coleccionar los friend user ids para un nombre de pantalla por búsqueda:
 
-twarc trends 2486982
-Using a woeid of 1 will return trends for the entire planet:
+`twarc friends deray > friend_ids.txt`
 
-twarc trends 1
+### Trends
+
+El mando `trends` regresa información del Twitter API sobre los hashtags populares. Necesita ingresar un [Where on Earth idenfier (woeid)](https://en.wikipedia.org/wiki/WOEID) para indicar cual temas quieres buscar. Por ejemplo:
+
+`twarc trends 2486982`
+
+Usando un woeid de 1 regresara temas para la planeta:
+
+`twarc trends 1`
+
 If you aren't sure what to use as a woeid just omit it and you will get a list of all the places for which Twitter tracks trends:
 
 twarc trends
