@@ -7,7 +7,7 @@ import logging
 import requests
 
 from .decorators import *
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib import OAuth1, OAuth1Session
 
 
 if sys.version_info[:2] <= (2, 7):
@@ -15,11 +15,13 @@ if sys.version_info[:2] <= (2, 7):
     get_input = raw_input
     str_type = unicode
     import ConfigParser as configparser
+    from urlparse import parse_qs
 else:
     # Python 3
     get_input = input
     str_type = str
     import configparser
+    from urllib.parse import parse_qs
 
 
 class Twarc(object):
@@ -712,8 +714,31 @@ class Twarc(object):
 
         self.consumer_key = i('consumer_key')
         self.consumer_secret = i('consumer_secret')
-        self.access_token = i('access_token')
-        self.access_token_secret = i('access_token_secret')
+
+        request_token_url = 'https://api.twitter.com/oauth/request_token'
+        oauth = OAuth1(self.consumer_key, client_secret=self.consumer_secret)
+        r = requests.post(url=request_token_url, auth=oauth)
+
+        credentials = parse_qs(r.text)
+        resource_owner_key = credentials.get('oauth_token')[0]
+        resource_owner_secret = credentials.get('oauth_token_secret')[0]
+
+        base_authorization_url = 'https://api.twitter.com/oauth/authorize'
+        authorize_url = base_authorization_url + '?oauth_token=' + resource_owner_key
+        print('Please visit: %s' % authorize_url)
+        verifier = get_input('Please input the PIN: ')
+
+        access_token_url = 'https://api.twitter.com/oauth/access_token'
+        oauth = OAuth1(self.consumer_key,
+                       client_secret=self.consumer_secret,
+                       resource_owner_key=resource_owner_key,
+                       resource_owner_secret=resource_owner_secret,
+                       verifier=verifier)
+        r = requests.post(url=access_token_url, auth=oauth)
+        credentials = parse_qs(r.text)
+        self.access_token = resource_owner_key = credentials.get('oauth_token')[0]
+        self.access_token_secret = credentials.get('oauth_token_secret')[0]
+
         self.save_config()
 
     def default_config(self):
