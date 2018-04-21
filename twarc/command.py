@@ -194,7 +194,7 @@ def main():
                                 owner_screen_name=list_parts.groups(1))
 
     elif command == "configure":
-        t.input_keys()
+        t.configure()
         sys.exit()
 
     else:
@@ -292,7 +292,7 @@ def get_argparser():
                         default=None, help="Twitter API access token secret")
     parser.add_argument('--config',
                         help="Config file containing Twitter keys and secrets")
-    parser.add_argument('--profile', default='main',
+    parser.add_argument('--profile',
                         help="Name of a profile in your configuration file")
     parser.add_argument('--warnings', action='store_true',
                         help="Include warning messages in output")

@@ -29,7 +29,8 @@ in hand you are ready to start using twarc.
 
 ## Quickstart:
 
-First you're going to need to tell twarc about your API keys:
+First you're going to need to tell twarc about your application API keys and
+grant access to one or more Twitter accounts:
 
     twarc configure
 

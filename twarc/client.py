@@ -35,10 +35,12 @@ class Twarc(object):
     def __init__(self, consumer_key=None, consumer_secret=None,
                  access_token=None, access_token_secret=None,
                  connection_errors=0, http_errors=0, config=None,
-                 profile="main", tweet_mode="extended"):
+                 profile="", tweet_mode="extended"):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
-        discover them in the environment or a supplied profile.
+        discover them in the environment or a supplied profile. If no 
+        profile is indicated the first section of the config files will
+        be used.
         """
 
         self.consumer_key = consumer_key
@@ -681,6 +683,10 @@ class Twarc(object):
         
         config = configparser.ConfigParser()
         config.read(self.config)
+
+        if len(config.sections()) >= 1 and not profile:
+            profile = config.sections()[0]
+
         data = {}
         for key in ['access_token', 'access_token_secret',
                     'consumer_key', 'consumer_secret']:
@@ -693,40 +699,60 @@ class Twarc(object):
                          key, profile, path))
         return data
 
-    def save_config(self):
+    def save_config(self, profile):
         if not self.config:
             return
         config = configparser.ConfigParser()
-        config.add_section(self.profile)
-        config.set(self.profile, 'consumer_key', self.consumer_key)
-        config.set(self.profile, 'consumer_secret', self.consumer_secret)
-        config.set(self.profile, 'access_token', self.access_token)
-        config.set(self.profile, 'access_token_secret',
+        config.read(self.config)
+
+        if config.has_section(profile):
+            config.remove_section(profile)
+
+        config.add_section(profile)
+        config.set(profile, 'consumer_key', self.consumer_key)
+        config.set(profile, 'consumer_secret', self.consumer_secret)
+        config.set(profile, 'access_token', self.access_token)
+        config.set(profile, 'access_token_secret',
                    self.access_token_secret)
         with open(self.config, 'w') as config_file:
             config.write(config_file)
 
-    def input_keys(self):
-        print("\nPlease enter Twitter authentication credentials.\n")
+        return config
 
-        def i(name):
-            return get_input(name.replace('_', ' ') + ": ")
+    def configure(self):
+        print("\nTwarc needs to know a few things before it can talk to Twitter on your behalf.\n")
 
-        self.consumer_key = i('consumer_key')
-        self.consumer_secret = i('consumer_secret')
+        reuse = False
+        if self.consumer_key and self.consumer_secret:
+            print("You already have these application keys in your config %s\n" % self.config)
+            print("consumer key: %s" % self.consumer_key)
+            print("consumer secret: %s" % self.consumer_secret)
+            reuse = get_input("\nWould you like to use those for your new profile? [y/n] ")
+            reuse = reuse.lower() == 'y'
+
+        if not reuse:
+            print("\nPlease enter your Twitter application credentials from apps.twitter.com:\n")
+
+            self.consumer_key = get_input('consumer key: ')
+            self.consumer_secret = get_input('consumer secret: ')
 
         request_token_url = 'https://api.twitter.com/oauth/request_token'
         oauth = OAuth1(self.consumer_key, client_secret=self.consumer_secret)
         r = requests.post(url=request_token_url, auth=oauth)
 
         credentials = parse_qs(r.text)
+        if not credentials:
+            print("\nError: invalid credentials.")
+            print("Please check that you are copying and pasting correctly and try again.\n")
+            return
+
         resource_owner_key = credentials.get('oauth_token')[0]
         resource_owner_secret = credentials.get('oauth_token_secret')[0]
 
         base_authorization_url = 'https://api.twitter.com/oauth/authorize'
         authorize_url = base_authorization_url + '?oauth_token=' + resource_owner_key
-        print('Please visit: %s' % authorize_url)
-        verifier = get_input('Please input the PIN: ')
+        print('\nPlease log into Twitter and visit this URL in your browser:\n%s' % authorize_url)
+        verifier = get_input('\nAfter you have authorized the application please enter the displayed PIN: ')
 
         access_token_url = 'https://api.twitter.com/oauth/access_token'
         oauth = OAuth1(self.consumer_key,
@@ -736,10 +762,23 @@ class Twarc(object):
                        verifier=verifier)
         r = requests.post(url=access_token_url, auth=oauth)
         credentials = parse_qs(r.text)
+
+        if not credentials:
+            print('\nError: invalid PIN')
+            print('Please check that you entered the PIN correctly and try again.\n')
+            return
+
         self.access_token = resource_owner_key = credentials.get('oauth_token')[0]
         self.access_token_secret = credentials.get('oauth_token_secret')[0]
 
-        self.save_config()
+        screen_name = credentials.get('screen_name')[0]
+
+        config = self.save_config(screen_name)
+        print('\nThe credentials for %s have been saved to your configuration file at %s' % (screen_name, self.config))
+        print('\n✨ ✨ ✨  Happy twarcing! ✨ ✨ ✨\n')
+
+        if len(config.sections()) > 1:
+            print('Note: you have multiple profiles in %s so in order to use %s you will use --profile\n' % (self.config, screen_name))
 
     def default_config(self):
         return os.path.join(os.path.expanduser("~"), ".twarc")
