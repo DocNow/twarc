@@ -1,6 +1,6 @@
 # twarc
 
-*Translations: [pt-BR](https://github.com/DocNow/twarc/blob/master/README_pt_br.md)*
+*Traducciones: [Portugués], [Inglés]*
 
 Twarc es una recurso de línea de commando y catálogo de Python para archivar JSON dato de Twitter. Cada tweet se representa como
 un artículo de JSON que es [exactamente](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object) lo que fue capturado del API de Twitter. Los Tweets se archivan como [JSON de línea orientado](https://en.wikipedia.org/wiki/JSON_streaming#Line_delimited_JSON). Twarc se encarga del [límite de tarifa](https://developer.twitter.com/en/docs/basics/rate-limiting) del API de Twitter. Twarc también puede facilitar la colección de usuarios, tendencias y detallar las identificaciones de los tweets.
@@ -300,3 +300,6 @@ Una vez hayas unshorten tus URLs puedes obtener un listado de los  most-tweeted 
 Más commandos de "utility" para generar csv or json output con uso con [D3.js](https://d3js.org/) visualizaciónes son encontrados en el [twarc-report](https://github.com/pbinkley/twarc-report) project. El util `directed.py` ahora es `d3graph.py`.
 
 Cada script también puede generar un html demo de D3 visualization, e.g. [timelines](https://www.wallandbinkley.com/twarc/bill10/) o una [gráfica dirigida de retweets](https://www.wallandbinkley.com/twarc/bill10/directed-retweets.html).
+
+[Portugués]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
+[Inglés] https://github.com/DocNow/twarc/blob/master/README.md
