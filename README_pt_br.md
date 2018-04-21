@@ -326,13 +326,10 @@ Cada script também pode gerar uma demo html de uma visualização D3, e.g.
 [timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
-# Tradução créditos
+---
 
-```
-author_translation_pt_br='Wilson Jr'
-author_emailtranslation_pt_br='walmir.anesteion@gmail.com'
-twitter_translation_pt_br='@py3in'
-```
+Tradução créditos: [Wilson Jr]
 
 [Espanhol]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [Inglês]: https://github.com/DocNow/twarc/blob/master/README.md
+[Wilson Jr]: https://github.com/py3in
