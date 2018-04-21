@@ -104,3 +104,19 @@ def interruptible_sleep(t, event=None):
         return False
     else:
         return not event.wait(t)
+
+def filter_protected(f):
+    """
+    filter_protected will filter out protected tweets and users unless 
+    explicitly requested not to.
+    """
+    def new_f(self, *args, **kwargs):
+        for obj in f(self, *args, **kwargs):
+            if self.protected == False:
+                if 'user' in obj and obj['user']['protected']:
+                    continue
+                elif 'protected' in obj and obj['protected']:
+                    continue
+            yield obj
+
+    return new_f

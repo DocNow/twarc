@@ -84,7 +84,8 @@ def main():
         http_errors=args.http_errors,
         config=args.config,
         profile=args.profile,
-        tweet_mode=args.tweet_mode
+        tweet_mode=args.tweet_mode,
+        protected=args.protected
     )
 
     # calls that return tweets
@@ -320,6 +321,8 @@ def get_argparser():
     parser.add_argument("--tweet_mode", action="store", default="extended",
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
+    parser.add_argument("--protected", dest="protected", action="store_true",
+                        help="include protected tweets")
     parser.add_argument("--output", action="store", default=None,
                         dest="output", help="write output to file path")
     parser.add_argument("--format", action="store", default="json",
