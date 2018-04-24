@@ -17,11 +17,13 @@ from twarc.json2csv import csv, get_headings, get_row
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
+    pyv = 2
     get_input = raw_input
     str_type = unicode
     import ConfigParser as configparser
 else:
     # Python 3
+    pyv = 3
     get_input = input
     str_type = str
     import configparser
@@ -208,7 +210,10 @@ def main():
 
     # get the output filehandle
     if args.output:
-        fh = codecs.open(args.output, 'wb', 'utf8')
+        if pyv == 3:
+            fh = codecs.open(args.output, 'wb', 'utf8')
+        else:
+            fh = open(args.output, 'w')
     else:
         fh = sys.stdout
 
