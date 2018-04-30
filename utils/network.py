@@ -75,7 +75,12 @@ def add(from_user, from_id, to_user, to_id, type):
     if options.users and to_user:
         G.add_node(from_user, screen_name=from_user)
         G.add_node(to_user, screen_name=to_user)
-        G.add_edge(from_user, to_user, type=type)
+       
+        if G.has_edge(from_user, to_user):
+            weight = G[from_user][to_user]['weight'] + 1
+        else:
+            weight = 1
+        G.add_edge(from_user, to_user, type=type, weight=weight)
 
     elif not options.users and to_id:
         G.add_node(from_id, screen_name=from_user, type=type)
