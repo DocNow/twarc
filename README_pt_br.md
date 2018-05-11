@@ -3,7 +3,7 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*Traduções: [Espanhol], [Inglês]*
+*Traduções: [Espanhol], [Inglês], [Sueco]*
 
 twarc é uma ferramenta de linha de comando e usa a biblioteca Python para arquivamento de dados do Twitter com JSON.
 Cada tweet será representado como um objeto JSON
@@ -332,4 +332,5 @@ Tradução créditos: [Wilson Jr]
 
 [Espanhol]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [Inglês]: https://github.com/DocNow/twarc/blob/master/README.md
+[Sueco]: https://github.com/DocNow/twarc/blob/master/README_se_sv.md
 [Wilson Jr]: https://github.com/py3in

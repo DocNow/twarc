@@ -1,6 +1,6 @@
 # twarc
 
-*Traducciones: [Portugués], [Inglés]*
+*Traducciones: [Inglés], [Portugués], [Sueco]*
 
 Twarc es una recurso de línea de commando y catálogo de Python para archivar JSON dato de Twitter. Cada tweet se representa como
 un artículo de JSON que es [exactamente](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object) lo que fue capturado del API de Twitter. Los Tweets se archivan como [JSON de línea orientado](https://en.wikipedia.org/wiki/JSON_streaming#Line_delimited_JSON). Twarc se encarga del [límite de tarifa](https://developer.twitter.com/en/docs/basics/rate-limiting) del API de Twitter. Twarc también puede facilitar la colección de usuarios, tendencias y detallar las identificaciones de los tweets.
@@ -307,4 +307,5 @@ Crédito de tradução: [Tina Figueroa]
 
 [Portugués]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [Inglés]: https://github.com/DocNow/twarc/blob/master/README.md
+[Sueco]: https://github.com/DocNow/twarc/blob/master/README_se_sv.md
 [Tina Figueroa]: https://github.com/@tinafigueroa

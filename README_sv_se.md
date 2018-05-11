@@ -358,9 +358,9 @@ Varje skript kan också generera en html-demo av en D3 visualisering, t.ex.
 [timelines](https://wallandbinkley.com/twarc/bill10/) eller en 
 [riktad graf av retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
+Översättning: [Andreas Segerberg]
+
 [Engelska]: https://github.com/DocNow/twarc/blob/master/README.md
 [Portugisiska]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [Spanska]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [Andreas Segerberg]: https://github.com/Segerberg
-
-Översättning: [Andreas Segerberg]

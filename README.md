@@ -3,7 +3,7 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*Translations: [Portuguese], [Spanish]*
+*Translations: [Portuguese], [Spanish], [Swedish]*
 
 twarc is a command line tool and Python library for archiving Twitter JSON data.
 Each tweet is represented as a JSON object that is
@@ -379,3 +379,4 @@ Each script can also generate an html demo of a D3 visualization, e.g.
 
 [Portuguese]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [Spanish]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
+[Swedish]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
