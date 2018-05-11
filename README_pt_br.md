@@ -332,5 +332,5 @@ Tradução créditos: [Wilson Jr]
 
 [Espanhol]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [Inglês]: https://github.com/DocNow/twarc/blob/master/README.md
-[Sueco]: https://github.com/DocNow/twarc/blob/master/README_se_sv.md
+[Sueco]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
 [Wilson Jr]: https://github.com/py3in

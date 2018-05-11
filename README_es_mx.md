@@ -307,5 +307,5 @@ Crédito de tradução: [Tina Figueroa]
 
 [Portugués]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [Inglés]: https://github.com/DocNow/twarc/blob/master/README.md
-[Sueco]: https://github.com/DocNow/twarc/blob/master/README_se_sv.md
+[Sueco]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
 [Tina Figueroa]: https://github.com/@tinafigueroa
