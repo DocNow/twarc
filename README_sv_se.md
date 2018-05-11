@@ -5,11 +5,11 @@ twarc
 
 *Översättningar: [Engelska], [Portugisiska], [Spanska]*
 
-twarc är ett kommandoradsverktyg twarc och ett Python bibliotek för arkivering av Twitter JSON data.
+twarc är ett kommandoradsverktyg twarc och ett Pythonbibliotek för arkivering av Twitter JSON data.
 Varje tweet är representerat som ett JSON-objekt som är [exakt](https://dev.twitter.com/overview/api/tweets) vad som retuneras från Twitters API
 Tweets lagras som [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line_delimited_JSON).  Twarc hanterar
 Twitter API:ets [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
-åt dig. Förutom att kan samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet id:n till tweets. 
+åt dig. Förutom att kan samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets. 
 
 twarc har utvecklats som en del av [Documenting the Now](http://www.docnow.io) 
 projektet som finiansierades av [Mellon Foundation](https://mellon.org/).
@@ -35,7 +35,7 @@ Prova att söka:
 
     twarc search blacklivesmatter > search.jsonl
 
-Eller om du vill samla in tweets i ögonblicket de skapas:
+Eller om du vill samla in tweets i samma ögonblick de skapas:
 
     twarc filter blacklivesmatter > stream.jsonl
 
@@ -62,7 +62,7 @@ Detta använder Twitters [search/tweets](https://dev.twitter.com/rest/reference/
 
     twarc search blacklivesmatter > tweets.jsonl
 
-Det är viktigt att notera att `search` retunerar tweets som hittas inom det 7 dagars fönster som 
+Det är viktigt att notera att `search` retunerar tweets som hittas inom det 7-dagarsfönster som 
 Twitters sök-API erbjuder. Känns det som ett smalt fönster? Det är det. Men du kanske är intresserad av att samla in tweets i samma ögonblick som de skapas 
 genom att använda `filter` och `sample` kommandona nedan.
 
@@ -81,7 +81,6 @@ Du kan också söka efter tweets inom en given plats, till exempel tweets som n�
     twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 
 Om inte en söksträng ges när du använder `--geocode` kommer du få alla tweets som är relevanta för den platsen och radien. 
-If a search query isn't supplied when using `--geocode` you will get all tweets
 
     twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 
@@ -91,12 +90,12 @@ If a search query isn't supplied when using `--geocode` you will get all tweets
 
     twarc filter blacklivesmatter,blm > tweets.jsonl
 
-Notera att syntaxen för Twitters track söksträngar i något annorlunda än de som används i sök-API:et
+Notera att syntaxen för Twitters track söksträngar är något annorlunda än de som används i sök-API:et
 Var god läs dokumentationen för att se hur du bäst kan formulera sökningar. 
 
 
 Använd `follow` kommandot om du vill samla in tweets från ett specifikt användar-id i samma ögonblick som de skapas. Detta inkluderar retweets. 
-Till exempel så samlar detta in tweets och retweets from CNN:
+Till exempel så samlar detta in tweets och retweets från CNN:
 
     twarc filter --follow 759251 > tweets.jsonl
 
@@ -106,13 +105,13 @@ Du kan också samla in tweets genom att använda koordinater.  Notera: den inled
 
 
 Om du kombinerar parametrar så kommer de tolkas som OR 
-Till exemepel så kommer detta samla in tweets som använder blacklivesmatter eller blm hashtaggen och som också tweetas från användaren CNN: 
+Till exemepel så kommer detta samla in tweets som använder blacklivesmatter eller blm hashtaggen och som också postats av användaren CNN: 
 
     twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
 
 ### Sample
 
-Använd `sample` kommandot  för att lyssna till Twitters [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API för ett "slumpmässigt" prov av nyligen skapade publika tweets.
+Använd `sample` kommandot  för att "lyssna" till Twitters [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API för ett "slumpmässigt" prov av nyligen skapade publika tweets.
 
     twarc sample > tweets.jsonl
 
@@ -154,19 +153,19 @@ Om du vill kan du också använda en fil med användar-id, vilket kan vara anvä
 
     twarc followers deray > follower_ids.txt
 
-Resultatet inkluderar exakt ett användar-id per linje ordnat i omvänd koronologisk ordning, de senaste följarna först. 	
+Resultatet inkluderar exakt ett användar-id per linje ordnat i omvänd koronologisk ordning, alltså de senaste följarna först. 	
 
 
 ### Vänner
 
-Precis som `followers` kommandot, använder `friends` kommandot Twitters [friend id API](https://dev.twitter.com/rest/reference/get/friends/ids) för att samla in vänners användar-id för exakt ett screen name per request specificerat som ett argument:
+Precis som `followers` kommandot, använder `friends` kommandot Twitters [friend id API](https://dev.twitter.com/rest/reference/get/friends/ids) för att samla in vänners användar-id för exakt ett screen name per request, specificerat som ett argument:
 
     twarc friends deray > friend_ids.txt
 
 ### Trender
 
 `trends` kommandot låter dig hämta information från Twitters API om trendande hashtags. Du måste bifoga en [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifierare (`woeid`) 
-för att precicera vilka trender du är intresserad av. Till exemepel här är hur du kan hämta de senaste trenderna för St Louis:
+för att precicera vilka trender du är intresserad av. Till exemepel så här kan du hämta de senaste trenderna för St Louis:
 
     twarc trends 2486982
 
@@ -203,13 +202,13 @@ Du kan samla in retweets för ett givet tweetid genom:
 ### Svar
 
 Tyvärr så stödjer inte Twitters API att hämta svar till en tweet. 
-Så twarc använder sök-API:et för detta. Då sök-API:et inte kan användas för att samla in tweets äldre än en vecka kan twarc endast hämta alla svar till en tweet som har postats den senaste veckan. 
+Twarc använder istället sök-API:et för detta. Då sök-API:et inte kan användas för att samla in tweets äldre än en vecka kan twarc endast hämta alla svar till en tweet som har postats den senaste veckan. 
 
 Om du vill hämta svaren till en tweet så kan du använda följande: 
 
     twarc replies 824077910927691778 > replies.jsonl
 
-Genom att använda `--recursive` parametern så hämtas även svar till svar så väl som citerade tweets.  Detta kan ta mycket lång tid att köra på stora trådar på grund av 
+Genom att använda `--recursive` parametern så hämtas även svar till svar så väl som citerade tweets. Detta kan ta mycket lång tid att köra på stora trådar på grund av 
 rate limiting på sök-API:et.
 
     twarc replies 824077910927691778 --recursive
@@ -223,7 +222,7 @@ För att hämta användare som är med på en lista kan du använda list-URL:en 
 
 ## Använd som ett bibliotek
 
-Om du vill kan du använda twarc programatiskt som ett bibliotek för att samla in tweets.
+Du kan också använda twarc programatiskt som ett bibliotek för att samla in tweets.
 Du behöver först skapa en instans av `Twarc` (genom att använda dina nycklar)
 , och sedan använda det för att iterera genom sökresultat, filter och resultat. 
 
@@ -291,7 +290,7 @@ Och om du vill använda nätverksgrafen i ett program som [Gephi](https://gephi.
 
     % utils/network.py --users tweets.jsonl tweets.gexf
 
-gender.py  är ett filter som låter dig filtrera tweets baserat på en gissining av könet på författaren. Så till exempel kan du filtrera ut alla tweets som 
+gender.py  är ett filter som låter dig filtrera tweets baserat på en gissining författarens kön. Till exempel kan du filtrera ut alla tweets som 
 ser ut som de var skrivna av kvinnor och skapa ett ordmoln:
 
     % utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
@@ -304,7 +303,7 @@ Alternativt kan du exportera GeoJSON med centroider som ersättning för boundin
 
     % utils/geojson.py tweets.jsonl --centroid > tweets.geojson
 
-Och om du exporterar  GeoJSON med centroider, så kan du lägga till lite slumpmässig fuzz:
+Och om du exporterar GeoJSON med centroider, så kan du lägga till lite slumpmässig fuzz:
 
     % utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
 
@@ -313,7 +312,7 @@ För att filtrera tweets baserat på tillgänglighet av geo-koordinater (eller p
     % utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
     % cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
 
-För att filtrera tweets genom ett GeoJSON staket (Kräver [Shapely](https://github.com/Toblerity/Shapely)):
+För att filtrera tweets genom ett GeoJSON-staket (Kräver [Shapely](https://github.com/Toblerity/Shapely)):
 
     % utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
     % cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
@@ -322,7 +321,7 @@ Om du misstänker att du har duplikat i dina tweetinsamlingar kan du deduplicera
 
     % utils/deduplicate.py tweets.jsonl > deduped.jsonl
 
-Du kan sortera på ID, vilket är samma sak som att sortera på tid.
+Du kan sortera på ID, vilket är samma sak som att sortera efter tid.
 
     % utils/sort_by_id.py tweets.jsonl > sorted.jsonl
 
