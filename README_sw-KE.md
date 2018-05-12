@@ -122,3 +122,17 @@ Ikiwa unachanganya chaguzi yako au OR'ed pamoja. Kwa mfano hii ita sanya tweets
 zinasotumia blacklivesmatter ama blm na pia tweets kutoka mtumiaji CNN:
 
     twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
+
+### Sampuli
+
+Tumia `sample` command kusikiliza kwa sampuli ya Twitter
+[statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample)
+statuses hivi karibuni
+
+    twarc sample > tweets.jsonl
+
+### Punguza maji
+
+twarc ina `dehydrate` command ita tengeneza orodha ya id kutoka faili ya tweets:
+
+    twarc dehydrate tweets.jsonl > tweet-ids.txt
