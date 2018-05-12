@@ -28,3 +28,19 @@ token` na `access token secret`. Uta hitaji hizi vigezo nne ku tumia twarc
 
 1. weka [Python](http://python.org/download) (2 or 3)
 2. pip install twarc (ama kuboresha: pip install --upgrade twarc)
+
+## Haraka Haraka
+
+Utahitaji kuambia twarc vifunguo ya API ya Twitter
+
+    twarc configure
+
+alafu jaribu kutafuta na:
+
+    twarc search blacklivesmatter > search.jsonl
+
+Ama wataka kusanya ma tweets kama zinatoka
+
+    twarc filter blacklivesmatter > stream.jsonl
+
+Endelea kusoma ku pata maelezo kuhusu utumizi wa twarc
