@@ -18,3 +18,13 @@ hydrate tweet ids.
 
 twarc imeundwa kama sehemu ya [Documenting the Now](http://www.docnow.io) ambayo
 ilifadhiliwa na [Mellon Foundation](https://mellon.org/).
+
+## Weka
+
+Kabla kutumia twarc utahitaji kujiandikisha kwa
+[apps.twitter.com](http://apps.twitter.com). Mara baada ya kuunda programu yako
+andika `consumer key` and `consumer secret` yako alafu bonyeza kuzalisha `access
+token` na `access token secret`. Uta hitaji hizi vigezo nne ku tumia twarc
+
+1. weka [Python](http://python.org/download) (2 or 3)
+2. pip install twarc (ama kuboresha: pip install --upgrade twarc)
