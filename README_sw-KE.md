@@ -95,3 +95,30 @@ eneo hio.
 
     twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 
+### Chuja
+
+Utumizi wa `filter` command husanya tweets zikiandikwa no hutumia
+[statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter)
+API.
+
+    twarc filter blacklivesmatter,blm > tweets.jsonl
+
+Tafadhali kumbuka kuwa syntax ya Twitter ni tofauti na Twitter ya uchunguzi.
+Tafadhali wasiliana na nyaraka jinsi ya kueleza chujia unayo tumia
+
+Tumia command ya `follow` kama wataka kusanya tweets kutoka kwa mtumiaji kama
+zinatokea. Hi inajumuisha retweets. Kwa mfano hii itasanya tweets na retweets za
+CNN:
+
+    twarc filter --follow 759251 > tweets.jsonl
+
+Waeza kusanya tweets kwa kutumia sanduku linalozingatia. Kumbuka: dash
+inayoongoza inahitaji kutoroka katika sanduku linalozingatia ama ita fasiriwa
+kama command line argument!
+
+    twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
+
+Ikiwa unachanganya chaguzi yako au OR'ed pamoja. Kwa mfano hii ita sanya tweets
+zinasotumia blacklivesmatter ama blm na pia tweets kutoka mtumiaji CNN:
+
+    twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
