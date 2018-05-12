@@ -44,3 +44,19 @@ Ama wataka kusanya ma tweets kama zinatoka
     twarc filter blacklivesmatter > stream.jsonl
 
 Endelea kusoma ku pata maelezo kuhusu utumizi wa twarc
+
+## Matumizi
+
+### Sanidi
+
+Mara tu una vifunguo vya Twitter unaweza kuambia twarc ukitumia command ya
+`configure`.
+
+    twarc configure
+
+twarc ita andika sifa zako kwenye file itayo itwa `.twarc` kwa saraka ya home.
+Kama hutaki ama huwezi kuandika file hiyo unaweza kutumia command inayo tumia
+mazingira yako. (`CONSUMER_KEY`,
+`CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) or using command line
+options (`--consumer_key`, `--consumer_secret`, `--access_token`,
+`--access_token_secret`).
