@@ -154,3 +154,17 @@ ya JSON. Hi ni muhimu kwa
 [uthibitishaji](https://en.wikipedia.org/wiki/Reproducibility) ya social media
 research.
 
+### Watumiaji
+
+Utumizi was `users` command hurudisha metadata ya majina ya skrini iliyopewa
+
+    twarc users deray,Nettaaaaaaaa > users.jsonl
+
+Waeza pia kuipatia ids za watumiaji
+
+    twarc users 1232134,1413213 > users.jsonl
+
+Waeza kutumia faili iliyo na ids za watumiaji kwa mfano wataka `followers` na
+`friends` commands
+
+    twarc users ids.txt > users.jsonl
