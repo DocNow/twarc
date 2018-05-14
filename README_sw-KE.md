@@ -136,3 +136,21 @@ statuses hivi karibuni
 twarc ina `dehydrate` command ita tengeneza orodha ya id kutoka faili ya tweets:
 
     twarc dehydrate tweets.jsonl > tweet-ids.txt
+
+### Hydrate
+
+twarc pia ina `hydrate` command ita soma faili inayo id na ita andika faili mpya
+ya tweet JSON kwa kutumiya Twitter [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
+
+    twarc hydrate ids.txt > tweets.jsonl
+
+API ya Twitter [Masharti ya
+Huduma](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)
+huwazuia watu kutengeza kiasi kubwa ya Twitter data ipatikane kwenye Web. Hiyo
+data yaeza kutumiwa kwa uchunguzi bora isi shirikiana na ulimwengu. Twitter
+huruhusu mafaili ya tweet identifiers kugawanywa no hiyo inaweza kuwa na
+manufaa. Waeza kutumia API ya Twitter ku *hydrate* hiyo data ama kupata kamili
+ya JSON. Hi ni muhimu kwa
+[uthibitishaji](https://en.wikipedia.org/wiki/Reproducibility) ya social media
+research.
+
