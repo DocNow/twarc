@@ -34,7 +34,7 @@ def get_headings():
       'place',
       'possibly_sensitive',
       'retweet_count',
-      'reweet_or_quote_id',
+      'retweet_or_quote_id',
       'retweet_or_quote_screen_name',
       'retweet_or_quote_user_id',
       'source',
