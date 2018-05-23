@@ -245,4 +245,49 @@ command ya `listmembers`
 
 ## Tumia kama Maktaba
 
+Ikiwa unataka kutumia twarc programatically kama maktaba kukusanya tweets.
+Kwanza utahitaji kuunda `twarc` instance yako. (utatumia sifa zako za Twitter),
+alafu utaitumia kutafuta matokeo ya utafutaji, futa matokeo au matokeo ya
+kufuatilia.
+
+```python
+from twarc import Twarc
+
+t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
+for tweet in t.search("ferguson"):
+    print(tweet["text"])
+```
+
+Unaweza kufanya hivyo kwa mkondo wa machujio ya tweets ambazo zinafanana na
+kufuatilio neno muhimu:
+
+```python
+for tweet in t.filter(track="ferguson"):
+    print(tweet["text"])
+```
+
+au mahali
+
+```python
+for tweet in t.filter(locations="-74,40,-73,41"):
+    print(tweet["text"])
+```
+
+au ids za watumiaji
+
+```python
+for tweet in t.filter(follow='12345,678910'):
+    print(tweet["text"])
+```
+
+Vivyo hivyo unaweza ku hydrate tweet identifiers kwa kupitisha orodha ya ids au
+jenereta:
+
+```python
+for tweet in t.hydrate(open('ids.txt')):
+    print(tweet["text"])
+```
+
+## Vya Kutumia
+
 
