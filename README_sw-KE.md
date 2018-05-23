@@ -168,3 +168,38 @@ Waeza kutumia faili iliyo na ids za watumiaji kwa mfano wataka `followers` na
 `friends` commands
 
     twarc users ids.txt > users.jsonl
+
+### Wafuasi
+
+Utumizi wa `followers` hutegemeya [follower id
+API](https://dev.twitter.com/rest/reference/get/followers/ids) ku kusanya ids za
+mfuasi moja kwa kila ombi. Kwa mfano:
+
+    twarc followers deray > follower_ids.txt
+
+ita rudisha mfuasi moja kwa kila laini. Faili yako ita andikwa na wafuasi wa
+hivi karibuni kwanza.
+
+### Mwelekeo
+
+Utumizi wa `trends` hutegemeya API ya Twitter ya mwelekeo wa hashtags. Unahitaji
+kuipatia [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifier
+(`woeid`) kuiambia mwenendo unayopenda. Kwa mfano kama wataka maelekeo ya St.
+Louis:
+
+    twarc trends 2486982
+
+Ukitumia `woeid` ya 1 itarudisha mwenendo wa dunia yote.
+
+    twarc trends 1
+
+Ikiwa hujui nini cha kutumia ya `woeid` iache na utapata maeneo yote ambayo
+Twitter hufuata:
+
+    twarc trends
+
+Kama una geo-location waeza kuitimia badala ya `woeid`
+
+    twarc trends 39.9062,-79.4679
+
+Twitter ita tumia API ya [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) ili kupata `woeid` iliyo karibu nawe
