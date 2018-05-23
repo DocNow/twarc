@@ -356,7 +356,7 @@ If you want to remove the retweets:
 
     % utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
 
-Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
+Or unshorten urls (requires [unshrtn](https://github.com/docnow/unshrtn)):
 
     % cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
 
