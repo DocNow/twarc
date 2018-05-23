@@ -290,4 +290,94 @@ for tweet in t.hydrate(open('ids.txt')):
 
 ## Vya Kutumia
 
+Katika saraka `utils` kuna commands zinazo weza kukusaidia kufanya kazi na
+line-oriented JSON kama kuchapisha ma tweets kwa text au html, kuchimba majina
+za watumiaji, URLS. If tengeneza script yako tafadhali tushirikiana na PR.
 
+Unapopata tweets unaweza kuunda ukuta mzuri wako:
+
+    % utils/wall.py tweets.jsonl > tweets.html
+
+Unaweza kuunda wingu ya maneno ya tweets ulizo sanya ambayo in neno nasa 
+
+    % utils/wordcloud.py tweets.jsonl > wordcloud.html
+
+Ikiwa umekusanya tweets kwa kutumia `majibu` unaweza kuunda taswira ya D3 na:
+
+    % utils/network.py tweets.jsonl tweets.html
+
+Unaweza kuimarisha tweets za mtumiaji, kukuruhusu kuona akaunti kuu:
+
+    % utils/network.py --users tweets.jsonl tweets.html
+
+Na kama unataka kutumia grafu ya mtandao katika mpango kama
+[Gephi](https://gephi.org/), unaweza kuuna faili ya GEXF na
+
+    % utils/network.py --users tweets.jsonl tweets.gexf
+
+`gender.py` ni chujio kinachokuwezesha kufuta tweets kulingana na nadhani kuhusu
+jinsia ya mwandishi. Kwa mfano unaweza kufuta tweets zote ambazo
+kuangalia kama walikuwa kutoka kwa wanawake, na kuunda wingu neno na:
+
+    % utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
+
+Unaweza kutoa [GeoJSON](http://geojson.org/) ya tweets kama geo coordinates
+ziko:
+
+    % utils/geojson.py tweets.jsonl > tweets.geojson
+
+Unaweza pia kuto GeoJSON na centriods, kubadilisha nafasi ya masanduku:
+
+    % utils/geojson.py tweets.jsonl --centroid > tweets.geojson
+
+Na ukitoa GeoJSON na centroids, unaweza kuongeza random fuzzing:
+
+    % utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
+
+Ili kufuta tweets kwa kuwepo au kutokuwepo kwa kuratibu za geo (au Mahali, angalia nyaraka za [API] (https://dev.twitter.com/overview/api/places)):
+
+    % utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
+    % cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
+
+Ili kufuta tweets na uzio wa GeoJSON (inahitaji [Shapely] (https://github.com/Toblerity/Shapely)):
+
+    % utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
+    % cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
+
+Ikiwa unadhani una duplicate kwenye tweets zako unaweza kuwapunguza:
+
+    % utils/deduplicate.py tweets.jsonl > deduped.jsonl
+
+Unaweza kuchagua na ID, ambayo ni sawa na kutatua kwa wakati:
+
+    % utils/sort_by_id.py tweets.jsonl > sorted.jsonl
+
+Unaweza kufuta tweets zote kabla ya tarehe fulani (kwa mfano, kama hashtag ilitumiwa kwa tukio lingine kabla ya moja unayopenda):
+
+    % utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
+
+Unaweza kupata orodha ya HTML ya wateja kutumika:
+
+    % utils/source.py tweets.jsonl > sources.html
+
+Ikiwa unataka kuondoa retweets:
+
+    % utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
+
+Au unshorten urls (requires [unshrtn](https://github.com/docnow/unshrtn)):
+
+    % cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
+
+Mara baada ya kufuta URL zako unaweza kupata orodha ya vya URL inayo tweets nyingi zaidi:
+
+    % cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+
+## twarc-report
+
+Baadhi ya scripts zaidi ya huduma ili kuzalisha csv au json pato yanafaa kwa
+kutumia na [D3.js](http://d3js.org/) visualizations hupatikana katika
+[twarc-report](https://github.com/pbinkley/twarc-report). `directed.py` ilikuwa
+sehemu ya twarc imehama kwa twarc-report kama `d3graph.py`. 
+
+Kila script pia inaweza kuzalisha demo html ya taswira ya D3, kwa mfano. [timelines](https://wallandbinkley.com/twarc/bill10/) or a
+[directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
