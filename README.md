@@ -196,7 +196,7 @@ Behind the scenes twarc will lookup the location using Twitter's [trends/closest
 
 ### Timeline
 
-The timeline command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
+The `timeline` command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
 
     twarc timeline deray > tweets.jsonl
 
