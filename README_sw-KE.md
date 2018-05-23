@@ -334,12 +334,12 @@ Na ukitoa GeoJSON na centroids, unaweza kuongeza random fuzzing:
 
     % utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
 
-Ili kufuta tweets kwa kuwepo au kutokuwepo kwa kuratibu za geo (au Mahali, angalia nyaraka za [API] (https://dev.twitter.com/overview/api/places)):
+Ili kufuta tweets kwa kuwepo au kutokuwepo kwa kuratibu za geo (au Mahali, angalia nyaraka za [API](https://dev.twitter.com/overview/api/places)):
 
     % utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
     % cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
 
-Ili kufuta tweets na uzio wa GeoJSON (inahitaji [Shapely] (https://github.com/Toblerity/Shapely)):
+Ili kufuta tweets na uzio wa GeoJSON (inahitaji [Shapely](https://github.com/Toblerity/Shapely)):
 
     % utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
     % cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
