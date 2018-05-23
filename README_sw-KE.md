@@ -203,3 +203,46 @@ Kama una geo-location waeza kuitimia badala ya `woeid`
     twarc trends 39.9062,-79.4679
 
 Twitter ita tumia API ya [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) ili kupata `woeid` iliyo karibu nawe
+
+### Muda wa wakati
+
+Utumiaji wa `timeline` command hutegemeya kwa API ya [user timeline
+API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)
+kukusanya Tweets za mtumiaji alionyeshwa na `screen_name`:
+
+    twarc timeline deray > tweets.jsonl
+
+Unaweza pia kuangalia juu ya watumiaji kwa kutumia id ya mtumiaji
+
+    twarc timeline 12345 > tweets.jsonl
+
+### Retweets
+
+Unaweza kupata retweets kwa kuipeya id ya tweet hivi:
+
+    twarc retweets 824077910927691778 > retweets.jsonl
+
+### Majibu
+
+Twitter haina API ambayo inaweza kupata majibu za tweet. twarc hujaribu kwa
+kutumia search API. Lakino search API haiwezi kupata majibu zaidi ya siku saba.
+Ikiwa unataka kupata majibu ya tweets fanya hivi:
+
+    twarc replies 824077910927691778 > replies.jsonl
+
+Utumizi wa `--recursive` utapata majibu ya majibu na quotes. Hii inaweza
+kuchukua muda mrefu kukamilisha kama una majibu mengi kwa sababu ya kiwango cha
+kupunguzwa search API.
+
+    twarc replies 824077910927691778 --recursive
+
+### Orodha
+
+Ili kupata watumiaji walio kwenye orodha unaweza kutumia URL ya orodha na
+command ya `listmembers`
+
+    twarc listmembers https://twitter.com/edsu/lists/bots
+
+## Tumia kama Maktaba
+
+
