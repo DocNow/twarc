@@ -3,7 +3,7 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*Översättningar: [Engelska], [Portugisiska], [Spanska]*
+*Översättningar: [Engelska], [Portugisiska], [Spanska], [Swahili]*
 
 twarc är ett kommandoradsverktyg twarc och ett Pythonbibliotek för arkivering av Twitter JSON data.
 Varje tweet är representerat som ett JSON-objekt som är [exakt](https://dev.twitter.com/overview/api/tweets) vad som retuneras från Twitters API
@@ -363,4 +363,5 @@ Varje skript kan också generera en html-demo av en D3 visualisering, t.ex.
 [Engelska]: https://github.com/DocNow/twarc/blob/master/README.md
 [Portugisiska]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [Spanska]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
+[Swahili]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
 [Andreas Segerberg]: https://github.com/Segerberg

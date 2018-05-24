@@ -3,7 +3,7 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*Translations: [sw-KE]*
+*Tafsiri: [Kiingereza], [Kihispania], [Kireno], [Swedish]*
 
 twarc ni chombo ya command-line na Python Library ya kuhifadhi Twitter JSON
 data. Kila Tweet ita akilishwa kama kitu ya JSON ita onyeshwa
@@ -380,3 +380,8 @@ sehemu ya twarc imehama kwa twarc-report kama `d3graph.py`.
 
 Kila script pia inaweza kuzalisha demo html ya taswira ya D3, kwa mfano. [timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
+
+[Kiingereza]: https://github.com/DocNow/twarc/blob/master/README.md
+[Kireno]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
+[Kihispania]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
+[Swedish]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
