@@ -1,8 +1,7 @@
 twarc
 =====
 
-[![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)]
-(http://travis-ci.org/DocNow/twarc)
+[![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
 *Translations: [sw-KE]*
 
