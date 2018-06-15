@@ -3,7 +3,7 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*Translations: [Portuguese], [Spanish], [Swedish]*
+*Translations: [Portuguese], [Spanish], [Swahili], [Swedish]*
 
 twarc is a command line tool and Python library for archiving Twitter JSON data.
 Each tweet is represented as a JSON object that is
@@ -197,7 +197,7 @@ Behind the scenes twarc will lookup the location using Twitter's [trends/closest
 
 ### Timeline
 
-The timeline command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
+The `timeline` command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
 
     twarc timeline deray > tweets.jsonl
 
@@ -357,7 +357,7 @@ If you want to remove the retweets:
 
     % utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
 
-Or unshorten urls (requires [unshrtn](https://github.com/edsu/unshrtn)):
+Or unshorten urls (requires [unshrtn](https://github.com/docnow/unshrtn)):
 
     % cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
 
@@ -380,3 +380,4 @@ Each script can also generate an html demo of a D3 visualization, e.g.
 [Portuguese]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [Spanish]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [Swedish]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
+[Swahili]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
