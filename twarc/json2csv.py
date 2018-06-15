@@ -3,6 +3,7 @@
 import sys
 
 from dateutil.parser import parse as date_parse
+from six import string_types
 
 if sys.version_info[0] < 3:
     try:
@@ -100,7 +101,7 @@ def get_row(t, excel=False):
 
 
 def clean_str(string):
-    if isinstance(string, str):
+    if isinstance(string, string_types):
         return string.replace('\n', ' ').replace('\r', '')
     return None
 
