@@ -7,3 +7,4 @@ Pipfile*
 build
 dist
 twarc.egg-info
+.pytest_cache
