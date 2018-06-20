@@ -43,9 +43,8 @@ try:
 except Exception as e:
     sys.exit("error: regex failed to compile: {}".format(e))
 
-#for line in fileinput.input(files=args.files if len(args.files) > 0 else ('-',))):
 for line in fileinput.input(files=args.files):
     tweet = json.loads(line)
     text = json2csv.text(tweet)
     if regex.search(text):
-        print(text)
+        print(line)
