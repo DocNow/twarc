@@ -47,4 +47,4 @@ for line in fileinput.input(files=args.files):
     tweet = json.loads(line)
     text = json2csv.text(tweet)
     if regex.search(text):
-        print(line)
+        print(line, end='')
