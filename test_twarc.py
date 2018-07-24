@@ -119,6 +119,16 @@ def test_track():
     # reconnect to close streaming connection for other tests
     T.connect()
 
+
+def test_keepalive():
+    for event in T.filter(track="abcdefghiklmno", record_keepalive=True):
+        if event == 'keep-alive':
+            break
+
+    # reconnect to close streaming connection for other tests
+    T.connect()
+
+
 def test_follow():
     user_ids = [
         "87818409",    # @guardian
@@ -453,16 +463,16 @@ def test_replies():
     tries = 0
     for top_tweet in T.search(top_hashtag, result_type="popular"):
         logging.info("testing %s" % top_tweet['id_str'])
-        
+
         # get replies to the top tweet
         replies = T.replies(top_tweet)
 
-        # the first tweet should be the base tweet, or the tweet that 
+        # the first tweet should be the base tweet, or the tweet that
         # we are looking for replies to
         me = next(replies)
         assert me['id_str'] == top_tweet['id_str']
 
-        try: 
+        try:
             reply = next(replies)
             assert reply['in_reply_to_status_id_str'] == top_tweet['id_str']
             break
