@@ -40,7 +40,7 @@ class Twarc(object):
                  profile="", protected=False, tweet_mode="extended"):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
-        discover them in the environment or a supplied profile. If no 
+        discover them in the environment or a supplied profile. If no
         profile is indicated the first section of the config files will
         be used.
         """
@@ -192,7 +192,7 @@ class Twarc(object):
 
     def follower_ids(self, user):
         """
-        Returns Twitter user id lists for the specified user's followers. 
+        Returns Twitter user id lists for the specified user's followers.
         A user can be a specific using their screen_name or user_id
         """
         user = str(user)
@@ -244,7 +244,8 @@ class Twarc(object):
             params['cursor'] = user_ids['next_cursor']
 
     @filter_protected
-    def filter(self, track=None, follow=None, locations=None, event=None):
+    def filter(self, track=None, follow=None, locations=None, event=None,
+               record_keepalive=False):
         """
         Returns an iterator for tweets that match a given filter track from
         the livestream of tweets happening right now.
@@ -280,6 +281,8 @@ class Twarc(object):
                         return
                     if not line:
                         logging.info("keep-alive")
+                        if record_keepalive:
+                            yield "keep-alive"
                         continue
                     try:
                         yield json.loads(line.decode())
@@ -310,7 +313,7 @@ class Twarc(object):
                     logging.info("stopping filter")
                     return
 
-    def sample(self, event=None):
+    def sample(self, event=None, record_keepalive=False):
         """
         Returns a small random sample of all public statuses. The Tweets
         returned by the default access level are the same, so if two different
@@ -336,6 +339,8 @@ class Twarc(object):
                         return
                     if line == "":
                         logging.info("keep-alive")
+                        if record_keepalive:
+                            yield "keep-alive"
                         continue
                     try:
                         yield json.loads(line.decode())
@@ -468,12 +473,12 @@ class Twarc(object):
 
     def replies(self, tweet, recursive=False, prune=()):
         """
-        replies returns a generator of tweets that are replies for a given 
+        replies returns a generator of tweets that are replies for a given
         tweet. It includes the original tweet. If you would like to fetch the
         replies to the replies use recursive=True which will do a depth-first
         recursive walk of the replies. It also walk up the reply chain if you
         supply a tweet that is itself a reply to another tweet. You can
-        optionally supply a tuple of tweet ids to ignore during this traversal 
+        optionally supply a tuple of tweet ids to ignore during this traversal
         using the prune parameter.
         """
 
@@ -502,7 +507,7 @@ class Twarc(object):
             else:
                 yield reply
 
-        # if this tweet is itself a reply to another tweet get it and 
+        # if this tweet is itself a reply to another tweet get it and
         # get other potential replies to it
 
         reply_to_id = tweet.get('in_reply_to_status_id_str')
@@ -685,7 +690,7 @@ class Twarc(object):
 
         if not path or not os.path.isfile(path):
             return {}
-        
+
         config = configparser.ConfigParser()
         config.read(self.config)
 
