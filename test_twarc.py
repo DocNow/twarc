@@ -43,6 +43,11 @@ def test_search():
     assert count == 10
 
 
+def test_search_max_pages():
+    tweets = list(T.search('obama', max_pages=1))
+    assert len(tweets) == 100
+
+
 def test_since_id():
     for tweet in T.search('obama'):
         id = tweet['id_str']
@@ -201,6 +206,14 @@ def test_timeline_by_user_id():
 
     for tweet in all_tweets:
         assert tweet['user']['id'] == user_id
+
+
+def test_timeline_max_pages():
+    # looks for recent tweets and checks if tweets are of provided user_id
+    user_id = "87818409"
+
+    first_page = list(T.timeline(user_id=user_id, max_pages=1))
+    assert 0 < len(first_page) <= 200
 
 
 def test_timeline_by_screen_name():
