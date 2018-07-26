@@ -7,6 +7,7 @@ The list is supplied in a file. The file can contain:
 * user ids
 * screen name,user id
 * user id,screen name
+where each appears on a separate line.
 
 When a user id is provided, it will be used. Otherwise, screen name
 will be used.
@@ -26,7 +27,7 @@ def read_user_list_file(user_list_filepath):
 
     with open(user_list_filepath) as f:
         for count, line in enumerate(f):
-            split_line = line.rstrip('\n').split(',')
+            split_line = line.rstrip('\n\r').split(',')
             if _is_header(count, split_line):
                 continue
             if split_line[0].isdigit():
