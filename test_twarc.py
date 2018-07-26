@@ -45,7 +45,9 @@ def test_search():
 
 def test_search_max_pages():
     tweets = list(T.search('obama', max_pages=1))
-    assert len(tweets) == 100
+    assert 0 < len(tweets) <= 100
+    tweets = list(T.search('obama', max_pages=2))
+    assert 100 < len(tweets) <= 200
 
 
 def test_since_id():
@@ -214,6 +216,9 @@ def test_timeline_max_pages():
 
     first_page = list(T.timeline(user_id=user_id, max_pages=1))
     assert 0 < len(first_page) <= 200
+
+    all_pages = list(T.timeline(user_id=user_id))
+    assert len(all_pages) > len(first_page)
 
 
 def test_timeline_by_screen_name():
