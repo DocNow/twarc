@@ -111,6 +111,12 @@ class Twarc(object):
         by the user indicated by the user_id or screen_name parameter.
         Provide a user_id or screen_name.
         """
+
+        if user_id and screen_name:
+            raise ValueError('only user_id or screen_name may be passed')
+        elif not (user_id or screen_name):
+            raise ValueError('one of user_id or screen_name must be passed')
+
         # Strip if screen_name is prefixed with '@'
         if screen_name:
             screen_name = screen_name.lstrip('@')
