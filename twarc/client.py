@@ -109,7 +109,7 @@ class Twarc(object):
 
             for status in statuses:
                 # We've certainly reached the end of new results
-                if status['id_str'] == str(since_id):
+                if since_id is not None and status['id_str'] == str(since_id):
                     reached_end = True
                     break
 
@@ -175,7 +175,7 @@ class Twarc(object):
 
             for status in statuses:
                 # We've certainly reached the end of new results
-                if status['id_str'] == str(since_id):
+                if since_id is not None and status['id_str'] == str(since_id):
                     reached_end = True
                     break
                 # If you request an invalid user_id, you may still get
