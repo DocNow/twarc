@@ -111,10 +111,16 @@ class Twarc(object):
         by the user indicated by the user_id or screen_name parameter.
         Provide a user_id or screen_name.
         """
+
+        if user_id and screen_name:
+            raise ValueError('only user_id or screen_name may be passed')
+        elif not (user_id or screen_name):
+            raise ValueError('one of user_id or screen_name must be passed')
+
         # Strip if screen_name is prefixed with '@'
         if screen_name:
             screen_name = screen_name.lstrip('@')
-        id = screen_name or user_id
+        id = screen_name or str(user_id)
         id_type = "screen_name" if screen_name else "user_id"
         logging.info("starting user timeline for user %s", id)
         url = "https://api.twitter.com/1.1/statuses/user_timeline.json"
@@ -143,8 +149,8 @@ class Twarc(object):
             for status in statuses:
                 # If you request an invalid user_id, you may still get
                 # results so need to check.
-                if not user_id or user_id == status.get("user",
-                                                        {}).get("id_str"):
+                if not user_id or id == status.get("user",
+                                                   {}).get("id_str"):
                     yield status
 
             max_id = str(int(status["id_str"]) - 1)

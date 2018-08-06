@@ -193,6 +193,15 @@ def test_timeline_by_user_id():
     for tweet in T.timeline(user_id=user_id):
         assert tweet['user']['id_str'] == user_id
 
+    # Make sure that passing an int user_id behaves as expected. Issue #235
+    user_id = 87818409
+
+    all_tweets = list(T.timeline(user_id=user_id))
+    assert len(all_tweets)
+
+    for tweet in all_tweets:
+        assert tweet['user']['id'] == user_id
+
 
 def test_timeline_by_screen_name():
     # looks for recent tweets and checks if tweets are of provided screen_name
@@ -200,6 +209,21 @@ def test_timeline_by_screen_name():
 
     for tweet in T.timeline(screen_name=screen_name):
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
+
+
+def test_timeline_arg_handling():
+    # Confirm that only user_id *or* screen_name is valid for timeline
+    screen_name = "guardian"
+    user_id = "87818409"
+
+    with pytest.raises(ValueError):
+        for t in T.timeline(screen_name=None, user_id=None):
+            pass
+
+    with pytest.raises(ValueError):
+        for t in T.timeline(screen_name=screen_name, user_id=user_id):
+            pass
+
 
 def test_timeline_with_since_id():
     count = 0
