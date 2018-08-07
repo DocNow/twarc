@@ -75,7 +75,8 @@ class Twarc(object):
         url = "https://api.twitter.com/1.1/search/tweets.json"
         params = {
             "count": 100,
-            "q": q
+            "q": q,
+            "include_ext_alt_text": 'true'
         }
         if lang is not None:
             params['lang'] = lang
@@ -118,7 +119,7 @@ class Twarc(object):
         id_type = "screen_name" if screen_name else "user_id"
         logging.info("starting user timeline for user %s", id)
         url = "https://api.twitter.com/1.1/statuses/user_timeline.json"
-        params = {"count": 200, id_type: id}
+        params = {"count": 200, id_type: id, "include_ext_alt_text": "true"}
 
         while True:
             if since_id:
@@ -258,7 +259,10 @@ class Twarc(object):
             locations = locations.replace('\\', '')
 
         url = 'https://stream.twitter.com/1.1/statuses/filter.json'
-        params = {"stall_warning": True}
+        params = {
+            "stall_warning": True,
+            "include_ext_alt_text": True
+        }
         if track:
             params["track"] = track
         if follow:
@@ -392,7 +396,10 @@ class Twarc(object):
             ids.append(tweet_id)
             if len(ids) == 100:
                 logging.info("hydrating %s ids", len(ids))
-                resp = self.post(url, data={"id": ','.join(ids)})
+                resp = self.post(url, data={
+                    "id": ','.join(ids),
+                    "include_ext_alt_text": 'true'
+                })
                 tweets = resp.json()
                 tweets.sort(key=lambda t: t['id_str'])
                 for tweet in tweets:
@@ -402,7 +409,10 @@ class Twarc(object):
         # hydrate any remaining ones
         if len(ids) > 0:
             logging.info("hydrating %s", ids)
-            resp = self.post(url, data={"id": ','.join(ids)})
+            resp = self.post(url, data={
+                "id": ','.join(ids),
+                "include_ext_alt_text": 'true'
+            })
             for tweet in resp.json():
                 yield tweet
 
