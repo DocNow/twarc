@@ -122,9 +122,9 @@ def hashtags(t):
 
 def media(t):
     if 'extended_entities' in t and 'media' in t['extended_entities']:
-        return ' '.join([h['expanded_url'] for h in t['extended_entities']['media']])
+        return ' '.join([h['media_url_https'] for h in t['extended_entities']['media']])
     elif 'media' in t['entities']: 
-        return ' '.join([h['expanded_url'] for h in t['entities']['media']])
+        return ' '.join([h['media_url_https'] for h in t['entities']['media']])
     else:
         return None
 
