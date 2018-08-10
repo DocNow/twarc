@@ -25,7 +25,8 @@ generate an access token and access token secret. With these four variables
 in hand you are ready to start using twarc.
 
 1. install [Python](http://python.org/download) (2 or 3)
-2. pip install twarc (if upgrading: pip install --upgrade twarc)
+2. sudo easy_install pip
+3. pip install twarc (if upgrading: pip install --upgrade twarc)
 
 ## Quickstart:
 
