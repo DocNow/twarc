@@ -63,6 +63,7 @@ class Twarc(object):
             self.config = self.default_config()
 
         self.get_keys()
+        self.validate_keys()
 
     @filter_protected
     def search(self, q, max_id=None, since_id=None, lang=None,
@@ -707,6 +708,9 @@ class Twarc(object):
 
         if keys_present:
             try:
+                # Need to explicitly reconnect to confirm the current creds
+                # are used in the session object.
+                self.connect()
                 self.get(url)
             except requests.HTTPError as e:
                 if e.response.status_code == 401:

@@ -539,3 +539,17 @@ def test_extended_compat():
 
     assert 'full_text' in next(T.timeline(screen_name="BarackObama"))
     assert 'text' in next(t_compat.timeline(screen_name="BarackObama"))
+
+
+def test_invalid_credentials():
+    old_consumer_key = T.consumer_key
+    T.consumer_key = None
+
+    with pytest.raises(RuntimeError):
+        T.validate_keys()
+
+    T.consumer_key = 'Definitely not a valid key'
+    with pytest.raises(RuntimeError):
+        T.validate_keys()
+
+    T.consumer_key = old_consumer_key
