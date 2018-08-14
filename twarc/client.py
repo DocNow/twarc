@@ -70,7 +70,7 @@ class Twarc(object):
 
     @filter_protected
     def search(self, q, max_id=None, since_id=None, lang=None,
-               result_type='recent', geocode=None):
+               result_type='recent', geocode=None, max_pages=None):
         """
         Pass in a query with optional max_id, min_id, lang or geocode
         and get back an iterator for decoded tweets. Defaults to recent (i.e.
@@ -91,13 +91,20 @@ class Twarc(object):
         if geocode is not None:
             params['geocode'] = geocode
 
+        retrieved_pages = 0
+        reached_end = False
+
         while True:
             if since_id:
-                params['since_id'] = since_id
+                # Make the since_id inclusive, so we can avoid retrieving
+                # an empty page of results in some cases
+                params['since_id'] = str(int(since_id) - 1)
             if max_id:
                 params['max_id'] = max_id
 
             resp = self.get(url, params=params)
+            retrieved_pages += 1
+
             statuses = resp.json()["statuses"]
 
             if len(statuses) == 0:
@@ -105,12 +112,25 @@ class Twarc(object):
                 break
 
             for status in statuses:
+                # We've certainly reached the end of new results
+                if since_id is not None and status['id_str'] == str(since_id):
+                    reached_end = True
+                    break
+
                 yield status
+
+            if reached_end:
+                logging.info("no new tweets matching %s", params)
+                break
+
+            if max_pages is not None and retrieved_pages == max_pages:
+                logging.info("reached max page limit for %s", params)
+                break
 
             max_id = str(int(status["id_str"]) - 1)
 
     def timeline(self, user_id=None, screen_name=None, max_id=None,
-                 since_id=None):
+                 since_id=None, max_pages=None):
         """
         Returns a collection of the most recent tweets posted
         by the user indicated by the user_id or screen_name parameter.
@@ -131,14 +151,20 @@ class Twarc(object):
         url = "https://api.twitter.com/1.1/statuses/user_timeline.json"
         params = {"count": 200, id_type: id, "include_ext_alt_text": "true"}
 
+        retrieved_pages = 0
+        reached_end = False
+
         while True:
             if since_id:
-                params['since_id'] = since_id
+                # Make the since_id inclusive, so we can avoid retrieving
+                # an empty page of results in some cases
+                params['since_id'] = str(int(since_id) - 1)
             if max_id:
                 params['max_id'] = max_id
 
             try:
                 resp = self.get(url, params=params, allow_404=True)
+                retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
                     logging.info("no timeline available for %s", id)
@@ -152,11 +178,23 @@ class Twarc(object):
                 break
 
             for status in statuses:
+                # We've certainly reached the end of new results
+                if since_id is not None and status['id_str'] == str(since_id):
+                    reached_end = True
+                    break
                 # If you request an invalid user_id, you may still get
                 # results so need to check.
                 if not user_id or id == status.get("user",
                                                    {}).get("id_str"):
                     yield status
+
+            if reached_end:
+                logging.info("no new tweets matching %s", params)
+                break
+
+            if max_pages is not None and retrieved_pages == max_pages:
+                logging.info("reached max page limit for %s", params)
+                break
 
             max_id = str(int(status["id_str"]) - 1)
 
