@@ -37,7 +37,8 @@ class Twarc(object):
     def __init__(self, consumer_key=None, consumer_secret=None,
                  access_token=None, access_token_secret=None,
                  connection_errors=0, http_errors=0, config=None,
-                 profile="", protected=False, tweet_mode="extended"):
+                 profile="", protected=False, tweet_mode="extended",
+                 validate_keys=True):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile. If no
@@ -62,7 +63,10 @@ class Twarc(object):
         else:
             self.config = self.default_config()
 
-        self.check_keys()
+        self.get_keys()
+
+        if validate_keys:
+            self.validate_keys()
 
     @filter_protected
     def search(self, q, max_id=None, since_id=None, lang=None,
@@ -674,7 +678,7 @@ class Twarc(object):
             resource_owner_secret=self.access_token_secret
         )
 
-    def check_keys(self):
+    def get_keys(self):
         """
         Get the Twitter API keys. Order of precedence is command line,
         environment, config file. Return True if all the keys were found
@@ -696,8 +700,28 @@ class Twarc(object):
                                 self.access_token_secret):
             self.load_config()
 
-        return self.consumer_key and self.consumer_secret and \
-               self.access_token and self.access_token_secret
+    def validate_keys(self):
+        """
+        Validate the keys provided are authentic credentials.
+        """
+        url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
+
+        keys_present = self.consumer_key and self.consumer_secret and \
+                       self.access_token and self.access_token_secret
+
+        if keys_present:
+            try:
+                # Need to explicitly reconnect to confirm the current creds
+                # are used in the session object.
+                self.connect()
+                self.get(url)
+            except requests.HTTPError as e:
+                if e.response.status_code == 401:
+                    raise RuntimeError('Invalid credentials provided.')
+                else:
+                    raise e
+        else:
+            raise RuntimeError('Incomplete credentials provided.')
 
     def load_config(self):
         path = self.config

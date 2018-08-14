@@ -432,7 +432,9 @@ def test_connection_error_get(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.get.side_effect = requests.exceptions.ConnectionError
-    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", connection_errors=3)
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token",
+                    "access_token_secret", connection_errors=3,
+                    validate_keys=False)
     with pytest.raises(requests.exceptions.ConnectionError):
         t.get("https://api.twitter.com")
 
@@ -444,7 +446,9 @@ def test_connection_error_post(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.post.side_effect = requests.exceptions.ConnectionError
-    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", connection_errors=2)
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token",
+                    "access_token_secret", connection_errors=2,
+                    validate_keys=False)
     with pytest.raises(requests.exceptions.ConnectionError):
         t.post("https://api.twitter.com")
 
@@ -452,19 +456,22 @@ def test_connection_error_post(oauth1session_class):
 
 
 def test_http_error_sample():
-    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=2)
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token",
+                    "access_token_secret", http_errors=2, validate_keys=False)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.sample())
 
 
 def test_http_error_filter():
-    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=3)
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token",
+                    "access_token_secret", http_errors=3, validate_keys=False)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.filter(track="test"))
 
 
 def test_http_error_timeline():
-    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token", "access_token_secret", http_errors=4)
+    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token",
+                    "access_token_secret", http_errors=4, validate_keys=False)
     with pytest.raises(requests.exceptions.HTTPError):
         next(t.timeline(user_id="test"))
 
@@ -539,3 +546,17 @@ def test_extended_compat():
 
     assert 'full_text' in next(T.timeline(screen_name="BarackObama"))
     assert 'text' in next(t_compat.timeline(screen_name="BarackObama"))
+
+
+def test_invalid_credentials():
+    old_consumer_key = T.consumer_key
+    T.consumer_key = None
+
+    with pytest.raises(RuntimeError):
+        T.validate_keys()
+
+    T.consumer_key = 'Definitely not a valid key'
+    with pytest.raises(RuntimeError):
+        T.validate_keys()
+
+    T.consumer_key = old_consumer_key
