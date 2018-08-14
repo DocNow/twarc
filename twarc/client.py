@@ -37,7 +37,8 @@ class Twarc(object):
     def __init__(self, consumer_key=None, consumer_secret=None,
                  access_token=None, access_token_secret=None,
                  connection_errors=0, http_errors=0, config=None,
-                 profile="", protected=False, tweet_mode="extended"):
+                 profile="", protected=False, tweet_mode="extended",
+                 validate_keys=True):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile. If no
@@ -63,7 +64,9 @@ class Twarc(object):
             self.config = self.default_config()
 
         self.get_keys()
-        self.validate_keys()
+
+        if validate_keys:
+            self.validate_keys()
 
     @filter_protected
     def search(self, q, max_id=None, since_id=None, lang=None,

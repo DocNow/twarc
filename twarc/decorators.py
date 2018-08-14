@@ -15,6 +15,19 @@ def rate_limit(f):
             if resp.status_code == 200:
                 errors = 0
                 return resp
+            elif resp.status_code == 401:
+                # Hack to retain the original exception, but augment it with
+                # additional context for the user to interpret it. In a Python
+                # 3 only future we can raise a new exception of the same type
+                # with a new message from the old error.
+                try:
+                    resp.raise_for_status()
+                except requests.HTTPError as e:
+                    message = "\nThis is a protected or locked account, or" +\
+                              " the credentials provided are no longer valid."
+                    e.args = (e.args[0] + message,) + e.args[1:]
+                    logging.warn("401 Authentication required for %s", resp.url)
+                    raise
             elif resp.status_code == 429:
                 reset = int(resp.headers['x-rate-limit-reset'])
                 now = time.time()
@@ -94,7 +107,7 @@ def catch_gzip_errors(f):
 def interruptible_sleep(t, event=None):
     """
     Sleeps for a specified duration, optionally stopping early for event.
-    
+
     Returns True if interrupted
     """
     logging.info("sleeping %s", t)
@@ -107,7 +120,7 @@ def interruptible_sleep(t, event=None):
 
 def filter_protected(f):
     """
-    filter_protected will filter out protected tweets and users unless 
+    filter_protected will filter out protected tweets and users unless
     explicitly requested not to.
     """
     def new_f(self, *args, **kwargs):
