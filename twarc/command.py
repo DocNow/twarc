@@ -77,6 +77,13 @@ def main():
         print("\nFor example:\n\n    twarc search blacklivesmatter")
         sys.exit(1)
 
+    # Don't validate the keys if the command is "configure"
+    if command == "configure" or args.skip_key_validation:
+        validate_keys = False
+    else:
+        validate_keys = True
+
+
     t = Twarc(
         consumer_key=args.consumer_key,
         consumer_secret=args.consumer_secret,
@@ -87,7 +94,8 @@ def main():
         config=args.config,
         profile=args.profile,
         tweet_mode=args.tweet_mode,
-        protected=args.protected
+        protected=args.protected,
+        validate_keys=validate_keys,
     )
 
     # calls that return tweets
@@ -335,6 +343,8 @@ def get_argparser():
                         help="set output format")
     parser.add_argument("--split", action="store", type=int, default=0,
                         help="used with --output to split into numbered files")
+    parser.add_argument("--skip_key_validation", action="store_true",
+                        help="skip checking keys are valid on startup")
 
     return parser
 
