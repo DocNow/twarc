@@ -18,34 +18,35 @@ Please be careful modifying this script to use more than two threads since it ca
 
 """
 
-import queue
-import threading
-import requests
+import os
+import gzip
+import json
 import time
+import queue
+import hashlib
+import logging
+import sqlite3
+import argparse
+import requests
+import threading
+
 from datetime import timedelta
 from warcio.warcwriter import WARCWriter
 from warcio.statusandheaders import StatusAndHeaders
-import json
-import gzip
-import sqlite3
-import hashlib
-import os
-import logging
-import argparse
 
 q = queue.Queue()
 out_queue = queue.Queue()
 BLOCK_SIZE = 25600
 
 
-class getResource(threading.Thread):
+class GetResource(threading.Thread):
 
     def __init__(self, q):
         threading.Thread.__init__(self)
         self.q = q
         self.rlock = threading.Lock()
         self.out_queue = out_queue
-        self.d = dedup()
+        self.d = Dedup()
 
     def run(self):
         while True:
@@ -65,20 +66,19 @@ class getResource(threading.Thread):
                 continue
 
 
-class write2Warc(threading.Thread):
+class WriteWarc(threading.Thread):
+
     def __init__(self, out_queue, warcfile):
         threading.Thread.__init__(self)
         self.out_queue = out_queue
         self.lock = threading.Lock()
         self.warcfile = warcfile
-        self.dedup = dedup()
+        self.dedup = Dedup()
 
     def run(self):
 
         with open(self.warcfile, 'ab') as output:
-
             while True:
-
                 self.lock.acquire()
                 data = self.out_queue.get()
                 writer = WARCWriter(output, gzip=False)
@@ -94,13 +94,13 @@ class write2Warc(threading.Thread):
                     self.out_queue.task_done()
                     self.lock.release()
                 else:
-                    self.dedup.save(h.hexdigest(),data[2])
+                    self.dedup.save(h.hexdigest(), data[2])
                     record.raw_stream.seek(0)
                     writer.write_record(record)
                     self.out_queue.task_done()
                     self.lock.release()
 
-class dedup:
+class Dedup:
     """
     Stolen from warcprox
     https://github.com/internetarchive/warcprox/blob/master/warcprox/dedup.py
@@ -191,38 +191,44 @@ def parse_binlinks_from_tweet(tweetdict):
         urls.extend(parse_extended_entities(tweetdict["extended_entities"]))
     return urls
 
-
-
-
 def main():
     start = time.time()
-    logging.basicConfig(filename=os.path.join(args.archive_dir, "media_harvest.log"),
-                        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     if not os.path.isdir(args.archive_dir):
         os.mkdir(args.archive_dir)
 
+    logging.basicConfig(
+        filename=os.path.join(args.archive_dir, "media_harvest.log"),
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
     logging.getLogger(__name__)
-    logging.info("Logging media harvest for %s",args.tweet_file)
+    logging.info("Logging media harvest for %s", args.tweet_file)
 
     urls = []
-    d = dedup()
+    d = Dedup(os.path.join(args.archive_dir, 'dedup.db'))
     d.start()
     uniqueUrlCount = 0
     duplicateUrlCount = 0
 
-    with gzip.open(args.tweet_file, 'r') as tweetfile:
-        logging.info("Checking for duplicate urls")
-        for line in tweetfile:
-            tweet = json.loads(line)
-            tweet_urls = parse_binlinks_from_tweet(tweet)
-            for url in tweet_urls:
-                if not url in urls:
-                    urls.append(url)
-                    q.put(url)
-                    uniqueUrlCount +=1
-                else:
-                    duplicateUrlCount += 1
-        logging.info("Found %s total media urls %s unique and %s duplicates", uniqueUrlCount+duplicateUrlCount, uniqueUrlCount,duplicateUrlCount)
+    if args.tweet_file.endswith('.gz'):
+        tweetfile = gzip.open(args.tweet_file, 'r')
+    else:
+        tweetfile = open(args.tweet_file, 'r')
+
+    logging.info("Checking for duplicate urls")
+
+    for line in tweetfile:
+        tweet = json.loads(line)
+        tweet_urls = parse_binlinks_from_tweet(tweet)
+        for url in tweet_urls:
+            if not url in urls:
+                urls.append(url)
+                q.put(url)
+                uniqueUrlCount +=1
+            else:
+                duplicateUrlCount += 1
+
+    logging.info("Found %s total media urls %s unique and %s duplicates", uniqueUrlCount+duplicateUrlCount, uniqueUrlCount, duplicateUrlCount)
 
     threads = int(args.threads)
 
@@ -230,17 +236,17 @@ def main():
         threads = 2
 
     for i in range(threads):
-        t = getResource(q)
+        t = GetResource(q)
         t.setDaemon(True)
         t.start()
 
-    wt = write2Warc(out_queue, os.path.join(args.archive_dir,'warc.warc'))
+    wt = WriteWarc(out_queue, os.path.join(args.archive_dir, 'warc.warc'))
     wt.setDaemon(True)
     wt.start()
 
     q.join()
     out_queue.join()
-    logging.info("Finished media harvest in %s",str(timedelta(seconds=(time.time() - start))))
+    logging.info("Finished media harvest in %s", str(timedelta(seconds=(time.time() - start))))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("archive")
