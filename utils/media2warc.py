@@ -105,8 +105,8 @@ class Dedup:
     Stolen from warcprox
     https://github.com/internetarchive/warcprox/blob/master/warcprox/dedup.py
     """
-    def __init__(self, file='./dedup.db'):
-        self.file = file
+    def __init__(self):
+        self.file = os.path.join(args.archive_dir,'dedup.db')
 
     def start(self):
         conn = sqlite3.connect(self.file)
@@ -205,7 +205,7 @@ def main():
     logging.info("Logging media harvest for %s", args.tweet_file)
 
     urls = []
-    d = Dedup(os.path.join(args.archive_dir, 'dedup.db'))
+    d = Dedup()
     d.start()
     uniqueUrlCount = 0
     duplicateUrlCount = 0
@@ -252,6 +252,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("archive")
     parser.add_argument("tweet_file", action="store", help="a twitter jsonl.gz input file")
     parser.add_argument("archive_dir", action="store", help="a directory where the resulting warc is stored")
-    parser.add_argument("--threads", action="store", default=1, help="Twitter API consumer key")
+    parser.add_argument("--threads", action="store", default=1, help="Number of threads that fetches media resources")
     args = parser.parse_args()
     main()
