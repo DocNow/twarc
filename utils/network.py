@@ -67,7 +67,7 @@ if len(args) != 2:
 
 tweets, output = args
 
-G = networkx.Graph()
+G = networkx.DiGraph()
 
 def add(from_user, from_id, to_user, to_id, type):
     "adds a relation to the graph"
