@@ -12,10 +12,10 @@ def main():
 	except ImportError:
 		from urllib.request import urlopen  # Python 3
 
-	MAX_WORDS = 200
+	MAX_WORDS = 100
 
 	word_counts = {}
-	stop_words = set(["a","able","about","across","after","all","almost","also","am","among","an","and","any","are","as","at","be","because","been","but","by","can","cannot","could","dear","did","do","does","either","else","ever","every","for","from","get","got","had","has","have","he","her","hers","him","his","how","however","i","if","in","into","is","it","its","just","least","let","like","likely","may","me","might","most","must","my","neither","no","nor","not","of","off","often","on","only","or","other","our","own","rather","said","say","says","she","should","since","so","some","than","that","the","their","them","then","there","these","they","this","tis","to","too","twas","us","wants","was","we","were","what","when","where","which","while","who","whom","why","will","with","would","yet","you","your"])
+	stop_words = set(["a","able","about","across","actually","after","against","agreed","all","almost","already","also","am","among","an","and","any","anyone","anyway","are","as","at","be","because","been","being","between","but","by","can","cannot","come","could","dear","did","do","does","either","else","ever","every","for","from","get","getting","got","had","has","have","he","her","here","hers","hey","hi","him","his","how","however","i","i'd","i'll","i'm","if","in","into","is","isnt","isn't","it","its","just","kind","last","latest","least","let","like","likely","look","make","may","me","might","more","most","must","my","neither","new","no","nor","not","now","of","off","often","on","only","or","other","our","out","over","own","part","piece","play","put","putting","rather","real","really","said","say","says","she","should","simply","since","so","some","than","thanks","that","that's","thats","the","their","them","then","there","these","they","they're","this","those","tis","to","too","try","twas","us","use","used","uses","via","wants","was","way","we","well","were","what","when","where","which","while","who","whom","why","will","with","would","yet","you","your","you're","youre"])
 
 	for line in fileinput.input():
 		try:
@@ -25,6 +25,12 @@ def main():
 		for word in text(tweet).split(' '):
 			word = word.lower()
 			word = word.replace(".", "")
+			word = word.replace(",", "")
+			word = word.replace("...", "")
+			word = word.replace("'", "")
+			word = word.replace(":", "")
+			word = word.replace("(", "")
+			word = word.replace(")", "")
 			if len(word) < 3: continue
 			if len(word) > 15: continue
 			if word in stop_words: continue
