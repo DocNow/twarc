@@ -6,10 +6,10 @@ twarc
 *Översättningar: [Engelska], [Portugisiska], [Spanska], [Swahili]*
 
 twarc är ett kommandoradsverktyg twarc och ett Pythonbibliotek för arkivering av Twitter JSON data.
-Varje tweet är representerat som ett JSON-objekt som är [exakt](https://dev.twitter.com/overview/api/tweets) vad som retuneras från Twitters API
+Varje tweet är representerat som ett JSON-objekt som är [exakt](https://dev.twitter.com/overview/api/tweets) vad som returneras från Twitters API
 Tweets lagras som [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line_delimited_JSON).  Twarc hanterar
 Twitter API:ets [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
-åt dig. Förutom att kan samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets. 
+åt dig. Förutom att kunna samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets. 
 
 twarc har utvecklats som en del av [Documenting the Now](http://www.docnow.io) 
 projektet som finiansierades av [Mellon Foundation](https://mellon.org/).
@@ -26,12 +26,12 @@ Med dessa fyra variabler är du redo att börja använda twarc.
 
 ## Snabbstart:
 
-Först måste du tala om för twarc vad dina API-nycklar är och tillåtta åtkomst till ett 
+Först måste du tala om för twarc vad dina API-nycklar är och tillåta åtkomst till ett 
 eller flera twitterkonton:
 
     twarc configure
 
-Prova att söka:
+Prova att köra:
 
     twarc search blacklivesmatter > search.jsonl
 
@@ -99,19 +99,19 @@ Till exempel så samlar detta in tweets och retweets från CNN:
 
     twarc filter --follow 759251 > tweets.jsonl
 
-Du kan också samla in tweets genom att använda koordinater.  Notera: den inledande bindestrecket behöver ignoreras annars kommer det tolkas som en kommandoradsparameter!
+Du kan också samla in tweets genom att använda koordinater.  Notera: det inledande bindestrecket behöver ignoreras, annars kommer det tolkas som en kommandoradsparameter!
 
     twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
 
 Om du kombinerar parametrar så kommer de tolkas som OR 
-Till exemepel så kommer detta samla in tweets som använder blacklivesmatter eller blm hashtaggen och som också postats av användaren CNN: 
+Till exempel så kommer detta samla in tweets som använder blacklivesmatter eller blm hashtaggen och som också postats av användaren CNN: 
 
     twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
 
 ### Sample
 
-Använd `sample` kommandot  för att "lyssna" till Twitters [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API för ett "slumpmässigt" prov av nyligen skapade publika tweets.
+Använd `sample` kommandot för att "lyssna" på Twitters [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API för ett "slumpmässigt" prov av nyligen skapade publika tweets.
 
     twarc sample > tweets.jsonl
 
@@ -127,7 +127,7 @@ Twarc's `hydrate` kommando läser en fil med tweetidentifierare och skriver ut s
 
     twarc hydrate ids.txt > tweets.jsonl
 
-Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) uppmuntrar inte folk att tillgängliggöra stora mängder av rå Twitterdata på webben.  
+Twitter APIs [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) uppmuntrar inte folk att tillgängliggöra stora mängder av rå Twitterdata på webben.  
 Datan kan användas för forskning och arkiveras lokalt, men kan inte delas med världen. Twitter tillåter emellertid att identifierare delas, vilket kan vara bra när du vill tillgängliggöra ett dataset. 
 Du kan då använda Twitters API för att *hydrera* datan, eller för att hämta den fulla JSON-objektet för varje identifierare. 
 Detta är särskilt viktigt för [verifiering](https://en.wikipedia.org/wiki/Reproducibility) av forskning på social media.
@@ -153,7 +153,7 @@ Om du vill kan du också använda en fil med användar-id, vilket kan vara anvä
 
     twarc followers deray > follower_ids.txt
 
-Resultatet inkluderar exakt ett användar-id per linje ordnat i omvänd koronologisk ordning, alltså de senaste följarna först. 	
+Resultatet inkluderar exakt ett användar-id per linje ordnat i omvänd kronologisk ordning, alltså de senaste följarna först. 	
 
 
 ### Vänner
@@ -165,7 +165,7 @@ Precis som `followers` kommandot, använder `friends` kommandot Twitters [friend
 ### Trender
 
 `trends` kommandot låter dig hämta information från Twitters API om trendande hashtags. Du måste bifoga en [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifierare (`woeid`) 
-för att precicera vilka trender du är intresserad av. Till exemepel så här kan du hämta de senaste trenderna för St Louis:
+för att precisera vilka trender du är intresserad av. Till exempel kan du hämta de senaste trenderna för St. Louis på det hör viset:
 
     twarc trends 2486982
 
@@ -181,11 +181,11 @@ Om du har en geo-position så kan du använda den istället för `woeid`.
 
     twarc trends 39.9062,-79.4679
 
-Bakom kulliserna så hjälper twarc dig genom Twitters [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) API att hitta närmaste `woeid`.
+Bakom kulisserna så hjälper twarc dig genom Twitters [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) API att hitta närmaste `woeid`.
 
 ### Tidslinje
 
-timeline kommandot använder Twitters [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)  för att samla in de senaste tweetsen skapade av en användare baserat på screen_name.
+`timeline` kommandot använder Twitters [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)  för att samla in de senaste tweetsen skapade av en användare baserat på screen_name.
 
     twarc timeline deray > tweets.jsonl
 
@@ -270,10 +270,9 @@ Om du skapar ett skript som du tycker är bra så får du gärna skicka en pull 
 
 När du samlat in lite tweets kan du skapa en rudimentär vägg av dem:
 
-
     % utils/wall.py tweets.jsonl > tweets.html
 
-Du kan skapa ett ordmoln baserat på tweets du samlat in från NASA:
+Du kan skapa ett ordmoln baserat på tweets du samlat in:
 
     % utils/wordcloud.py tweets.jsonl > wordcloud.html
 
@@ -317,11 +316,11 @@ För att filtrera tweets genom ett GeoJSON-staket (Kräver [Shapely](https://git
     % utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
     % cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
 
-Om du misstänker att du har duplikat i dina tweetinsamlingar kan du deduplicera dem:
+Om du misstänker att du har duplikat i dina tweetinsamlingar kan du ta bort duplikaten:
 
     % utils/deduplicate.py tweets.jsonl > deduped.jsonl
 
-Du kan sortera på ID, vilket är samma sak som att sortera efter tid.
+Du kan sortera efter ID, vilket är samma sak som att sortera efter tid.
 
     % utils/sort_by_id.py tweets.jsonl > sorted.jsonl
 
@@ -343,12 +342,11 @@ Eller lösa förkortade url:er (kräver [unshrtn](https://github.com/edsu/unshrt
 
 När du har löst de förkortade url:erna kan du få en ranklista över de mest tweetade url:erna:
 
-
     % cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
 
 ## twarc-report
 
-Ytterligare verktyg för att generera csv eller json lämpad för att använda med 
+Ytterligare verktyg för att generera CSV-filer eller json lämpad för att använda med 
 [D3.js](http://d3js.org/) visualiseringar kan du hitta i 
 [twarc-report](https://github.com/pbinkley/twarc-report) projektet. Verktyget 
  `directed.py`, tidigare en del av twarc, har flyttat till twarc-report som
