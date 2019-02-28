@@ -146,8 +146,7 @@ def test_follow():
         "23484039",    # WSJbreakingnews
         "384438102",   # ABCNewsLive
         "15108702",    # ReutersLive
-        "87416722",    # SkyNewsBreak
-        "2673523800",  # AJELive
+        "87416722"    # SkyNewsBreak
     ]
     found = False
 
