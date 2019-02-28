@@ -146,7 +146,7 @@ def test_follow():
         "23484039",    # WSJbreakingnews
         "384438102",   # ABCNewsLive
         "15108702",    # ReutersLive
-        "87416722"    # SkyNewsBreak
+        "87416722"     # SkyNewsBreak
     ]
     found = False
 
@@ -330,8 +330,7 @@ def test_user_lookup_by_user_id():
         '23484039',    # WSJbreakingnews
         '384438102',   # ABCNewsLive
         '15108702',    # ReutersLive
-        '87416722',    # SkyNewsBreak
-        '2673523800',  # AJELive
+        '87416722'    # SkyNewsBreak
     ]
 
     uids = []
@@ -346,7 +345,7 @@ def test_user_lookup_by_screen_name():
     # looks for the user with given screen_names
     screen_names = ["guardian", "nytimes", "cnnbrk", "BBCBreaking",
                     "washingtonpost", "BuzzFeedNews", "WSJbreakingnews",
-                    "ABCNewsLive", "ReutersLive", "SkyNewsBreak", "AJELive"]
+                    "ABCNewsLive", "ReutersLive", "SkyNewsBreak"]
 
     names = []
 
