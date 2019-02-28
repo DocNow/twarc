@@ -1,29 +1,22 @@
 language: python
-
 branches:
   only:
-    - master
-
+  - master
 python:
-  - '2.7'
-  - '3.6'
-
+- '2.7'
+- '3.6'
 install:
-  - python setup.py install
-
+- python setup.py install
 script:
-  - python setup.py test
-
+- python setup.py test
 after_failure:
-  - cat test.log
-
+- cat test.log
 notifications:
   slack:
     secure: PY7GyhVBacVqytImbrcyKlDY/uVDTtOMMQ8bEDnhbH9XZA7nOD0dXsEffz93tA1ldJd1+0zsnt9itqdk4pYXBMTcZ6uWE5H2j7KIYylQa2A2Sj5GC3/KjrbFGfqMAXYs+rc9rrlqYkwjztu+bnNqTDnq0Y4Pw0YlMs23NT6GlMg=
-
 env:
   global:
-  - secure: lRhbItpFTtdO+YaqTRqXB6LfGIE8h+D7FcSKMbJlgY/wW+reSiecVOq3XvK8QdpasnBwG6aaB1Q2tP1/9nbQPJZPr2235iUqwbyQHU8Fqe46qIAhZ5pK7vmfuXIJBbKiIWU2f4V0fqGxZ/SQgAlZepo9495PxJXqiucUu+4O3Ss=
-  - secure: PO/jIbrrF2cR2n2bzT7gOhlMTdpHOg9yYoBLpw/kgb1iDYjZ7BltI58oJQJAg295xHd1sLeGwcPnGC1QGf04ieL1NpjLxeXvCd9HGVN0QLcX81FUiCgtu65Sy8xkjnW5G8omHor+E2YaN9PftHUJeN5izvt3+c5s6w4iGBMDfL0=
-  - secure: No5Tj/Hvjh+LDFA/hK9QXeoKNtnxYXxWql7A/lM1VJeoOqhgSXNyYjKRrcN83fuaoWLeVKcsZsXt1yOoPk0brpFPLXfKs0nIn9L/Ul9kmyPEa4RfYtCtyjFx3ZIhQaUdTt18qrJF6Iqm1ipy69y3gynsL4xJoQQyc1IrGSM9kUg=
-  - secure: O4PmYWGqutwj1lAAnKjbjdFLwCE6Q5+BzUFmxlW3f4n4Uh9Lv6DJPAriDfjdwBhk/c0m11yrBMpQbStM9uXTLQuvRE3VPWAa8cjFb/4ssW+vPbDkDdn7aXKTd2AX+6JMv/6ND5PbMyycN4d51BSUjbg6sc/FXXQePDr10NWqqTQ=
+  - secure: LnQ/9DvR5tWJ6S5/LjtBGRgabLkgsFSoyhuvaYbJXvP8dMo9r8ZHxZOo5nTiVHpgP+x/OQU2dQrVh1oCzs/5Tv3PkOvSqVcw9Tjsc3VqKelWGuPvF9Ut1Bvd+EPg5BweZ+4HzjBg2GIVxI1EJJ0f/wMCHtokp3FJu5qkSdhrZD0=
+  - secure: B+lxjj4QooAQsvNV14WyqRzbL9u4cnw0WsANSW8lgxE9MRynAgQzg4Mn4KN14DOGuQ7cG/e9H5xQKWk1+JEeuPIT3jjbSoRVE6KEg8Tr0Hx75Vdi8DJc6WoNugYLSV4m5gM1rLP318YhFGtDWUX1e5GaXuN8xsUw8394XHhyDPA=
+  - secure: IdLHln90ogs+WJK0q1j9coH9SVca90FvEXBRG60o/q9de/fQY72UGSWcirJp69cIbAn1BbKiyuH5HANERwOlr+pKRcLDlpre+Ohlo1bKXSQC9Duq00BtnT9auodVNIR/oySZVbrCQsYGw3eSCHdWv4dxmKYieK/Yns2X955u/ak=
+  - secure: AMdu1YG92M0dextcxxwdxiMZ6RCH6Li0WLOgMEumiEoopSkAPnEYTlRoFvvZCo40BUQygnQ+PBoVJFG/PKfkVVucSfBT6AnlQiplc0UElIX55RdribMknwyj8pXEUxSW0Clz9mp00oDqrWx+FRepy5LkSk405L1Skt086IwMExc=
