@@ -227,15 +227,17 @@ def test_timeline_by_screen_name():
     for tweet in T.timeline(screen_name=screen_name):
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
 
+def test_home_timeline():
+    found = False
+    for tweet in T.timeline():
+        found = True
+        break
+    assert found
 
 def test_timeline_arg_handling():
     # Confirm that only user_id *or* screen_name is valid for timeline
     screen_name = "guardian"
     user_id = "87818409"
-
-    with pytest.raises(ValueError):
-        for t in T.timeline(screen_name=None, user_id=None):
-            pass
 
     with pytest.raises(ValueError):
         for t in T.timeline(screen_name=screen_name, user_id=user_id):
