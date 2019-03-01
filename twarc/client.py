@@ -139,8 +139,6 @@ class Twarc(object):
 
         if user_id and screen_name:
             raise ValueError('only user_id or screen_name may be passed')
-        elif not (user_id or screen_name):
-            raise ValueError('one of user_id or screen_name must be passed')
 
         # Strip if screen_name is prefixed with '@'
         if screen_name:
@@ -148,7 +146,12 @@ class Twarc(object):
         id = screen_name or str(user_id)
         id_type = "screen_name" if screen_name else "user_id"
         logging.info("starting user timeline for user %s", id)
-        url = "https://api.twitter.com/1.1/statuses/user_timeline.json"
+
+        if screen_name or user_id:
+            url = "https://api.twitter.com/1.1/statuses/user_timeline.json"
+        else:
+            url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
+
         params = {"count": 200, id_type: id, "include_ext_alt_text": "true"}
 
         retrieved_pages = 0

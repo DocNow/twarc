@@ -142,7 +142,7 @@ def main():
         kwargs = {"max_id": args.max_id, "since_id": args.since_id}
         if re.match('^[0-9]+$', query):
             kwargs["user_id"] = query
-        else:
+        elif query:
             kwargs["screen_name"] = query
         things = t.timeline(**kwargs)
 
