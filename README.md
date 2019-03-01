@@ -27,6 +27,14 @@ in hand you are ready to start using twarc.
 1. install [Python](http://python.org/download) (2 or 3)
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc
 
+### Homebrew (macOS only)
+
+For macOS users, you can install `twarc` via:
+
+```bash
+$ brew install twarc
+```
+
 ## Quickstart:
 
 First you're going to need to tell twarc about your application API keys and
