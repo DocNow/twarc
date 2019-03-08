@@ -82,7 +82,8 @@ def catch_timeout(f):
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
-        except requests.exceptions.ReadTimeout as e:
+        except (requests.exceptions.ReadTimeout,
+                requests.packages.urllib3.exceptions.ReadTimeoutError) as e:
             logging.warn("caught read timeout: %s", e)
             self.connect()
             return f(self, *args, **kwargs)

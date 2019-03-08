@@ -8,6 +8,10 @@ import types
 import logging
 import requests
 
+import ssl
+from requests.exceptions import ConnectionError
+from requests.packages.urllib3.exceptions import ProtocolError
+
 from .decorators import *
 from requests_oauthlib import OAuth1, OAuth1Session
 
@@ -651,7 +655,7 @@ class Twarc(object):
                 time.sleep(1)
                 r = self.get(*args, **kwargs)
             return r
-        except requests.exceptions.ConnectionError as e:
+        except (ssl.SSLError, ConnectionError, ProtocolError) as e:
             connection_error_count += 1
             logging.error("caught connection error %s on %s try", e,
                           connection_error_count)
@@ -682,7 +686,7 @@ class Twarc(object):
             self.last_response = self.client.post(*args, timeout=(3.05, 31),
                                                   **kwargs)
             return self.last_response
-        except requests.exceptions.ConnectionError as e:
+        except (ssl.SSLError, ConnectionError, ProtocolError) as e:
             connection_error_count += 1
             logging.error("caught connection error %s on %s try", e,
                           connection_error_count)
