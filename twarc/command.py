@@ -28,6 +28,8 @@ else:
     str_type = str
     import configparser
 
+log = logging.getLogger('twarc')
+
 
 commands = [
     'configure',
@@ -254,7 +256,7 @@ def main():
         if kind_of == str_type:
             # user or tweet IDs
             print(thing, file=fh)
-            logging.info("archived %s" % thing)
+            log.info("archived %s" % thing)
         elif 'id_str' in thing:
             # tweets and users
             if (args.format == "json"):
@@ -263,7 +265,7 @@ def main():
                 csv_writer.writerow(get_row(thing))
             elif (args.format == "csv-excel"):
                 csv_writer.writerow(get_row(thing, excel=True))
-            logging.info("archived %s", thing['id_str'])
+            log.info("archived %s", thing['id_str'])
         elif 'woeid' in thing:
             # places
             print(json.dumps(thing), file=fh)
@@ -275,13 +277,13 @@ def main():
             t = datetime.datetime.utcfromtimestamp(
                 float(thing['limit']['timestamp_ms']) / 1000)
             t = t.isoformat("T") + "Z"
-            logging.warn("%s tweets undelivered at %s",
+            log.warning("%s tweets undelivered at %s",
                          thing['limit']['track'], t)
             if args.warnings:
                 print(json.dumps(thing), file=fh)
         elif 'warning' in thing:
             # other warnings
-            logging.warn(thing['warning']['message'])
+            log.warning(thing['warning']['message'])
             if args.warnings:
                 print(json.dumps(thing), file=fh)
 

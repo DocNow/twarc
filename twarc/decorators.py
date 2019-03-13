@@ -2,6 +2,9 @@ import time
 import logging
 import requests
 
+log = logging.getLogger('twarc')
+
+
 def rate_limit(f):
     """
     A decorator to handle rate limiting from the Twitter API. If
@@ -26,7 +29,7 @@ def rate_limit(f):
                     message = "\nThis is a protected or locked account, or" +\
                               " the credentials provided are no longer valid."
                     e.args = (e.args[0] + message,) + e.args[1:]
-                    logging.warn("401 Authentication required for %s", resp.url)
+                    log.warning("401 Authentication required for %s", resp.url)
                     raise
             elif resp.status_code == 429:
                 reset = int(resp.headers['x-rate-limit-reset'])
@@ -34,15 +37,15 @@ def rate_limit(f):
                 seconds = reset - now + 10
                 if seconds < 1:
                     seconds = 10
-                logging.warn("rate limit exceeded: sleeping %s secs", seconds)
+                log.warning("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
             elif resp.status_code >= 500:
                 errors += 1
                 if errors > 30:
-                    logging.warn("too many errors from Twitter, giving up")
+                    log.warning("too many errors from Twitter, giving up")
                     resp.raise_for_status()
                 seconds = 60 * errors
-                logging.warn("%s from Twitter API, sleeping %s",
+                log.warning("%s from Twitter API, sleeping %s",
                              resp.status_code, seconds)
                 time.sleep(seconds)
             else:
@@ -67,7 +70,7 @@ def catch_conn_reset(f):
             try:
                 return f(self, *args, **kwargs)
             except ConnectionError as e:
-                logging.warn("caught connection reset error: %s", e)
+                log.warning("caught connection reset error: %s", e)
                 self.connect()
                 return f(self, *args, **kwargs)
         else:
@@ -84,7 +87,7 @@ def catch_timeout(f):
             return f(self, *args, **kwargs)
         except (requests.exceptions.ReadTimeout,
                 requests.packages.urllib3.exceptions.ReadTimeoutError) as e:
-            logging.warn("caught read timeout: %s", e)
+            log.warning("caught read timeout: %s", e)
             self.connect()
             return f(self, *args, **kwargs)
     return new_f
@@ -99,7 +102,7 @@ def catch_gzip_errors(f):
         try:
             return f(self, *args, **kwargs)
         except requests.exceptions.ContentDecodingError as e:
-            logging.warn("caught gzip error: %s", e)
+            log.warning("caught gzip error: %s", e)
             self.connect()
             return f(self, *args, **kwargs)
     return new_f
@@ -111,7 +114,7 @@ def interruptible_sleep(t, event=None):
 
     Returns True if interrupted
     """
-    logging.info("sleeping %s", t)
+    log.info("sleeping %s", t)
 
     if event is None:
         time.sleep(t)
