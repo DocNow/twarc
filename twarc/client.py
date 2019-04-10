@@ -218,7 +218,7 @@ class Twarc(object):
             raise RuntimeError("id_type must be user_id or screen_name")
 
         if not isinstance(ids, types.GeneratorType):
-            iterator = iter(ids)
+            ids = iter(ids)
 
         # TODO: this is similar to hydrate, maybe they could share code?
 
@@ -237,7 +237,7 @@ class Twarc(object):
                 raise e
             return resp.json()
 
-        for id in iterator:
+        for id in ids:
             lookup_ids.append(id.strip())
             if len(lookup_ids) == 100:
                 for u in do_lookup():
@@ -257,7 +257,7 @@ class Twarc(object):
         user = user.lstrip('@')
         url = 'https://api.twitter.com/1.1/followers/ids.json'
 
-        if re.match('^\d+$', user):
+        if re.match(r'^\d+$', user):
             params = {'user_id': user, 'cursor': -1}
         else:
             params = {'screen_name': user, 'cursor': -1}
@@ -283,7 +283,7 @@ class Twarc(object):
         user = user.lstrip('@')
         url = 'https://api.twitter.com/1.1/friends/ids.json'
 
-        if re.match('^\d+$', user):
+        if re.match(r'^\d+$', user):
             params = {'user_id': user, 'cursor': -1}
         else:
             params = {'screen_name': user, 'cursor': -1}
