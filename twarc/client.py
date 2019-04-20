@@ -178,6 +178,9 @@ class Twarc(object):
                 if e.response.status_code == 404:
                     log.info("no timeline available for %s", id)
                     break
+                elif e.response.status_code == 401:
+                    log.info("protected account %s", id)
+                    break
                 raise e
 
             statuses = resp.json()
