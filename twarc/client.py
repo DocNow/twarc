@@ -176,10 +176,10 @@ class Twarc(object):
                 retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
-                    log.info("no timeline available for %s", id)
+                    log.warn("no timeline available for %s", id)
                     break
                 elif e.response.status_code == 401:
-                    log.info("protected account %s", id)
+                    log.warn("protected account %s", id)
                     break
                 raise e
 
