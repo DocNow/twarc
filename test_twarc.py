@@ -487,13 +487,6 @@ def test_http_error_filter():
         next(t.filter(track="test"))
 
 
-def test_http_error_timeline():
-    t = twarc.Twarc("consumer_key", "consumer_secret", "access_token",
-                    "access_token_secret", http_errors=4, validate_keys=False)
-    with pytest.raises(requests.exceptions.HTTPError):
-        next(t.timeline(user_id="test"))
-
-
 def test_retweets():
     assert len(list(T.retweets('795972820413140992'))) == 2
 
