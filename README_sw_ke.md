@@ -9,7 +9,7 @@ twarc ni chombo ya command-line na Python Library ya kuhifadhi Twitter JSON
 data. Kila Tweet ita akilishwa kama kitu ya JSON ita onyeshwa
 [hivi](https://dev.twitter.com/overview/api/tweets) kutoka kwa Twitter API.
 Tweets zita wekwa kama [line-oriented
-JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line_delimited_JSON). Twarc
+JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON). Twarc
 ita kusaidia ku chunga [rate
 limits](https://dev.twitter.com/rest/public/rate-limiting) ya API ya Twitter.
 Twarc pia ita sanya tweets, watumiaji wa Twitter, uwenendo za Twitter na ita

@@ -7,7 +7,7 @@ twarc
 
 twarc är ett kommandoradsverktyg twarc och ett Pythonbibliotek för arkivering av Twitter JSON data.
 Varje tweet är representerat som ett JSON-objekt som är [exakt](https://dev.twitter.com/overview/api/tweets) vad som returneras från Twitters API
-Tweets lagras som [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line_delimited_JSON).  Twarc hanterar
+Tweets lagras som [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  Twarc hanterar
 Twitter API:ets [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
 åt dig. Förutom att kunna samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets. 
 
