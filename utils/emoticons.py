@@ -5,7 +5,6 @@ import json
 import fileinput
 import collections
 
-regex = re.compile(r'\d+(.*?)(?:\u263a|\U0001f645)')
 counts = collections.Counter()
 
 for line in fileinput.input():
@@ -19,5 +18,3 @@ for line in fileinput.input():
 
 for char, count in counts.most_common():
     print("%s %5i" % (char, count))
-
-
