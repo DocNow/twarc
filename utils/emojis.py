@@ -5,8 +5,11 @@ import json
 import fileinput
 import collections
 
-regex = re.compile(r'\d+(.*?)(?:\u263a|\U0001f645)')
+import emoji
+
 counts = collections.Counter()
+
+EMOJI_RE = emoji.get_emoji_regexp()
 
 for line in fileinput.input():
     tweet = json.loads(line)
@@ -14,10 +17,8 @@ for line in fileinput.input():
         text = tweet['full_text']
     else:
         text = tweet['text']
-    for char in re.findall(u'[\U0001f600-\U0001f650]', text):
+    for char in EMOJI_RE.findall(text):
         counts[char] += 1
 
 for char, count in counts.most_common():
     print("%s %5i" % (char, count))
-
-
