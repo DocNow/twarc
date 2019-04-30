@@ -633,6 +633,17 @@ class Twarc(object):
                 yield user
             params['cursor'] = users['next_cursor']
 
+    def oembed(self, tweet_url, hide_media=False):
+        """
+        Returns the oEmbed HTML for a tweet
+        """
+        log.info("generating embedding for tweet %s", tweet_url)
+        url = "https://publish.twitter.com/oembed"
+
+        resp = self.get(url, params={"url": tweet_url, "hide_media": hide_media})
+
+        return resp.json()["html"]
+
     @rate_limit
     @catch_conn_reset
     @catch_timeout
