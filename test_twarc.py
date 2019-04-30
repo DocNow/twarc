@@ -491,6 +491,20 @@ def test_retweets():
     assert len(list(T.retweets('795972820413140992'))) == 2
 
 
+def test_oembed():
+    t = next(T.search('obama'))
+    url = 'https://twitter.com/{}/status/{}'.format(t['user']['screen_name'], t['id_str'])
+    tweet_json = T.oembed(url)
+    assert url == tweet_json['url']
+
+
+def test_oembed_params():
+    t = next(T.search('obama'))
+    url = 'https://twitter.com/{}/status/{}'.format(t['user']['screen_name'], t['id_str'])
+    tweet_json = T.oembed(url, theme="dark")
+    assert 'data-theme="dark"' in tweet_json['html']
+
+
 def test_replies():
     # this test will look at trending hashtags, and do a search
     # to find a popular tweet that uses it, and then makes a
@@ -572,19 +586,6 @@ def test_invalid_credentials():
 
     T.consumer_key = old_consumer_key
 
-
-def test_oembed():
-    t = next(T.search('obama'))
-    url = 'https://twitter.com/{}/status/{}'.format(t['user']['screen_name'], t['id_str'])
-    tweet_json = T.oembed(url)
-    assert url == tweet_json['url']
-
-
-def test_oembed_params():
-    t = next(T.search('obama'))
-    url = 'https://twitter.com/{}/status/{}'.format(t['user']['screen_name'], t['id_str'])
-    tweet_json = T.oembed(url, theme="dark")
-    assert 'data-theme="dark"' in tweet_json['html']
 
 
 
