@@ -633,16 +633,22 @@ class Twarc(object):
                 yield user
             params['cursor'] = users['next_cursor']
 
-    def oembed(self, tweet_url, hide_media=False):
+    def oembed(self, tweet_url, **params):
         """
-        Returns the oEmbed HTML for a tweet
+        Returns the oEmbed JSON for a tweet. The JSON includes an html
+        key that contains the HTML for the embed. You can pass in 
+        parameters that correspond to the paramters that Twitter's
+        statuses/oembed endpoint supports. For example:
+
+        o = client.oembed('https://twitter.com/biz/status/21', theme='dark')
         """
         log.info("generating embedding for tweet %s", tweet_url)
         url = "https://publish.twitter.com/oembed"
 
-        resp = self.get(url, params={"url": tweet_url, "hide_media": hide_media})
+        params['url'] = tweet_url
+        resp = self.get(url, params=params)
 
-        return resp.json()["html"]
+        return resp.json()
 
     @rate_limit
     @catch_conn_reset
