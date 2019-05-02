@@ -60,7 +60,7 @@ def main():
                     logging.warn("error while looking up %s: %s", url, e)
             if meta:
                 ent['oembed'] = meta
-        print(json.dumps(tweet), end='')
+        print(json.dumps(tweet))
 
 
 class OEmbeds:
