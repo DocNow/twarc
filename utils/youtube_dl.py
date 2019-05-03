@@ -27,7 +27,8 @@ ydl_opts = {
     "writeinfojson": True,
     "writesubtitles": True,
     "writeautomaticsub": True,
-    "outtmpl": "youtubedl/%(extractor)s/%(title)s.%(ext)s"
+    "outtmpl": "youtubedl/%(extractor)s/%(title)s.%(ext)s",
+    "download_archive": "youtubedl/archive.txt"
 }
 ydl = youtube_dl.YoutubeDL(ydl_opts)
 
