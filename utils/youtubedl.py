@@ -8,7 +8,7 @@ each video is saved as well as a WebVTT transcript if available. It writes a tab
 mapping of URLs to filenames so that the URLs in tweets can be matched up again
 with the files on disk.
 
-    cat tweet.jsonl | ./youtube_dl.py
+    cat tweet.jsonl | utils/youtubedl.py
 
 """
 
