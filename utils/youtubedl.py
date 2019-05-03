@@ -21,11 +21,11 @@ import youtube_dl
 from youtube_dl.utils import match_filter_func
 
 logging.basicConfig(filename='youtubedl.log', level=logging.INFO)
-logger = logging.getLogger()
+log = logging.getLogger()
 
 ydl_opts = {
     "format": "best",
-    "logger": logger,
+    "logger": log,
     "restrictfilenames": True,
     "ignoreerrors": True,
     "nooverwrites": True,
@@ -40,24 +40,36 @@ ydl_opts = {
 ydl = youtube_dl.YoutubeDL(ydl_opts)
 
 # TODO: configure output directory?
-if not os.path.isdir('youtubedl'):
-    os.mkdir('youtubedl')
+output_dir = 'youtubedl'
+if not os.path.isdir(output_dir):
+    os.mkdir(output_dir)
 
-results = open('youtubedl/results.tsv', 'w')
 seen = set()
+mapping_file = os.path.join(output_dir, 'mapping.tsv')
+
+if os.path.isfile(mapping_file):
+    for line in open(mapping_file):
+        url, path = line.split('\t')
+        log.info('found %s in %s', url, mapping_file)
+        seen.add(url)
+
+results = open(mapping_file, 'a')
 
 for line in sys.stdin:
     tweet = json.loads(line)
-    logger.info('analyzing %s', tweet['id_str'])
+    log.info('analyzing %s', tweet['id_str'])
     for e in tweet['entities']['urls']:
         url = e.get('unshortened_url') or e['expanded_url']
         if url in seen:
-            logging.info('already processed %s', url)
+            log.info('already processed %s', url)
             continue
-        logging.info('processing %s', url)
+        seen.add(url)
+        log.info('processing %s', url)
         info = ydl.extract_info(url, download=True)
         if info:
             filename = ydl.prepare_filename(info)
             ydl.download([url])
             results.write("{}\t{}\n".format(url, filename))
-            seen.add(url)
+        else:
+            results.write("{}\t\n".format(url))
+
