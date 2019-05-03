@@ -12,6 +12,7 @@ with the files on disk.
 
 """
 
+import os
 import sys
 import json
 import logging
@@ -34,6 +35,10 @@ ydl_opts = {
     "download_archive": "youtubedl/archive.txt"
 }
 ydl = youtube_dl.YoutubeDL(ydl_opts)
+
+# TODO: configure output directory?
+if not os.path.isdir('youtubedl'):
+    os.mkdir('youtubedl')
 
 results = open('youtubedl/results.tsv', 'w')
 seen = set()
