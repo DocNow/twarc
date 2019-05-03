@@ -7,16 +7,15 @@ from Twitter itself. In addition to downloading the video a JSON metadata for
 each video is saved as well as a WebVTT transcript if available. It writes a tab separated
 mapping of URLs to filenames so that the URLs in tweets can be matched up again
 with the files on disk.
+
+    cat tweet.jsonl | ./youtube_dl.py
+
 """
 
 import sys
 import json
-import urllib
 import logging
-import fileinput
 import youtube_dl
-
-from urllib.parse import urlparse
 
 logging.basicConfig(filename='youtubedl.log', level=logging.INFO)
 logger = logging.getLogger()
