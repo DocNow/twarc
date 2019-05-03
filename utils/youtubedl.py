@@ -18,6 +18,8 @@ import json
 import logging
 import youtube_dl
 
+from youtube_dl.utils import match_filter_func
+
 logging.basicConfig(filename='youtubedl.log', level=logging.INFO)
 logger = logging.getLogger()
 
@@ -31,6 +33,7 @@ ydl_opts = {
     "writeinfojson": True,
     "writesubtitles": True,
     "writeautomaticsub": True,
+    "matchfilter": match_filter_func("!is_live"),
     "outtmpl": "youtubedl/%(extractor)s/%(id)s/%(title)s.%(ext)s",
     "download_archive": "youtubedl/archive.txt"
 }
