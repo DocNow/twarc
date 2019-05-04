@@ -23,6 +23,11 @@ from youtube_dl.utils import match_filter_func
 logging.basicConfig(filename='youtubedl.log', level=logging.INFO)
 log = logging.getLogger()
 
+# TODO: make these configurable with cli options
+max_downloads = 5
+max_filesize = 100 * 1024 * 1024
+output_dir = 'youtubedl'
+
 ydl_opts = {
     "format": "best",
     "logger": log,
@@ -35,12 +40,11 @@ ydl_opts = {
     "writeautomaticsub": True,
     "matchfilter": match_filter_func("!is_live"),
     "outtmpl": "youtubedl/%(extractor)s/%(id)s/%(title)s.%(ext)s",
-    "download_archive": "youtubedl/archive.txt"
+    "download_archive": "youtubedl/archive.txt",
+    "max_filesize": max_filesize,
+    "max_downloads": max_downloads
 }
-ydl = youtube_dl.YoutubeDL(ydl_opts)
 
-# TODO: configure output directory?
-output_dir = 'youtubedl'
 if not os.path.isdir(output_dir):
     os.mkdir(output_dir)
 
@@ -60,16 +64,22 @@ for line in sys.stdin:
     log.info('analyzing %s', tweet['id_str'])
     for e in tweet['entities']['urls']:
         url = e.get('unshortened_url') or e['expanded_url']
+        if not url:
+            continue
         if url in seen:
             log.info('already processed %s', url)
             continue
         seen.add(url)
         log.info('processing %s', url)
-        info = ydl.extract_info(url, download=True)
-        if info:
-            filename = ydl.prepare_filename(info)
-            ydl.download([url])
+        try:
+            ydl = youtube_dl.YoutubeDL(ydl_opts)
+            info = ydl.extract_info(url)
+            if info:
+                filename = ydl.prepare_filename(info)
+                log.info('downloaded %s as %s', url, filename)
+            else:
+                filename = ""
+                logging.warn("%s doesn't look like a video", url)
             results.write("{}\t{}\n".format(url, filename))
-        else:
-            results.write("{}\t\n".format(url))
-
+        except youtube_dl.utils.MaxDownloadsReached as e:
+            logging.warn('only %s downloads per url allowed', max_downloads)
