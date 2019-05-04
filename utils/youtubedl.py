@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 """
-This utility uses youtube-dl to download any videos in the tweets. Despite its name
-youtube-dl is able to download video from a wide variety of websites, including
-from Twitter itself. In addition to downloading the video a JSON metadata for
-each video is saved as well as a WebVTT transcript if available. It writes a tab separated
-mapping of URLs to filenames so that the URLs in tweets can be matched up again
-with the files on disk.
+This utility uses youtube-dl to download any videos in the supplied tweet JSON
+data. Despite its name youtube-dl is able to download video from a wide variety
+of websites, including from Twitter itself. In addition to downloading the
+video, the JSON metadata for each video, and the WebVTT transcript will be saved
+if they are available. It writes a tab separated mapping of URLs to filenames so
+that the URLs in tweets can be matched up again with the files on disk.
 
     cat tweet.jsonl | utils/youtubedl.py
 
