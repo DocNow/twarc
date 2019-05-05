@@ -1,15 +1,28 @@
 #!/usr/bin/env python3
 
 """
-This utility uses youtube-dl to download any videos in the tweets. Despite its name
-youtube-dl is able to download video from a wide variety of websites, including
-from Twitter itself. In addition to downloading the video a JSON metadata for
-each video is saved as well as a WebVTT transcript if available. It writes a tab separated
-mapping of URLs to filenames so that the URLs in tweets can be matched up again
-with the files on disk.
+usage: youtubedl.py [-h] [--max-downloads MAX_DOWNLOADS]
+                    [--max-filesize MAX_FILESIZE] [--ignore-livestreams]
+                    [--download-dir DOWNLOAD_DIR] [--block BLOCK]
+                    [--timeout TIMEOUT]
+                    files
 
-    cat tweet.jsonl | utils/youtubedl.py
+Download videos in Twitter JSON data.
 
+positional arguments:
+  files                 json files to parse
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --max-downloads MAX_DOWNLOADS
+                        max downloads per URL
+  --max-filesize MAX_FILESIZE
+                        max filesize to download (bytes)
+  --ignore-livestreams  ignore livestreams which may never end
+  --download-dir DOWNLOAD_DIR
+                        directory to download to
+  --block BLOCK         hostnames to block (repeatable)
+  --timeout TIMEOUT     timeout download after n seconds
 """
 
 import os
@@ -26,14 +39,42 @@ from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from youtube_dl.utils import match_filter_func
 
-parser = argparse.ArgumentParser(description='Download videos in Twitter data.')
-parser.add_argument('--max-downloads', type=int, help='max downloads per URL')
-parser.add_argument('--max-filesize', type=int, help='max filesize to download (bytes)')
-parser.add_argument('--ignore-livestreams', action='store_true', default=False)
-parser.add_argument('--download-dir', type=str, help='directory to download to', default='youtubedl')
-parser.add_argument('--block', action='append', help='hostnames to block')
-parser.add_argument('--timeout', type=int, default=0, help='timeout download after n seconds')
+parser = argparse.ArgumentParser(description='Download videos in Twitter JSON data.')
+parser.add_argument(
+    '--max-downloads', 
+    type=int, 
+    help='max downloads per URL')
+
+parser.add_argument(
+    '--max-filesize',
+    type=int,
+    help='max filesize to download (bytes)')
+
+parser.add_argument(
+    '--ignore-livestreams',
+    action='store_true',
+    default=False,
+    help='ignore livestreams which may never end')
+
+parser.add_argument(
+    '--download-dir',
+    type=str,
+    help='directory to download to',
+    default='youtubedl')
+
+parser.add_argument(
+    '--block',
+    action='append',
+    help='hostnames to block (repeatable)')
+
+parser.add_argument(
+    '--timeout',
+    type=int,
+    default=0,
+    help='timeout download after n seconds')
+
 parser.add_argument('files', action='append', help='json files to parse')
+
 args = parser.parse_args()
 
 # make download directory
@@ -57,10 +98,11 @@ ydl_opts = {
     "writeinfojson": True,
     "writesubtitles": True,
     "writeautomaticsub": True,
-    "matchfilter": match_filter_func("!is_live"),
     "outtmpl": "{}/%(extractor)s/%(id)s/%(title)s.%(ext)s".format(download_dir),
     "download_archive": "{}/archive.txt".format(download_dir)
 }
+if args.ignore_livestreams:
+    ydl_opts["matchfilter"] = match_filter_func("!is_live")
 if args.max_downloads:
     ydl_opts['max_downloads'] = args.max_downloads
 if args.max_filesize:
@@ -100,7 +142,7 @@ for line in fileinput.input(args.files):
     tweet = json.loads(line)
     log.info('analyzing %s', tweet['id_str'])
     for e in tweet['entities']['urls']:
-        url = e.get('unshortened_url') || e['expanded_url']
+        url = e.get('unshortened_url') or e['expanded_url']
 
         # see if we can skip this one
         if not url:
