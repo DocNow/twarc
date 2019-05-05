@@ -135,7 +135,7 @@ def download(url, q):
             filename = ""
             logging.warning("%s doesn't look like a video", url)
     except youtube_dl.utils.MaxDownloadsReached as e:
-        logging.warning('only %s downloads per url allowed', max_downloads)
+        logging.warning('only %s downloads per url allowed', args.max_downloads)
 
 # loop through the tweets
 for line in fileinput.input(args.files):
