@@ -62,9 +62,9 @@ ydl_opts = {
     "download_archive": "{}/archive.txt".format(download_dir)
 }
 if args.max_downloads:
-    ydl_opts['max_downloads'] = max_downloads
+    ydl_opts['max_downloads'] = args.max_downloads
 if args.max_filesize:
-    ydl_opts['max_filesize'] = max_filesize
+    ydl_opts['max_filesize'] = args.max_filesize
 
 # keep track of domains to block
 blocklist = []
