@@ -42,7 +42,7 @@ if not os.path.isdir(download_dir):
     os.mkdir(download_dir)
 
 # setup logger
-log_file = "{}/youtube.log".format(download_dir)
+log_file = "{}/youtubedl.log".format(download_dir)
 logging.basicConfig(filename=log_file, level=logging.INFO)
 log = logging.getLogger()
 
@@ -100,7 +100,7 @@ for line in fileinput.input(args.files):
     tweet = json.loads(line)
     log.info('analyzing %s', tweet['id_str'])
     for e in tweet['entities']['urls']:
-        url = e.get('expanded_url')
+        url = e.get('unshortened_url') || e['expanded_url']
 
         # see if we can skip this one
         if not url:
