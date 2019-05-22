@@ -88,7 +88,7 @@ complicated query that searches for tweets containing either the
     twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
 
 Twitter attempts to code the language of a tweet, and you can limit your search
-to a particular language if you want:
+to a particular language if you want using an [ISO 639-1] code:
 
     twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
 
@@ -125,12 +125,25 @@ line argument!
 
     twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
+Use can use the `lang` command line argument to pass in a [ISO 6730-1] language
+code to limit to, and since the filter stream allow you to filter by one more
+languages it is repeatable. So this would collect tweets that mention paris or
+madrid that were made in French or Spanish:
 
-If you combine options they are OR'ed together. For example this will collect
-tweets that use the blacklivesmatter or blm hashtags and also tweets from user
-CNN:
+    twarc filter paris,madrid --lang fr --lang es
+
+If you combine filter and follow options they are OR'ed together. For example
+this will collect tweets that use the blacklivesmatter or blm hashtags and also
+tweets from user CNN:
 
     twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
+
+But combining locations and languages will result effectively in an AND. For
+example this will collect tweets from the greater New York area that are in
+Spanish or French:
+
+    twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
+
 
 ### Sample
 
@@ -389,3 +402,4 @@ Each script can also generate an html demo of a D3 visualization, e.g.
 [Spanish]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [Swedish]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
 [Swahili]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
+[ISO 639-1]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes

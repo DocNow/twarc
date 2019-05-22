@@ -102,11 +102,15 @@ def main():
 
     # calls that return tweets
     if command == "search":
+        if len(args.lang) > 0:
+            lang = args.lang[0]
+        else:
+            lang=None
         things = t.search(
             query,
             since_id=args.since_id,
             max_id=args.max_id,
-            lang=args.lang,
+            lang=lang,
             result_type=args.result_type,
             geocode=args.geocode
         )
@@ -115,7 +119,8 @@ def main():
         things = t.filter(
             track=query,
             follow=args.follow,
-            locations=args.locations
+            locations=args.locations,
+            lang=args.lang
         )
 
     elif command == "dehydrate":
@@ -176,7 +181,7 @@ def main():
 
     elif command == "trends":
         # lookup woeid for geo-coordinate if appropriate
-        geo = re.match('^([0-9\-\.]+),([0-9\-\.]+)$', query)
+        geo = re.match('^([0-9-.]+),([0-9-.]+)$', query)
         if geo:
             lat, lon = map(float, geo.groups())
             if lat > 180 or lat < -180 or lon > 180 or lon < -180:
@@ -323,7 +328,7 @@ def get_argparser():
     parser.add_argument("--result_type", dest="result_type",
                         choices=["mixed", "recent", "popular"],
                         default="recent", help="search result type")
-    parser.add_argument("--lang", dest="lang",
+    parser.add_argument("--lang", dest="lang", action='append',
                         help="limit to ISO 639-1 language code"),
     parser.add_argument("--geocode", dest="geocode",
                         help="limit by latitude,longitude,radius")

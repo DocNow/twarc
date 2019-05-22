@@ -191,6 +191,23 @@ def test_locations():
     # reconnect to close streaming connection for other tests
     T.connect()
 
+def test_languages():
+    count = 0
+    ok = True
+    langs = ['fr', 'es']
+    for tweet in T.filter('paris,madrid', lang=langs):
+        if tweet['lang'] not in langs:
+            ok = False
+            break
+        if count > 25:
+            break
+        count += 1
+
+    assert ok
+
+    # reconnect to close streaming connection for other tests
+    T.connect()
+
 
 def test_timeline_by_user_id():
     # looks for recent tweets and checks if tweets are of provided user_id

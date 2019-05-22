@@ -305,8 +305,8 @@ class Twarc(object):
             params['cursor'] = user_ids['next_cursor']
 
     @filter_protected
-    def filter(self, track=None, follow=None, locations=None, event=None,
-               record_keepalive=False):
+    def filter(self, track=None, follow=None, locations=None, lang=[], 
+               event=None, record_keepalive=False):
         """
         Returns an iterator for tweets that match a given filter track from
         the livestream of tweets happening right now.
@@ -330,6 +330,12 @@ class Twarc(object):
             params["follow"] = follow
         if locations:
             params["locations"] = locations
+        if lang:
+            # should be a list, but just in case
+            if isinstance(lang, list):
+                params['language'] = ','.join(lang)
+            else:
+                params['language'] = lang
         headers = {'accept-encoding': 'deflate, gzip'}
         errors = 0
         while True:
