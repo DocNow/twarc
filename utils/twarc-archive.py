@@ -66,7 +66,7 @@ def main():
     parser.add_argument('-c', '--config',
                         default=config,
                         help="Config file containing Twitter keys and secrets. Overridden by environment config.")
-    parser.add_argument("--tweet_mode", action="store", default="compat",
+    parser.add_argument("--tweet_mode", action="store", default="extended",
                         dest="tweet_mode", choices=["compat", "extended"],
                         help="set tweet mode")
     parser.add_argument("--twarc_command", action="store", default="search", choices=["search", "timeline"],
