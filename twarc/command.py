@@ -328,7 +328,7 @@ def get_argparser():
     parser.add_argument("--result_type", dest="result_type",
                         choices=["mixed", "recent", "popular"],
                         default="recent", help="search result type")
-    parser.add_argument("--lang", dest="lang", action='append',
+    parser.add_argument("--lang", dest="lang", action='append', default=[],
                         help="limit to ISO 639-1 language code"),
     parser.add_argument("--geocode", dest="geocode",
                         help="limit by latitude,longitude,radius")
