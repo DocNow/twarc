@@ -251,7 +251,7 @@ class Twarc(object):
             for u in do_lookup():
                 yield u
 
-    def follower_ids(self, user):
+    def follower_ids(self, user, max_pages=None):
         """
         Returns Twitter user id lists for the specified user's followers.
         A user can be a specific using their screen_name or user_id
@@ -265,9 +265,12 @@ class Twarc(object):
         else:
             params = {'screen_name': user, 'cursor': -1}
 
+        retrieved_pages = 0
+
         while params['cursor'] != 0:
             try:
                 resp = self.get(url, params=params, allow_404=True)
+                retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
                     log.info("no users matching %s", screen_name)
@@ -276,8 +279,12 @@ class Twarc(object):
             for user_id in user_ids['ids']:
                 yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
+            
+            if max_pages is not None and retrieved_pages == max_pages:
+                log.info("reached max follower page limit for %s", params)
+                break
 
-    def friend_ids(self, user):
+    def friend_ids(self, user, max_pages=None):
         """
         Returns Twitter user id lists for the specified user's friend. A user
         can be specified using their screen_name or user_id.
@@ -291,9 +298,12 @@ class Twarc(object):
         else:
             params = {'screen_name': user, 'cursor': -1}
 
+        retrieved_pages = 0
+        
         while params['cursor'] != 0:
             try:
                 resp = self.get(url, params=params, allow_404=True)
+                retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
                     log.error("no users matching %s", user)
@@ -303,6 +313,10 @@ class Twarc(object):
             for user_id in user_ids['ids']:
                 yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
+
+            if max_pages is not None and retrieved_pages == max_pages:
+                log.info("reached max friend page limit for %s", params)
+                break
 
     @filter_protected
     def filter(self, track=None, follow=None, locations=None, lang=[], 
