@@ -28,6 +28,7 @@ You will need to have these environment variables set to run these tests:
 logging.basicConfig(filename="test.log", level=logging.INFO)
 T = twarc.Twarc()
 
+
 def test_version():
     import setup
     assert setup.__version__ == twarc.__version__
@@ -117,6 +118,7 @@ def test_geocode():
 
     assert found
 
+
 def test_track():
     tweet = next(T.filter(track="obama"))
     json_str = json.dumps(tweet)
@@ -191,6 +193,7 @@ def test_locations():
     # reconnect to close streaming connection for other tests
     T.connect()
 
+
 def test_languages():
     count = 0
     ok = True
@@ -244,12 +247,14 @@ def test_timeline_by_screen_name():
     for tweet in T.timeline(screen_name=screen_name):
         assert tweet['user']['screen_name'].lower() == screen_name.lower()
 
+
 def test_home_timeline():
     found = False
     for tweet in T.timeline():
         found = True
         break
     assert found
+
 
 def test_timeline_arg_handling():
     # Confirm that only user_id *or* screen_name is valid for timeline
@@ -318,6 +323,14 @@ def test_follower_ids_with_user_id():
     assert count > 10001
 
 
+def test_follower_ids_max_pages():
+
+    ids = list(T.follower_ids(27260086, max_pages=1))
+    assert 0 < len(ids) <= 5000
+    ids = list(T.follower_ids(27260086, max_pages=2))
+    assert 5000 < len(ids) <= 10000
+
+
 def test_friend_ids():
     count = 0
     for id in T.friend_ids('justinbieber'):
@@ -334,6 +347,14 @@ def test_friend_ids_with_user_id():
         if count > 10001:
             break
     assert count > 10001
+
+
+def test_friend_ids_max_pages():
+
+    ids = list(T.friend_ids(27260086, max_pages=1))
+    assert 0 < len(ids) <= 5000
+    ids = list(T.friend_ids(27260086, max_pages=2))
+    assert 5000 < len(ids) <= 10000
 
 
 def test_user_lookup_by_user_id():
@@ -377,6 +398,7 @@ def test_user_lookup_by_screen_name():
 def test_tweet():
     t = T.tweet("20")
     assert t['full_text'] == 'just setting up my twttr'
+
 
 def test_dehydrate():
     tweets = [
@@ -551,7 +573,7 @@ def test_replies():
             break
 
         except StopIteration:
-            pass # didn't find a reply
+            pass  # didn't find a reply
 
         tries += 1
         if tries > 10:
@@ -602,7 +624,3 @@ def test_invalid_credentials():
         T.validate_keys()
 
     T.consumer_key = old_consumer_key
-
-
-
-
