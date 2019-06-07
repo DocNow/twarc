@@ -1,15 +1,27 @@
 language: python
+
 branches:
   only:
   - master
+
 python:
 - '3.7'
+
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
+
 install:
 - python setup.py install
+
 script:
 - python setup.py test
+
 after_failure:
 - cat test.log
+
 notifications:
   slack:
     secure: PY7GyhVBacVqytImbrcyKlDY/uVDTtOMMQ8bEDnhbH9XZA7nOD0dXsEffz93tA1ldJd1+0zsnt9itqdk4pYXBMTcZ6uWE5H2j7KIYylQa2A2Sj5GC3/KjrbFGfqMAXYs+rc9rrlqYkwjztu+bnNqTDnq0Y4Pw0YlMs23NT6GlMg=
