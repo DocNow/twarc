@@ -50,7 +50,8 @@ def friendships(user_id, level=2):
         for friend_id in t.friend_ids(user_id):
             yield (user_id, friend_id)
             if level > 0:
-                yield from friendships(friend_id, level)
+                for friendship in friendships(friend_id, level):
+                    yield friendship
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 401:
             logging.error("can't get friends for protected user %s", user_id)
