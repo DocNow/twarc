@@ -26,6 +26,7 @@ in hand you are ready to start using twarc.
 
 1. install [Python](http://python.org/download) (2 or 3)
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc
+3. `cd docker && docker-compose up -d && docker exec -it docker_twarc_1 bash`
 
 ### Homebrew (macOS only)
 
