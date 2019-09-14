@@ -102,6 +102,7 @@ def main():
                     consumer_secret=args.consumer_secret,
                     access_token=args.access_token,
                     access_token_secret=args.access_token_secret,
+                    profile=args.profile,
                     config=args.config,
                     tweet_mode=args.tweet_mode)
 
