@@ -681,7 +681,7 @@ class Twarc(object):
         if "params" in kwargs:
             kwargs["params"]["tweet_mode"] = self.tweet_mode
         else:
-            kwargs["params"] = {"tweet_node": self.tweet_mode}
+            kwargs["params"] = {"tweet_mode": self.tweet_mode}
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)
