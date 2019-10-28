@@ -613,7 +613,7 @@ class Twarc(object):
         # if this tweet is a quote go get that too whatever tweets it
         # may be in reply to
 
-        quote_id = tweet.get('quotes_status_id_str')
+        quote_id = tweet.get('quoted_status_id_str')
         if recursive and quote_id and quote_id not in prune:
             t = self.tweet(quote_id)
             if t:
