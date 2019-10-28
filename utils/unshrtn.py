@@ -60,7 +60,7 @@ def rewrite_line(line):
             u = '{}/?{}'.format(unshrtn_url, urllib.parse.urlencode({'url': url}))
             
             resp = None
-            for retry in range(1, retries+1):
+            for retry in range(0, retries):
                 try:
                     resp = json.loads(urllib.request.urlopen(u).read().decode('utf-8'))
                     break

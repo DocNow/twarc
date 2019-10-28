@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Print out the URLs in a tweet json stream.
@@ -12,8 +12,8 @@ for line in fileinput.input():
     tweet = json.loads(line)
     for url in tweet["entities"]["urls"]:
         if 'unshortened_url' in url:
-            print(url['unshortened_url'].encode('utf8'))
+            print(url['unshortened_url'])
         elif url.get('expanded_url'):
-            print(url['expanded_url'].encode('utf8'))
+            print(url['expanded_url'])
         elif url.get('url'):
-            print(url['url'].encode('utf8'))
+            print(url['url'])
