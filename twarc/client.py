@@ -466,7 +466,7 @@ class Twarc(object):
             except Exception as e:
                 log.error("uhoh: %s\n" % e)
 
-    def hydrate(self, iterator):
+    def hydrate(self, iterator, trim_user=False):
         """
         Pass in an iterator of tweet ids and get back an iterator for the
         decoded JSON for each corresponding tweet.
@@ -483,7 +483,8 @@ class Twarc(object):
                 log.info("hydrating %s ids", len(ids))
                 resp = self.post(url, data={
                     "id": ','.join(ids),
-                    "include_ext_alt_text": 'true'
+                    "include_ext_alt_text": 'true',
+                    "trim_user": trim_user
                 })
                 tweets = resp.json()
                 tweets.sort(key=lambda t: t['id_str'])
