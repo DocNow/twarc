@@ -76,7 +76,8 @@ class Twarc(object):
 
     @filter_protected
     def search(self, q, max_id=None, since_id=None, lang=None,
-               result_type='recent', geocode=None, max_pages=None):
+               result_type='recent', geocode=None, max_pages=None,
+               from_date=None, to_date=None):
         """
         Pass in a query with optional max_id, min_id, lang or geocode
         and get back an iterator for decoded tweets. Defaults to recent (i.e.
@@ -88,6 +89,13 @@ class Twarc(object):
             "q": q,
             "include_ext_alt_text": 'true'
         }
+
+        if since_id:
+            # Make the since_id inclusive, so we can avoid retrieving
+            # an empty page of results in some cases
+            params['since_id'] = str(int(since_id) - 1)
+        if max_id:
+            params['max_id'] = max_id
         if lang is not None:
             params['lang'] = lang
         if result_type in ['mixed', 'recent', 'popular']:
@@ -96,18 +104,15 @@ class Twarc(object):
             params['result_type'] = 'recent'
         if geocode is not None:
             params['geocode'] = geocode
+        if from_date is not None:
+            params['fromDate'] = from_date
+        if to_date is not None:
+            params['toDate'] = to_date
 
         retrieved_pages = 0
         reached_end = False
 
         while True:
-            if since_id:
-                # Make the since_id inclusive, so we can avoid retrieving
-                # an empty page of results in some cases
-                params['since_id'] = str(int(since_id) - 1)
-            if max_id:
-                params['max_id'] = max_id
-
             resp = self.get(url, params=params)
             retrieved_pages += 1
 
