@@ -76,12 +76,11 @@ class Twarc(object):
 
     @filter_protected
     def search(self, q, max_id=None, since_id=None, lang=None,
-               result_type='recent', geocode=None, max_pages=None,
-               from_date=None, to_date=None):
+               result_type='recent', geocode=None, max_pages=None):
         """
-        Pass in a query with optional max_id, min_id, lang or geocode
-        and get back an iterator for decoded tweets. Defaults to recent (i.e.
-        not mixed, the API default, or popular) tweets.
+        Pass in a query with optional max_id, min_id, lang, geocode, or
+        max_pages, and get back an iterator for decoded tweets. Defaults to
+        recent (i.e. not mixed, the API default, or popular) tweets.
         """
         url = "https://api.twitter.com/1.1/search/tweets.json"
         params = {
@@ -90,32 +89,32 @@ class Twarc(object):
             "include_ext_alt_text": 'true'
         }
 
+        if lang is not None:
+            params['lang'] = lang
+        if geocode is not None:
+            params['geocode'] = geocode
         if since_id:
             # Make the since_id inclusive, so we can avoid retrieving
             # an empty page of results in some cases
             params['since_id'] = str(int(since_id) - 1)
-        if max_id:
-            params['max_id'] = max_id
-        if lang is not None:
-            params['lang'] = lang
+
         if result_type in ['mixed', 'recent', 'popular']:
             params['result_type'] = result_type
         else:
             params['result_type'] = 'recent'
-        if geocode is not None:
-            params['geocode'] = geocode
-        if from_date is not None:
-            params['fromDate'] = from_date
-        if to_date is not None:
-            params['toDate'] = to_date
 
         retrieved_pages = 0
         reached_end = False
 
         while True:
-            resp = self.get(url, params=params)
-            retrieved_pages += 1
 
+            # note: max_id changes as results are retrieved
+            if max_id:
+                params['max_id'] = max_id
+
+            resp = self.get(url, params=params)
+
+            retrieved_pages += 1
             statuses = resp.json()["statuses"]
 
             if len(statuses) == 0:
