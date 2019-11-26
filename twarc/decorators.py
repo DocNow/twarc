@@ -1,6 +1,9 @@
 import time
 import logging
 import requests
+import configparser
+from itertools import cycle
+
 
 log = logging.getLogger('twarc')
 
@@ -12,6 +15,21 @@ def rate_limit(f):
     issue the API call again.
     """
     def new_f(*args, **kwargs):
+        # The twarc instance
+        self = args[0]
+
+        # Get the credentials
+        config = configparser.ConfigParser()
+        config.read(self.config)
+        useraccounts = config.sections()
+
+        # Create the neverending pool or carousel
+        pool = cycle(useraccounts)
+
+        # If it was note set, then it if the first
+        if self.profile == '':
+            self.profile = next(pool)
+        rate_limit_list = []
         errors = 0
         while True:
             resp = f(*args, **kwargs)
@@ -37,8 +55,17 @@ def rate_limit(f):
                 seconds = reset - now + 10
                 if seconds < 1:
                     seconds = 10
-                log.warning("rate limit exceeded: sleeping %s secs", seconds)
-                time.sleep(seconds)
+                if len(rate_limit_list) > len(useraccounts):
+                    log.warning("Sleeping on {}".format(self.profile))
+                    log.warning("rate limit exceeded: sleeping %s secs", seconds)
+                    time.sleep(seconds)
+                    rate_limit_list = []
+                else:
+                    self.profile = next(pool)
+                    rate_limit_list.append(self.profile)
+                    log.warning("Using {} credentials".format(self.profile))
+                    self.load_config()
+                    self.connect()
             elif resp.status_code >= 500:
                 errors += 1
                 if errors > 30:
