@@ -62,7 +62,7 @@ def main():
     parser.add_argument("--access_token_secret", action="store",
                         default=e('ACCESS_TOKEN_SECRET'),
                         help="Twitter API access token secret")
-    parser.add_argument("--profile", action="store", default="main")
+    parser.add_argument("--profile", action="store", default="")  # Evaluates to False
     parser.add_argument('-c', '--config',
                         default=config,
                         help="Config file containing Twitter keys and secrets. Overridden by environment config.")
