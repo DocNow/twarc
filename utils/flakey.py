@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# This program will read tweet ids (Snowflake IDs) from a file or a piple and 
+# This program will read tweet ids (Snowflake IDs) from a file or a pipe and 
 # write the tweet ids back out again with their extracted creation time 
 # (RFC 3339) as csv.
 #
