@@ -310,81 +310,82 @@ script that you find handy please send a pull request.
 
 When you've got some tweets you can create a rudimentary wall of them:
 
-    % utils/wall.py tweets.jsonl > tweets.html
+    utils/wall.py tweets.jsonl > tweets.html
 
 You can create a word cloud of tweets you collected about nasa:
 
-    % utils/wordcloud.py tweets.jsonl > wordcloud.html
+    utils/wordcloud.py tweets.jsonl > wordcloud.html
 
 If you've collected some tweets using `replies` you can create a static D3
 visualization of them with:
 
-    % utils/network.py tweets.jsonl tweets.html
+    utils/network.py tweets.jsonl tweets.html
 
 Optionally you can consolidate tweets by user, allowing you to see central accounts:
 
-    % utils/network.py --users tweets.jsonl tweets.html
+    utils/network.py --users tweets.jsonl tweets.html
 
 And if you want to use the network graph in a program like [Gephi](https://gephi.org/),
 you can generate a GEXF file with the following:
 
-    % utils/network.py --users tweets.jsonl tweets.gexf
+    utils/network.py --users tweets.jsonl tweets.gexf
 
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that
 look like they were from women, and create a word cloud for them:
 
-    % utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
+    utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py >
+    tweets-female.html
 
 You can output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
 
-    % utils/geojson.py tweets.jsonl > tweets.geojson
+    utils/geojson.py tweets.jsonl > tweets.geojson
 
 Optionally you can export GeoJSON with centroids replacing bounding boxes:
 
-    % utils/geojson.py tweets.jsonl --centroid > tweets.geojson
+    utils/geojson.py tweets.jsonl --centroid > tweets.geojson
 
 And if you do export GeoJSON with centroids, you can add some random fuzzing:
 
-    % utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
+    utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
 
 To filter tweets by presence or absence of geo coordinates (or Place, see [API documentation](https://dev.twitter.com/overview/api/places)):
 
-    % utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
-    % cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
+    utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
+    cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
 
 To filter tweets by a GeoJSON fence (requires [Shapely](https://github.com/Toblerity/Shapely)):
 
-    % utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
-    % cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
+    utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
+    cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
 
 If you suspect you have duplicate in your tweets you can dedupe them:
 
-    % utils/deduplicate.py tweets.jsonl > deduped.jsonl
+    utils/deduplicate.py tweets.jsonl > deduped.jsonl
 
 You can sort by ID, which is analogous to sorting by time:
 
-    % utils/sort_by_id.py tweets.jsonl > sorted.jsonl
+    utils/sort_by_id.py tweets.jsonl > sorted.jsonl
 
 You can filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
 
-    % utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
+    utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
 
 You can get an HTML list of the clients used:
 
-    % utils/source.py tweets.jsonl > sources.html
+    utils/source.py tweets.jsonl > sources.html
 
 If you want to remove the retweets:
 
-    % utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
+    utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
 
 Or unshorten urls (requires [unshrtn](https://github.com/docnow/unshrtn)):
 
-    % cat tweets.jsonl | utils/unshrtn.py > unshortened.jsonl
+    cat tweets.jsonl | utils/unshrtn.py > unshortened.jsonl
 
 Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
 
-    % cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+    cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
 
 ## twarc-report
 
