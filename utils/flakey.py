@@ -11,7 +11,6 @@
 # https://ws-dl.blogspot.com/2019/08/2019-08-03-tweetedat-finding-tweet.html
 #
 
-import sys
 import fileinput
 from datetime import datetime
 
