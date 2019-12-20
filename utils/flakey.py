@@ -18,7 +18,7 @@ from datetime import datetime
 
 def id2time(tweet_id):
     ms = (tweet_id >> 22) + 1288834974657
-    dt = datetime.fromtimestamp(ms // 1000)
+    dt = datetime.utcfromtimestamp(ms // 1000)
     return dt.replace(microsecond=ms % 1000 * 1000)
 
 print('id,created_at')
