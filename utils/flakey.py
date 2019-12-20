@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+
+#
+# This program will read tweet ids from a file or a piple and write the tweet ids 
+# back out again with their extracted creation time (RFC 3339) as csv.
+#
+# usage: flakey.py ids.txt > ids.csv
+#
+
+import csv
+import sys
+import fileinput
+from datetime import datetime
+
+def id2time(tweet_id):
+    ms = (tweet_id >> 22) + 1288834974657
+    dt = datetime.fromtimestamp(ms // 1000)
+    return dt.replace(microsecond=ms % 1000 * 1000)
+
+print('id,created_at')
+for line in fileinput.input():
+    tweet_id = int(line) 
+    created_at = id2time(tweet_id).strftime('%Y-%m-%dT%H:%M:%S.%f')[0:-3] + 'Z'
+    print("{},{}".format(tweet_id, created_at))
