@@ -5,13 +5,12 @@
 # write the tweet ids back out again with their extracted creation time 
 # (RFC 3339) as csv.
 #
-# usage: flakey.py ids.txt > ids.csv
+# usage: flakey.py ids.txt > ids-times.csv
 #
 # For more about Snowflake IDs see:
 # https://ws-dl.blogspot.com/2019/08/2019-08-03-tweetedat-finding-tweet.html
 #
 
-import csv
 import sys
 import fileinput
 from datetime import datetime
