@@ -35,10 +35,10 @@ def main(files, save, force_save, sleep):
 
         if not found and save:
             print('saving {}'.format(url))
-            save(url)
+            savepagenow(url)
         elif force_save:
             print('saving again {}'.format(url))
-            save(url)
+            savepagenow(url)
 
         time.sleep(sleep)
 
@@ -55,7 +55,7 @@ def lookup(url):
             found = timestamp(result['archived_snapshots']['closest']['timestamp'])
     return found
 
-def save(url):
+def savepagenow(url):
     resp = requests.get('https://web.archive.org/save/' + url)
     return resp.status_code == 200
 
