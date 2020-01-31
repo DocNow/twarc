@@ -87,6 +87,12 @@ complicated query that searches for tweets containing either the
 
     twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
 
+You also should definitely check out Igor Brigadir's *excellent* reference guide
+to the Twitter Search syntax: 
+[Advanced Search on Twitter](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md).
+There are lots of hidden gems in there that the advanced search form doesn't
+make readily apparent.
+
 Twitter attempts to code the language of a tweet, and you can limit your search
 to a particular language if you want using an [ISO 639-1] code:
 
