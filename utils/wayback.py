@@ -33,12 +33,12 @@ def main(files, save, force_save, sleep):
         else:
             print('{} not archived'.format(url))
 
-        if not found and save:
-            print('saving {}'.format(url))
-            savepagenow(url)
-        elif force_save:
-            print('saving again {}'.format(url))
-            savepagenow(url)
+        if (not found and save) or force_save:
+            archive_url = savepagenow(url)
+            if archive_url:
+                print('saved {} as {}'.format(url, archive_url))
+            else:
+                print('save failed for {}'.format(url))
 
         time.sleep(sleep)
 
@@ -57,7 +57,12 @@ def lookup(url):
 
 def savepagenow(url):
     resp = requests.get('https://web.archive.org/save/' + url)
-    return resp.status_code == 200
+    if resp.status_code != 200 or 'content-location' not in resp.headers:
+        return False
+    return 'https://web.archive.org' + resp.headers['content-location']
+
+    
+
 
 def timestamp(s):
     m = re.match(r'^(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$', s)
