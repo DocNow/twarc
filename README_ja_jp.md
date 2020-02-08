@@ -3,244 +3,313 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*翻訳: [日本語], [ポルトガル語], [スペイン語], [スワヒリ語], [スウェーデン語]*
+*翻訳: [英語], [ポルトガル語], [スペイン語], [スワヒリ語], [スウェーデン語]*
 
-TwarcはTwitterのJSONデータをアーカイブするためのコマンドラインツール及びPythonライブラリです。
-各ツイートは、Twitter APIから返された内容を[正確に](https://dev.twitter.com/overview/api/tweets)表すJSONオブジェクトとして表されます。
-またツイートは[line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON)として保存されます。
-TwarcはTwitter APIの[レート制限](https://dev.twitter.com/rest/public/rate-limiting)をあなたのために処理します。
-ツイートの収集に加え、Twarcはユーザーやトレンド、ツイートIDの詳細な情報の収集(ハイドレート)にも役立ちます。
+TwarcはTwitterのJSONデータをアーカイブするためのコマンドラインツール及びPythonライブラリです.
 
-Twarcは[Mellon Foundation](https://mellon.org/)によって援助された[Documenting the Now](http://www.docnow.io)プロジェクトの一環として開発されました。
+- 各ツイートは, Twitter APIから返された内容を[正確に](https://dev.twitter.com/overview/api/tweets)表すJSONオブジェクトとして表されます.  
+- ツイートは[line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON)として保存されます.
+- Twarcは, Twitter APIの[レート制限](https://dev.twitter.com/rest/public/rate-limiting)をあなたのために処理します.
+- ツイートの収集に加え, Twarcはユーザーやトレンド, ツイートIDの詳細な情報の収集(ハイドレート)にも役立ちます.
 
-## インストール
+Twarcは[Mellon Foundation](https://mellon.org/)によって援助された[Documenting the Now](http://www.docnow.io)プロジェクトの一環として開発されました.
 
-Twarkを使う前に[apps.twitter.com](http://apps.twitter.com)にあなたのアプリケーションを登録する必要があります。
-登録したら、コンシューマーキーとその秘密鍵を控えておき、「アクセストークンとその秘密鍵を生成する」をクリックしてください。
-これら4つが手元に揃えば、Twarcを使い始める準備は完璧です。
+## Install | インストール
+
+Twarkを使う前に[Twitter Developers](http://apps.twitter.com)にあなたのアプリケーションを登録する必要があります.
+
+登録したら, コンシューマーキーとその秘密鍵を控えておきます.  
+そして「Create my access token」をクリックして、アクセストークンと秘密鍵を生成して控えておいてください.  
+これら4つの鍵が手元に揃えば, Twarcを使い始める準備は完了です.
 
 1. [Python](http://python.org/download)をインストールする (Varsion2か3)
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarcする
 
 ### Homebrew(Linuxbrew)
 
-`twarc`は以下によってインストールできます。
+`twarc`は以下によってインストールできます.
 
 ```bash
-$ brew install twarc
+brew install twarc
 ```
 
-## クイックスタート:Quickstart
+## Quickstart | クイックスタート
 
-まず初めにアプリケーションのAPIキーをTwarcに教え、1つ以上のTwitterアカウントへのアクセスを許可する必要があります。
+まず初めに, アプリケーションのAPIキーをTwarcに教え, 1つ以上のTwitterアカウントへのアクセスを許可する必要があります.
 
-    twarc configure
+```bash
+twarc configure
+```
 
-検索を試してみましょう。
+検索を試してみましょう.
 
-    twarc search blacklivesmatter > search.jsonl
+```bash
+twarc search blacklivesmatter > search.jsonl
+```
 
-または、呟かれたツイートを収集したいですか？
+または, 呟かれたツイートを収集したいですか？
 
-    twarc filter blacklivesmatter > stream.jsonl
+```bash
+twarc filter blacklivesmatter > stream.jsonl
+```
 
-コマンドなどの詳細については、以下を参照してください。
+コマンドなどの詳細については, 以下を参照してください.
 
-## 用法
+## Usage | 用法
 
 ### Configure | 設定
 
-`configure`コマンドで、取得したアプリケーションキーをTwarcに教えることができます。
+`configure`コマンドで, 取得したアプリケーションキーをTwarcに教えることができます.
 
-    twarc configure
+```bash
+twarc configure
+```
 
-これにより、ホームディレクトリの`.twarc`というファイルに資格情報が保存されるため、常に入力し続ける必要はありません。
-直接指定したい場合は、環境変数(`CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`)か、コマンドラインオプション(`--consumer_key`, `--consumer_secret`, `--access_token`, `--access_token_secret`)を使用してください。
+これにより, ホームディレクトリの`.twarc`というファイルに資格情報が保存されるため, 常に入力し続ける必要はありません.
+
+直接指定したい場合は, 環境変数(`CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`)か, コマンドラインオプション(`--consumer_key`, `--consumer_secret`, `--access_token`, `--access_token_secret`)を使用してください.
 
 ### Search | 検索
 
-検索には、与えられたクエリに適合する*既存の*ツイートをダウンロードするために、Twitterの[search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) APIを使います。
+検索には, 与えられたクエリに適合する*既存の*ツイートをダウンロードするために, Twitterの[search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) APIを使います.
 
-    twarc search blacklivesmatter > tweets.jsonl
+```bash
+twarc search blacklivesmatter > tweets.jsonl
+```
 
-ここで重要なのは、`search`コマンドがTwitter検索APIの課す7日間以内の期限中から見つかったツイートを返すということです。
-短い期間だと思うのなら(まあそれはそうですが)、以下の`filter`コマンドや`sample`コマンドを使って収集してみると面白いかもしれません。
+ここで重要なのは, `search`コマンドがTwitter検索APIの課す7日間以内の期限中から見つかったツイートを返すということです.  
+もし期限が「短すぎる」と思うのなら(まあそれはそうですが), 以下の`filter`コマンドや`sample`コマンドを使って収集してみると面白いかもしれません.
 
-Twitterの検索構文についてよく知るための最良の方法は[Twitter's Advanced Search](https://twitter.com/search-advanced)で試してみて、検索窓からクエリ文の結果をコピペすることです。
-例えば以下の例は、@derayに送信された、ハッシュタグが#blacklivesmatterか#blmかの一方を含むツイートを検索する複雑なクエリです。
+Twitterの検索構文についてよく知るためのベストプラクティスは, [Twitter's Advanced Search](https://twitter.com/search-advanced)で試してみて, 検索窓からクエリ文の結果をコピペすることです.
 
-    twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
+例えば以下の例は, `@deray`に送信された, ハッシュタグ`#blacklivesmatter`か`#blm`かの一方を含むツイートを検索する複雑なクエリです.
 
-また、Igor Brigadirの*素晴らしい*Twitter検索構文のリファレンスを絶対にチェックしておくべきです。（[Advanced Search on Twitter](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md)）
-高度な検索フォームには、すぐにはみつからない隠れた宝石がたくさんあります。
+```bash
+twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
+```
 
-Twitterはツイートの言語をコーディングしようとします。[ISO 639-1]コードを使用すれば、特定の言語に検索を制限できます。
+また, [Igor Brigadir](https://github.com/igorbrigadir)の*素晴らしい*Twitter検索構文のリファレンスを絶対にチェックしておくべきです.（[Advanced Search on Twitter](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md)）  
+高度な検索フォームには, すぐにはみつからない隠れた宝石がたくさんあります.
 
-    twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
+Twitterはツイートの言語をコーディングしようとします.  [ISO 639-1]コードを使用すれば, 特定の言語に検索を制限できます.
 
-特定の場所でツイートを検索することもできます。
-例えば、ミズーリ州ファーガソンの中心から1マイルの*blacklivesmatter*に言及するツイートなどを検索できます。
+```bash
+twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
+```
 
-    twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+特定の場所でのツイートを検索することもできます.  
+例えば, ミズーリ州ファーガソンの中心から1マイルの`blacklivesmatter`に言及するツイートなどを検索できます.
 
-`--geocode`の使用時に検索クエリが提供されない場合、その場所と半径に関連する全てのツイートを返します。
+```bash
+twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+```
 
-    twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+`--geocode`の使用時に検索クエリが提供されない場合, その場所と半径に関連する全てのツイートを返します.
 
-### フィルタ:Filter
+```bash
+twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+```
 
-`filter`コマンドは、呟かれたツイートを収集するために、Twitterの[statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) APIを使います。
+### Filter | フィルター
 
-    twarc filter blacklivesmatter,blm > tweets.jsonl
+`filter`コマンドは, 呟かれたツイートを収集するために, Twitterの[statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) APIを使います.
 
-ここで注意すべきなのは、Twitterのトラッククエリの構文は、検索APIのクエリとは少し異なるということです。
-そのため、使用しているフィルターオプションの最も良い表現方法については、ドキュメントを参照してください。
+```bash
+twarc filter blacklivesmatter,blm > tweets.jsonl
+```
 
-特定のユーザーIDから呟かれたツイートを収集したい場合は、`follow`引数を使いましょう。
-これにはリツイートも含まれます。
-例えば、これはCNNのツイート及びリツイートを収集します。
+ここで注意すべきなのは, Twitterのトラッククエリの構文は, 検索APIのクエリとは少し異なるということです.  
+そのため, 使用しているフィルターオプションの最も良い表現方法については, ドキュメントを参照してください.
 
-    twarc filter --follow 759251 > tweets.jsonl
+特定のユーザーIDから呟かれたツイートを収集したい場合は, `follow`引数を使いましょう.  
+これにはリツイートも含まれます. 例えば, これは`@CNN`のツイート及びリツイートを収集します.
 
-境界ボックス座標の数値(バウンディングボックス)を用いてツイートを収集することもできます。
-注意: 先頭のダッシュ(`-`)はバウンディングボックス内ではエスケープする必要があります。
-エスケープしないと、コマンドライン引数として解釈されてしまいます！
+```bash
+twarc filter --follow 759251 > tweets.jsonl
+```
 
-    twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
+境界ボックス座標の数値(バウンディングボックス)を用いてツイートを収集することもできます.  
+注意: 先頭のダッシュ(`-`)はバウンディングボックス内ではエスケープする必要があります. エスケープしないと, コマンドライン引数として解釈されてしまいます！
 
-`lang`コマンドライン引数を使用して、制限する[ISO 6730-1]言語コードを渡すことができます。
-フィルターストリームでは、1つ以上の言語でフィルタリングできるため、繰り返し可能です。
-以下は、フランス語またはスペイン語で呟かれた、パリまたはマドリードに言及しているツイートを収集します。
+```bash
+twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
+```
 
-    twarc filter paris,madrid --lang fr --lang es
+`lang`コマンドライン引数を使用して, 検索を制限する[ISO 6730-1]の言語コードを渡すことができます.  
+フィルターストリームでは, 1つ以上の言語でフィルタリングできるため, 繰り返し可能です.  
+以下は, フランス語またはスペイン語で呟かれた, パリまたはマドリードに言及しているツイートを収集します.
 
-フィルタを組み合わせてオプションに続けると、共にORで結がれます。
-例えば、これはハッシュタグ#blacklivesmatterまたは#blmを使用するツイートを収集し、ユーザーCNNからのツイートも収集します。
+```bash
+twarc filter paris,madrid --lang fr --lang es
+```
 
-    twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
+フィルタを組み合わせてオプションの後ろに続けた場合には, それらは共にORで結がれます.  
+例えば, これはハッシュタグ`#blacklivesmatter`または`#blm`を使用するツイート, 及びユーザー`@CNN`からのツイートを収集します.
 
-ただし、場所と言語を組み合わせると、結果的にANDになります。
-例えば、これは、スペイン語またはフランス語で呟かれた、ニューヨークあたりからのツイートを収集します。
+```bash
+twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
+```
 
-    twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
+ただし, 場所と言語を組み合わせると, 結果的にANDになります.  
+例えば, これは, スペイン語またはフランス語で呟かれた, ニューヨークあたりからのツイートを収集します.
 
+```bash
+twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
+```
 
 ### Sample | 抽出
 
-`sample`コマンドは、Twitterの[statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample)APIに直近のパブリックステータスの「無作為」抽出を尋ねるのに使えます。
+`sample`コマンドは, Twitterの[statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) APIに直近のパブリックステータスの「無作為な」抽出を尋ねるのに使えます.
 
-    twarc sample > tweets.jsonl
+```bash
+twarc sample > tweets.jsonl
+```
 
 ### Dehydrate | デハイドレート
 
-`dehydrate`コマンドはツイートのJSONLファイルからidのリストを生成します。
+`dehydrate`コマンドはツイートのJSONLファイルからツイートIDのリストを生成します.
 
-    twarc dehydrate tweets.jsonl > tweet-ids.txt
+```bash
+twarc dehydrate tweets.jsonl > tweet-ids.txt
+```
 
 ### Hydrate | ハイドレート
 
-Twarcの`hydrate`コマンドは、ツイートの識別子のファイルを読み込んで、Twitterの[status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup)APIを用いてそれらのツイートのJSONを書き出します。
+Twarcの`hydrate`コマンドは, ツイートの識別子のファイルを読み込んで, Twitterの[status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) APIを用いてそれらのツイートのJSONを書き出します.
 
-    twarc hydrate ids.txt > tweets.jsonl
+```bash
+twarc hydrate ids.txt > tweets.jsonl
+```
 
-Twitter APIの[利用規約](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)では、人々が大量のTwitterの生データをWeb上で利用可能にすることを制限しています。
-データは調査に使用したり、ローカルで使用するためにアーカイブしたりできますが、世界と共有することはできません。
-Twitterはツイートの識別子ファイルを共有することは許可しておらず、それはツイートのデータセットを利用可能にしたい場合に役立ちます。
-それから、Twitter APIでデータを*ハイドレート*(注:水和)したり、またそれぞれの識別子のフルJSONデータを取得することは許可されています。
-`hydrate`は特に、ソーシャルメディア研究を[検証](https://ja.wikipedia.org/wiki/再現性)するために重要です。
+Twitter APIの[利用規約](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter)では, 人々が大量のTwitterの生データをWeb上で利用可能にすることを制限しています.
 
+- データは調査に使用したり, ローカルで使用するためにアーカイブしたりできますが, 世界と共有することはできません.
+- Twitterはツイートの識別子ファイルを共有することは許可しておらず, それはツイートのデータセットを利用可能にしたい場合に役立ちます.
+- それから, Twitter APIでデータを*ハイドレート*(注:水和)したり, またそれぞれの識別子のフルJSONデータを取得することは許可されています.
+- `hydrate`は特に, ソーシャルメディア研究を[検証](https://ja.wikipedia.org/wiki/再現性)する時に重要となります.
 
 ### Users | ユーザー
 
-`users`コマンドは、与えられたスクリーンネームを持つユーザーのメタデータを返します。
+`users`コマンドは, 与えられたスクリーンネームを持つユーザーのメタデータを返します.
 
-    twarc users deray,Nettaaaaaaaa > users.jsonl
+```bash
+twarc users deray,Nettaaaaaaaa > users.jsonl
+```
 
-またユーザーidも与えることができます。
+またユーザーidも与えることができます.
 
-    twarc users 1232134,1413213 > users.jsonl
+```bash
+twarc users 1232134,1413213 > users.jsonl
+```
 
-また、望むなら以下のようにユーザーidのファイルを使用可能で、`followers`や`friends`といったコマンドを使っているときに有効です。
+また, 望むなら以下のようにユーザーidのファイルを使用可能で, `followers`や`friends`といったコマンドを使っているときに有効です.
 
-    twarc users ids.txt > users.jsonl
+```bash
+twarc users ids.txt > users.jsonl
+```
 
 ### Followers | フォロワー
 
-`followers`コマンドはTwitterの[follower id API](https://dev.twitter.com/rest/reference/get/followers/ids)を用い、引数として指定されたリクエストごとに1つだけのスクリーン名を持つユーザーのフォロワーのユーザーIDを収集します。
+`followers`コマンドは, Twitterの[follower id API](https://dev.twitter.com/rest/reference/get/followers/ids)を用い, 引数として指定されたリクエストごとに1つだけのスクリーン名を持つユーザーのフォロワーのユーザーIDを収集します.
 
-    twarc followers deray > follower_ids.txt
+```bash
+twarc followers deray > follower_ids.txt
+```
 
-結果には、行ごとに1つのユーザーIDが含まれ、その応答順序は逆時系列順、すなわち最新のフォロワーが初めに来ます。
+結果には, 行ごとに1つのユーザーIDが含まれ, その応答順序は逆時系列順, すなわち最新のフォロワーが初めに来ます.
 
 ### Friends | 友達
 
-`followers`コマンドと同じく、`friends`コマンドはTwitterの[friend id API](https://dev.twitter.com/rest/reference/get/friends/ids)を用いて、引数として指定されたリクエストごとに1つだけのスクリーン名を持つユーザーのフレンド(フォロー)ユーザーIDを収集します。
+`followers`コマンドと同じく, `friends`コマンドはTwitterの[friend id API](https://dev.twitter.com/rest/reference/get/friends/ids)を用いて, 引数として指定されたリクエストごとに1つだけのスクリーン名を持つユーザーのフレンド(フォロー)ユーザーIDを収集します.
 
-    twarc friends deray > friend_ids.txt
+```bash
+twarc friends deray > friend_ids.txt
+```
 
 ### Trends | トレンド
 
-その場合には興味のあるトレンドを示す[Where On Earth](https://web.archive.org/web/20180102203025/https://developer.yahoo.com/geo/geoplanet/)識別子(`WOE ID`)を提供する必要があります。
-例としてセントルイスの現在のトレンドを取得するやり方を示します。
+時に, 興味のあるトレンドの地域を示す[Where On Earth](https://web.archive.org/web/20180102203025/https://developer.yahoo.com/geo/geoplanet/)識別子(`WOE ID`)をオプションに与える必要があります.  
+例としてセントルイスの現在のトレンドを取得するやり方を示します.
 
-    twarc trends 2486982
+```bash
+twarc trends 2486982
+```
 
-`WOE ID`に`１`を用いることで、全世界のトレンドが取得されます。
+`WOE ID`に`１`を用いることで, 全世界のトレンドが取得されます.
 
-    twarc trends 1
+```bash
+twarc trends 1
+```
 
-`WOE ID`として何を使用すればよいかわからない場合は、単にそれを省略することでTwitterがトレンドを追跡している全ての場所のリストを取得できます。
+`WOE ID`として何を使用すればよいかわからない場合は, 以下のように`WOE ID`を省略することで, Twitterがトレンドを追跡している全ての場所のリストを取得できます.
 
-    twarc trends
+```bash
+twarc trends
+```
 
-Geolocationがあれば、`WOE ID`の代わりにジオロケーションを使用できます。
+Geolocationがあれば, `WOE ID`の代わりにジオロケーションを使用できます.
 
-    twarc trends 39.9062,-79.4679
+```bash
+twarc trends 39.9062,-79.4679
+```
 
-バックグラウンドでTwarcは、Twitterの[trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) APIを使用して、場所を検索し、最も近い`WOE ID`を見つけます。
+バックグラウンドでTwarcは, Twitterの[trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) APIを使用して, 場所を検索し, 最も近い`WOE ID`を見つけます.
 
 ### Timeline | タイムライン
 
-`timeline`コマンドはTwitterの[user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)を用いて、スクリーンネームで示されるユーザーが投稿した最新のツイートを収集します。
+`timeline`コマンドは, Twitterの[user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline)を用いて, スクリーンネームで示されるユーザーが投稿した最新のツイートを収集します.
 
-    twarc timeline deray > tweets.jsonl
+```bash
+twarc timeline deray > tweets.jsonl
+```
 
-また、ユーザーIDからユーザーを調べることもできます。
+また, ユーザーIDからユーザーを調べることもできます.
 
-    twarc timeline 12345 > tweets.jsonl
+```bash
+twarc timeline 12345 > tweets.jsonl
+```
 
 ### Retweets | リツイート
 
-指定されたツイートIDのリツイートを以下のように取得できます。
+指定されたツイートIDのリツイートを以下のように取得できます.
 
-    twarc retweets 824077910927691778 > retweets.jsonl
+```bash
+twarc retweets 824077910927691778 > retweets.jsonl
+```
 
 ### Replies | 返信
 
-残念ながら、TwitterのAPIは現在、ツイートへの返信の取得をサポートしていません。
-そのため、Twarcは検索APIを使用して近似を行います。
-検索APIは1週間以上前のツイートの取得をサポートしていないために、Twarcは先週までに送信されたツイートに対する返信のみを取得できます。
+残念ながら, TwitterのAPIは現在, ツイートへの返信の取得をサポートしていません.  
+代わりに, Twarcは検索APIを使用してその機能の近似を行います.
 
-特定のツイートへの返信を取得したい場合は以下のようにします。
+Twitterの検索APIは, 1週間以上前のツイートの取得をサポートしていません.  
+そのため, Twarcは先週までに送信されたツイートに対する返信のみを取得できます.
 
-    twarc replies 824077910927691778 > replies.jsonl
+特定のツイートへの返信を取得したい場合は以下のようにします.
 
-`--recursive`オプションを使用すると、返信に対する返信や引用も取得されます。
-検索APIによるレート制限のために、長いスレッドの場合は完了するのに長時間かかる場合があります。
+```bash
+twarc replies 824077910927691778 > replies.jsonl
+```
 
-    twarc replies 824077910927691778 --recursive
+`--recursive`オプションを使用すると, 返信に対する返信や引用も取得されます.  
+検索APIによるレート制限のために, 長いスレッドの場合は完了するのに長時間かかる場合があります.
+
+```bash
+twarc replies 824077910927691778 --recursive
+```
 
 ### Lists | リスト
 
-`listmembers`コマンドとリストURLを用いてリストに載っているユーザーを取得できます。
+`listmembers`コマンドとリストのURLを用いて, リストに載っているユーザーを取得できます.
 
-    twarc listmembers https://twitter.com/edsu/lists/bots
+```bash
+twarc listmembers https://twitter.com/edsu/lists/bots
+```
 
 ## Use as a Library | ライブラリとして用いる
 
-必要に応じてTwarcをライブラリとして用いることで、ツイートを収集できます。
-最初に（Twitterの資格情報を使用して）`Twarc`インスタンスを作成し、
-検索結果の繰り返しや検索結果のフィルタリング、結果の検索を繰り返し処理するのに用いることができます。
+必要に応じてTwarcをライブラリとして用いることで, ツイートを収集できます.
+最初に（Twitterの資格情報を使用して）`Twarc`インスタンスを作成し, 検索結果の繰り返しや検索結果のフィルタリング, または結果の検索などを繰り返し処理するのに用いることができます.
 
 ```python
 from twarc import Twarc
@@ -250,28 +319,28 @@ for tweet in t.search("ferguson"):
     print(tweet["text"])
 ```
 
-キーワードに一致する、新しいツイートのフィルターストリームに対しても同じようにします。
+キーワードに一致する, 新しいツイートのフィルターストリームに対しても同じようにします.
 
 ```python
 for tweet in t.filter(track="ferguson"):
     print(tweet["text"])
 ```
 
-また`location`なら、
+また`location`なら, 
 
 ```python
 for tweet in t.filter(locations="-74,40,-73,41"):
     print(tweet["text"])
 ```
 
-`user id`なら、
+`user id`なら, 
 
 ```python
 for tweet in t.filter(follow='12345,678910'):
     print(tweet["text"])
 ```
 
-同様に、IDのリストまたはジェネレーターを渡すことで、ツイートIDをハイドレートできます。
+同様に, IDのリストまたはジェネレーターを渡すことで, ツイートIDをハイドレートできます.
 
 ```python
 for tweet in t.hydrate(open('ids.txt')):
@@ -280,102 +349,141 @@ for tweet in t.hydrate(open('ids.txt')):
 
 ## Utilities | ユーティリティ
 
-`utils`ディレクトリには、line-oriented JSONを操作するための簡単なコマンドラインユーティリティがいくつかあります。
-例えばアーカイブされたツイートをテキストまたはHTMLとして出力したり、ユーザー名や参照URLなどを抽出したりするものです。
-便利なスクリプトを自作したら、是非プルリクエストをください。
+`utils`ディレクトリには, line-oriented JSONを操作するための簡単なコマンドラインユーティリティがいくつかあります.  
+例えばアーカイブされたツイートをテキストまたはHTMLとして出力したり, ユーザー名や参照URLなどを抽出したりするものです.  
 
-いくつかツイートが手元にある時、それらを用いて初歩的なWallを作成できます。
+便利なスクリプトを自作したら, 是非プルリクエストをください.
 
-    utils/wall.py tweets.jsonl > tweets.html
+いくつかツイートが手元にある時, それらを用いて初歩的なWallを作成できます.
 
-NASAについて収集したツイートのワードクラウドを作成できます。
+```bash
+utils/wall.py tweets.jsonl > tweets.html
+```
 
-    utils/wordcloud.py tweets.jsonl > wordcloud.html
+`NASA`について収集したツイートのワードクラウドを作成できます.
 
-`replies`コマンドを用いていくつかのツイートを収集した場合、それらの静的なD3ビジュアライゼーションを作成できます。
+```bash
+utils/wordcloud.py tweets.jsonl > wordcloud.html
+```
 
-    utils/network.py tweets.jsonl tweets.html
+`replies`コマンドを用いていくつかのツイートを収集した場合, それらの静的な`D3.js`を用いたビジュアライゼーションを作成できます.
 
-必要に応じてユーザーごとにツイートを統合し、その中心のアカウントを表示できます。
+```bash
+utils/network.py tweets.jsonl tweets.html
+```
 
-    utils/network.py --users tweets.jsonl tweets.html
+必要に応じてユーザーごとにツイートを統合し, その中心のアカウントを表示できます.
 
-[Gephi](https://gephi.org/)などのプログラムでネットワークグラフを使用する場合は、
-次のようにGEXFファイルを生成できます。
+```bash
+utils/network.py --users tweets.jsonl tweets.html
+```
 
-    utils/network.py --users tweets.jsonl tweets.gexf
+[Gephi](https://gephi.org/)などのプログラムでネットワークグラフを使用する場合は, 次のようにGEXFファイルを生成できます.
 
-`gender.py`は、著者の性別に関する推測に基づいてツイートをフィルタリングできるフィルターです。
-例えば、女性からのもののように見えるすべてのツイートを除外し、それらの単語クラウドを作成できます。
+```bash
+utils/network.py --users tweets.jsonl tweets.gexf
+```
 
-    utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py >
-    tweets-female.html
+`gender.py`は, 著者の性別に関する推測に基づいてツイートをフィルタリングできるフィルターです.  
+例えば, 女性からのもののように見えるすべてのツイートを除外し, それらの単語クラウドを作成できます.
 
-地理座標が利用可能なツイートから[GeoJSON](http://geojson.org/)を出力できます。
+```bash
+utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
+```
 
-    utils/geojson.py tweets.jsonl > tweets.geojson
+地理座標が利用可能なツイートから[GeoJSON](http://geojson.org/)を出力できます.
 
-必要に応じて、バウンディングボックスを置き換える重心を用いたGeoJSONをできます。
+```bash
+utils/geojson.py tweets.jsonl > tweets.geojson
+```
 
-    utils/geojson.py tweets.jsonl --centroid > tweets.geojson
+必要に応じて, バウンディングボックスを置き換える重心を用いたGeoJSONをできます.
 
-また、重心を用いたGeoJSONをエクスポートする場合に、ランダムファジングを追加することもできます。
+```bash
+utils/geojson.py tweets.jsonl --centroid > tweets.geojson
+```
 
-    utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
+また, 重心を用いたGeoJSONをエクスポートする場合に, ランダムファジングを追加することもできます.
 
-地理座標の有無でツイートをフィルタリングするには、(場所については以下を参照:[API documentation](https://dev.twitter.com/overview/api/places))
+```bash
+utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
+```
 
-    utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
-    cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
+地理座標の有無でツイートをフィルタリングするには, (場所については以下を参照:[API documentation](https://dev.twitter.com/overview/api/places))
 
-GeoJSONのフェンスでツイートをフィルタリングするには、(要:[Shapely](https://github.com/Toblerity/Shapely))
+```bash
+utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
+cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
+```
 
-    utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
-    cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
+GeoJSONのフェンスでツイートをフィルタリングするには, (要:[Shapely](https://github.com/Toblerity/Shapely))
 
-ツイートに重複があると思われる場合は、重複の排除が可能です。
+```bash
+utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
+cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
+```
 
-    utils/deduplicate.py tweets.jsonl > deduped.jsonl
+ツイートに重複があると思われる場合は, 重複の排除が可能です.
 
-ID順ソートできます。これは、時間順ソートに似ています。
+```bash
+utils/deduplicate.py tweets.jsonl > deduped.jsonl
+```
 
-    utils/sort_by_id.py tweets.jsonl > sorted.jsonl
+ID順ソートできます.これは, 時間順ソートに似ています.
 
-特定の日付以前のすべてのツイートを除外できます。
-例えば、以下は関心のあるイベントの前、別のイベントにハッシュタグが使用されていた場合です。
+```bash
+utils/sort_by_id.py tweets.jsonl > sorted.jsonl
+```
 
-    utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
+特定の日付以前のすべてのツイートを除外できます.  
+例えば, 以下は関心のあるイベントの前, 別のイベントにハッシュタグが使用されていた場合です.
 
-使用されているクライアントのHTMLリストを取得できます。
+```bash
+utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
+```
 
-    utils/source.py tweets.jsonl > sources.html
+使用されているクライアントのHTMLリストを取得できます.
 
-リツイートを削除する場合は、
+```bash
+utils/source.py tweets.jsonl > sources.html
+```
 
-    utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
+リツイートを削除する場合は, 
 
-またはURLの短縮を解除したい場合は、(要:[unshrtn](https://github.com/docnow/unshrtn))
+```bash
+utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
+```
 
-    cat tweets.jsonl | utils/unshrtn.py > unshortened.jsonl
+またはURLの短縮を解除したい場合は, (要:[unshrtn](https://github.com/docnow/unshrtn))
 
-URLを短縮すると、最もよくツイートされたURLのランキングリストを取得できます。
+```bash
+cat tweets.jsonl | utils/unshrtn.py > unshortened.jsonl
+```
 
-    cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+URLを短縮すると, 最もよくツイートされたURLのランキングリストを取得できます.
+
+```bash
+cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+```
 
 ## twarc-report
 
-[twarc-report](https://github.com/pbinkley/twarc-report)プロジェクトでは、[D3.js](http://d3js.org/)でのビジュアライゼーションでの使用に適したCSVまたはJSONを生成・出力するユーティリティスクリプトを用意しています。
-以前はTwarcの一部であった`directed.py`は`d3graph.py`としてtwarc-reportプロジェクトに移管しました。
+[twarc-report](https://github.com/pbinkley/twarc-report)プロジェクトでは, [D3.js](http://d3js.org/)でのビジュアライゼーションでの使用に適したCSVまたはJSONを生成・出力するユーティリティスクリプトを用意しています.  
+以前はTwarcの一部であった`directed.py`は`d3graph.py`としてtwarc-reportプロジェクトに移管しました.
 
-またそれぞれのスクリプトは、ビジュアライゼーションのHTMLでのデモを生成できます。例として、
-[タイムライン](https://www.wallandbinkley.com/twarc/bill10/)や
-[リツイートの有向グラフ](https://www.wallandbinkley.com/twarc/bill10/directed-retweets.html)があります。
+またそれぞれのスクリプトは, ビジュアライゼーションのHTMLでのデモを生成できます.
+
+具体例として, 
+  - [タイムライン](https://www.wallandbinkley.com/twarc/bill10/)
+  - [リツイートの有向グラフ](https://www.wallandbinkley.com/twarc/bill10/directed-retweets.html)
+
+があります.
 
 ---
 
 翻訳クレジット: [Haruna]
 
-[日本語]: https://github.com/DocNow/twarc/blob/master/README_ja_jp.md
+[英語]: https://github.com/DocNow/twarc/blob/master/README.md
 [ポルトガル語]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [スペイン語]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [スウェーデン語]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
