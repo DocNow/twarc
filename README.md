@@ -131,7 +131,7 @@ line argument!
 
     twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
-User can use the `lang` command line argument to pass in a [ISO 6730-1] language
+User can use the `lang` command line argument to pass in a [ISO 639-1] language
 code to limit to, and since the filter stream allow you to filter by one more
 languages it is repeatable. So this would collect tweets that mention paris or
 madrid that were made in French or Spanish:
