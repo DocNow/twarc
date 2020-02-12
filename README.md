@@ -3,7 +3,7 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*Translations: [Portuguese], [Spanish], [Swahili], [Swedish]*
+*Translations: [Japanese], [Portuguese], [Spanish], [Swahili], [Swedish]*
 
 twarc is a command line tool and Python library for archiving Twitter JSON data.
 Each tweet is represented as a JSON object that is
@@ -88,7 +88,7 @@ complicated query that searches for tweets containing either the
     twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
 
 You also should definitely check out Igor Brigadir's *excellent* reference guide
-to the Twitter Search syntax: 
+to the Twitter Search syntax:
 [Advanced Search on Twitter](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md).
 There are lots of hidden gems in there that the advanced search form doesn't
 make readily apparent.
@@ -131,7 +131,7 @@ line argument!
 
     twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
-Use can use the `lang` command line argument to pass in a [ISO 6730-1] language
+User can use the `lang` command line argument to pass in a [ISO 639-1] language
 code to limit to, and since the filter stream allow you to filter by one more
 languages it is repeatable. So this would collect tweets that mention paris or
 madrid that were made in French or Spanish:
@@ -203,7 +203,7 @@ Like the `followers` command, the `friends` command will use Twitter's [friend i
 
 ### Trends
 
-The `trends` command lets you retrieve information from Twitter's API about trending hashtags. You need to supply a [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifier (`woeid`) to indicate what trends you are interested in. For example here's how you can get the current trends for St Louis:
+The `trends` command lets you retrieve information from Twitter's API about trending hashtags. You need to supply a [Where On Earth](https://web.archive.org/web/20180102203025/https://developer.yahoo.com/geo/geoplanet/) identifier (`woeid`) to indicate what trends you are interested in. For example here's how you can get the current trends for St Louis:
 
     twarc trends 2486982
 
@@ -405,6 +405,7 @@ Each script can also generate an html demo of a D3 visualization, e.g.
 [timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
+[Japanese]: https://github.com/DocNow/twarc/blob/master/README_ja_jp.md
 [Portuguese]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
 [Spanish]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
 [Swedish]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
