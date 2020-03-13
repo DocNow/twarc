@@ -71,7 +71,7 @@ def get_row(t, excel=False):
       hashtags(t),
       media(t),
       urls(t),
-      get('favorite_count'),
+      favorite_count(t),
       get('in_reply_to_screen_name'),
       get('in_reply_to_status_id'),
       get('in_reply_to_user_id'),
@@ -157,7 +157,12 @@ def retweet_user_id(t):
         return t['retweeted_status']['user']['id_str']
     elif 'quoted_status' in t and t['quoted_status']:
         return t['quoted_status']['user']['id_str']
-
+    
+def favorite_count(t):
+    if 'retweeted_status' in t and t['retweeted_status']:
+        return t['retweeted_status']['favorite_count']
+    else:
+        return t['favorite_count']
 
 def tweet_url(t):
     return "https://twitter.com/%s/status/%s" % (t['user']['screen_name'], t['id_str'])
