@@ -307,6 +307,37 @@ for tweet in t.hydrate(open('ids.txt')):
     print(tweet["text"])
 ```
 
+## User vs App Auth
+
+Twarc will manage handling rate limiting by Twitter. But you should know that
+their rate limiting varies based on the way that you authenticate. The two
+options are User Auth and App Auth. Twarc defaults to using User Auth but you
+can tell it to use App Auth.
+
+Switching to App Auth can be handy in some situations like when you are
+searching tweets, since User Auth can only issue 180 requests every 15 minutes
+(1.6 million tweets per day, but App Auth can issue 450 (4.3 million tweets per
+day).
+
+But be careful, the `statuses/lookup` endpoint used by the hydrate subcommand
+has a rate limit of 900 requests per 15 minutes for User Auth, and 300 request
+per 15 minutes for App Auth. 
+
+If you know what you are doing and want to force App Auth you can use the
+`--app_auth` command line option:
+
+    twarc --app_auth search ferguson > tweets.jsonl
+
+Similarly if you are using Twarc as a library you can:
+
+```python
+from twarc import Twarc
+
+t = Twarc(app_auth=True)
+for tweet in t.search('ferguson'):
+    print(tweet['id_str'])
+```
+
 ## Utilities
 
 In the utils directory there are some simple command line utilities for

@@ -98,6 +98,7 @@ def main():
         tweet_mode=args.tweet_mode,
         protected=args.protected,
         validate_keys=validate_keys,
+        app_auth=args.app_auth
     )
 
     # calls that return tweets
@@ -352,6 +353,9 @@ def get_argparser():
                         help="used with --output to split into numbered files")
     parser.add_argument("--skip_key_validation", action="store_true",
                         help="skip checking keys are valid on startup")
+    parser.add_argument("--app_auth", action="store_true", default=False,
+                        help="run in App Auth mode instead of User Auth")
+                        
 
     return parser
 

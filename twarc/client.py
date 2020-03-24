@@ -13,8 +13,8 @@ from requests.exceptions import ConnectionError
 from requests.packages.urllib3.exceptions import ProtocolError
 
 from .decorators import *
-from requests_oauthlib import OAuth1, OAuth1Session
-
+from requests_oauthlib import OAuth1, OAuth1Session, OAuth2Session
+from oauthlib.oauth2 import BackendApplicationClient
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -44,7 +44,7 @@ class Twarc(object):
                  access_token=None, access_token_secret=None,
                  connection_errors=0, http_errors=0, config=None,
                  profile="", protected=False, tweet_mode="extended",
-                 validate_keys=True):
+                 app_auth=False, validate_keys=True):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile. If no
@@ -63,6 +63,7 @@ class Twarc(object):
         self.last_response = None
         self.tweet_mode = tweet_mode
         self.protected = protected
+        self.app_auth = app_auth
 
         if config:
             self.config = config
@@ -763,12 +764,24 @@ class Twarc(object):
             self.last_response.close()
         log.info("creating http session")
 
-        self.client = OAuth1Session(
-            client_key=self.consumer_key,
-            client_secret=self.consumer_secret,
-            resource_owner_key=self.access_token,
-            resource_owner_secret=self.access_token_secret
-        )
+        if not self.app_auth:
+            logging.info('creating OAuth1 user authentication')
+            self.client = OAuth1Session(
+                client_key=self.consumer_key,
+                client_secret=self.consumer_secret,
+                resource_owner_key=self.access_token,
+                resource_owner_secret=self.access_token_secret
+            )
+        else: 
+            logging.info('creating OAuth2 app authentication')
+            client = BackendApplicationClient(client_id=self.consumer_key)
+            oauth = OAuth2Session(client=client)
+            token = oauth.fetch_token(
+                token_url='https://api.twitter.com/oauth2/token', 
+                client_id=self.consumer_key,
+                client_secret=self.consumer_secret
+            )
+            self.client = oauth
 
     def get_keys(self):
         """
@@ -801,12 +814,17 @@ class Twarc(object):
         keys_present = self.consumer_key and self.consumer_secret and \
                        self.access_token and self.access_token_secret
 
+        if self.app_auth:
+            # no need to validate keys when using OAuth2 App Auth.
+            return True
+
         if keys_present:
             try:
                 # Need to explicitly reconnect to confirm the current creds
                 # are used in the session object.
                 self.connect()
                 self.get(url)
+                return True
             except requests.HTTPError as e:
                 if e.response.status_code == 401:
                     raise RuntimeError('Invalid credentials provided.')
