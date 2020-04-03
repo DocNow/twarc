@@ -1,6 +1,10 @@
 import time
 import logging
-import requests
+
+from requests import HTTPError
+from requests.packages.urllib3.exceptions import ReadTimeoutError
+from requests.exceptions import ChunkedEncodingError, ReadTimeout, \
+                                ContentDecodingError
 
 log = logging.getLogger('twarc')
 
@@ -25,7 +29,7 @@ def rate_limit(f):
                 # with a new message from the old error.
                 try:
                     resp.raise_for_status()
-                except requests.HTTPError as e:
+                except HTTPError as e:
                     message = "\nThis is a protected or locked account, or" +\
                               " the credentials provided are no longer valid."
                     e.args = (e.args[0] + message,) + e.args[1:]
@@ -57,6 +61,7 @@ def catch_conn_reset(f):
     """
     A decorator to handle connection reset errors even ones from pyOpenSSL
     until https://github.com/edsu/twarc/issues/72 is resolved
+    It also handles ChunkedEncodingError which has been observed in the wild.
     """
     try:
         import OpenSSL
@@ -69,7 +74,7 @@ def catch_conn_reset(f):
         if ConnectionError:
             try:
                 return f(self, *args, **kwargs)
-            except ConnectionError as e:
+            except (ConnectionError, ChunkedEncodingError) as e:
                 log.warning("caught connection reset error: %s", e)
                 self.connect()
                 return f(self, *args, **kwargs)
@@ -85,8 +90,7 @@ def catch_timeout(f):
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
-        except (requests.exceptions.ReadTimeout,
-                requests.packages.urllib3.exceptions.ReadTimeoutError) as e:
+        except (ReadTimeout, ReadTimeoutError) as e:
             log.warning("caught read timeout: %s", e)
             self.connect()
             return f(self, *args, **kwargs)
@@ -101,7 +105,7 @@ def catch_gzip_errors(f):
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
-        except requests.exceptions.ContentDecodingError as e:
+        except ContentDecodingError as e:
             log.warning("caught gzip error: %s", e)
             self.connect()
             return f(self, *args, **kwargs)
