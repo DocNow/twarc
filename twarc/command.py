@@ -65,8 +65,11 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    # catch ctrl-c so users don't see a stack trace
-    signal.signal(signal.SIGINT, lambda signal, frame: sys.exit(0))
+    # log and stop when process receives SIGINT
+    def stop(signal, frame):
+        log.warn('process received SIGNT, stopping')
+        sys.exit(0)
+    signal.signal(signal.SIGINT, stop)
 
     if command == "version":
         print("twarc v%s" % __version__)
