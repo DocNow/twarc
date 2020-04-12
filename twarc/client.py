@@ -747,6 +747,7 @@ class Twarc(object):
                 kwargs['connection_error_count'] = connection_error_count
                 return self.post(*args, **kwargs)
 
+    @catch_timeout
     def connect(self):
         """
         Sets up the HTTP session to talk to Twitter. If one is active it is

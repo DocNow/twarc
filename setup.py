@@ -4,7 +4,7 @@ from os.path import join
 from setuptools import setup
 
 # Also in twarc/__init__.py
-__version__ = '1.8.2'
+__version__ = '1.8.3'
 
 with open("README.md") as f:
     long_description = f.read()
