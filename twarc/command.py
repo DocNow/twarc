@@ -49,6 +49,7 @@ commands = [
     'users',
     'listmembers',
     'version',
+    'labs_v1_sample',
 ]
 
 
@@ -148,6 +149,9 @@ def main():
 
     elif command == "sample":
         things = t.sample()
+
+    elif command == "labs_v1_sample":
+        things = t.labs_v1_sample()
 
     elif command == "timeline":
         kwargs = {"max_id": args.max_id, "since_id": args.since_id}
@@ -295,6 +299,9 @@ def main():
             log.warning(thing['warning']['message'])
             if args.warnings:
                 print(json.dumps(thing), file=fh)
+        elif 'data' in thing:
+            # Labs style JSON schema.
+            print(json.dumps(thing), file=fh)
 
 
 def get_argparser():
@@ -358,7 +365,7 @@ def get_argparser():
                         help="skip checking keys are valid on startup")
     parser.add_argument("--app_auth", action="store_true", default=False,
                         help="run in App Auth mode instead of User Auth")
-                        
+
 
     return parser
 
