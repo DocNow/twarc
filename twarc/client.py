@@ -87,7 +87,8 @@ class Twarc(object):
         params = {
             "count": 100,
             "q": q,
-            "include_ext_alt_text": 'true'
+            "include_ext_alt_text": 'true',
+            "include_entities": "true"
         }
 
         if lang is not None:
@@ -489,6 +490,7 @@ class Twarc(object):
                 resp = self.post(url, data={
                     "id": ','.join(ids),
                     "include_ext_alt_text": 'true',
+                    "include_entities": 'true',
                     "trim_user": trim_user
                 })
                 tweets = resp.json()
@@ -502,7 +504,9 @@ class Twarc(object):
             log.info("hydrating %s", ids)
             resp = self.post(url, data={
                 "id": ','.join(ids),
-                "include_ext_alt_text": 'true'
+                "include_ext_alt_text": 'true',
+                "include_entities": 'true',
+                "trim_user": trim_user
             })
             for tweet in resp.json():
                 yield tweet
