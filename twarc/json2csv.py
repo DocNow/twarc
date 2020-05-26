@@ -107,7 +107,15 @@ def clean_str(string):
 
 
 def text(t):
-    return t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']
+    # retweets have the full text in the original tweet
+    if t.get('retweeted_status'):
+        return t['retweeted_status']['full_text']
+    elif 'extended_tweet' in t:
+        return t['extended_tweet']['full_text']
+    elif 'full_text' in t:
+        return t['full_text']
+    else:
+        return t['text']
 
 
 def coordinates(t):

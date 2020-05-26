@@ -14,6 +14,7 @@ from requests_oauthlib import OAuth1Session
 import requests
 
 import twarc
+from twarc import json2csv
 
 """
 
@@ -616,6 +617,19 @@ def test_extended_compat():
     assert 'full_text' in next(T.timeline(screen_name="BarackObama"))
     assert 'text' in next(t_compat.timeline(screen_name="BarackObama"))
 
+def test_csv_retweet():
+    for tweet in T.search('obama'):
+        if 'retweeted_status' in tweet:
+            break
+    text = json2csv.text(tweet)
+    assert not text.startswith('RT @')
+
+def test_truncated_text():
+    for tweet in T.filter('tweet'):
+        if tweet['truncated'] == True:
+            break
+    assert tweet['text'] != tweet['extended_tweet']['full_text']
+    assert json2csv.text(tweet) == tweet['extended_tweet']['full_text']
 
 def test_invalid_credentials():
     old_consumer_key = T.consumer_key
