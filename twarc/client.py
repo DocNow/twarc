@@ -836,7 +836,9 @@ class Twarc(object):
                 else:
                     raise e
         else:
-            raise RuntimeError('Incomplete credentials provided.')
+            print('Incomplete credentials provided.')
+            print('Please run the command "twarc configure" to get started.')
+            sys.exit()
 
     def load_config(self):
         path = self.config
