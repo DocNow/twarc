@@ -668,6 +668,7 @@ def test_labs_v1_sample():
     # reconnect to close streaming connection for other tests
     ta.connect()
 
+@pytest.mark.skipif(os.environ.get('TWITTER_ENV') == None)
 def test_premium_30day_search():
     twitter_env = os.environ['TWITTER_ENV']
     t = twarc.Twarc(app_auth=True)
@@ -684,6 +685,7 @@ def test_premium_30day_search():
     tweet = next(search)
     assert tweet
 
+@pytest.mark.skipif(os.environ.get('TWITTER_ENV') == None)
 def test_premium_fullarchive_search():
     twitter_env = os.environ['TWITTER_ENV']
     from_date = datetime.date(2013, 7, 1)
