@@ -2,8 +2,12 @@ import os
 import re
 import json
 import time
-import logging
+import dotenv
 import pytest
+import logging
+import datetime
+
+dotenv.load_dotenv()
 
 try:
     from unittest.mock import patch, call, MagicMock  # Python 3
@@ -633,10 +637,6 @@ def test_truncated_text():
 
 def test_invalid_credentials():
     old_consumer_key = T.consumer_key
-    T.consumer_key = None
-
-    with pytest.raises(RuntimeError):
-        T.validate_keys()
 
     T.consumer_key = 'Definitely not a valid key'
     with pytest.raises(RuntimeError):
@@ -655,18 +655,58 @@ def test_app_auth():
     assert count == 10
 
 
-@pytest.mark.xfail
 def test_labs_v1_sample():
     ta = twarc.Twarc(app_auth=True)
 
     collected = 0
-
     for tweet in ta.labs_v1_sample():
         if 'data' in tweet:
             collected += 1
-
         if collected == 100:
             break
 
     # reconnect to close streaming connection for other tests
     ta.connect()
+
+def test_premium_30day_search():
+    twitter_env = os.environ['TWITTER_ENV']
+    t = twarc.Twarc(app_auth=True)
+    now = datetime.date.today()
+    then = (now - datetime.timedelta(days=14))
+
+    search = t.premium_search(
+        q='blacklivesmatter',
+        product='30day',
+        environment=twitter_env,
+        to_date=then,
+        sandbox=True
+    )
+    tweet = next(search)
+    assert tweet
+
+def test_premium_fullarchive_search():
+    twitter_env = os.environ['TWITTER_ENV']
+    from_date = datetime.date(2013, 7, 1)
+    to_date = datetime.date(2013, 8, 1)
+    t = twarc.Twarc(app_auth=True)
+    search = t.premium_search(
+        q='blacklivesmatter',
+        product='fullarchive',
+        environment=twitter_env,
+        from_date=from_date,
+        to_date=to_date,
+        sandbox=True
+    )
+
+    count = 0
+    for tweet in search:
+        created_at = datetime.datetime.strptime(
+            tweet['created_at'],
+            '%a %b %d %H:%M:%S +0000 %Y'
+        )
+        assert created_at.date() >= from_date
+        assert created_at.date() <= to_date
+        count += 1
+
+    assert count > 200
+

@@ -4,7 +4,7 @@ from os.path import join
 from setuptools import setup
 
 # Also in twarc/__init__.py
-__version__ = '1.8.5'
+__version__ = '1.9.0'
 
 with open("README.md") as f:
     long_description = f.read()
@@ -28,6 +28,6 @@ if __name__ == "__main__":
         python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
         install_requires=dependencies,
         setup_requires=['pytest-runner'],
-        tests_require=['pytest'],
+        tests_require=['pytest', 'python-dotenv'],
         entry_points={'console_scripts': ['twarc = twarc:main']}
     )

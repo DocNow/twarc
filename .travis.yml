@@ -1,33 +1,27 @@
 language: python
-
 branches:
   only:
   - master
-
 python:
 - '3.7'
-
 matrix:
   include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
-
+  - python: 3.7
+    dist: xenial
+    sudo: true
 install:
 - python setup.py install
-
 script:
 - python setup.py test
-
 after_failure:
 - cat test.log
-
 notifications:
   slack:
     secure: PY7GyhVBacVqytImbrcyKlDY/uVDTtOMMQ8bEDnhbH9XZA7nOD0dXsEffz93tA1ldJd1+0zsnt9itqdk4pYXBMTcZ6uWE5H2j7KIYylQa2A2Sj5GC3/KjrbFGfqMAXYs+rc9rrlqYkwjztu+bnNqTDnq0Y4Pw0YlMs23NT6GlMg=
 env:
   global:
-  - secure: LnQ/9DvR5tWJ6S5/LjtBGRgabLkgsFSoyhuvaYbJXvP8dMo9r8ZHxZOo5nTiVHpgP+x/OQU2dQrVh1oCzs/5Tv3PkOvSqVcw9Tjsc3VqKelWGuPvF9Ut1Bvd+EPg5BweZ+4HzjBg2GIVxI1EJJ0f/wMCHtokp3FJu5qkSdhrZD0=
-  - secure: B+lxjj4QooAQsvNV14WyqRzbL9u4cnw0WsANSW8lgxE9MRynAgQzg4Mn4KN14DOGuQ7cG/e9H5xQKWk1+JEeuPIT3jjbSoRVE6KEg8Tr0Hx75Vdi8DJc6WoNugYLSV4m5gM1rLP318YhFGtDWUX1e5GaXuN8xsUw8394XHhyDPA=
-  - secure: IdLHln90ogs+WJK0q1j9coH9SVca90FvEXBRG60o/q9de/fQY72UGSWcirJp69cIbAn1BbKiyuH5HANERwOlr+pKRcLDlpre+Ohlo1bKXSQC9Duq00BtnT9auodVNIR/oySZVbrCQsYGw3eSCHdWv4dxmKYieK/Yns2X955u/ak=
-  - secure: AMdu1YG92M0dextcxxwdxiMZ6RCH6Li0WLOgMEumiEoopSkAPnEYTlRoFvvZCo40BUQygnQ+PBoVJFG/PKfkVVucSfBT6AnlQiplc0UElIX55RdribMknwyj8pXEUxSW0Clz9mp00oDqrWx+FRepy5LkSk405L1Skt086IwMExc=
+  - secure: acMO9M6O5XeTxnu6yhtx114qO56nOo25TOCB4FeyneV9iG/JGDOk0PI82ov44xfnUXsCh+6UYEoDP6UiOnJTq4NXg24NeO9dxWZ6k8Y/KeOasubR0nHrH4QN2tfpmJmtgYGJqxaUAnPdCNkQbOcEiKaqDahxzxnpnk54cyoixhg=
+  - secure: O1jB3+f7K4zJ5xybUC99kJ/tVeYSgftWEeOsVwYcn5KwiPO9zNnNvs3YI3nUMghKLkYdxQux6hesCdxgPtCrzNsgHE6Z9hRZfSLVRJmH33EzpHQG+QEBLIqJun9zKTGqM0pnCFmSB284WBbY4adKlSYv8fXeFnFnjY42J7393f8=
+  - secure: IpMaXNonQqzXzCPyUsBflSNH8NSA0ajsLHXi5I43Dk2hXTijrvuf37OCAPV+vvhN39Ry5yofFpTIaesreiqWIrGuIEuUslq0zeTTOUWWQ9wwIh5SiSRIgBSQr3CqjPegyAjMlF2hJBP4LSSMpRyyRo3LvRJYakT6yG51NTmhmNU=
+  - secure: eTLsh5vX/eQB8Fxd1FNpcOggC+3wZTl+5DU+ESdW/NLTEYzuE1Yr4nBG6tGCAHXBPtJKgNUft8vrOhwLl1D8WdSgZqv0ji6kdpIqR2tFRzWt/j/Emh7XFlMdm5pKrtKj0mdgTSpPXqr4upGQVcl2Dn8JWTfQL183XGlRQH3u1zA=
+  - secure: alUgeEe643AHU3cGms+SpKNTh9nU/zKP6QxgY9TBwzaoaYU7wQkYz0B7dXSdU9hRA2aDpdeqyxr5Z9fE610JjSPpsTfSnWwo46RV9BQSqTqvfm9mH0zWsb6IFlnSbQIWSmC1bfbjlaVcFKOSsUDAo7RRMuwuHcQGDQFioB7ugwE=

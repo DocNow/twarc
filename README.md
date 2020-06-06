@@ -262,6 +262,52 @@ To get the users that are on a list you can use the list URL with the
 
     twarc listmembers https://twitter.com/edsu/lists/bots
 
+## Premium APIs
+
+Twitter introduced Premium Search API that let you pay Twitter money for tweets.
+Once you have set up an environment in your
+[dashboard](https://developer.twitter.com/en/dashboard) you can use their 30day
+and fullarchive endpoints to search for tweets outside the 7 day window provided
+by the Standard Search API. To use the premium API from the command line you
+will need to indicate which endpoint you are using, and the environment.
+
+To avoid using up your entire budget you will likely want to limit to some time
+range using `--to_date` and `--from_date`. Additionally you can limit the
+maximum number of tweets returned using `--limit`.
+
+So for example if I wanted to get all the blacklivesmatter tweets from a two
+weeks ago (assuming today is June 1, 2020) using my environment named
+*docnowndev* but not retrieving more than 1000 tweets I could:
+
+    twarc search blacklivesmatter \
+      --30day docnowdev \
+      --from_date 2020-05-01 \
+      --to_date 2020-05-14 \
+      --limit 1000 \
+      > tweets.jsonl
+
+Similarly to find tweets from 2014 using the full archive you can:
+
+    twarc search blacklivesmatter \
+      --fullarchive docnowdev \
+      --from_date 2014-08-04 \
+      --to_date 2014-08-05 \
+      --limit 1000 \
+      > tweets.jsonl
+
+If your environment is sandboxed you will need to use `--sandbox` so that twarc
+knows not to request more than 100 tweets at a time (the default for
+non-sandboxed environments is 500)
+
+    twarc search blacklivesmatter \
+      --fullarchive docnowdev \
+      --from_date 2014-08-04 \
+      --to_date 2014-08-05 \
+      --limit 1000 \
+      --sandbox \
+      > tweets.jsonl
+
+
 ## Use as a Library
 
 If you want you can use twarc programmatically as a library to collect

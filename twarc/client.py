@@ -6,6 +6,7 @@ import sys
 import json
 import types
 import logging
+import datetime
 import requests
 
 import ssl
@@ -140,6 +141,71 @@ class Twarc(object):
                 break
 
             max_id = str(int(status["id_str"]) - 1)
+
+    def premium_search(self, q, product, environment, from_date=None,
+            to_date=None, max_results=None, sandbox=False, limit=0):
+        """
+        Search using the Premium Search API. You will need to pass in a query
+        a product (30day or fullarchive) and and environment to use. Optionally
+        you can pass in a from_date and to_date to limit the search using
+        datetime objects. If you would like to set max_results you can, or
+        you can accept the maximum results (500). If using the a sandbox 
+        environment you will want to set sandbox=True to lower the max_results
+        to 100. The limit option will cause your search to finish after it has 
+        return more than that number of tweets (0 means no limit).
+        """
+
+        if not self.app_auth:
+            raise RuntimeError(
+                "This endpoint is only available with application authentication. "
+                "Pass app_auth=True in Python or --app-auth on the command line."
+            )
+
+        if from_date and not isinstance(from_date, datetime.date):
+            raise RuntimeError("from_date must be a datetime.date or datetime.datetime object")
+        if to_date and not isinstance(to_date, datetime.date):
+            raise RuntimeError("to_date must be a datetime.date or datetime.datetime object")
+
+        if product not in ['30day', 'fullarchive']:
+            raise RuntimeError(
+                'Invalid Premium Search API product: {}'.format(product)
+            )
+
+        # set default max_results based on whether its sandboxed
+        if max_results is None:
+            if sandbox:
+                max_results = 100
+            else:
+                max_results = 500
+
+        url = 'https://api.twitter.com/1.1/tweets/search/{}/{}.json'.format(
+            product, 
+            environment
+        )
+
+        params = {
+            "query": q,
+            "fromDate": from_date.strftime('%Y%m%d%H%M') if from_date else None,
+            "toDate": to_date.strftime('%Y%m%d%H%M') if to_date else None,
+            "maxResults": max_results
+        }
+    
+        count = 0
+        stop = False
+        while not stop:
+            resp = self.get(url, params=params)
+            if resp.status_code == 200:
+                data = resp.json()
+                for tweet in data['results']:
+                    count += 1
+                    yield tweet
+                    if limit != 0 and count >= limit:
+                        stop = True
+                        break
+                if 'next' in data:
+                    params['next'] = data['next']
+                else:
+                    stop = True
 
     def timeline(self, user_id=None, screen_name=None, max_id=None,
                  since_id=None, max_pages=None):
@@ -488,7 +554,7 @@ class Twarc(object):
         while True:
             try:
                 log.info("connecting to labs sample stream")
-                resp = self.get(url, labs_v1_call=True, headers=headers, stream=True)
+                resp = self.get(url, headers=headers, stream=True)
                 errors = 0
                 for raw_line in resp.iter_lines(chunk_size=512):
                     line = raw_line.decode()
@@ -511,6 +577,9 @@ class Twarc(object):
                 log.error("caught http error %s on %s try", e, errors)
                 if self.http_errors and errors == self.http_errors:
                     log.warning("too many errors")
+                    raise e
+                if e.response_status_code == 403:
+                    log.warning("access denied for app (403 Error)")
                     raise e
                 if e.response.status_code == 420:
                     if interruptible_sleep(errors * 60, event):
@@ -758,16 +827,17 @@ class Twarc(object):
         if not self.client:
             self.connect()
 
-        if "params" in kwargs:
-            kwargs["params"]["tweet_mode"] = self.tweet_mode
-        elif "labs_v1_call" in kwargs:
-            # This is a v1 labs call, so we want to use format=detailed
-            # to capture as much as possible
-            kwargs["params"] = {"format": "detailed"}
-            # Don't pass this downstream to the requests call.
-            del kwargs["labs_v1_call"]
-        else:
+        # set default tweet_mode
+        if "params" not in kwargs:
             kwargs["params"] = {"tweet_mode": self.tweet_mode}
+        else:
+            kwargs["params"]["tweet_mode"] = self.tweet_mode
+
+        # override tweet_mode for labs and premium endpoints
+        if re.search(r"api.twitter.com/labs", args[0]):
+            kwargs["params"] = {"format": "detailed"}
+        elif re.search(r"api.twitter.com/1.1/tweets/search/", args[0]):
+            kwargs["params"].pop("tweet_mode")
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)

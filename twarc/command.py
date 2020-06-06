@@ -14,6 +14,7 @@ import fileinput
 from twarc import __version__
 from twarc.client import Twarc
 from twarc.json2csv import csv, get_headings, get_row
+from dateutil.parser import parse as parse_dt
 
 if sys.version_info[:2] <= (2, 7):
     # Python 2
@@ -89,6 +90,9 @@ def main():
     else:
         validate_keys = True
 
+    # Force app_auth when using Labs or Premium API
+    if command == "lab_v1_sample" or args.thirtyday or args.fullarchive:
+        args.app_auth = True
 
     t = Twarc(
         consumer_key=args.consumer_key,
@@ -111,14 +115,36 @@ def main():
             lang = args.lang[0]
         else:
             lang=None
-        things = t.search(
-            query,
-            since_id=args.since_id,
-            max_id=args.max_id,
-            lang=lang,
-            result_type=args.result_type,
-            geocode=args.geocode
-        )
+
+        # if not using a premium endpoint do a standard search
+        if not args.thirtyday and not args.fullarchive:
+            things = t.search(
+                query,
+                since_id=args.since_id,
+                max_id=args.max_id,
+                lang=lang,
+                result_type=args.result_type,
+                geocode=args.geocode
+            )
+        else:
+            # parse the dates if given
+            from_date = parse_dt(args.from_date) if args.from_date else None
+            to_date = parse_dt(args.to_date) if args.to_date else None
+            if args.thirtyday:
+                env = args.thirtyday
+                product = '30day'
+            else:
+                env = args.fullarchive
+                product = 'fullarchive'
+            things = t.premium_search(
+                query,
+                product,
+                env,
+                from_date=from_date,
+                to_date=to_date,
+                sandbox=args.sandbox,
+                limit=args.limit,
+            )
 
     elif command == "filter":
         things = t.filter(
@@ -365,7 +391,18 @@ def get_argparser():
                         help="skip checking keys are valid on startup")
     parser.add_argument("--app_auth", action="store_true", default=False,
                         help="run in App Auth mode instead of User Auth")
-
+    parser.add_argument("--30day", action="store", dest="thirtyday", 
+                        help="environment to use to search 30day premium endpoint")
+    parser.add_argument("--fullarchive", action="store",
+                        help="environment to use to search fullarchive premium endpoint"),
+    parser.add_argument("--from_date", action="store", default=None,
+                        help="limit premium search to date e.g. 2012-05-01 03:04:01")
+    parser.add_argument("--to_date", action="store", default=None,
+                        help="limit premium search to date e.g. 2012-05-01 03:04:01")
+    parser.add_argument("--limit", type=int, default=0,
+                        help="limit number of tweets returned by Premium API")
+    parser.add_argument("--sandbox", action="store_true", default=False,
+                        help="indicate that Premium API endpoint is a sandbox")
 
     return parser
 
