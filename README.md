@@ -262,7 +262,7 @@ To get the users that are on a list you can use the list URL with the
 
     twarc listmembers https://twitter.com/edsu/lists/bots
 
-## Premium APIs
+## Premium Search API
 
 Twitter introduced Premium Search API that let you pay Twitter money for tweets.
 Once you have set up an environment in your
