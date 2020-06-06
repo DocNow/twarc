@@ -645,7 +645,7 @@ def test_invalid_credentials():
     T.consumer_key = old_consumer_key
 
 def test_app_auth():
-    ta = twarc.Twarc(app_auth=True) 
+    ta = twarc.Twarc(app_auth=True)
     count = 0
     for tweet in ta.search('obama'):
         assert tweet['id_str']
@@ -653,3 +653,20 @@ def test_app_auth():
         if count == 10:
             break
     assert count == 10
+
+
+@pytest.mark.xfail
+def test_labs_v1_sample():
+    ta = twarc.Twarc(app_auth=True)
+
+    collected = 0
+
+    for tweet in ta.labs_v1_sample():
+        if 'data' in tweet:
+            collected += 1
+
+        if collected == 100:
+            break
+
+    # reconnect to close streaming connection for other tests
+    ta.connect()

@@ -285,7 +285,7 @@ class Twarc(object):
             for user_id in user_ids['ids']:
                 yield str_type(user_id)
             params['cursor'] = user_ids['next_cursor']
-            
+
             if max_pages is not None and retrieved_pages == max_pages:
                 log.info("reached max follower page limit for %s", params)
                 break
@@ -305,7 +305,7 @@ class Twarc(object):
             params = {'screen_name': user, 'cursor': -1}
 
         retrieved_pages = 0
-        
+
         while params['cursor'] != 0:
             try:
                 resp = self.get(url, params=params, allow_404=True)
@@ -325,7 +325,7 @@ class Twarc(object):
                 break
 
     @filter_protected
-    def filter(self, track=None, follow=None, locations=None, lang=[], 
+    def filter(self, track=None, follow=None, locations=None, lang=[],
                event=None, record_keepalive=False):
         """
         Returns an iterator for tweets that match a given filter track from
@@ -434,6 +434,76 @@ class Twarc(object):
                         continue
                     try:
                         yield json.loads(line.decode())
+                    except Exception as e:
+                        log.error("json parse error: %s - %s", e, line)
+            except requests.exceptions.HTTPError as e:
+                errors += 1
+                log.error("caught http error %s on %s try", e, errors)
+                if self.http_errors and errors == self.http_errors:
+                    log.warning("too many errors")
+                    raise e
+                if e.response.status_code == 420:
+                    if interruptible_sleep(errors * 60, event):
+                        log.info("stopping filter")
+                        return
+                else:
+                    if interruptible_sleep(errors * 5, event):
+                        log.info("stopping filter")
+                        return
+
+            except Exception as e:
+                errors += 1
+                log.error("caught exception %s on %s try", e, errors)
+                if self.http_errors and errors == self.http_errors:
+                    log.warning("too many errors")
+                    raise e
+                if interruptible_sleep(errors, event):
+                    log.info("stopping filter")
+                    return
+
+    def labs_v1_sample(self, event=None, record_keepalive=False):
+        """
+        Returns a small random sample of all public statuses, using the new Twitter
+        labs API version of the endpoint.
+
+        The Tweets returned by the default access level are the same, so if two
+        different clients connect to this endpoint, they will see the same Tweets.
+
+        If a threading.Event is provided for event and the event is set,
+        the sample will be interrupted.
+
+        Requires the use of application only authorisation (set app_auth=True on
+        constructing the Twarc client, or on the commandline).
+        """
+
+        if not self.app_auth:
+            raise RuntimeError(
+                "This endpoint is only available with application authentication. "
+                "Pass app_auth=True in Python or --app-auth on the command line."
+            )
+
+        url = 'https://api.twitter.com/labs/1/tweets/stream/sample'
+        headers = {'accept-encoding': 'deflate, gzip'}
+        errors = 0
+        while True:
+            try:
+                log.info("connecting to labs sample stream")
+                resp = self.get(url, labs_v1_call=True, headers=headers, stream=True)
+                errors = 0
+                for raw_line in resp.iter_lines(chunk_size=512):
+                    line = raw_line.decode()
+                    if event and event.is_set():
+                        log.info("stopping sample")
+                        # Explicitly close response
+                        resp.close()
+                        return
+                    if line == "":
+                        log.info("keep-alive")
+                        if record_keepalive:
+                            yield "keep-alive"
+                        continue
+                    try:
+                        yield json.loads(line)
                     except Exception as e:
                         log.error("json parse error: %s - %s", e, line)
             except requests.exceptions.HTTPError as e:
@@ -666,7 +736,7 @@ class Twarc(object):
     def oembed(self, tweet_url, **params):
         """
         Returns the oEmbed JSON for a tweet. The JSON includes an html
-        key that contains the HTML for the embed. You can pass in 
+        key that contains the HTML for the embed. You can pass in
         parameters that correspond to the paramters that Twitter's
         statuses/oembed endpoint supports. For example:
 
@@ -690,6 +760,12 @@ class Twarc(object):
 
         if "params" in kwargs:
             kwargs["params"]["tweet_mode"] = self.tweet_mode
+        elif "labs_v1_call" in kwargs:
+            # This is a v1 labs call, so we want to use format=detailed
+            # to capture as much as possible
+            kwargs["params"] = {"format": "detailed"}
+            # Don't pass this downstream to the requests call.
+            del kwargs["labs_v1_call"]
         else:
             kwargs["params"] = {"tweet_mode": self.tweet_mode}
 
@@ -777,12 +853,12 @@ class Twarc(object):
                 resource_owner_key=self.access_token,
                 resource_owner_secret=self.access_token_secret
             )
-        else: 
+        else:
             logging.info('creating OAuth2 app authentication')
             client = BackendApplicationClient(client_id=self.consumer_key)
             oauth = OAuth2Session(client=client)
             token = oauth.fetch_token(
-                token_url='https://api.twitter.com/oauth2/token', 
+                token_url='https://api.twitter.com/oauth2/token',
                 client_id=self.consumer_key,
                 client_secret=self.consumer_secret
             )
