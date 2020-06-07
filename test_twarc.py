@@ -116,7 +116,7 @@ def test_paging():
 
 def test_geocode():
     # look for tweets from New York ; the search radius is larger than NYC
-    # so hopefully we'll find one from New York in the first 100?
+    # so hopefully we'll find one from New York in the first 500?
     count = 0
     found = False
 
@@ -124,7 +124,7 @@ def test_geocode():
         if (tweet['place'] or {}).get('name') == 'Manhattan':
             found = True
             break
-        if count > 100:
+        if count > 500:
             break
         count += 1
 
