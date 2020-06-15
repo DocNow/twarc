@@ -107,10 +107,11 @@ def clean_str(string):
 
 
 def text(t):
-    # retweets have the full text in the original tweet
+    # need to look at original tweets for retweets for full text
     if t.get('retweeted_status'):
-        return t['retweeted_status']['full_text']
-    elif 'extended_tweet' in t:
+        t = t.get('retweeted_status')
+
+    if 'extended_tweet' in t:
         return t['extended_tweet']['full_text']
     elif 'full_text' in t:
         return t['full_text']
