@@ -537,7 +537,13 @@ def test_http_error_filter():
 
 
 def test_retweets():
-    assert len(list(T.retweets('795972820413140992'))) == 2
+    # hopefully there will continue to be more than 100 retweets of these 
+    assert len(list(T.retweets(['20', '21']))) > 100
+
+
+def test_missing_retweets():
+    # this tweet doesn't exist and cannot have any retweets
+    assert len(list(T.retweets(['795972820413140991']))) == 0
 
 
 def test_oembed():

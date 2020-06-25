@@ -656,18 +656,26 @@ class Twarc(object):
         except StopIteration:
             return []
 
-    def retweets(self, tweet_id):
+    def retweets(self, tweet_ids):
         """
-        Retrieves up to the last 100 retweets for the provided
-        tweet.
+        Retrieves up to the last 100 retweets for the provided iterator of tweet_ids.
         """
-        log.info("retrieving retweets of %s", tweet_id)
-        url = "https://api.twitter.com/1.1/statuses/retweets/""{}.json".format(
-                tweet_id)
+        if not isinstance(tweet_ids, types.GeneratorType):
+            tweet_ids = iter(tweet_ids)
 
-        resp = self.get(url, params={"count": 100})
-        for tweet in resp.json():
-            yield tweet
+        for tweet_id in tweet_ids:
+            if hasattr(tweet_id, 'strip'):
+                tweet_id = tweet_id.strip()
+            log.info("retrieving retweets of %s", tweet_id)
+            url = "https://api.twitter.com/1.1/statuses/retweets/""{}.json".format(
+                    tweet_id)
+            try:
+                resp = self.get(url, params={"count": 100}, allow_404=True)
+                for tweet in resp.json():
+                    yield tweet
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    log.info("can't get tweets for non-existent tweet: %s", tweet_id)
 
     def trends_available(self):
         """

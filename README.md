@@ -238,6 +238,10 @@ You can get retweets for a given tweet id like so:
 
     twarc retweets 824077910927691778 > retweets.jsonl
 
+If you have of tweet_ids that you would like to fetch the retweets for you can:
+
+    twarc retweets ids.txt > retweets.jsonl
+
 ### Replies
 
 Unfortunately Twitter's API does not currently support getting replies to a

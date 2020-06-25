@@ -188,7 +188,15 @@ def main():
         things = t.timeline(**kwargs)
 
     elif command == "retweets":
-        things = t.retweets(query)
+        if os.path.isfile(query):
+            iterator = fileinput.FileInput(
+                query,
+                mode='r',
+                openhook=fileinput.hook_compressed,
+            )
+            things = t.retweets(tweet_ids=iterator)
+        else:
+            things = t.retweets(tweet_ids=query.split(','))
 
     elif command == "users":
         if os.path.isfile(query):
