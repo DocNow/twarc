@@ -1,7 +1,7 @@
 language: python
 branches:
   only:
-  - master
+  - main
 python:
 - '3.7'
 matrix:
