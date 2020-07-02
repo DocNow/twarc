@@ -18,15 +18,15 @@ Antes de usar Twarc es necesario registrarse por [apps.twitter.com](https://apps
 Para empezar, se nececita dirigir a twarc sobre los claves de API:
 
   `twarc configure`
-  
+
 Prueba una búsqueda:
 
   `twarc search blacklivesmatter > search.josnl`
-  
+
 ¿O quizás, preferirá coleccionar tweets en tiempo real?
 
   `twarc filter blacklivesmatter > stream.josnl`
-  
+
 Vea abajo por detalles sobre estos commandos y más.
 
 ## Uso
@@ -35,10 +35,10 @@ Vea abajo por detalles sobre estos commandos y más.
 Una vez que tenga sus claves de aplicación, puede dirigir a twarc lo que son con el commando `configure`.
 
   `twarc configure`
-  
+
 Esto archiva sus credenciales en un archivo que se llama `.twarc` en su directorio personal
 para que no tenga que volver a ingresar los datos. Si prefiere ingresar los datos directamente, se
-puede establecer en el ambiente `(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)` 
+puede establecer en el ambiente `(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)`
 o usando las opciones de línea commando `(--consumer_key, --consumer_secret, --access_token, --access_token_secret)`.
 
 ### Search
@@ -87,7 +87,7 @@ Si combina las opciones serán "OR'ed" juntos. Por ejemplo, esto colecciona los 
 
 ### Sample
 
-Usa el commando `sample` para probar a los [statuses/API de muestra](https://developer.twitter.com/en/docs/tutorials/consuming-streaming-data) para una muestra "azar" de tweets recientes. 
+Usa el commando `sample` para probar a los [statuses/API de muestra](https://developer.twitter.com/en/docs/tutorials/consuming-streaming-data) para una muestra "azar" de tweets recientes.
 
 `twarc sample > tweets.jsonl`
 
@@ -99,9 +99,9 @@ El commando `dehydrate` genera una lista de id's de un archivo de tweets:
 
 ### Hydrate
 
-El mando `hydrate` busca a través de un archivo de identificadores y regresa el JSON del tweet usando el ["status/lookup API"](https://developer.twitter.com/en/docs/api-reference-index). 
+El mando `hydrate` busca a través de un archivo de identificadores y regresa el JSON del tweet usando el ["status/lookup API"](https://developer.twitter.com/en/docs/api-reference-index).
 
-`twarc hydrate ids.txt > tweets.jsonl` 
+`twarc hydrate ids.txt > tweets.jsonl`
 
 Los [términos de servicio](https://developer.twitter.com/en/developer-terms/policy#6._Be_a_Good_Partner_to_Twitter) del API de Twitter desalientan los usuarios a hacer público por el internet los datos de Twitter. Los datos se pueden usar para el estudio y archivado para uso local, pero no para compartir público. Aún, Twitter permite archivos de identificadores de Twitter ser compartidos. Puede usar el API de Twitter para hidratar los datos, o recuperar el completo JSON dato. Esto es importante para la [verificación](https://en.wikipedia.org/wiki/Reproducibility) del estudio de los redes sociales.
 
@@ -149,7 +149,7 @@ También se puede omitir el `woeid` y los datos que regresan serán una lista de
 
 Si tiene un geo-location, puede usarlo.
 
-`twarc trends 39.9062,-79.4679` 
+`twarc trends 39.9062,-79.4679`
 
 Twarc buscara el lugar usando el [trends/closest](https://developer.twitter.com/en/docs/api-reference-index) API para encontrar el `woeid` más cerca.
 
@@ -196,27 +196,27 @@ Twarc se puede usar programáticamente como una biblioteca para coleccionar twee
 t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret)
 for tweet in t.search("ferguson"):
     print(tweet["text"])`
-    
+
 Puedes usar lo mismo para el filtro de stream de nuevos de tweets que sean iguales al track keyword.
 
 `for tweet in t.filter(track="ferguson"):
     print(tweet["text"])`
-    
+
 o lugar:
 
 `for tweet in t.filter(locations="-74,40,-73,41"):
     print(tweet["text"])`
-    
+
 o user ids:
 
 `for tweet in t.filter(follow='12345,678910'):
     print(tweet["text"])`
-    
-También los identificados de tweets se pueden hydratar: 
+
+También los identificados de tweets se pueden hydratar:
 
 `for tweet in t.hydrate(open('ids.txt')):
     print(tweet["text"])`
-    
+
 ## Utilities
 
 En el directorio de utilidades hay algunos commando simple de line utilities para trabajar conel line-oriented JSON, Como imprimiendo out the archived tweets as texto o html, extracting the usernames, referenced URLs, etc. Si creas un script que tú puedas encontrar fácilmente por favor envía un pull request.
@@ -305,10 +305,10 @@ Cada script también puede generar un html demo de D3 visualization, e.g. [timel
 
 Crédito de tradução: [Tina Figueroa]
 
-[japonés]: https://github.com/DocNow/twarc/blob/master/README_ja_jp.md
-[Portugués]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
-[Inglés]: https://github.com/DocNow/twarc/blob/master/README.md
-[Sueco]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
-[Swahili]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
+[japonés]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
+[Portugués]: https://github.com/DocNow/twarc/blob/main/README_pt_br.md
+[Inglés]: https://github.com/DocNow/twarc/blob/main/README.md
+[Sueco]: https://github.com/DocNow/twarc/blob/main/README_sv_se.md
+[Swahili]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
 [Tina Figueroa]: https://github.com/@tinafigueroa
 

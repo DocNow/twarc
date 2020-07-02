@@ -297,7 +297,7 @@ Unapopata tweets unaweza kuunda ukuta mzuri wako:
 
     % utils/wall.py tweets.jsonl > tweets.html
 
-Unaweza kuunda wingu ya maneno ya tweets ulizo sanya ambayo in neno nasa 
+Unaweza kuunda wingu ya maneno ya tweets ulizo sanya ambayo in neno nasa
 
     % utils/wordcloud.py tweets.jsonl > wordcloud.html
 
@@ -376,13 +376,13 @@ Mara baada ya kufuta URL zako unaweza kupata orodha ya vya URL inayo tweets nyin
 Baadhi ya scripts zaidi ya huduma ili kuzalisha csv au json pato yanafaa kwa
 kutumia na [D3.js](http://d3js.org/) visualizations hupatikana katika
 [twarc-report](https://github.com/pbinkley/twarc-report). `directed.py` ilikuwa
-sehemu ya twarc imehama kwa twarc-report kama `d3graph.py`. 
+sehemu ya twarc imehama kwa twarc-report kama `d3graph.py`.
 
 Kila script pia inaweza kuzalisha demo html ya taswira ya D3, kwa mfano. [timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
-[Kihispania]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
-[Kiingereza]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
-[Kijapani]: https://github.com/DocNow/twarc/blob/master/README_ja_jp.md
-[Kireno]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
-[Kisweden]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
+[Kihispania]: https://github.com/DocNow/twarc/blob/main/README_es_mx.md
+[Kiingereza]: https://github.com/DocNow/twarc/blob/main/README_sv_se.md
+[Kijapani]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
+[Kireno]: https://github.com/DocNow/twarc/blob/main/README_pt_br.md
+[Kisweden]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
