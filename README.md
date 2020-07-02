@@ -371,7 +371,7 @@ day).
 
 But be careful, the `statuses/lookup` endpoint used by the hydrate subcommand
 has a rate limit of 900 requests per 15 minutes for User Auth, and 300 request
-per 15 minutes for App Auth. 
+per 15 minutes for App Auth.
 
 If you know what you are doing and want to force App Auth you can use the
 `--app_auth` command line option:
@@ -486,9 +486,9 @@ Each script can also generate an html demo of a D3 visualization, e.g.
 [timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
-[Japanese]: https://github.com/DocNow/twarc/blob/master/README_ja_jp.md
-[Portuguese]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
-[Spanish]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
-[Swedish]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
-[Swahili]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
+[Japanese]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
+[Portuguese]: https://github.com/DocNow/twarc/blob/main/README_pt_br.md
+[Spanish]: https://github.com/DocNow/twarc/blob/main/README_es_mx.md
+[Swedish]: https://github.com/DocNow/twarc/blob/main/README_sv_se.md
+[Swahili]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
 [ISO 639-1]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes

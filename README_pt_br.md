@@ -330,9 +330,9 @@ Cada script também pode gerar uma demo html de uma visualização D3, e.g.
 
 Tradução créditos: [Wilson Jr]
 
-[Espanhol]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
-[Inglês]: https://github.com/DocNow/twarc/blob/master/README.md
-[Japonês]: https://github.com/DocNow/twarc/blob/master/README_ja_jp.md
-[Sueco]: https://github.com/DocNow/twarc/blob/master/README_sv_se.md
-[Suaíli]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
+[Espanhol]: https://github.com/DocNow/twarc/blob/main/README_es_mx.md
+[Inglês]: https://github.com/DocNow/twarc/blob/main/README.md
+[Japonês]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
+[Sueco]: https://github.com/DocNow/twarc/blob/main/README_sv_se.md
+[Suaíli]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
 [Wilson Jr]: https://github.com/py3in
