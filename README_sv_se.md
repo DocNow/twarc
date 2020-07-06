@@ -9,9 +9,9 @@ twarc är ett kommandoradsverktyg twarc och ett Pythonbibliotek för arkivering 
 Varje tweet är representerat som ett JSON-objekt som är [exakt](https://dev.twitter.com/overview/api/tweets) vad som returneras från Twitters API
 Tweets lagras som [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  Twarc hanterar
 Twitter API:ets [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
-åt dig. Förutom att kunna samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets. 
+åt dig. Förutom att kunna samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets.
 
-twarc har utvecklats som en del av [Documenting the Now](http://www.docnow.io) 
+twarc har utvecklats som en del av [Documenting the Now](http://www.docnow.io)
 projektet som finiansierades av [Mellon Foundation](https://mellon.org/).
 
 
@@ -19,14 +19,14 @@ projektet som finiansierades av [Mellon Foundation](https://mellon.org/).
 
 Innan du använder twarc behöver du registrera en applikation hos
 [apps.twitter.com](http://apps.twitter.com). När du har skapat din applikation, skriv ner consumer key, consumer secret och klicka för att generera en access token och en access token secret.
-Med dessa fyra variabler är du redo att börja använda twarc. 
+Med dessa fyra variabler är du redo att börja använda twarc.
 
 1. Installera [Python](http://python.org/download) (2 eller 3)
 2. pip install twarc (om du uppgraderar: pip install --upgrade twarc)
 
 ## Snabbstart:
 
-Först måste du tala om för twarc vad dina API-nycklar är och tillåta åtkomst till ett 
+Först måste du tala om för twarc vad dina API-nycklar är och tillåta åtkomst till ett
 eller flera twitterkonton:
 
     twarc configure
@@ -39,19 +39,19 @@ Eller om du vill samla in tweets i samma ögonblick de skapas:
 
     twarc filter blacklivesmatter > stream.jsonl
 
-Se nedan för detaljer om dessa och fler kommandon. 
+Se nedan för detaljer om dessa och fler kommandon.
 
 
 ## Användning
 
 ### Konfigurera
 
-När du har dina applikationsnycklar så kan du tala om för twarc vilka de är med 
+När du har dina applikationsnycklar så kan du tala om för twarc vilka de är med
 `configure` kommandot.
 
     twarc configure
 
-Detta kommer att lagra dina nycklar i en fil som heter `.twarc` placerad i din hemkatalog så du slipper att skriva in dem varje gång. 
+Detta kommer att lagra dina nycklar i en fil som heter `.twarc` placerad i din hemkatalog så du slipper att skriva in dem varje gång.
 Om du hellre vill tilldela dom direkt så kan du göra det i environment (`CONSUMER_KEY`,
 `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) eller genom att använda kommandoradsparameter
 options (`--consumer_key`, `--consumer_secret`, `--access_token`,
@@ -62,11 +62,11 @@ Detta använder Twitters [search/tweets](https://dev.twitter.com/rest/reference/
 
     twarc search blacklivesmatter > tweets.jsonl
 
-Det är viktigt att notera att `search` retunerar tweets som hittas inom det 7-dagarsfönster som 
-Twitters sök-API erbjuder. Känns det som ett smalt fönster? Det är det. Men du kanske är intresserad av att samla in tweets i samma ögonblick som de skapas 
+Det är viktigt att notera att `search` retunerar tweets som hittas inom det 7-dagarsfönster som
+Twitters sök-API erbjuder. Känns det som ett smalt fönster? Det är det. Men du kanske är intresserad av att samla in tweets i samma ögonblick som de skapas
 genom att använda `filter` och `sample` kommandona nedan.
 
-Det bästa sättet att bekanta sig med Twitters söksyntax är att experimentera med 
+Det bästa sättet att bekanta sig med Twitters söksyntax är att experimentera med
 [Twitters Advancerade Sök](https://twitter.com/search-advanced) och kopiera och klistra in söksträngen från sökboxen.
 Här är till exempel en mer avancerad söksträng som matchar tweets innehållande antingen \#blacklivesmatter eller #blm hashtaggar som skickats till deray
 
@@ -80,21 +80,21 @@ Du kan också söka efter tweets inom en given plats, till exempel tweets som n�
 
     twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 
-Om inte en söksträng ges när du använder `--geocode` kommer du få alla tweets som är relevanta för den platsen och radien. 
+Om inte en söksträng ges när du använder `--geocode` kommer du få alla tweets som är relevanta för den platsen och radien.
 
     twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 
 ### Filter
 
-`filter` Kommandot använder Twitters [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API för att samla in tweets i samma ögonblick som de skapas. 
+`filter` Kommandot använder Twitters [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API för att samla in tweets i samma ögonblick som de skapas.
 
     twarc filter blacklivesmatter,blm > tweets.jsonl
 
 Notera att syntaxen för Twitters track söksträngar är något annorlunda än de som används i sök-API:et
-Var god läs dokumentationen för att se hur du bäst kan formulera sökningar. 
+Var god läs dokumentationen för att se hur du bäst kan formulera sökningar.
 
 
-Använd `follow` kommandot om du vill samla in tweets från ett specifikt användar-id i samma ögonblick som de skapas. Detta inkluderar retweets. 
+Använd `follow` kommandot om du vill samla in tweets från ett specifikt användar-id i samma ögonblick som de skapas. Detta inkluderar retweets.
 Till exempel så samlar detta in tweets och retweets från CNN:
 
     twarc filter --follow 759251 > tweets.jsonl
@@ -104,8 +104,8 @@ Du kan också samla in tweets genom att använda koordinater.  Notera: det inled
     twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
 
-Om du kombinerar parametrar så kommer de tolkas som OR 
-Till exempel så kommer detta samla in tweets som använder blacklivesmatter eller blm hashtaggen och som också postats av användaren CNN: 
+Om du kombinerar parametrar så kommer de tolkas som OR
+Till exempel så kommer detta samla in tweets som använder blacklivesmatter eller blm hashtaggen och som också postats av användaren CNN:
 
     twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
 
@@ -127,9 +127,9 @@ Twarc's `hydrate` kommando läser en fil med tweetidentifierare och skriver ut s
 
     twarc hydrate ids.txt > tweets.jsonl
 
-Twitter APIs [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) uppmuntrar inte folk att tillgängliggöra stora mängder av rå Twitterdata på webben.  
-Datan kan användas för forskning och arkiveras lokalt, men kan inte delas med världen. Twitter tillåter emellertid att identifierare delas, vilket kan vara bra när du vill tillgängliggöra ett dataset. 
-Du kan då använda Twitters API för att *hydrera* datan, eller för att hämta den fulla JSON-objektet för varje identifierare. 
+Twitter APIs [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) uppmuntrar inte folk att tillgängliggöra stora mängder av rå Twitterdata på webben.
+Datan kan användas för forskning och arkiveras lokalt, men kan inte delas med världen. Twitter tillåter emellertid att identifierare delas, vilket kan vara bra när du vill tillgängliggöra ett dataset.
+Du kan då använda Twitters API för att *hydrera* datan, eller för att hämta den fulla JSON-objektet för varje identifierare.
 Detta är särskilt viktigt för [verifiering](https://en.wikipedia.org/wiki/Reproducibility) av forskning på social media.
 
 ### Användare
@@ -153,7 +153,7 @@ Om du vill kan du också använda en fil med användar-id, vilket kan vara anvä
 
     twarc followers deray > follower_ids.txt
 
-Resultatet inkluderar exakt ett användar-id per linje ordnat i omvänd kronologisk ordning, alltså de senaste följarna först. 	
+Resultatet inkluderar exakt ett användar-id per linje ordnat i omvänd kronologisk ordning, alltså de senaste följarna först.
 
 
 ### Vänner
@@ -164,7 +164,7 @@ Precis som `followers` kommandot, använder `friends` kommandot Twitters [friend
 
 ### Trender
 
-`trends` kommandot låter dig hämta information från Twitters API om trendande hashtags. Du måste bifoga en [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifierare (`woeid`) 
+`trends` kommandot låter dig hämta information från Twitters API om trendande hashtags. Du måste bifoga en [Where On Earth](http://developer.yahoo.com/geo/geoplanet/) identifierare (`woeid`)
 för att precisera vilka trender du är intresserad av. Till exempel kan du hämta de senaste trenderna för St. Louis på det hör viset:
 
     twarc trends 2486982
@@ -173,7 +173,7 @@ Använder du ett `woeid` på 1 så kommer du få trender för hela världen:
 
     twarc trends 1
 
-Om du inte är säker på vad du ska använda för `woeid` så kan du helt enkelt utesluta det för att få en lista över alla platser Twitter har trender för:  	
+Om du inte är säker på vad du ska använda för `woeid` så kan du helt enkelt utesluta det för att få en lista över alla platser Twitter har trender för:
 
     twarc trends
 
@@ -201,14 +201,14 @@ Du kan samla in retweets för ett givet tweetid genom:
 
 ### Svar
 
-Tyvärr så stödjer inte Twitters API att hämta svar till en tweet. 
-Twarc använder istället sök-API:et för detta. Då sök-API:et inte kan användas för att samla in tweets äldre än en vecka kan twarc endast hämta alla svar till en tweet som har postats den senaste veckan. 
+Tyvärr så stödjer inte Twitters API att hämta svar till en tweet.
+Twarc använder istället sök-API:et för detta. Då sök-API:et inte kan användas för att samla in tweets äldre än en vecka kan twarc endast hämta alla svar till en tweet som har postats den senaste veckan.
 
-Om du vill hämta svaren till en tweet så kan du använda följande: 
+Om du vill hämta svaren till en tweet så kan du använda följande:
 
     twarc replies 824077910927691778 > replies.jsonl
 
-Genom att använda `--recursive` parametern så hämtas även svar till svar så väl som citerade tweets. Detta kan ta mycket lång tid att köra på stora trådar på grund av 
+Genom att använda `--recursive` parametern så hämtas även svar till svar så väl som citerade tweets. Detta kan ta mycket lång tid att köra på stora trådar på grund av
 rate limiting på sök-API:et.
 
     twarc replies 824077910927691778 --recursive
@@ -224,7 +224,7 @@ För att hämta användare som är med på en lista kan du använda list-URL:en 
 
 Du kan också använda twarc programatiskt som ett bibliotek för att samla in tweets.
 Du behöver först skapa en instans av `Twarc` (genom att använda dina nycklar)
-, och sedan använda det för att iterera genom sökresultat, filter och resultat. 
+, och sedan använda det för att iterera genom sökresultat, filter och resultat.
 
 ```python
 from twarc import Twarc
@@ -234,7 +234,7 @@ for tweet in t.search("ferguson"):
     print(tweet["text"])
 ```
 
-Du kan göra samma sak för en ström som matchar ett nyckelord 
+Du kan göra samma sak för en ström som matchar ett nyckelord
 
 ```python
 for tweet in t.filter(track="ferguson"):
@@ -255,7 +255,7 @@ for tweet in t.filter(follow='12345,678910'):
     print(tweet["text"])
 ```
 
-På samma sätt kan du hydrera tweetid:n genom att bearbeta en lista med idn 
+På samma sätt kan du hydrera tweetid:n genom att bearbeta en lista med idn
 eller en generator:
 
 ```python
@@ -265,7 +265,7 @@ for tweet in t.hydrate(open('ids.txt')):
 
 ## Verktyg
 
-I utils-mappen finns ett antal enkla kommandoradsverktyg för att bearbeta linjeorienterad JSON, så som att skriva ut arkiverade tweets som text eller html, extrahera användarnamn, refererade url:er, m.m. 
+I utils-mappen finns ett antal enkla kommandoradsverktyg för att bearbeta linjeorienterad JSON, så som att skriva ut arkiverade tweets som text eller html, extrahera användarnamn, refererade url:er, m.m.
 Om du skapar ett skript som du tycker är bra så får du gärna skicka en pull request.
 
 När du samlat in lite tweets kan du skapa en rudimentär vägg av dem:
@@ -281,7 +281,7 @@ visualisering av dem med:
 
     % utils/network.py tweets.jsonl tweets.html
 
-Du kan även slå samman tweets per användare, vilket gör att du kan se centrala konton. 
+Du kan även slå samman tweets per användare, vilket gör att du kan se centrala konton.
 
     % utils/network.py --users tweets.jsonl tweets.html
 
@@ -289,13 +289,13 @@ Och om du vill använda nätverksgrafen i ett program som [Gephi](https://gephi.
 
     % utils/network.py --users tweets.jsonl tweets.gexf
 
-gender.py  är ett filter som låter dig filtrera tweets baserat på en gissining författarens kön. Till exempel kan du filtrera ut alla tweets som 
+gender.py  är ett filter som låter dig filtrera tweets baserat på en gissining författarens kön. Till exempel kan du filtrera ut alla tweets som
 ser ut som de var skrivna av kvinnor och skapa ett ordmoln:
 
     % utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
 
 Du kan få ut [GeoJSON](http://geojson.org/) från tweets där geo-koordinater finns tillgängliga:
- 
+
     % utils/geojson.py tweets.jsonl > tweets.geojson
 
 Alternativt kan du exportera GeoJSON med centroider som ersättning för bounding boxes:
@@ -346,21 +346,21 @@ När du har löst de förkortade url:erna kan du få en ranklista över de mest 
 
 ## twarc-report
 
-Ytterligare verktyg för att generera CSV-filer eller json lämpad för att använda med 
-[D3.js](http://d3js.org/) visualiseringar kan du hitta i 
-[twarc-report](https://github.com/pbinkley/twarc-report) projektet. Verktyget 
+Ytterligare verktyg för att generera CSV-filer eller json lämpad för att använda med
+[D3.js](http://d3js.org/) visualiseringar kan du hitta i
+[twarc-report](https://github.com/pbinkley/twarc-report) projektet. Verktyget
  `directed.py`, tidigare en del av twarc, har flyttat till twarc-report som
 `d3graph.py`.
 
-Varje skript kan också generera en html-demo av en D3 visualisering, t.ex. 
-[timelines](https://wallandbinkley.com/twarc/bill10/) eller en 
+Varje skript kan också generera en html-demo av en D3 visualisering, t.ex.
+[timelines](https://wallandbinkley.com/twarc/bill10/) eller en
 [riktad graf av retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
 Översättning: [Andreas Segerberg]
 
-[Engelska]: https://github.com/DocNow/twarc/blob/master/README.md
-[Japanska]: https://github.com/DocNow/twarc/blob/master/README_ja_jp.md
-[Portugisiska]: https://github.com/DocNow/twarc/blob/master/README_pt_br.md
-[Spanska]: https://github.com/DocNow/twarc/blob/master/README_es_mx.md
-[Swahili]: https://github.com/DocNow/twarc/blob/master/README_sw_ke.md
+[Engelska]: https://github.com/DocNow/twarc/blob/main/README.md
+[Japanska]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
+[Portugisiska]: https://github.com/DocNow/twarc/blob/main/README_pt_br.md
+[Spanska]: https://github.com/DocNow/twarc/blob/main/README_es_mx.md
+[Swahili]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
 [Andreas Segerberg]: https://github.com/Segerberg
