@@ -19,12 +19,16 @@
 #
 #  ./network.py --users tweets.jsonl network.gexf
 #
+# if you would rather have the network oriented around nodes that are hashtags
+# instead of tweets or users, use the --hashtags flag
+#
 # TODO: this is mostly here some someone can improve it :)
 
 import sys
 import json
 import networkx
 import optparse
+import itertools
 
 from networkx import nx_pydot
 from networkx.readwrite import json_graph
@@ -60,6 +64,14 @@ opt_parser.add_option(
     help="show user relations instead of tweet relations"
 )
 
+
+opt_parser.add_option(
+    "--hashtags",
+    dest="hashtags",
+    action="store_true",
+    help="show hashtag relations instead of tweet relations"
+)
+
 options, args = opt_parser.parse_args()
 
 if len(args) != 2:
@@ -72,10 +84,10 @@ G = networkx.DiGraph()
 def add(from_user, from_id, to_user, to_id, type):
     "adds a relation to the graph"
 
-    if options.users and to_user:
+    if (options.users or options.hashtags) and to_user:
         G.add_node(from_user, screen_name=from_user)
         G.add_node(to_user, screen_name=to_user)
-       
+
         if G.has_edge(from_user, to_user):
             weight = G[from_user][to_user]['weight'] + 1
         else:
@@ -89,6 +101,8 @@ def add(from_user, from_id, to_user, to_id, type):
         else:
             G.add_node(to_id)
         G.add_edge(from_id, to_id, type=type)
+
+
 
 def to_json(g):
     j = {"nodes": [], "links": []}
@@ -121,8 +135,15 @@ for line in open(tweets):
         for u in t['entities'].get('user_mentions', []):
             add(from_user, from_id, u['screen_name'], None, 'reply')
 
-    else:
+    elif options.hashtags:
+        hashtags = t['entities'].get('hashtags', [])
+        hashtag_pairs = list(itertools.combinations(hashtags, 2)) # list of all possible hashtag pairs
+        for u in hashtag_pairs:
+            # source hashtag: u[0]['text']
+            # target hashtag: u[1]['text']
+            add(u[0]['text'], None, u[1]['text'], None, 'hashtag')
 
+    else:
         if t.get('in_reply_to_status_id_str'):
             to_id = t['in_reply_to_status_id_str']
             to_user = t['in_reply_to_screen_name']

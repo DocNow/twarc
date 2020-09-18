@@ -412,10 +412,15 @@ Optionally you can consolidate tweets by user, allowing you to see central accou
 
     utils/network.py --users tweets.jsonl tweets.html
 
+Additionally, you can create a network of hashtags, allowing you to view their colocation:
+
+        utils/network.py --hashtags tweets.jsonl tweets.html
+
 And if you want to use the network graph in a program like [Gephi](https://gephi.org/),
 you can generate a GEXF file with the following:
 
     utils/network.py --users tweets.jsonl tweets.gexf
+    utils/network.py --hashtags tweets.jsonl tweets.gexf
 
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that
