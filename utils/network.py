@@ -141,7 +141,7 @@ for line in open(tweets):
         for u in hashtag_pairs:
             # source hashtag: u[0]['text']
             # target hashtag: u[1]['text']
-            add(u[0]['text'], None, u[1]['text'], None, 'hashtag')
+            add('#' + u[0]['text'], None, '#' + u[1]['text'], None, 'hashtag')
 
     else:
         if t.get('in_reply_to_status_id_str'):
