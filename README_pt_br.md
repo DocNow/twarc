@@ -24,6 +24,14 @@ OBS: Se tiver alguma dúvida de como criar o aplicativo, consulte [como criar um
 1. instalação [Python](http://python.org/download) (2 ou 3)
 2. pip install twarc
 
+### Homebrew (macOS apenas)
+
+Para usuários do macOS, você pode instalar o `twarc` via:
+
+```bash
+$ brew install twarc
+```
+
 ## Início Rápido:
 
 Primeiro você vai precisar configurar o twarc mostrando a ele suas chaves de API:
@@ -75,10 +83,18 @@ consulta complicada que procura por tweets que contenham
 
     twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
 
-O Twitter tenta codificar o idioma de um tweet ou você pode limitar sua pesquisa.
-Para um idioma específico caso você queira só português:
+Você definitivamente também deve consultar o *excelente* guia de referência de
+Igor Brigadir à sintaxe de busca do Twitter:
 
-    twarc search '#foratemer' --lang pt > tweets.jsonl
+[Busca Avançada no Twitter](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md)
+
+Lá existem várias pérolas escondidas que não estão muito evidentes no
+formulário de pesquisa avançada.
+
+O Twitter tenta codificar a linguagem de um tweet e você pode limitar sua pesquisa.
+Para um idioma específico se quiser usar um código [ISO 639-1]:
+
+    twarc search '#forabolsonaro' --lang pt > tweets.jsonl
 
 Você também pode pesquisar tweets com um determinado local, por exemplo tweets
 Mencionando *foratemer* das pessoas situadas a 1 milha na região de Brasília:
@@ -113,22 +129,33 @@ Exemplo: escapando com a barra invertida após aspas "\
 
     twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
-
 Se você combinar opções eles serão um OU outro juntos.
 Por exemplo, isso irá coletar Tweets que usam o hashtags foratemer
 OU blm e também tweets do usuário CNN:
 
     twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
 
+Mas combinar locais e idiomas resultará efetivamente em um E. Para
+exemplo, isso irá coletar tweets da grande área de Nova York que estão em
+Espanhol ou francês:
+
+    twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
+
 ### Sample
 
-Use o comando de linha `sample` para ouvir/Status do Twitter [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API para uma amostra "aleatória/ramdom" de tweets  públicos recentes. O status será do usuário ativo na API twarc.
+Use o comando `sample` para ouvir/Status do Twitter [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API para uma amostra "aleatória/ramdom" de tweets públicos recentes. O status será do usuário ativo na API twarc.
 
     twarc sample > tweets.jsonl
 
+### Dehydrate
+
+O comando `dehydrate` gera uma lista de id de um arquivo de tweets:
+
+    twarc dehydrate tweets.jsonl > tweet-ids.txt
+
 ### Hydrate
 
-O comando do Twarc `hydrate` Lê um arquivo de IDs de tweets identificados e escreve o tweet em JSON para eles usando Twitter [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
+O comando do Twarc `hydrate` Lê um arquivo de IDs de tweets e escreve o tweet em JSON para eles usando Twitter [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
 
     twarc hydrate ids.txt > tweets.jsonl
 
@@ -144,8 +171,9 @@ Você também pode usar os ids do usuário:
 
     twarc users 1232134,1413213 > users.jsonl
 
-Se você quiser, você também pode usar um arquivo com ids de usuário, o que pode ser útil se você estiver
-usando o `followers` e o `friends` conforme comando abaixo:
+Se você quiser, você também pode usar um arquivo com ids de usuário, o que
+pode ser útil se você estiver usando o `followers` e o `friends` conforme
+comando abaixo:
 
     twarc users ids.txt > users.jsonl
 
@@ -195,6 +223,87 @@ Você também pode procurar usuários usando um id de usuário:
 
     twarc timeline 12345 > tweets.jsonl
 
+### Retuítes
+
+Você pode obter retuítes para um determinado id de tweet como este:
+
+    twarc retweets 824077910927691778 > retweets.jsonl
+
+Se você tiver tweet_ids para os quais gostaria de buscar os retuítes, você pode:
+
+    twarc retweets ids.txt > retweets.jsonl
+
+### Repostas
+
+Infelizmente, a API do Twitter não suporta atualmente a obtenção de respostas
+para um tweet. Portanto, o twarc o aproxima usando a API de pesquisa. Como
+a API de pesquisa não suporta a obtenção de tweets com mais de uma semana,
+o twarc só pode obter todas as respostas a um tweet que foram enviadas na
+última semana.
+
+Se você deseja obter respostas para um determinado tweet, você pode:
+
+    twarc replies 824077910927691778 > replies.jsonl
+
+Usar a opção `--recursive` também irá buscar respostas para as respostas, bem
+como citações. Isso pode levar muito tempo para ser concluído em um thread
+grande por causa de limitação de taxa pela API de pesquisa.
+
+    twarc replies 824077910927691778 --recursive
+
+### Listas
+
+Para obter os usuários que estão em uma lista, você pode usar o URL da lista com o
+comando `listmembers`:
+
+    twarc listmembers https://twitter.com/edsu/lists/bots
+
+## Premium Search API
+
+O Twitter introduziu uma API de pesquisa premium que permite que você pague dinheiro 
+ao Twitter por tweets. Depois de configurar um ambiente em seu
+[painel] (https://developer.twitter.com/en/dashboard) você pode usar seus 30 dias
+e endpoints fullarchive para pesquisar tweets fora da janela de 7 dias fornecida
+pela API de pesquisa padrão. Para usar a API premium na linha de comando, você
+precisará indicar qual terminal você está usando e o ambiente.
+
+Para evitar usar todo o seu orçamento, você provavelmente desejará limitar o
+intervalo de tempo usando `--to_date` e` --from_date`. Além disso, você pode
+limitar o número máximo de tweets retornados usando `--limit`.
+
+Por exemplo, se eu quisesse obter todos os tweets blacklivesmatter de um
+semanas atrás (supondo que hoje seja 1 de Junho de 2020) usando meu ambiente
+chamado *docnowdev*, mas não recuperando mais de 1000 tweets, eu poderia:
+
+    twarc search blacklivesmatter \
+      --30day docnowdev \
+      --from_date 2020-05-01 \
+      --to_date 2020-05-14 \
+      --limit 1000 \
+      > tweets.jsonl
+
+Da mesma forma, para encontrar tweets de 2014 usando o arquivo completo, você
+pode:
+
+    twarc search blacklivesmatter \
+      --fullarchive docnowdev \
+      --from_date 2014-08-04 \
+      --to_date 2014-08-05 \
+      --limit 1000 \
+      > tweets.jsonl
+
+Se o seu ambiente for sandbox, você precisará usar `--sandbox` para que o
+twarc saiba que não deve solicitar mais de 100 tweets por vez (o padrão para
+ambientes sem sandbox é 500)
+
+    twarc search blacklivesmatter \
+      --fullarchive docnowdev \
+      --from_date 2014-08-04 \
+      --to_date 2014-08-05 \
+      --limit 1000 \
+      --sandbox \
+      > tweets.jsonl
+
 ## Usar twarc como uma biblioteca
 
 Se você quiser pode usar `twarc` programaticamente como uma biblioteca
@@ -240,6 +349,37 @@ for tweet in t.hydrate(open('ids.txt')):
     print(tweet["text"])
 ```
 
+## User x App Auth
+
+Twarc gerenciará a limitação de taxas pelo Twitter. No entanto, você deve
+saber que a limitação de taxa varia de acordo com a maneira como você
+autentica. As duas opções são User Auth e App Auth. O padrão do Twarc é usar a
+autenticação do usuário, mas você pode dizer a ele para usar o App Auth.
+
+Mudar para App Auth pode ser útil em algumas situações, como quando você está
+pesquisando tweets, já que o User Auth só pode emitir 180 solicitações a cada
+15 minutos (1,6 milhões de tweets por dia), mas o App Auth pode emitir 450 (4,
+3 milhões de tweets por dia).
+
+Mas tenha cuidado: o endpoint `statuses / lookup` usado pelo subcomando
+hydrate tem um limite de taxa de 900 solicitações por 15 minutos para
+autenticação do usuário e 300 solicitações por 15 minutos para App Auth.
+
+Se você sabe o que está fazendo e deseja forçar o App Auth, pode usar o opção
+de linha de comando `--app_auth`:
+
+    twarc --app_auth search ferguson > tweets.jsonl
+
+Da mesma forma, se você estiver usando Twarc como uma biblioteca, você pode:
+
+```python
+from twarc import Twarc
+
+t = Twarc(app_auth=True)
+for tweet in t.search('ferguson'):
+    print(tweet['id_str'])
+```
+
 ## Utilitários
 
 No diretório utils existem alguns utilitários via linha de comando simples para
@@ -252,67 +392,88 @@ Se você criar um Script e achar útil, por favor envie um pedido de pull no git
 
 Quando você tem alguns tweets você pode criar um paralelo rudimentar deles:
 
-    % utils/wall.py tweets.jsonl > tweets.html
+    utils/wall.py tweets.jsonl > tweets.html
 
 Você pode criar uma nuvem de palavras de tweets coletados sobre a nasa:
 
-    % utils/wordcloud.py tweets.jsonl > wordcloud.html
+    utils/wordcloud.py tweets.jsonl > wordcloud.html
+
+Se você coletou alguns tweets usando `respostas`, você pode criar uma
+visualização estática D3 deles com:
+
+    utils/network.py tweets.jsonl tweets.html
+
+Opcionalmente, você pode consolidar tweets por usuário, permitindo que você
+veja contas centrais:
+
+    utils/network.py --users tweets.jsonl tweets.html
+
+Além disso, você pode criar uma rede de hashtags, permitindo que você
+visualize sua alocação:
+
+    utils/network.py --hashtags tweets.jsonl tweets.html
+
+E se você quiser usar o gráfico de rede em um programa como 
+[Gephi] (https://gephi.org/), você pode gerar um arquivo GEXF com o seguinte:
+
+    utils/network.py --users tweets.jsonl tweets.gexf
+    utils/network.py --hashtags tweets.jsonl tweets.gexf
 
 gender.py É um filtro que permite filtrar tweets com base em um palpite sobre
 o gênero do autor. Assim, por exemplo, você pode filtrar todos os tweets que
 em tese foram feitos por mulheres, e criar uma nuvem de palavras para eles:
 
-    % utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
+    utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py > tweets-female.html
 
 Você pode com [GeoJSON](http://geojson.org/) ver os tweets de determinadas coordenadas geográficas:
 
-    % utils/geojson.py tweets.jsonl > tweets.geojson
+    utils/geojson.py tweets.jsonl > tweets.geojson
 
 Opcionalmente você pode exportar GeoJSON com centróides substituindo as caixas delimitadoras:
 
-    % utils/geojson.py tweets.jsonl --centroid > tweets.geojson
+    utils/geojson.py tweets.jsonl --centroid > tweets.geojson
 
 E se você exportar GeoJSON com centróides, você pode adicionar alguns fuzzing aleatórios:
 
-    % utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
+    utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
 
 Para filtrar tweets pela presença ou ausência de coordenadas geográficas (Ou Local, veja [Documentação da API locais](https://dev.twitter.com/overview/api/places)):
 
-    % utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
-    % cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
+    utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
+    cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
 
 Para filtrar tweets por uma área com GeoJSON (Requer [Shapely](https://github.com/Toblerity/Shapely)):
 
-    % utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
-    % cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
+    utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
+    cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
 
 Se você suspeitar ter duplicado seus tweets, você pode remove-los:
 
-    % utils/deduplicate.py tweets.jsonl > deduped.jsonl
+    utils/deduplicate.py tweets.jsonl > deduped.jsonl
 
 Você pode classificar por ID, o que é análogo à classificação por tempo:
 
-    % utils/sort_by_id.py tweets.jsonl > sorted.jsonl
+    utils/sort_by_id.py tweets.jsonl > sorted.jsonl
 
 Você pode filtrar todos os tweets antes de uma determinada data (por exemplo, se uma hashtag foi usada para outro evento antes do que você está interessado):
 
-    % utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
+    utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
 
 Você pode obter uma lista HTML dos usuários usados:
 
-    % utils/source.py tweets.jsonl > sources.html
+    utils/source.py tweets.jsonl > sources.html
 
 Se você quiser remover os retweets:
 
-    % utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
+    utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
 
 Ou unshorten urls (Requer [unshrtn](https://github.com/edsu/unshrtn)):
 
-    % cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
+    cat tweets.jsonl | utils/unshorten.py > unshortened.jsonl
 
 Depois de desfazer masca de seus URLs, você pode obter uma lista classificada dos URLs mais tweeted:
 
-    % cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+    cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
 
 ## twarc-report
 
@@ -335,4 +496,5 @@ Tradução créditos: [Wilson Jr]
 [Japonês]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
 [Sueco]: https://github.com/DocNow/twarc/blob/main/README_sv_se.md
 [Suaíli]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
+[ISO 639-1]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 [Wilson Jr]: https://github.com/py3in
