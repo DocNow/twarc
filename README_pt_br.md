@@ -91,8 +91,8 @@ Igor Brigadir à sintaxe de busca do Twitter:
 Lá existem várias pérolas escondidas que não estão muito evidentes no
 formulário de pesquisa avançada.
 
-O Twitter tenta codificar a linguagem de um tweet e você pode limitar sua pesquisa.
-Para um idioma específico se quiser usar um código [ISO 639-1]:
+O Twitter tenta codificar a linguagem de um tweet e você pode limitar sua
+pesquisa para um idioma específico se quiser usando um código [ISO 639-1]:
 
     twarc search '#forabolsonaro' --lang pt > tweets.jsonl
 
