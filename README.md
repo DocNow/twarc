@@ -131,7 +131,7 @@ line argument!
 
     twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 
-User can use the `lang` command line argument to pass in a [ISO 639-1] language
+You can use the `lang` command line argument to pass in a [ISO 639-1] language
 code to limit to, and since the filter stream allow you to filter by one more
 languages it is repeatable. So this would collect tweets that mention paris or
 madrid that were made in French or Spanish:
@@ -149,7 +149,6 @@ example this will collect tweets from the greater New York area that are in
 Spanish or French:
 
     twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
-
 
 ### Sample
 
@@ -238,7 +237,7 @@ You can get retweets for a given tweet id like so:
 
     twarc retweets 824077910927691778 > retweets.jsonl
 
-If you have of tweet_ids that you would like to fetch the retweets for you can:
+If you have tweet_ids that you would like to fetch the retweets for, you can:
 
     twarc retweets ids.txt > retweets.jsonl
 
@@ -246,7 +245,7 @@ If you have of tweet_ids that you would like to fetch the retweets for you can:
 
 Unfortunately Twitter's API does not currently support getting replies to a
 tweet. So twarc approximates it by using the search API. Since the search API
-does not support getting tweets older than a week twarc can only get all the
+does not support getting tweets older than a week, twarc can only get the
 replies to a tweet that have been sent in the last week.
 
 If you want to get the replies to a given tweet you can:
@@ -268,20 +267,20 @@ To get the users that are on a list you can use the list URL with the
 
 ## Premium Search API
 
-Twitter introduced Premium Search API that let you pay Twitter money for tweets.
+Twitter introduced a Premium Search API that lets you pay Twitter money for tweets.
 Once you have set up an environment in your
 [dashboard](https://developer.twitter.com/en/dashboard) you can use their 30day
 and fullarchive endpoints to search for tweets outside the 7 day window provided
 by the Standard Search API. To use the premium API from the command line you
 will need to indicate which endpoint you are using, and the environment.
 
-To avoid using up your entire budget you will likely want to limit to some time
+To avoid using up your entire budget you will likely want to limit the time
 range using `--to_date` and `--from_date`. Additionally you can limit the
 maximum number of tweets returned using `--limit`.
 
-So for example if I wanted to get all the blacklivesmatter tweets from a two
+So for example, if I wanted to get all the blacklivesmatter tweets from a two
 weeks ago (assuming today is June 1, 2020) using my environment named
-*docnowndev* but not retrieving more than 1000 tweets I could:
+*docnowdev* but not retrieving more than 1000 tweets, I could:
 
     twarc search blacklivesmatter \
       --30day docnowdev \
@@ -290,7 +289,7 @@ weeks ago (assuming today is June 1, 2020) using my environment named
       --limit 1000 \
       > tweets.jsonl
 
-Similarly to find tweets from 2014 using the full archive you can:
+Similarly, to find tweets from 2014 using the full archive you can:
 
     twarc search blacklivesmatter \
       --fullarchive docnowdev \
@@ -310,7 +309,6 @@ non-sandboxed environments is 500)
       --limit 1000 \
       --sandbox \
       > tweets.jsonl
-
 
 ## Use as a Library
 
@@ -359,26 +357,26 @@ for tweet in t.hydrate(open('ids.txt')):
 
 ## User vs App Auth
 
-Twarc will manage handling rate limiting by Twitter. But you should know that
+Twarc will manage rate limiting by Twitter. However, you should know that
 their rate limiting varies based on the way that you authenticate. The two
 options are User Auth and App Auth. Twarc defaults to using User Auth but you
 can tell it to use App Auth.
 
 Switching to App Auth can be handy in some situations like when you are
 searching tweets, since User Auth can only issue 180 requests every 15 minutes
-(1.6 million tweets per day, but App Auth can issue 450 (4.3 million tweets per
+(1.6 million tweets per day), but App Auth can issue 450 (4.3 million tweets per
 day).
 
-But be careful, the `statuses/lookup` endpoint used by the hydrate subcommand
+But be careful: the `statuses/lookup` endpoint used by the hydrate subcommand
 has a rate limit of 900 requests per 15 minutes for User Auth, and 300 request
 per 15 minutes for App Auth.
 
-If you know what you are doing and want to force App Auth you can use the
+If you know what you are doing and want to force App Auth, you can use the
 `--app_auth` command line option:
 
     twarc --app_auth search ferguson > tweets.jsonl
 
-Similarly if you are using Twarc as a library you can:
+Similarly, if you are using Twarc as a library you can:
 
 ```python
 from twarc import Twarc
@@ -441,7 +439,8 @@ And if you do export GeoJSON with centroids, you can add some random fuzzing:
 
     utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
 
-To filter tweets by presence or absence of geo coordinates (or Place, see [API documentation](https://dev.twitter.com/overview/api/places)):
+To filter tweets by presence or absence of geo coordinates (or Place, see 
+[API documentation](https://dev.twitter.com/overview/api/places)):
 
     utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
     cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
