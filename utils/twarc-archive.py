@@ -42,6 +42,7 @@ import argparse
 archive_file_fmt = "tweets-%04i.jsonl.gz"
 archive_file_pat = "tweets-(\d+).jsonl.gz$"
 
+
 def main():
     config = os.path.join(os.path.expanduser("~"), ".twarc")
     e = os.environ.get
@@ -143,6 +144,7 @@ def main():
     if os.path.exists(lockfile):
         os.remove(lockfile)
 
+
 def get_last_archive(archive_dir):
     count = 0
     for filename in os.listdir(archive_dir):
@@ -153,6 +155,7 @@ def get_last_archive(archive_dir):
         return os.path.join(archive_dir, archive_file_fmt % count)
     else:
         return None
+
 
 def get_next_archive(archive_dir):
     last_archive = get_last_archive(archive_dir)

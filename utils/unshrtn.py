@@ -58,7 +58,7 @@ def rewrite_line(line):
             # otherwise we've got work to do
             url = url.encode('utf8')
             u = '{}/?{}'.format(unshrtn_url, urllib.parse.urlencode({'url': url}))
-            
+
             resp = None
             for retry in range(0, retries):
                 try:
@@ -68,7 +68,7 @@ def rewrite_line(line):
                     logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
                     time.sleep(wait)
 
-            # finally assign the long url, giving preference to a 
+            # finally assign the long url, giving preference to a
             # canonical url if one was found
             if resp and 'long' in resp:
                 url_dict['unshortened_url'] = resp['canonical'] or resp['long']
@@ -94,6 +94,7 @@ def main():
     pool = multiprocessing.Pool(args.pool_size)
     for line in pool.imap_unordered(rewrite_line, fileinput.input(files=args.files if len(args.files) > 0 else ('-',))):
         if line != "\n": print(line)
+
 
 if __name__ == "__main__":
     main()

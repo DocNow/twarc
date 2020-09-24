@@ -69,6 +69,7 @@ db.execute(
     '''
 )
 
+
 def friendships(user_id, level=2):
     """
     Pass in a user_id and you will be returned a generator of friendship 
@@ -95,6 +96,7 @@ def friendships(user_id, level=2):
         else:
             raise(e)
 
+
 def user_ids():
     """
     Returns all the Twitter user_ids in the database.
@@ -108,6 +110,7 @@ def user_ids():
     for result in db.execute(sql):
         yield str(result[0])
 
+
 def user_in_db(user_id):
     """
     Checks to see if the user's friends have already been collected.
@@ -118,6 +121,7 @@ def user_in_db(user_id):
     )
     return results.fetchone()[0] > 0
 
+
 def add_friendship(user_id, friend_id):
     """
     Add a friendship to the database.
@@ -127,6 +131,7 @@ def add_friendship(user_id, friend_id):
         [user_id, friend_id]
     )
     db.commit()
+
 
 def add_user(u):
     """
@@ -164,7 +169,7 @@ def add_user(u):
 if re.match("^\d+$", args.user):
     seed_user_id = args.user
 else:
- seed_user_id = next(t.user_lookup([args.user]))['id_str']
+    seed_user_id = next(t.user_lookup([args.user]))['id_str']
 
 """
 for friendship in friendships(seed_user_id, args.level):

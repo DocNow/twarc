@@ -33,6 +33,7 @@ def main():
     for id in discover_ids(args.query):
         print(id)
 
+
 def discover_ids(query):
     cursor = None
     url = 'https://twitter.com/i/search/timeline?'
@@ -50,6 +51,7 @@ def discover_ids(query):
         q["last_note_ts"] = calendar.timegm(time.gmtime())
         if cursor:
             q["scroll_cursor"] = cursor
+
 
         r = requests.get(url, headers={"user-agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"}, params=q)
         s = json.loads(r.content)
@@ -71,6 +73,7 @@ def discover_ids(query):
         time.sleep(seconds)
 
         cursor = s['scroll_cursor']
+
 
 if __name__ == "__main__":
     main()

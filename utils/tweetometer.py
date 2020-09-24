@@ -49,7 +49,7 @@ for line in fileinput.input(args):
     total = u['statuses_count']
     tweets_per_unit = total / unit
     print('%s,%s,%s,%0.2f' % (
-        u['screen_name'], 
+        u['screen_name'],
         total,
         created_at,
         tweets_per_unit

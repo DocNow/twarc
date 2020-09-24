@@ -15,6 +15,7 @@ import requests
 import optparse
 import fileinput
 
+
 def main(files, save, force_save, sleep):
     count = 0
     found_count = 0
@@ -46,8 +47,9 @@ def main(files, save, force_save, sleep):
     if count > 0:
         print('{}/{} found'.format(found_count, count))
 
+
 def lookup(url):
-    found = None 
+    found = None
     resp = requests.get('https://archive.org/wayback/available?url={}'.format(url))
     if resp.status_code == 200:
         result = resp.json()
@@ -55,23 +57,23 @@ def lookup(url):
             found = timestamp(result['archived_snapshots']['closest']['timestamp'])
     return found
 
+
 def savepagenow(url):
     resp = requests.get('https://web.archive.org/save/' + url)
     if resp.status_code != 200 or 'content-location' not in resp.headers:
         return False
     return 'https://web.archive.org' + resp.headers['content-location']
 
-    
-
 
 def timestamp(s):
     m = re.match(r'^(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$', s)
     return '{}-{}-{} {}:{}:{}'.format(*m.groups())
 
+
 if __name__ == "__main__":
     usage = "usage: %prog [options] tweets.jsonl"
     parser = optparse.OptionParser(usage)
-    parser.add_option('--save', action='store_true', dest='save', 
+    parser.add_option('--save', action='store_true', dest='save',
         help='Save tweet at Internet Archive if not archived')
     parser.add_option('--force-save', action='store_true', dest='force_save',
         help='Always save at Internet Archive, whether it is archived already or not')

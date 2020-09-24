@@ -11,6 +11,7 @@ import fileinput
 
 t = twarc.Twarc()
 
+
 def missing(tweets):
     tweet_ids = [t['id_str'] for t in tweets]
     hydrated = t.hydrate(tweets)
@@ -19,6 +20,7 @@ def missing(tweets):
     for t in tweets:
         if t['id_str'] in missing_ids:
             yield t
+
 
 tweets = []
 
@@ -33,7 +35,3 @@ for line in fileinput.input():
 if len(tweets) > 0:
     for t in missing(tweets):
         print(json.dumps(t))
-
-    
-
-

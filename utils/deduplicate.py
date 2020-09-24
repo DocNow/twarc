@@ -2,8 +2,6 @@
 """
 Given a JSON file, remove any tweets with duplicate IDs.
 
-(`twarc.py --scrape` may result in duplicate tweets.)
-
 Optionally, this will extract retweets. (That is, for a retweet
 use tweet from retweeted_status and retweet.)
 
