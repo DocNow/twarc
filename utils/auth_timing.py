@@ -26,6 +26,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s"
 )
 
+
 def count_tweets(app_auth):
     """
     Search for covid_19 in tweets using the given context and return the number
@@ -43,6 +44,7 @@ def count_tweets(app_auth):
             break
     t.client.close()
     return count
+
 
 print('app auth: ', count_tweets(app_auth=True))
 print('user auth: ', count_tweets(app_auth=False))

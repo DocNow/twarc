@@ -33,8 +33,10 @@ def download_file(url):
                     f.flush()
     return local_filename
 
+
 def text(t):
     return (t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']).replace('\n', ' ')
+
 
 print("""<!doctype html>
 <html>

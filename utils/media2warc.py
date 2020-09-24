@@ -100,13 +100,15 @@ class WriteWarc(threading.Thread):
                     self.out_queue.task_done()
                     self.lock.release()
 
+
 class Dedup:
     """
     Stolen from warcprox
     https://github.com/internetarchive/warcprox/blob/master/warcprox/dedup.py
     """
+
     def __init__(self):
-        self.file = os.path.join(args.archive_dir,'dedup.db')
+        self.file = os.path.join(args.archive_dir, 'dedup.db')
 
     def start(self):
         conn = sqlite3.connect(self.file)
@@ -191,6 +193,7 @@ def parse_binlinks_from_tweet(tweetdict):
         urls.extend(parse_extended_entities(tweetdict["extended_entities"]))
     return urls
 
+
 def main():
     start = time.time()
     if not os.path.isdir(args.archive_dir):
@@ -247,6 +250,7 @@ def main():
     q.join()
     out_queue.join()
     logging.info("Finished media harvest in %s", str(timedelta(seconds=(time.time() - start))))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("archive")

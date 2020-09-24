@@ -59,6 +59,7 @@ def process_tweets(tweets):
             else:
                 print(tweet_id, file=sys.stderr)
 
+
 tweets = {}
 for line in (line.rstrip('\n') for line in fileinput.input()):
     # Add tweet or None to tweet map.

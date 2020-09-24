@@ -5,9 +5,6 @@ Sort tweets by ID.
 Twitter IDs are generated in chronologically ascending order,
 so this is the same as sorting by date.
 
-The output of `twarc --scrape` isn't necessarily in strict (reverse)
-chronological order.
-
 Example usage:
 utils/sort_by_id.py tweets.jsonl > sorted.jsonl
 """

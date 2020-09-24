@@ -28,8 +28,10 @@ import argparse
 import fileinput
 import dateutil.parser
 
+
 def text(t):
     return (t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']).replace('\n', ' ')
+
 
 parser = argparse.ArgumentParser()
 
@@ -130,5 +132,5 @@ for line in fileinput.input(files=args.files):
     if 'geometry' in f:
         features.append(f)
 
-geojson = {"type" : "FeatureCollection", "features": features}
+geojson = {"type": "FeatureCollection", "features": features}
 print(json.dumps(geojson, indent=2))

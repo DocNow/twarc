@@ -11,8 +11,10 @@ import gzip
 
 strptime = datetime.strptime
 
+
 class attriObject:
     """Class object for attribute parser."""
+
     def __init__(self, string):
         self.value = re.split(":", string)
         self.title = self.value[-1]
@@ -27,13 +29,14 @@ class attriObject:
                     print("'{0}' is not a valid json entry.".format(":".join(self.value)))
                     sys.exit()
 
-                #If single search object is a list, search entire list. Error if nested lists.
+                # If single search object is a list, search entire list. Error if nested lists.
                 if isinstance(found[index], list):
                     if len(found) > 1:
                         raise Exception("Extractor currently does not handle nested lists.")
                     found = found[index]
 
         return found
+
 
 def tweets_files(string, path):
     """Iterates over json files in path."""
@@ -43,6 +46,7 @@ def tweets_files(string, path):
             yield path + filename, f
 
             Ellipsis
+
 
 def parse(args):
     with open(args.output, 'w+', encoding="utf-8") as output:
@@ -61,13 +65,13 @@ def parse(args):
                         print("Error in", filename, "entry incomplete.")
                         continue
 
-                    #Check for duplicates
+                    # Check for duplicates
                     identity = json_object['id']
                     if identity in tweets:
                         continue
                     tweets.add(identity)
 
-                    #Check for time restrictions.
+                    # Check for time restrictions.
                     if args.start or args.end:
                         tweet_time = strptime(json_object['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
                         if args.start and args.start > tweet_time:
@@ -75,7 +79,7 @@ def parse(args):
                         if args.end and args.end < tweet_time:
                             continue
 
-                    #Check for hashtag.
+                    # Check for hashtag.
                     if args.hashtag:
                         for entity in json_object['entities']["hashtags"]:
                             if entity['text'].lower() == args.hashtag:
@@ -87,6 +91,7 @@ def parse(args):
 
         print("Searched", len(tweets), "tweets and recorded", count, "items.")
         print("largest id:", max(tweets))
+
 
 def extract(json_object, args, csv_writer):
     """Extract and write found attributes."""
@@ -111,6 +116,7 @@ def extract(json_object, args, csv_writer):
 
         csv_writer.writerow(row)
     return len(found)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extracts attributes from tweets.')

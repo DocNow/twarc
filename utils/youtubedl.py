@@ -41,8 +41,8 @@ from youtube_dl.utils import match_filter_func
 
 parser = argparse.ArgumentParser(description='Download videos in Twitter JSON data.')
 parser.add_argument(
-    '--max-downloads', 
-    type=int, 
+    '--max-downloads',
+    type=int,
     help='max downloads per URL')
 
 parser.add_argument(
@@ -123,6 +123,7 @@ if os.path.isfile(mapping_file):
         seen.add(url)
 results = open(mapping_file, 'a')
 
+
 # a function to do the download
 def download(url, q):
     try:
@@ -136,6 +137,7 @@ def download(url, q):
             logging.warning("%s doesn't look like a video", url)
     except youtube_dl.utils.MaxDownloadsReached as e:
         logging.warning('only %s downloads per url allowed', args.max_downloads)
+
 
 # loop through the tweets
 for line in fileinput.input(args.files):
@@ -151,7 +153,7 @@ for line in fileinput.input(args.files):
             log.info('already processed %s', url)
             continue
         seen.add(url)
-      
+
         # check for blocks
         uri = urlparse(url)
         if uri.netloc in blocklist:
@@ -182,7 +184,6 @@ for line in fileinput.input(args.files):
             filename = ''
         else:
             filename = q.get()
-      
+
         # write the result to the mapping file
         results.write("{}\t{}\n".format(url, filename))
-

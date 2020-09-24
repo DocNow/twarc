@@ -81,6 +81,7 @@ tweets, output = args
 
 G = networkx.DiGraph()
 
+
 def add(from_user, from_id, to_user, to_id, type):
     "adds a relation to the graph"
 
@@ -103,7 +104,6 @@ def add(from_user, from_id, to_user, to_id, type):
         G.add_edge(from_id, to_id, type=type)
 
 
-
 def to_json(g):
     j = {"nodes": [], "links": []}
     for node_id, node_attrs in g.nodes(True):
@@ -119,6 +119,7 @@ def to_json(g):
             "type": attrs.get("type")
         })
     return j
+
 
 for line in open(tweets):
     try:

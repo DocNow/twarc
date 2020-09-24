@@ -15,7 +15,7 @@ opt_parser.add_option(
     "--number",
     dest="number",
     type="int",
-    default= 10
+    default=10
 )
 options, args = opt_parser.parse_args()
 tweets = args

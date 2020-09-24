@@ -43,6 +43,7 @@ import fileinput
 
 from oembedders import embed
 
+
 def main():
     db = OEmbeds()
     for line in fileinput.input():

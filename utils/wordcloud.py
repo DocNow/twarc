@@ -105,10 +105,12 @@ def main():
 
 	sys.stdout.write(output)
 
+
 def text(t):
     if 'full_text' in t:
         return t['full_text']
     return t['text']
+
 
 if __name__ == "__main__":
     main()

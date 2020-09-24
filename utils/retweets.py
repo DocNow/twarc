@@ -11,6 +11,7 @@ import fileinput
 
 from collections import defaultdict
 
+
 def main():
     parser = optparse.OptionParser()
     options, argv = parser.parse_args()
@@ -32,6 +33,7 @@ def main():
 
     for id in sorted(counts, key=counts.get, reverse=True):
         print("{},{}".format(id, counts[id]))
+
 
 if __name__ == "__main__":
     main()
