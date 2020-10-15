@@ -126,7 +126,14 @@ def coordinates(t):
 
 
 def hashtags(t):
-    return ' '.join([h['text'] for h in t['entities']['hashtags']])
+    # If it's a retweet, the hashtags might be cutoff in the retweet object, so check
+    # the enclosed original tweet for the full list.
+    if 'retweeted_status' in t:
+        hashtags = t['retweeted_status']['entities']['hashtags']
+    else:
+        hashtags = t['entities']['hashtags']
+    
+    return ' '.join(h['text'] for h in hashtags)
 
 
 def media(t):
