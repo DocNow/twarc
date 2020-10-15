@@ -22,10 +22,9 @@ AVATAR_DIR = "img"
 
 def download_file(url):
     local_filename = url.split('/')[-1]
-    # NOTE the stream=True parameter
-    r = requests.get(url, stream=True)
     outfile = os.path.join(AVATAR_DIR, local_filename)
     if not os.path.isfile(outfile):
+        r = requests.get(url, stream=True)
         with open(outfile, 'wb') as f:
             for chunk in r.iter_content(chunk_size=1024):
                 if chunk:  # filter out keep-alive new chunks
