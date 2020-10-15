@@ -627,12 +627,32 @@ def test_extended_compat():
     assert 'full_text' in next(T.timeline(screen_name="BarackObama"))
     assert 'text' in next(t_compat.timeline(screen_name="BarackObama"))
 
+
 def test_csv_retweet():
     for tweet in T.search('obama'):
         if 'retweeted_status' in tweet:
             break
     text = json2csv.text(tweet)
     assert not text.startswith('RT @')
+
+
+def test_csv_retweet_hashtag():
+
+    toplevel_hashtags = 0
+    rt_hashtags = 0
+
+    for tweet in T.search('#auspol filter:nativeretweets filter:hashtags'):
+        hashtag_rendered = json2csv.hashtags(tweet)
+        if hashtag_rendered:
+            hashtags = hashtag_rendered.split(' ')
+        else:
+            hashtags = []
+
+        if len(hashtags) > len(tweet['entities']['hashtags']):
+            break
+
+    else:
+        assert False
 
 def test_truncated_text():
     for tweet in T.filter('tweet'):
