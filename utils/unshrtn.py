@@ -32,6 +32,30 @@ wait = 15
 
 logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
+def unshorten_url(url):
+    if url is None:
+        return None
+
+    # TODO: Worth providing some way for the user to specify specific hostnames they want to expand,
+    # instead of assuming that all hostnames need expanding?
+    if re.match(r'^https?://twitter.com/', url):
+        return url
+
+    u = '{}/?{}'.format(unshrtn_url, urllib.parse.urlencode({'url': url.encode('utf8')}))
+    resp = None
+    for retry in range(0, retries):
+        try:
+            resp = json.loads(urllib.request.urlopen(u).read().decode('utf-8'))
+            break
+        except Exception as e:
+            logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
+            time.sleep(wait)
+
+    for key in ["canonical", "long"]:
+        if key in resp:
+            return resp[key]
+
+    return None
 
 def rewrite_line(line):
     try:
@@ -51,27 +75,9 @@ def rewrite_line(line):
         else:
             url = url_dict['url']
 
-        if url and re.match(r'^https?://twitter.com/', url):
-            # don't hammer on twitter.com urls that we know are not short
-            url_dict['unshortened_url'] = url
-        elif url:
-            # otherwise we've got work to do
-            url = url.encode('utf8')
-            u = '{}/?{}'.format(unshrtn_url, urllib.parse.urlencode({'url': url}))
+        url_dict['unshortened_url'] = unshorten_url(url)
 
-            resp = None
-            for retry in range(0, retries):
-                try:
-                    resp = json.loads(urllib.request.urlopen(u).read().decode('utf-8'))
-                    break
-                except Exception as e:
-                    logging.error("http error: %s when looking up %s. Try %s of %s", e, url, retry, retries)
-                    time.sleep(wait)
-
-            # finally assign the long url, giving preference to a
-            # canonical url if one was found
-            if resp and 'long' in resp:
-                url_dict['unshortened_url'] = resp['canonical'] or resp['long']
+    tweet["user"]["unshortened_url"] = unshorten_url(tweet["user"]["url"])
 
     return json.dumps(tweet)
 
