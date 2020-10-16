@@ -75,10 +75,6 @@ def rewrite_line(line):
         logging.error(e)
         return line
 
-    # don't do the same work again
-    if "unshortened_url" in tweet and tweet["unshortened_url"]:
-        return line
-
     for url_dict in tweet["entities"]["urls"]:
         if "expanded_url" in url_dict:
             url = url_dict["expanded_url"]
