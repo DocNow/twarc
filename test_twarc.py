@@ -49,12 +49,6 @@ def test_search():
             break
     assert count == 10
 
-def test_search_max_pages():
-    count = 0
-    for tweet in T.search('obama', max_pages=3):
-        count += 1
-        assert tweet['id_str']
-    assert count == 300
 
 def test_search_max_pages():
     tweets = list(T.search('obama', max_pages=1))
@@ -336,9 +330,9 @@ def test_follower_ids_with_user_id():
 
 def test_follower_ids_max_pages():
 
-    ids = list(T.follower_ids(27260086, max_pages=1))
+    ids = list(T.follower_ids(813286, max_pages=1))
     assert 0 < len(ids) <= 5000
-    ids = list(T.follower_ids(27260086, max_pages=2))
+    ids = list(T.follower_ids(813286, max_pages=2))
     assert 5000 < len(ids) <= 10000
 
 
@@ -679,20 +673,6 @@ def test_app_auth():
         if count == 10:
             break
     assert count == 10
-
-
-def test_labs_v1_sample():
-    ta = twarc.Twarc(app_auth=True)
-
-    collected = 0
-    for tweet in ta.labs_v1_sample():
-        if 'data' in tweet:
-            collected += 1
-        if collected == 100:
-            break
-
-    # reconnect to close streaming connection for other tests
-    ta.connect()
 
 @pytest.mark.skipif(os.environ.get('TWITTER_ENV') == None, reason="No environment")
 def test_premium_30day_search():

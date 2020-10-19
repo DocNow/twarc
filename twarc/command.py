@@ -50,7 +50,6 @@ commands = [
     'users',
     'listmembers',
     'version',
-    'labs_v1_sample',
 ]
 
 
@@ -89,10 +88,6 @@ def main():
         validate_keys = False
     else:
         validate_keys = True
-
-    # Force app_auth when using Labs or Premium API
-    if command == "lab_v1_sample" or args.thirtyday or args.fullarchive:
-        args.app_auth = True
 
     t = Twarc(
         consumer_key=args.consumer_key,
@@ -175,9 +170,6 @@ def main():
 
     elif command == "sample":
         things = t.sample()
-
-    elif command == "labs_v1_sample":
-        things = t.labs_v1_sample()
 
     elif command == "timeline":
         kwargs = {"max_id": args.max_id, "since_id": args.since_id}

@@ -527,79 +527,6 @@ class Twarc(object):
                     log.info("stopping filter")
                     return
 
-    def labs_v1_sample(self, event=None, record_keepalive=False):
-        """
-        Returns a small random sample of all public statuses, using the new Twitter
-        labs API version of the endpoint.
-
-        The Tweets returned by the default access level are the same, so if two
-        different clients connect to this endpoint, they will see the same Tweets.
-
-        If a threading.Event is provided for event and the event is set,
-        the sample will be interrupted.
-
-        Requires the use of application only authorisation (set app_auth=True on
-        constructing the Twarc client, or on the commandline).
-        """
-
-        if not self.app_auth:
-            raise RuntimeError(
-                "This endpoint is only available with application authentication. "
-                "Pass app_auth=True in Python or --app-auth on the command line."
-            )
-
-        url = 'https://api.twitter.com/labs/1/tweets/stream/sample'
-        headers = {'accept-encoding': 'deflate, gzip'}
-        errors = 0
-        while True:
-            try:
-                log.info("connecting to labs sample stream")
-                resp = self.get(url, headers=headers, stream=True)
-                errors = 0
-                for raw_line in resp.iter_lines(chunk_size=512):
-                    line = raw_line.decode()
-                    if event and event.is_set():
-                        log.info("stopping sample")
-                        # Explicitly close response
-                        resp.close()
-                        return
-                    if line == "":
-                        log.info("keep-alive")
-                        if record_keepalive:
-                            yield "keep-alive"
-                        continue
-                    try:
-                        yield json.loads(line)
-                    except Exception as e:
-                        log.error("json parse error: %s - %s", e, line)
-            except requests.exceptions.HTTPError as e:
-                errors += 1
-                log.error("caught http error %s on %s try", e, errors)
-                if self.http_errors and errors == self.http_errors:
-                    log.warning("too many errors")
-                    raise e
-                if e.response_status_code == 403:
-                    log.warning("access denied for app (403 Error)")
-                    raise e
-                if e.response.status_code == 420:
-                    if interruptible_sleep(errors * 60, event):
-                        log.info("stopping filter")
-                        return
-                else:
-                    if interruptible_sleep(errors * 5, event):
-                        log.info("stopping filter")
-                        return
-
-            except Exception as e:
-                errors += 1
-                log.error("caught exception %s on %s try", e, errors)
-                if self.http_errors and errors == self.http_errors:
-                    log.warning("too many errors")
-                    raise e
-                if interruptible_sleep(errors, event):
-                    log.info("stopping filter")
-                    return
-
     def dehydrate(self, iterator):
         """
         Pass in an iterator of tweets' JSON and get back an iterator of the
@@ -840,12 +767,6 @@ class Twarc(object):
             kwargs["params"] = {"tweet_mode": self.tweet_mode}
         else:
             kwargs["params"]["tweet_mode"] = self.tweet_mode
-
-        # override tweet_mode for labs and premium endpoints
-        if re.search(r"api.twitter.com/labs", args[0]):
-            kwargs["params"] = {"format": "detailed"}
-        elif re.search(r"api.twitter.com/1.1/tweets/search/", args[0]):
-            kwargs["params"].pop("tweet_mode")
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)
