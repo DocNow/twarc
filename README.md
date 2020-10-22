@@ -310,6 +310,21 @@ non-sandboxed environments is 500)
       --sandbox \
       > tweets.jsonl
 
+## Gnip Enterprise API
+
+Twarc supports integration with the Gnip Twitter Full-Archive Enterprise API.
+To do so, you must pass in the `--gnip_auth` argument. Additionally, set the
+`GNIP_USERNAME`, `GNIP_PASSWORD`, and `GNIP_ACCOUNT` environment variables.
+You can then run the following:
+
+    twarc search blacklivesmatter \
+      --gnip_auth \
+      --gnip_fullarchive prod \
+      --from_date 2014-08-04 \
+      --to_date 2015-08-05 \
+      --limit 1000 \
+      > tweets.jsonl
+
 ## Use as a Library
 
 If you want you can use twarc programmatically as a library to collect
