@@ -420,6 +420,10 @@ you can generate a GEXF file with the following:
     utils/network.py --users tweets.jsonl tweets.gexf
     utils/network.py --hashtags tweets.jsonl tweets.gexf
 
+Additionally if you want to convert the network into a dynamic network with timeline enabled (i.e. nodes will appear and disappear according to their  attributes), you can open up your GEXF file in Gephi and follow [these instructions](https://seinecle.github.io/gephi-tutorials/generated-html/converting-a-network-with-dates-into-dynamic.html). Note that in tweets.gexf there is a column for "start_date" (which is the day the post was created) but none for "end_date" and that in the dynamic timeline, the nodes will appear on the screen at their start date and stay on screen forever after.  For the "Time Interval creation options" pop-up in Gephi, the "Start time column" should be "start_date", the "End time column" should be empty, the "Parse dates" should be selected, and the Date format should be the last option, "dd/MM/yyyy HH:mm:ss", just as pictured below.
+
+![Image of Correctly Chosen Options in Gephi's Create Time Interval Popup](gephi_correct_options_for_time_interval_popup.png)
+
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that
 look like they were from women, and create a word cloud for them:
@@ -439,7 +443,7 @@ And if you do export GeoJSON with centroids, you can add some random fuzzing:
 
     utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
 
-To filter tweets by presence or absence of geo coordinates (or Place, see 
+To filter tweets by presence or absence of geo coordinates (or Place, see
 [API documentation](https://dev.twitter.com/overview/api/places)):
 
     utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl

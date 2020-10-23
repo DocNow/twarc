@@ -29,6 +29,7 @@ import json
 import networkx
 import optparse
 import itertools
+import time
 
 from networkx import nx_pydot
 from networkx.readwrite import json_graph
@@ -82,12 +83,14 @@ tweets, output = args
 G = networkx.DiGraph()
 
 
-def add(from_user, from_id, to_user, to_id, type):
+def add(from_user, from_id, to_user, to_id, type, created_at=None):
     "adds a relation to the graph"
+    # storing start_data will allow for timestamps for gephi timeline, where nodes will appear on screen at their start dataset
+    # and stay on forever after
 
     if (options.users or options.hashtags) and to_user:
-        G.add_node(from_user, screen_name=from_user)
-        G.add_node(to_user, screen_name=to_user)
+        G.add_node(from_user, screen_name=from_user, start_date=created_at)
+        G.add_node(to_user, screen_name=to_user, start_date=created_at)
 
         if G.has_edge(from_user, to_user):
             weight = G[from_user][to_user]['weight'] + 1
@@ -131,10 +134,12 @@ for line in open(tweets):
     from_user_id = t['user']['id_str']
     to_user = None
     to_id = None
+    # standardize raw created at date to dd/MM/yyyy HH:mm:ss
+    created_at_date = time.strftime('%d/%m/%Y %H:%M:%S', time.strptime(t["created_at"],'%a %b %d %H:%M:%S +0000 %Y'))
 
     if options.users:
         for u in t['entities'].get('user_mentions', []):
-            add(from_user, from_id, u['screen_name'], None, 'reply')
+            add(from_user, from_id, u['screen_name'], None, 'reply', created_at_date)
 
     elif options.hashtags:
         hashtags = t['entities'].get('hashtags', [])
@@ -142,7 +147,7 @@ for line in open(tweets):
         for u in hashtag_pairs:
             # source hashtag: u[0]['text']
             # target hashtag: u[1]['text']
-            add('#' + u[0]['text'], None, '#' + u[1]['text'], None, 'hashtag')
+            add('#' + u[0]['text'], None, '#' + u[1]['text'], None, 'hashtag', created_at_date)
 
     else:
         if t.get('in_reply_to_status_id_str'):
