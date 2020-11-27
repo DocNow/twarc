@@ -158,12 +158,18 @@ def main():
         things = t.dehydrate(input_iterator)
 
     elif command == "hydrate":
-        input_iterator = fileinput.FileInput(
+        if os.path.isfile(query):
+            input_iterator = fileinput.FileInput(
             query,
             mode='r',
             openhook=fileinput.hook_compressed,
-        )
-        things = t.hydrate(input_iterator)
+            )
+            things = t.hydrate(input_iterator)
+
+        elif re.match('^[0-9,]+$', query):
+            things = t.hydrate(ids=query.split(","))
+
+        
 
     elif command == "tweet":
         things = [t.tweet(query)]
