@@ -946,7 +946,6 @@ class Twarc(object):
                 else:
                     raise e
         else:
-            print(self.gnip_auth, url)
             print('Incomplete credentials provided.')
             print('Please run the command "twarc configure" to get started.')
             sys.exit()

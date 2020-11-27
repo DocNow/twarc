@@ -29,6 +29,17 @@ You will need to have these environment variables set to run these tests:
 * ACCESS_TOKEN
 * ACCESS_TOKEN_SECRET
 
+To run the premium tests, you will need to set the following environment variable:
+
+TWITTER_ENV
+
+To run the gnip test, you will need to set the following environment variables:
+
+GNIP_ENV
+GNIP_ACCOUNT
+GNIP_USERNAME
+GNIP_PASSWORD
+
 """
 
 logging.basicConfig(filename="test.log", level=logging.INFO)
@@ -700,6 +711,33 @@ def test_premium_fullarchive_search():
     search = t.premium_search(
         q='blacklivesmatter',
         product='fullarchive',
+        environment=twitter_env,
+        from_date=from_date,
+        to_date=to_date,
+        sandbox=True
+    )
+
+    count = 0
+    for tweet in search:
+        created_at = datetime.datetime.strptime(
+            tweet['created_at'],
+            '%a %b %d %H:%M:%S +0000 %Y'
+        )
+        assert created_at.date() >= from_date
+        assert created_at.date() <= to_date
+        count += 1
+
+    assert count > 200
+
+@pytest.mark.skipif(os.environ.get('GNIP_ENV') == None, reason="No gnip environment")
+def test_gnip_fullarchive_search():
+    twitter_env = os.environ['GNIP_ENV']
+    from_date = datetime.date(2013, 7, 1)
+    to_date = datetime.date(2013, 8, 1)
+    t = twarc.Twarc(gnip_auth=True)
+    search = t.premium_search(
+        q='blacklivesmatter',
+        product='gnip_fullarchive',
         environment=twitter_env,
         from_date=from_date,
         to_date=to_date,
