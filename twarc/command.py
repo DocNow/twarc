@@ -101,7 +101,8 @@ def main():
         tweet_mode=args.tweet_mode,
         protected=args.protected,
         validate_keys=validate_keys,
-        app_auth=args.app_auth
+        app_auth=args.app_auth,
+        gnip_auth=args.gnip_auth
     )
 
     # calls that return tweets
@@ -112,7 +113,7 @@ def main():
             lang=None
 
         # if not using a premium endpoint do a standard search
-        if not args.thirtyday and not args.fullarchive:
+        if not args.thirtyday and not args.fullarchive and not args.gnip_fullarchive:
             things = t.search(
                 query,
                 since_id=args.since_id,
@@ -125,7 +126,10 @@ def main():
             # parse the dates if given
             from_date = parse_dt(args.from_date) if args.from_date else None
             to_date = parse_dt(args.to_date) if args.to_date else None
-            if args.thirtyday:
+            if args.gnip_fullarchive:
+                env = args.gnip_fullarchive
+                product = 'gnip_fullarchive'
+            elif args.thirtyday:
                 env = args.thirtyday
                 product = '30day'
             else:
@@ -391,10 +395,14 @@ def get_argparser():
                         help="skip checking keys are valid on startup")
     parser.add_argument("--app_auth", action="store_true", default=False,
                         help="run in App Auth mode instead of User Auth")
+    parser.add_argument("--gnip_auth", action="store_true", default=False,
+                        help="run in Gnip Auth mode (for enterprise APIs)")
     parser.add_argument("--30day", action="store", dest="thirtyday", 
                         help="environment to use to search 30day premium endpoint")
     parser.add_argument("--fullarchive", action="store",
                         help="environment to use to search fullarchive premium endpoint"),
+    parser.add_argument("--gnip_fullarchive", action="store",
+                        help="environment to use to search gnip fullarchive enterprise endpoint"),
     parser.add_argument("--from_date", action="store", default=None,
                         help="limit premium search to date e.g. 2012-05-01 03:04:01")
     parser.add_argument("--to_date", action="store", default=None,

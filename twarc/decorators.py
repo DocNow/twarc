@@ -36,9 +36,13 @@ def rate_limit(f):
                     log.warning("401 Authentication required for %s", resp.url)
                     raise
             elif resp.status_code == 429:
-                reset = int(resp.headers['x-rate-limit-reset'])
-                now = time.time()
-                seconds = reset - now + 10
+                try:
+                    reset = int(resp.headers['x-rate-limit-reset'])
+                    now = time.time()
+                    seconds = reset - now + 10
+                except KeyError:
+                    # gnip endpoint doesn't have x-rate-limit-reset
+                    seconds = 2
                 if seconds < 1:
                     seconds = 10
                 log.warning("rate limit exceeded: sleeping %s secs", seconds)

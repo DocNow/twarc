@@ -45,7 +45,9 @@ class Twarc(object):
                  access_token=None, access_token_secret=None,
                  connection_errors=0, http_errors=0, config=None,
                  profile="", protected=False, tweet_mode="extended",
-                 app_auth=False, validate_keys=True):
+                 app_auth=False, validate_keys=True, gnip_auth=False,
+                 gnip_username=None, gnip_password=None,
+                 gnip_account=None):
         """
         Instantiate a Twarc instance. If keys aren't set we'll try to
         discover them in the environment or a supplied profile. If no
@@ -65,6 +67,10 @@ class Twarc(object):
         self.tweet_mode = tweet_mode
         self.protected = protected
         self.app_auth = app_auth
+        self.gnip_auth = gnip_auth
+        self.gnip_username = gnip_username
+        self.gnip_password = gnip_password
+        self.gnip_account = gnip_account
 
         if config:
             self.config = config
@@ -155,7 +161,7 @@ class Twarc(object):
         return more than that number of tweets (0 means no limit).
         """
 
-        if not self.app_auth:
+        if not self.app_auth and not self.gnip_auth:
             raise RuntimeError(
                 "This endpoint is only available with application authentication. "
                 "Pass app_auth=True in Python or --app-auth on the command line."
@@ -166,7 +172,7 @@ class Twarc(object):
         if to_date and not isinstance(to_date, datetime.date):
             raise RuntimeError("to_date must be a datetime.date or datetime.datetime object")
 
-        if product not in ['30day', 'fullarchive']:
+        if product not in ['30day', 'gnip_fullarchive', 'fullarchive']:
             raise RuntimeError(
                 'Invalid Premium Search API product: {}'.format(product)
             )
@@ -178,10 +184,16 @@ class Twarc(object):
             else:
                 max_results = 500
 
-        url = 'https://api.twitter.com/1.1/tweets/search/{}/{}.json'.format(
-            product, 
-            environment
-        )
+        if product == 'gnip_fullarchive':
+            url = 'https://gnip-api.twitter.com/search/fullarchive/accounts/{}/{}.json'.format(
+                self.gnip_account,
+                environment
+            )
+        else:
+            url = 'https://api.twitter.com/1.1/tweets/search/{}/{}.json'.format(
+                product, 
+                environment
+            )
 
         params = {
             "query": q,
@@ -762,11 +774,12 @@ class Twarc(object):
         if not self.client:
             self.connect()
 
-        # set default tweet_mode
-        if "params" not in kwargs:
-            kwargs["params"] = {"tweet_mode": self.tweet_mode}
-        else:
-            kwargs["params"]["tweet_mode"] = self.tweet_mode
+        # set default tweet_mode; only used for non-gnip endpoints
+        if not args[0].startswith("https://gnip-api"):
+            if "params" not in kwargs:
+                kwargs["params"] = {"tweet_mode": self.tweet_mode}
+            else:
+                kwargs["params"]["tweet_mode"] = self.tweet_mode
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop('allow_404', False)
@@ -832,7 +845,9 @@ class Twarc(object):
         Sets up the HTTP session to talk to Twitter. If one is active it is
         closed and another one is opened.
         """
-        if not (self.consumer_key and self.consumer_secret and self.access_token
+        if self.gnip_auth and not (self.gnip_username and self.gnip_password and self.gnip_account):
+            raise RuntimeError("MissingKeys")
+        elif not self.gnip_auth and not (self.consumer_key and self.consumer_secret and self.access_token
                 and self.access_token_secret):
             raise RuntimeError("MissingKeys")
 
@@ -844,7 +859,12 @@ class Twarc(object):
             self.last_response.close()
         log.info("creating http session")
 
-        if not self.app_auth:
+        if self.gnip_auth:
+            logging.info('creating basic user authentication for gnip')
+            s = requests.Session()
+            s.auth = (self.gnip_username, self.gnip_password)
+            self.client = s
+        elif not self.app_auth:
             logging.info('creating OAuth1 user authentication')
             self.client = OAuth1Session(
                 client_key=self.consumer_key,
@@ -878,25 +898,40 @@ class Twarc(object):
             self.access_token = env('ACCESS_TOKEN')
         if not self.access_token_secret:
             self.access_token_secret = env('ACCESS_TOKEN_SECRET')
+        if not self.gnip_username:
+            self.gnip_username = env('GNIP_USERNAME')
+        if not self.gnip_password:
+            self.gnip_password = env('GNIP_PASSWORD')
+        if not self.gnip_account:
+            self.gnip_account = env('GNIP_ACCOUNT')
 
-        if self.config and not (self.consumer_key and
+        if self.config:
+            if self.gnip_auth and not (self.gnip_username and
+                                self.gnip_password and
+                                self.gnip_account):
+                self.load_config()
+            elif not self.gnip_auth and not (self.consumer_key and
                                 self.consumer_secret and
                                 self.access_token and
                                 self.access_token_secret):
-            self.load_config()
+                self.load_config()
 
     def validate_keys(self):
         """
         Validate the keys provided are authentic credentials.
         """
-        url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
+        if self.gnip_auth:
+            url = 'https://gnip-api.twitter.com/metrics/usage/accounts/{}.json'.format(self.gnip_account)
 
-        keys_present = self.consumer_key and self.consumer_secret and \
-                       self.access_token and self.access_token_secret
-
-        if self.app_auth:
+            keys_present = self.gnip_account and self.gnip_username and self.gnip_password
+        elif self.app_auth:
             # no need to validate keys when using OAuth2 App Auth.
             return True
+        else:
+            url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
+
+            keys_present = self.consumer_key and self.consumer_secret and \
+                        self.access_token and self.access_token_secret
 
         if keys_present:
             try:
@@ -930,8 +965,8 @@ class Twarc(object):
             profile = config.sections()[0]
 
         data = {}
-        for key in ['access_token', 'access_token_secret',
-                    'consumer_key', 'consumer_secret']:
+        keys = ['gnip_username', 'gnip_password', 'gnip_account'] if self.gnip_auth else ['access_token', 'access_token_secret', 'consumer_key', 'consumer_secret']
+        for key in keys:
             try:
                 setattr(self, key, config.get(profile, key))
             except configparser.NoSectionError:
@@ -951,11 +986,16 @@ class Twarc(object):
             config.remove_section(profile)
 
         config.add_section(profile)
-        config.set(profile, 'consumer_key', self.consumer_key)
-        config.set(profile, 'consumer_secret', self.consumer_secret)
-        config.set(profile, 'access_token', self.access_token)
-        config.set(profile, 'access_token_secret',
-                   self.access_token_secret)
+        if self.gnip_auth:
+            config.set(profile, 'gnip_username', self.access_token_secret)
+            config.set(profile, 'gnip_password', self.access_token_secret)
+            config.set(profile, 'gnip_account', self.access_token_secret)
+        else:
+            config.set(profile, 'consumer_key', self.consumer_key)
+            config.set(profile, 'consumer_secret', self.consumer_secret)
+            config.set(profile, 'access_token', self.access_token)
+            config.set(profile, 'access_token_secret',
+                    self.access_token_secret)
         with open(self.config, 'w') as config_file:
             config.write(config_file)
 
