@@ -774,8 +774,8 @@ class Twarc(object):
         if not self.client:
             self.connect()
 
-        # set default tweet_mode; only used for non-gnip endpoints
-        if not args[0].startswith("https://gnip-api"):
+        # set default tweet_mode; only used for non-premium/non-gnip endpoints
+        if self.is_standard_v1(args[0]):
             if "params" not in kwargs:
                 kwargs["params"] = {"tweet_mode": self.tweet_mode}
             else:
@@ -1080,5 +1080,15 @@ class Twarc(object):
 
     def default_config(self):
         return os.path.join(os.path.expanduser("~"), ".twarc")
+
+    def is_standard_v1(self, url):
+        result = True
+        if url.startswith('https://gnip-api.twitter.com'):
+            result = False
+        elif url.startswith('https://api.twitter.com/1.1/tweets/search/30day'):
+            result = False
+        elif url.startswith('https://api.twitter.com/1.1/tweets/search/fullarchive'):
+            result = False
+        return result
 
 
