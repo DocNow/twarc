@@ -32,7 +32,7 @@ elif opts.unit == 'year':
 
 now = datetime.now(timezone.utc)
 
-print('scree_name,tweets per %s' % opts.unit)
+print('screen_name,tweets per %s' % opts.unit)
 
 for line in fileinput.input(args):
     t = json.loads(line)
