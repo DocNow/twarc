@@ -5,20 +5,20 @@ twarc
 
 *翻译: [英语], [日语], [葡萄牙语], [西班牙语], [斯瓦希里语], [瑞典语]*
 
-twarc 是一个用来存档推特 JSON 数据的命令行工具和 Python 包。
+twarc 是一个用来处理并存档推特 JSON 数据的命令行工具和 Python 包。
 
-twarc 处理的每一条推文都用一个 JSON 对象来表示，[正如]((https://dev.twitter.com/overview/api/tweets))推特 API 返回的一样。twarc 会自动处理推特 API 的[流量限制](https://dev.twitter.com/rest/public/rate-limiting)。除了可以让你收集推文之外，twarc 还可以帮助你收集用户、当下流行和获得推文 id 的详细信息。
+[正如](https://dev.twitter.com/overview/api/tweets)推特 API 返回的一样，twarc 处理的每一条推文都用一个 JSON 对象来表示。twarc 会自动处理推特 API 的[流量限制](https://dev.twitter.com/rest/public/rate-limiting)。除了可以让你收集推文之外，twarc 还可以帮助你收集用户信息、当下流行的标签和根据 id 获得推文的详细信息。
 
 twarc 是作为 [Mellon Foundation](https://mellon.org/) 资助下的 [Documenting the Now](http://www.docnow.io) 项目的一部分开发的。
 
 ## 安装
 
-在使用 twarc 之前，你需要在 [apps.twitter.com](http://apps.twitter.com) 注册一个应用。一旦你注册了你的应用，记下你的 consumer key 和 consumer secret 并点击生成一组 access token 和 access token secret. 这四个数据在手你就可以开始使用 twarc 了。
+在使用 twarc 之前，你需要在 [apps.twitter.com](http://apps.twitter.com) 注册一个应用。一旦你注册了你的应用，记下你的 `consumer key` 和 `consumer secret` 并点击生成一组 `access token` 和 `access token secret`. 这四个数据在手你就可以开始使用 twarc 了。
 
 1. 安装 [Python](http://python.org/download) (2 或者 3)
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc
 
-### Homebrew (仅限macOS 系统)
+### 使用Homebrew (仅限macOS 系统)
 
 macOS系统用户, 你可以通过Homebrew安装 `twarc` :
 
@@ -64,26 +64,15 @@ twarc configure
 
 ### 搜索
 
-搜索功能使用推特的[搜索推文](https://dev.twitter.com/rest/reference/get/search/tweets)来下载*已经存在*的符合搜索字符串的推文。
+搜索功能使用推特的[搜索推文](https://dev.twitter.com/rest/reference/get/search/tweets) API endpoint 来下载*已经存在*的符合搜索字符串的推文。
 
 ```shell
 twarc search blacklivesmatter > tweets.jsonl
 ```
 
-It's important to note that `search` will return tweets that are found within a
-7 day window that Twitter's search API imposes. If this seems like a small
-window, it is, but you may be interested in collecting tweets as they happen
-using the `filter` and `sample` commands below.
+尤其需要注意的是 `search` 返回的是过去七天内的推文：这是推特搜索 API 的限制。如果你觉得这太短了——我们也觉得——你或许会更愿意尝试使用下文提到的 `filter` 和 `sample` 命令。
 
-尤其需要注意的是 `search` 返回的是过去七天内的推文：这是推特搜索 API 的限制。如果你觉得这太短了——我们也觉得。你或许会更愿意尝试使用下文提到的 `filter` 和 `sample` 命令。
-
-The best way to get familiar with Twitter's search syntax is to experiment with
-[Twitter's Advanced Search](https://twitter.com/search-advanced) and copy and
-pasting the resulting query from the search box. For example here is a more
-complicated query that searches for tweets containing either the
-\#blacklivesmatter or #blm hashtags that were sent to deray.
-
-最好的快速上手推特搜索语法的方法是实验[推特高级搜索](https://twitter.com/search-advanced)的内容，复制粘贴搜索框里的查询语句。比如这里有一个比较复杂的查询语句，它搜索包含有 `#blacklivesmatter` 和 `#blm` 并发给 [deray](https://twitter.com/deray) 的推文。
+最好的快速上手推特搜索语法的方法是实验[推特高级搜索](https://twitter.com/search-advanced)这个页面上的样例。你可以复制粘贴搜索框里的查询语句。比如这里有一个比较复杂的查询语句，它搜索包含有 `#blacklivesmatter` 和 `#blm` 关键字并发给 [deray](https://twitter.com/deray) 的推文。
 
 ```shell
 twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
@@ -91,20 +80,17 @@ twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
 
 你还应当看一看 Igor Brigadir 关于推特高级搜索语法`精彩绝伦`的指南: [推特高级搜索 (英文)](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md). 这份指南里包含了很多阅读推特搜索文档后依然不显然的玄妙之处。
 
-推特尝试显式地定义推文的语言。你可以尝试限制你获得的推文的语言如果你想使用 [ISO 639-1] 规范的话。
+推特尝试显式地定义推文的语言。你可以尝试使用 [ISO 639-1] 规范限制你获得的推文的语言。
 
 ```shell
 twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
 ```
 
-你还可以通过位置来搜索，比如搜索包含 `#blacklivesmatter` 且位置定位在密苏里弗格森半径1英里之内的推文。
+你还可以通过位置来搜索。比如你可以搜索包含 `#blacklivesmatter` 且位置定位在密苏里弗格森半径1英里之内的推文。
 
 ```shell
 twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 ```
-
-If a search query isn't supplied when using `--geocode` you will get all tweets
-relevant for that location and radius:
 
 如果一个包含 `--geocode` 的搜索没有包含要查询的字符串，那么你将得到所有与该位置和其半径相关的推文。
 
@@ -120,13 +106,9 @@ twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
 twarc filter blacklivesmatter,blm > tweets.jsonl
 ```
 
-Please note that the syntax for the Twitter's track queries is slightly
-different than what queries in their search API. So please consult the
-documentation on how best to express the filter option you are using.
-
 请注意推特的 `track` 查询语句的语法和搜索 API 里的语法略有不同。请使用官方文档来了解如何最好地表达你的过滤命令选项。
 
-使用 `follow` 命令行参数和用户的 id 来实时收集某个具体用户的推文。这个命令的结果包含转推。举个例子，下面的命令搜索 `CNN` 的推文和转推。
+使用 `follow` 命令行参数和用户的 id 来实时收集某个具体用户的推文。注意这个命令的结果包含转推。举个例子，下面的命令搜索 `CNN` 的推文和转推。
 
 ```shell
 twarc filter --follow 759251 > tweets.jsonl
@@ -138,24 +120,19 @@ twarc filter --follow 759251 > tweets.jsonl
 twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
 ```
 
-You can use the `lang` command line argument to pass in a [ISO 639-1] language
-code to limit to, and since the filter stream allow you to filter by one more
-languages it is repeatable. So this would collect tweets that mention paris or
-madrid that were made in French or Spanish:
-
-你还可以使用 `lang` 命令行参数来传入 [ISO 639-1] 语言代码来限制语言。你还可以多次使用这个参数限制多种语言。下面的例子实时收集提到了巴黎和马德里的法语推文和西班牙语推文。
+你可以使用 `lang` 命令行参数来传入 [ISO 639-1] 语言代码来限制语言。你还可以多次使用这个参数指定多种语言。下面的例子实时收集提到了巴黎和马德里的法语推文和西班牙语推文：
 
 ```shell
 twarc filter paris,madrid --lang fr --lang es
 ```
 
-`filter` 和 `follow` 命令是**或**关系。下面的例子将收集包含 `blacklivesmatter` 或者 `blm` 的推文，或者是来自 CNN 的推文。
+`filter` 和 `follow` 命令是**或**关系。下面的例子将收集包含 `blacklivesmatter` 或者 `blm` 关键字的推文，或者是来自 CNN 的推文。
 
 ```shell
 twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
 ```
 
-但是将位置和语言限制合并将得到**和**的关系，下面的例子收集来自纽约的法语或者西班牙语推文。
+但是将位置和语言限制合并将得到**和**的关系，下面的例子收集来自纽约且被标记为法语或者西班牙语的推文。
 
 ```shell
 twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
@@ -163,7 +140,7 @@ twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
 
 ### 采样
 
-使用 `sample` 命令来监听推特的 [状态/采样](https://dev.twitter.com/streaming/reference/get/statuses/sample) API 来“随机“采样最近的公开的推文。
+使用 `sample` 命令来监听推特的 [状态/采样](https://dev.twitter.com/streaming/reference/get/statuses/sample) API 来“随机“采样最近的、公开的推文。
 
 ```shell
 twarc sample > tweets.jsonl
@@ -179,17 +156,17 @@ twarc dehydrate tweets.jsonl > tweet-ids.txt
 
 ### `补水`
 
-twarc 所谓的补水命令 `hydrate` 是 `dehydrate` 的反过程，它读取一个包含推文 id 的文件，使用推特的 [状态/检索](https://dev.twitter.com/rest/reference/get/statuses/lookup) API 重建完整的包含完整推文 json 的 jsonl 文件。
+twarc 所谓的补水命令 `hydrate` 是 `dehydrate` 的反过程，它读取一个包含推文 id 的文件，使用推特的 [状态/检索](https://dev.twitter.com/rest/reference/get/statuses/lookup) API 重建包含完整推文 json 的 jsonl 文件。
 
 ```shell
 twarc hydrate ids.txt > tweets.jsonl
 ```
 
-推特 API 的[服务条款](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) 反对用户将大量原始推文数据公布在网络上。数据可以被用来研究使用和保存在本地，但是不可以和世界分享。推特确实允许用户大量地将推文 id 公开分享，而这些 id 可以用来重建推文 JSON 数据——通过 `hydrate` 命令和推特的 API. 这一点对于社交媒体研究中的[复现](https://en.wikipedia.org/wiki/Reproducibility)尤为重要。
+推特 API 的[服务条款](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) 反对用户将大量原始推文数据公布在网络上。数据可以被用来研究使用和保存在本地，但是不可以和世界分享。不过，推特确实允许用户大量地将推文 id 公开分享，而这些 id 可以用来重建推文 JSON 数据——通过 `hydrate` 命令和推特的 API. 这一点对于社交媒体研究中的[复现](https://en.wikipedia.org/wiki/Reproducibility)尤为重要。
 
 ### 用户
 
-用户 `users` 命令可以返回（多个）用户的元数据。用户的名称由推特上的屏幕名称唯一确认。
+用户 `users` 命令可以返回（多个）用户的元数据。用户的名称由推特上的屏幕名称唯一确认。（译者注：屏幕名称即你 @ 某用户时所显示的字符串）。
 
 ```shell
 twarc users deray,Nettaaaaaaaa > users.jsonl
@@ -227,135 +204,140 @@ twarc friends deray > friend_ids.txt
 
 ### 当下流行
 
-The `trends` command lets you retrieve information from Twitter's API about trending hashtags. You need to supply a [Where On Earth](https://web.archive.org/web/20180102203025/https://developer.yahoo.com/geo/geoplanet/) identifier (`woeid`) to indicate what trends you are interested in. For example here's how you can get the current trends for St Louis:
+当下流行 `trends` 命令可以用来搜索当下流行的标签。你需要一个 [地球上哪里](https://web.archive.org/web/20180102203025/https://developer.yahoo.com/geo/geoplanet/) 的 id (woeid) 来指明你对哪个地理位置的当下流行标签感兴趣。下面这个例子中的 `2486982` 代表圣路易斯：
 
-    twarc trends 2486982
+```shell
+twarc trends 2486982
+```
 
-Using a `woeid` of 1 will return trends for the entire planet:
+令 `woeid` 为 1 即为搜索全球范围内当下流行的标签：
 
-    twarc trends 1
+```shell
+twarc trends 1
+```
 
-If you aren't sure what to use as a `woeid` just omit it and you will get a list
-of all the places for which Twitter tracks trends:
+如果你不确定 `woeid`, 可以留空，这样推特会返回一个列表，包括全球各地的当下流行标签。
 
-    twarc trends
+```shell
+twarc trends
+```
 
-If you have a geo-location you can use it instead of the `woedid`.
+如果你已经知道确切的地理信息，可以用它来替代 `woeid`. 
 
-    twarc trends 39.9062,-79.4679
+```shell
+twarc trends 39.9062,-79.4679
+```
 
-Behind the scenes twarc will lookup the location using Twitter's [trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) API to find the nearest `woeid`.
+这里的原理是 twarc 将使用推特的[趋势/最近位置](https://dev.twitter.com/rest/reference/get/trends/closest) API 找到距离指定地点最近的 `woeid`.
 
-### Timeline
+### 时间线
 
-The `timeline` command will use Twitter's [user timeline API](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) to collect the most recent tweets posted by the user indicated by screen_name.
+时间线 `timeline` 命令将通过推特的[时间线](https://dev.twitter.com/rest/reference/get/statuses/user_timeline) API 收集某个用户最近的推文。用户名称由其屏幕名称指定。
 
-    twarc timeline deray > tweets.jsonl
+```shell
+twarc timeline deray > tweets.jsonl
+```
 
-You can also look up users using a user id:
+你也可以使用用户 id.
 
-    twarc timeline 12345 > tweets.jsonl
+```shell
+twarc timeline 12345 > tweets.jsonl
+```
 
-### Retweets
+### 转推
 
-You can get retweets for a given tweet id like so:
+你可以使用下面这个例子的格式来获得 id 为 `824077910927691778` 这条推文的转推。
 
-    twarc retweets 824077910927691778 > retweets.jsonl
+```shell
+twarc retweets 824077910927691778 > retweets.jsonl
+```
 
-If you have tweet_ids that you would like to fetch the retweets for, you can:
+输入也可以是一个包含推文 id 的文本。
 
-    twarc retweets ids.txt > retweets.jsonl
+```shell
+twarc retweets ids.txt > retweets.jsonl
+```
 
-### Replies
+### 回复
 
-Unfortunately Twitter's API does not currently support getting replies to a
-tweet. So twarc approximates it by using the search API. Since the search API
-does not support getting tweets older than a week, twarc can only get the
-replies to a tweet that have been sent in the last week.
+推特的 API 不支持获得回复，但是 twarc 可以通过搜索 API 来近似模拟这一功能。因为搜索 API 的搜索时间区间只有过去一周所以 twarc 只能得到某条推文过去一周的回复。
 
-If you want to get the replies to a given tweet you can:
+下面这个例子使用推文 id 作为输入。
 
-    twarc replies 824077910927691778 > replies.jsonl
+```shell
+twarc replies 824077910927691778 > replies.jsonl
+```
 
-Using the `--recursive` option will also fetch replies to the replies as well as
-quotes.  This can take a long time to complete for a large thread because of
-rate limiting by the search API.
+使用 `--recursive` 选项可以获得回复的回复以及引用。注意这可能会花费很长时间因为推特的搜索 API 有流量限制。
 
-    twarc replies 824077910927691778 --recursive
+```shell
+twarc replies 824077910927691778 --recursive
+```
 
-### Lists
+### 列表
 
-To get the users that are on a list you can use the list URL with the
-`listmembers` command:
+你可以将推特用户列表的 URL 传入 `listmembers` 命令得到列表中的用户：
 
-    twarc listmembers https://twitter.com/edsu/lists/bots
+```shell
+twarc listmembers https://twitter.com/edsu/lists/bots
+```
 
-## Premium Search API
+## 付费搜索 API
 
-Twitter introduced a Premium Search API that lets you pay Twitter money for tweets.
-Once you have set up an environment in your
-[dashboard](https://developer.twitter.com/en/dashboard) you can use their 30day
-and fullarchive endpoints to search for tweets outside the 7 day window provided
-by the Standard Search API. To use the premium API from the command line you
-will need to indicate which endpoint you are using, and the environment.
+推特引入了付费搜索 API. 它可以让你通过付款的方式实现更高级的搜索功能。你需要在[仪表板](https://developer.twitter.com/en/dashboard) 配置一个环境。在此之后，你可以搜索不限于最近7天内的推文的过去30天内的备份甚至完整推文备份。如果需要在命令行实现这一功能，你需要告诉 twarc 你在使用哪一个 endpoint 和环境。
 
-To avoid using up your entire budget you will likely want to limit the time
-range using `--to_date` and `--from_date`. Additionally you can limit the
-maximum number of tweets returned using `--limit`.
+为了控制预算，你可能需要限制搜索的时间段：使用 `--to_date` 和 `--frome_date`. 再次之外，你还可以使用 `--limit` 参数来限制返回的推文数目上限。
 
-So for example, if I wanted to get all the blacklivesmatter tweets from a two
-weeks ago (assuming today is June 1, 2020) using my environment named
-*docnowdev* but not retrieving more than 1000 tweets, I could:
+举例来看，假设今天是2020年6月1日，如果你想搜索不超过1000条从2020年5月1日到2020年5月14日所有提到 `blacklivesmatter` 的推文。如果我们的环境名为 `docnowdev`， 那么这个命令如下，注意我们使用了 `--30day` 这个 endpoint:
 
-    twarc search blacklivesmatter \
-      --30day docnowdev \
-      --from_date 2020-05-01 \
-      --to_date 2020-05-14 \
-      --limit 1000 \
-      > tweets.jsonl
+```shell
+twarc search blacklivesmatter \
+    --30day docnowdev \
+    --from_date 2020-05-01 \
+    --to_date 2020-05-14 \
+    --limit 1000 \
+    > tweets.jsonl
+```
 
-Similarly, to find tweets from 2014 using the full archive you can:
+类似的，如果你要搜索超过30天期限的全部推文备份，你需要使用 fullarchive, 举例如下：
 
-    twarc search blacklivesmatter \
-      --fullarchive docnowdev \
-      --from_date 2014-08-04 \
-      --to_date 2014-08-05 \
-      --limit 1000 \
-      > tweets.jsonl
+```shell
+twarc search blacklivesmatter \
+    --fullarchive docnowdev \
+    --from_date 2014-08-04 \
+    --to_date 2014-08-05 \
+    --limit 1000 \
+    > tweets.jsonl
+```
 
-If your environment is sandboxed you will need to use `--sandbox` so that twarc
-knows not to request more than 100 tweets at a time (the default for
-non-sandboxed environments is 500)
+如果你的环境在沙盒之中，你需要使用 `--sandbox` 参数来告诉 twarc 不要获得超过100条推文。默认的非沙盒环境的上限是500条。
 
-    twarc search blacklivesmatter \
-      --fullarchive docnowdev \
-      --from_date 2014-08-04 \
-      --to_date 2014-08-05 \
-      --limit 1000 \
-      --sandbox \
-      > tweets.jsonl
+```shell
+twarc search blacklivesmatter \
+    --fullarchive docnowdev \
+    --from_date 2014-08-04 \
+    --to_date 2014-08-05 \
+    --limit 1000 \
+    --sandbox \
+    > tweets.jsonl
+```
+## Gnip 企业级 API
 
-## Gnip Enterprise API
+twarc 支持和 Gnip 推特全备份企业级 API 的完全整合。你需要使用 `--gnip_auth` 参数并设置好 `GNIP_USERNAME`、 `GNIP_PASSWORD`、 `GNIP_ACCOUNT` 三个环境变量。举例如下：
 
-Twarc supports integration with the Gnip Twitter Full-Archive Enterprise API.
-To do so, you must pass in the `--gnip_auth` argument. Additionally, set the
-`GNIP_USERNAME`, `GNIP_PASSWORD`, and `GNIP_ACCOUNT` environment variables.
-You can then run the following:
+```shell
+twarc search blacklivesmatter \
+    --gnip_auth \
+    --gnip_fullarchive prod \
+    --from_date 2014-08-04 \
+    --to_date 2015-08-05 \
+    --limit 1000 \
+    > tweets.jsonl
+```
 
-    twarc search blacklivesmatter \
-      --gnip_auth \
-      --gnip_fullarchive prod \
-      --from_date 2014-08-04 \
-      --to_date 2015-08-05 \
-      --limit 1000 \
-      > tweets.jsonl
+## 作为一个 Python 包的 twarc
 
-## Use as a Library
-
-If you want you can use twarc programmatically as a library to collect
-tweets. You first need to create a `Twarc` instance (using your Twitter
-credentials), and then use it to iterate through search results, filter
-results or lookup results.
+如果你想在你自己的代码里使用 twarc 的话，你需要首先创建一个 `Tawrc` 实例，传入你的推特应用凭证然后用它进行搜索、过滤和检索。 举例如下：
 
 ```python
 from twarc import Twarc
@@ -365,58 +347,49 @@ for tweet in t.search("ferguson"):
     print(tweet["text"])
 ```
 
-You can do the same for a filter stream of new tweets that match a track
-keyword
+你还可以用同样的语法过滤满足关键字匹配的实时信息流。举例如下：
 
 ```python
 for tweet in t.filter(track="ferguson"):
     print(tweet["text"])
 ```
 
-or location:
+或者地点：
 
 ```python
 for tweet in t.filter(locations="-74,40,-73,41"):
     print(tweet["text"])
 ```
 
-or user ids:
+或者用户 id:
 
 ```python
 for tweet in t.filter(follow='12345,678910'):
     print(tweet["text"])
 ```
 
-Similarly you can hydrate tweet identifiers by passing in a list of ids
-or a generator:
+类似的，你还可以传入一个包含推特 id 的文件，“补水”以获得完整信息。举例如下：
 
 ```python
 for tweet in t.hydrate(open('ids.txt')):
     print(tweet["text"])
 ```
 
-## User vs App Auth
+## 基于用户的验证和基于应用的验证
 
-Twarc will manage rate limiting by Twitter. However, you should know that
-their rate limiting varies based on the way that you authenticate. The two
-options are User Auth and App Auth. Twarc defaults to using User Auth but you
-can tell it to use App Auth.
+twarc 自动处理推特的流量限制。但是你应该了解流量限制会因为验证方式的不同而不同。推特有两种验证方式分别是基于用户的验证和基于应用的验证。 twarc 默认使用基于用户的验证方式但是你可以告诉 twarc 使用基于应用的验证。
 
-Switching to App Auth can be handy in some situations like when you are
-searching tweets, since User Auth can only issue 180 requests every 15 minutes
-(1.6 million tweets per day), but App Auth can issue 450 (4.3 million tweets per
-day).
+举个例子，转为基于应用的验证可以显著提高搜索功能的效率。基于用户的验证每分钟可以发出180个请求（每天160万条结果），而基于应用的验证每分钟可以发出450个请求（每天430万个结果）。
 
-But be careful: the `statuses/lookup` endpoint used by the hydrate subcommand
-has a rate limit of 900 requests per 15 minutes for User Auth, and 300 request
-per 15 minutes for App Auth.
+需要注意的是，用 “补水”功能访问 `状态/检索 (status/lookup)` 这个 API endpoint 在基于用户的验证下有每15分钟900个请求的限制，而在基于应用的验证下是每15分钟300个。
 
-If you know what you are doing and want to force App Auth, you can use the
-`--app_auth` command line option:
+如果你确认你要使用基于应用的验证，你可以使用 `--app_auth` 这个命令行选项。举例如下：
 
-    twarc --app_auth search ferguson > tweets.jsonl
+```shell
+twarc --app_auth search ferguson > tweets.jsonl
+```
 
-Similarly, if you are using Twarc as a library you can:
+类似的功能也可以在你的 Python 代码中实现。
 
 ```python
 from twarc import Twarc
@@ -426,113 +399,145 @@ for tweet in t.search('ferguson'):
     print(tweet['id_str'])
 ```
 
-## Utilities
+## 实用工具
 
-In the utils directory there are some simple command line utilities for
-working with the line-oriented JSON, like printing out the archived tweets as
-text or html, extracting the usernames, referenced URLs, etc.  If you create a
-script that you find handy please send a pull request.
 
-When you've got some tweets you can create a rudimentary wall of them:
+在 `utils` 文件夹下你可以找到几个脚本。这些脚本可以作用于 jsonl 文件上实现一些非常实用的功能：比如将 JSON 格式的推文输出为文本或者 HTML 格式, 提取用户名或者推文中引用的 URL 等等。如果你创作了一个好用的脚本，欢迎提出 PR.
 
-    utils/wall.py tweets.jsonl > tweets.html
+下面的命令可以创作一个简单的推文墙。
 
-You can create a word cloud of tweets you collected about nasa:
+```shell
+utils/wall.py tweets.jsonl > tweets.html
+```
 
-    utils/wordcloud.py tweets.jsonl > wordcloud.html
+下面的命令可以创作一个简单的词云。
 
-If you've collected some tweets using `replies` you can create a static D3
-visualization of them with:
+```shell
+utils/wordcloud.py tweets.jsonl > wordcloud.html
+```
 
-    utils/network.py tweets.jsonl tweets.html
+如果你用 `replies` 命令收集了一些推文，你可以用下面的命令创作一个静态的 D3 可视化。
 
-Optionally you can consolidate tweets by user, allowing you to see central accounts:
+```shell
+utils/network.py tweets.jsonl tweets.html
+```
 
-    utils/network.py --users tweets.jsonl tweets.html
+你可以增加可选参数根据用户组织推文，这样你可看到这个网络中的核心账号。
 
-Additionally, you can create a network of hashtags, allowing you to view their colocation:
+```shell
+utils/network.py --users tweets.jsonl tweets.html
+```
 
-        utils/network.py --hashtags tweets.jsonl tweets.html
+额外的，你可以创作一个标签的网络，从而看到它们彼此之间的（共存）关系。
 
-And if you want to use the network graph in a program like [Gephi](https://gephi.org/),
-you can generate a GEXF file with the following:
+```shell
+utils/network.py --hashtags tweets.jsonl tweets.html
+```
 
-    utils/network.py --users tweets.jsonl tweets.gexf
-    utils/network.py --hashtags tweets.jsonl tweets.gexf
+如果你想使用网络作图软件 [Gephi](https://gephi.org/),你可以用下面的命令生成一个 `GEXF` 格式的文件。
 
-Additionally if you want to convert the network into a dynamic network with timeline enabled (i.e. nodes will appear and disappear according to their  attributes), you can open up your GEXF file in Gephi and follow [these instructions](https://seinecle.github.io/gephi-tutorials/generated-html/converting-a-network-with-dates-into-dynamic.html). Note that in tweets.gexf there is a column for "start_date" (which is the day the post was created) but none for "end_date" and that in the dynamic timeline, the nodes will appear on the screen at their start date and stay on screen forever after.  For the "Time Interval creation options" pop-up in Gephi, the "Start time column" should be "start_date", the "End time column" should be empty, the "Parse dates" should be selected, and the Date format should be the last option, "dd/MM/yyyy HH:mm:ss", just as pictured below.
+```shell
+utils/network.py --users tweets.jsonl tweets.gexf
+utils/network.py --hashtags tweets.jsonl tweets.gexf
+```
+
+额外的，如果你想将网络转换成一个随时间线动态变化（节点会出现和消失）的动态网络，你可以在 Gephi 中打开生成的 `GEXF` 文件，跟随这个[教程](https://seinecle.github.io/gephi-tutorials/generated-html/converting-a-network-with-dates-into-dynamic.html)实现。注意在 `tweets.gexf` 文件里，仅有 `start_date` 一栏但是却没有 `end_date` 一栏，这会导致节点出现在屏幕上后便不再消失。对于 Gephi 中的 `Time interval creation options` 跳出窗口，`Start time column` 应该是 `start_date`, 而 `End time column` 则是空白的。`Parse dates` 应该勾选，同时选择最后一个日期格式选项：`dd/MM/yyyy HH:mm:ss`, 如下图所示。
 
 ![Image of Correctly Chosen Options in Gephi's Create Time Interval Popup](gephi_correct_options_for_time_interval_popup.png)
 
-gender.py is a filter which allows you to filter tweets based on a guess about
-the gender of the author. So for example you can filter out all the tweets that
-look like they were from women, and create a word cloud for them:
+`gender.py` 是一个可以猜测推文作者性别的脚本。比如下面的例子展示了如何保留看上去像是女性发出的推文并生成一个词云。
 
-    utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py >
-    tweets-female.html
+```shell
+utils/gender.py --gender female tweets.jsonl | utils/wordcloud.py >
+tweets-female.html
+```
 
-You can output [GeoJSON](http://geojson.org/) from tweets where geo coordinates are available:
+你可以用含有地理定位信息的推文生成 [GeoJSON](http://geojson.org/) 格式的文件。
 
-    utils/geojson.py tweets.jsonl > tweets.geojson
+```shell
+utils/geojson.py tweets.jsonl > tweets.geojson
+```
 
-Optionally you can export GeoJSON with centroids replacing bounding boxes:
+你还可以用地理边界的[形心](https://en.wikipedia.org/wiki/Centroid)来取代地理位置矩形的边界。
 
-    utils/geojson.py tweets.jsonl --centroid > tweets.geojson
+```shell
+utils/geojson.py tweets.jsonl --centroid > tweets.geojson
+```
 
-And if you do export GeoJSON with centroids, you can add some random fuzzing:
+在此基础上你还可以加一些随机模糊。
 
-    utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
+```shell
+utils/geojson.py tweets.jsonl --centroid --fuzz 0.01 > tweets.geojson
+```
 
-To filter tweets by presence or absence of geo coordinates (or Place, see
-[API documentation](https://dev.twitter.com/overview/api/places)):
+欲了解更多关于利用地理坐标（或地点）的存在与否过滤推文的内容，请参考[文档](https://dev.twitter.com/overview/api/places)。下面是两个例子。
 
-    utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
-    cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
+```shell
+utils/geofilter.py tweets.jsonl --yes-coordinates > tweets-with-geocoords.jsonl
 
-To filter tweets by a GeoJSON fence (requires [Shapely](https://github.com/Toblerity/Shapely)):
+cat tweets.jsonl | utils/geofilter.py --no-place > tweets-with-no-place.jsonl
+```
 
-    utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
-    cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
+欲通过 GeoJson 的边界过滤推文，请参考下面的例子。注意你需要安装 [Shapely](https://github.com/Toblerity/Shapely).
 
-If you suspect you have duplicate in your tweets you can dedupe them:
+```shell
+utils/geofilter.py tweets.jsonl --fence limits.geojson > fenced-tweets.jsonl
 
-    utils/deduplicate.py tweets.jsonl > deduped.jsonl
+cat tweets.jsonl | utils/geofilter.py --fence limits.geojson > fenced-tweets.jsonl
+```
 
-You can sort by ID, which is analogous to sorting by time:
+如果你怀疑你有重复的推文，可以用下面的命令去重。
 
-    utils/sort_by_id.py tweets.jsonl > sorted.jsonl
+```shell
+utils/deduplicate.py tweets.jsonl > deduped.jsonl
+```
+
+你可以用下面的命令像根据时间线排序一样根据推文 id 排序。
+
+```shell
+utils/sort_by_id.py tweets.jsonl > sorted.jsonl
+```
 
 You can filter out all tweets before a certain date (for example, if a hashtag was used for another event before the one you're interested in):
 
-    utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
+你可以过滤调某一具体日期前的推文，举个例子，有可能这一日期前某个标签的含义并不是你感兴趣的意思。
 
-You can get an HTML list of the clients used:
+```shell
+utils/filter_date.py --mindate 1-may-2014 tweets.jsonl > filtered.jsonl
+```
 
-    utils/source.py tweets.jsonl > sources.html
+你还能够以列表的形式得到客户端信息。
 
-If you want to remove the retweets:
+```shell
+utils/source.py tweets.jsonl > sources.html
+```
 
-    utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
+下面的命令去除了转推。
 
-Or unshorten urls (requires [unshrtn](https://github.com/docnow/unshrtn)):
+```shell
+utils/noretweets.py tweets.jsonl > tweets_noretweets.jsonl
+```
 
-    cat tweets.jsonl | utils/unshrtn.py > unshortened.jsonl
+或者复原原始的 URL 的长度（需要安装[unshrtn](https://github.com/docnow/unshrtn)）。
 
-Once you unshorten your URLs you can get a ranked list of most-tweeted URLs:
+```shell
+cat tweets.jsonl | utils/unshrtn.py > unshortened.jsonl
+```
 
-    cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+一旦你获得了原始的 URL, 你可以根据推文中提到的次数对这些 URL  排序。
 
-## twarc-report
+```shell
+cat unshortened.jsonl | utils/urls.py | sort | uniq -c | sort -nr > urls.txt
+```
 
-Some further utility scripts to generate csv or json output suitable for
-use with [D3.js](http://d3js.org/) visualizations are found in the
-[twarc-report](https://github.com/pbinkley/twarc-report) project. The
-util `directed.py`, formerly part of twarc, has moved to twarc-report as
-`d3graph.py`.
+## twarc-report 项目
 
-Each script can also generate an html demo of a D3 visualization, e.g.
-[timelines](https://wallandbinkley.com/twarc/bill10/) or a
-[directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
+还有一些可以生成 csv 或者 json 输出以供 [D3.js](http://d3js.org/) 可视化使用的脚本可以在 [twarc-report](https://github.com/pbinkley/twarc-report) 项目中找到。原本属于 twarc 一部分的 `directed.py` 脚本也已经被转移到了 twarc-report 项目并被重命名为 `d3graph.py`.
+
+下面的这两个链接包含了两个生成 HTML 格式的 D3 可视化文件的例子。 
+
+1. [timelines](https://wallandbinkley.com/twarc/bill10/)
+2. [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html)
 
 [英语]: https://github.com/DocNow/twarc/blob/main/README.md
 [日语]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
