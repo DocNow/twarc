@@ -3,81 +3,79 @@ twarc
 
 [![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
 
-*Translations: [Chinese], [Japanese], [Portuguese], [Spanish], [Swahili], [Swedish]*
+*翻译: [英语], [日语], [葡萄牙语], [西班牙语], [斯瓦希里语], [瑞典语]*
 
-twarc is a command line tool and Python library for archiving Twitter JSON data.
-Each tweet is represented as a JSON object that is
-[exactly](https://dev.twitter.com/overview/api/tweets) what was returned from
-the Twitter API.  Tweets are stored as [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  Twarc will handle
-Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
-for you. In addition to letting you collect tweets Twarc can also help you
-collect users, trends and hydrate tweet ids.
+twarc 是一个用来存档推特 JSON 数据的命令行工具和 Python 包。
 
-twarc was developed as part of the [Documenting the Now](http://www.docnow.io)
-project which was funded by the [Mellon Foundation](https://mellon.org/).
+twarc 处理的每一条推文都用一个 JSON 对象来表示，[正如]((https://dev.twitter.com/overview/api/tweets))推特 API 返回的一样。twarc 会自动处理推特 API 的[流量限制](https://dev.twitter.com/rest/public/rate-limiting)。除了可以让你收集推文之外，twarc 还可以帮助你收集用户、当下流行和获得推文 id 的详细信息。
 
-## Install
+twarc 是作为 [Mellon Foundation](https://mellon.org/) 资助下的 [Documenting the Now](http://www.docnow.io) 项目的一部分开发的。
 
-Before using twarc you will need to register an application at
-[apps.twitter.com](http://apps.twitter.com). Once you've created your
-application, note down the consumer key, consumer secret and then click to
-generate an access token and access token secret. With these four variables
-in hand you are ready to start using twarc.
+## 安装
 
-1. install [Python](http://python.org/download) (2 or 3)
+在使用 twarc 之前，你需要在 [apps.twitter.com](http://apps.twitter.com) 注册一个应用。一旦你注册了你的应用，记下你的 consumer key 和 consumer secret 并点击生成一组 access token 和 access token secret. 这四个数据在手你就可以开始使用 twarc 了。
+
+1. 安装 [Python](http://python.org/download) (2 或者 3)
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc
 
-### Homebrew (macOS only)
+### Homebrew (仅限macOS 系统)
 
-For macOS users, you can install `twarc` via:
+macOS系统用户, 你可以通过Homebrew安装 `twarc` :
 
-```bash
+```shell
 $ brew install twarc
 ```
 
-## Quickstart:
+## 快速开始:
 
-First you're going to need to tell twarc about your application API keys and
-grant access to one or more Twitter accounts:
+首先你需要告诉 twarc 你的应用 keys 并授权它访问一个或者多个推特账号：
 
-    twarc configure
+```shell
+twarc configure
+```
 
-Then try out a search:
+然后尝试搜索
 
-    twarc search blacklivesmatter > search.jsonl
+```shell
+twarc search blacklivesmatter > search.jsonl
+```
 
-Or maybe you'd like to collect tweets as they happen?
+或者你想试试实时搜索?
 
-    twarc filter blacklivesmatter > stream.jsonl
+```shell
+twarc filter blacklivesmatter > stream.jsonl
+```
 
-See below for the details about these commands and more.
+请阅读下文了解更多这些命令的意义和更多内容。
 
-## Usage
+## 使用
 
-### Configure
+### 配置
 
-Once you've got your application keys you can tell twarc what they are with the
-`configure` command.
+在获得应用 keys 之后你可以通过 `configure` 命令来告诉 twarc 它们的值。
 
-    twarc configure
+```shell
+twarc configure
+```
 
-This will store your credentials in a file called `.twarc` in your home
-directory so you don't have to keep entering them in. If you would rather supply
-them directly you can set them in the environment (`CONSUMER_KEY`,
-`CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) or using command line
-options (`--consumer_key`, `--consumer_secret`, `--access_token`,
+这样做会在你的 `~` 目录下创建一个名为 `.twarc` 的文件来储存你的这些凭证，这样你就不必每次使用 twarc 的时候输入它们。如果你倾向于每次使用 twarc 的时候输入 keys，你可以使用环境变量 (`CONSUMER_KEY`,
+`CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_TOKEN_SECRET`) 或者使用命令行工具选项 (`--consumer_key`, `--consumer_secret`, `--access_token`,
 `--access_token_secret`).
 
-### Search
+### 搜索
 
-This uses Twitter's [search/tweets](https://dev.twitter.com/rest/reference/get/search/tweets) to download *pre-existing* tweets matching a given query.
+搜索功能使用推特的[搜索推文](https://dev.twitter.com/rest/reference/get/search/tweets)来下载*已经存在*的符合搜索字符串的推文。
 
-    twarc search blacklivesmatter > tweets.jsonl
+```shell
+twarc search blacklivesmatter > tweets.jsonl
+```
 
 It's important to note that `search` will return tweets that are found within a
 7 day window that Twitter's search API imposes. If this seems like a small
 window, it is, but you may be interested in collecting tweets as they happen
 using the `filter` and `sample` commands below.
+
+尤其需要注意的是 `search` 返回的是过去七天内的推文：这是推特搜索 API 的限制。如果你觉得这太短了——我们也觉得。你或许会更愿意尝试使用下文提到的 `filter` 和 `sample` 命令。
 
 The best way to get familiar with Twitter's search syntax is to experiment with
 [Twitter's Advanced Search](https://twitter.com/search-advanced) and copy and
@@ -85,122 +83,149 @@ pasting the resulting query from the search box. For example here is a more
 complicated query that searches for tweets containing either the
 \#blacklivesmatter or #blm hashtags that were sent to deray.
 
-    twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
+最好的快速上手推特搜索语法的方法是实验[推特高级搜索](https://twitter.com/search-advanced)的内容，复制粘贴搜索框里的查询语句。比如这里有一个比较复杂的查询语句，它搜索包含有 `#blacklivesmatter` 和 `#blm` 并发给 [deray](https://twitter.com/deray) 的推文。
 
-You also should definitely check out Igor Brigadir's *excellent* reference guide
-to the Twitter Search syntax:
-[Advanced Search on Twitter](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md).
-There are lots of hidden gems in there that the advanced search form doesn't
-make readily apparent.
+```shell
+twarc search '#blacklivesmatter OR #blm to:deray' > tweets.jsonl
+```
 
-Twitter attempts to code the language of a tweet, and you can limit your search
-to a particular language if you want using an [ISO 639-1] code:
+你还应当看一看 Igor Brigadir 关于推特高级搜索语法`精彩绝伦`的指南: [推特高级搜索 (英文)](https://github.com/igorbrigadir/twitter-advanced-search/blob/master/README.md). 这份指南里包含了很多阅读推特搜索文档后依然不显然的玄妙之处。
 
-    twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
+推特尝试显式地定义推文的语言。你可以尝试限制你获得的推文的语言如果你想使用 [ISO 639-1] 规范的话。
 
-You can also search for tweets with a given location, for example tweets
-mentioning *blacklivesmatter* that are 1 mile from the center of Ferguson,
-Missouri:
+```shell
+twarc search '#blacklivesmatter' --lang fr > tweets.jsonl
+```
 
-    twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+你还可以通过位置来搜索，比如搜索包含 `#blacklivesmatter` 且位置定位在密苏里弗格森半径1英里之内的推文。
+
+```shell
+twarc search blacklivesmatter --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+```
 
 If a search query isn't supplied when using `--geocode` you will get all tweets
 relevant for that location and radius:
 
-    twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+如果一个包含 `--geocode` 的搜索没有包含要查询的字符串，那么你将得到所有与该位置和其半径相关的推文。
 
-### Filter
+```shell
+twarc search --geocode 38.7442,-90.3054,1mi > tweets.jsonl
+```
 
-The `filter` command will use Twitter's [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API to collect tweets as they happen.
+### 过滤
 
-    twarc filter blacklivesmatter,blm > tweets.jsonl
+`filter` 命令使用推特的 [状态/过滤](https://dev.twitter.com/streaming/reference/post/statuses/filter) API 来搜集实时推文。
+
+```shell
+twarc filter blacklivesmatter,blm > tweets.jsonl
+```
 
 Please note that the syntax for the Twitter's track queries is slightly
 different than what queries in their search API. So please consult the
 documentation on how best to express the filter option you are using.
 
-Use the `follow` command line argument if you would like to collect tweets from
-a given user id as they happen. This includes retweets. For example this will
-collect tweets and retweets from CNN:
+请注意推特的 `track` 查询语句的语法和搜索 API 里的语法略有不同。请使用官方文档来了解如何最好地表达你的过滤命令选项。
 
-    twarc filter --follow 759251 > tweets.jsonl
+使用 `follow` 命令行参数和用户的 id 来实时收集某个具体用户的推文。这个命令的结果包含转推。举个例子，下面的命令搜索 `CNN` 的推文和转推。
 
-You can also collect tweets using a bounding box. Note: the leading dash needs
-to be escaped in the bounding box or else it will be interpreted as a command
-line argument!
+```shell
+twarc filter --follow 759251 > tweets.jsonl
+```
 
-    twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
+你还可以限制一个地理上的矩形边界来收集推文。注意经纬度数据中的短横线必须用`\`转义，否则它将被理解成一个命令行参数！
+
+```shell
+twarc filter --locations "\-74,40,-73,41" > tweets.jsonl
+```
 
 You can use the `lang` command line argument to pass in a [ISO 639-1] language
 code to limit to, and since the filter stream allow you to filter by one more
 languages it is repeatable. So this would collect tweets that mention paris or
 madrid that were made in French or Spanish:
 
-    twarc filter paris,madrid --lang fr --lang es
+你还可以使用 `lang` 命令行参数来传入 [ISO 639-1] 语言代码来限制语言。你还可以多次使用这个参数限制多种语言。下面的例子实时收集提到了巴黎和马德里的法语推文和西班牙语推文。
 
-If you combine filter and follow options they are OR'ed together. For example
-this will collect tweets that use the blacklivesmatter or blm hashtags and also
-tweets from user CNN:
+```shell
+twarc filter paris,madrid --lang fr --lang es
+```
 
-    twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
+`filter` 和 `follow` 命令是**或**关系。下面的例子将收集包含 `blacklivesmatter` 或者 `blm` 的推文，或者是来自 CNN 的推文。
 
-But combining locations and languages will result effectively in an AND. For
-example this will collect tweets from the greater New York area that are in
-Spanish or French:
+```shell
+twarc filter blacklivesmatter,blm --follow 759251 > tweets.jsonl
+```
 
-    twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
+但是将位置和语言限制合并将得到**和**的关系，下面的例子收集来自纽约的法语或者西班牙语推文。
 
-### Sample
+```shell
+twarc filter --locations "\-74,40,-73,41" --lang es --lang fr
+```
 
-Use the `sample` command to listen to Twitter's [statuses/sample](https://dev.twitter.com/streaming/reference/get/statuses/sample) API for a "random" sample of recent public statuses.
+### 采样
 
-    twarc sample > tweets.jsonl
+使用 `sample` 命令来监听推特的 [状态/采样](https://dev.twitter.com/streaming/reference/get/statuses/sample) API 来“随机“采样最近的公开的推文。
 
-### Dehydrate
+```shell
+twarc sample > tweets.jsonl
+```
 
-The `dehydrate` command generates an id list from a file of tweets:
+### `脱水`
 
-    twarc dehydrate tweets.jsonl > tweet-ids.txt
+所谓的脱水 `dehydrate` 命令读取一个推文的 jsonl 文件，生成一个包含推文 id 的列表。
 
-### Hydrate
+```shell
+twarc dehydrate tweets.jsonl > tweet-ids.txt
+```
 
-Twarc's `hydrate` command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
+### `补水`
 
-    twarc hydrate ids.txt > tweets.jsonl
+twarc 所谓的补水命令 `hydrate` 是 `dehydrate` 的反过程，它读取一个包含推文 id 的文件，使用推特的 [状态/检索](https://dev.twitter.com/rest/reference/get/statuses/lookup) API 重建完整的包含完整推文 json 的 jsonl 文件。
 
-Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) discourage people from making large amounts of raw Twitter data available on the Web.  The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available.  You can then use Twitter's API to *hydrate* the data, or to retrieve the full JSON for each identifier. This is particularly important for [verification](https://en.wikipedia.org/wiki/Reproducibility) of social media research.
+```shell
+twarc hydrate ids.txt > tweets.jsonl
+```
 
-### Users
+推特 API 的[服务条款](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) 反对用户将大量原始推文数据公布在网络上。数据可以被用来研究使用和保存在本地，但是不可以和世界分享。推特确实允许用户大量地将推文 id 公开分享，而这些 id 可以用来重建推文 JSON 数据——通过 `hydrate` 命令和推特的 API. 这一点对于社交媒体研究中的[复现](https://en.wikipedia.org/wiki/Reproducibility)尤为重要。
 
-The `users` command will return User metadata for the given screen names.
+### 用户
 
-    twarc users deray,Nettaaaaaaaa > users.jsonl
+用户 `users` 命令可以返回（多个）用户的元数据。用户的名称由推特上的屏幕名称唯一确认。
 
-You can also give it user ids:
+```shell
+twarc users deray,Nettaaaaaaaa > users.jsonl
+```
 
-    twarc users 1232134,1413213 > users.jsonl
+你也可以使用用户的 id.
 
-If you want you can also use a file of user ids, which can be useful if you are
-using the `followers` and `friends` commands below:
+```shell
+twarc users 1232134,1413213 > users.jsonl
+```
 
-    twarc users ids.txt > users.jsonl
+你也可以使用一个包含用户 id 的文件作为输入，这在你同时使用 `followers` 和 `friends` 命令时尤其有用。举例如下：
 
-### Followers
+```shell
+twarc users ids.txt > users.jsonl
+```
 
-The `followers` command  will use Twitter's [follower id API](https://dev.twitter.com/rest/reference/get/followers/ids) to collect the follower user ids for exactly one user screen name per request as specified as an argument:
+### 粉丝
 
-    twarc followers deray > follower_ids.txt
+粉丝 `followers` 命令使用推特的 [粉丝 id](https://dev.twitter.com/rest/reference/get/followers/ids) API 来收集推特用户粉丝的 id 信息。该命令的输入只能是一个用户的屏幕名称。举例如下：
 
-The result will include exactly one user id per line. The response order is
-reverse chronological, or most recent followers first.
+```shell
+twarc followers deray > follower_ids.txt
+```
 
-### Friends
+输出的结果每一行是一个粉丝用户 id. 最新的粉丝将出现在最前面，依时间顺序倒序排列。
 
-Like the `followers` command, the `friends` command will use Twitter's [friend id API](https://dev.twitter.com/rest/reference/get/friends/ids) to collect the friend user ids for exactly one user screen name per request as specified as an argument:
+### 朋友
 
-    twarc friends deray > friend_ids.txt
+和粉丝 `followers` 命令类似，朋友 `friends` 命令将使用推特的 [朋友 id](https://dev.twitter.com/rest/reference/get/friends/ids) API 收集推特用户朋友的 id 信息。该命令的输入只能是一个用户的屏幕名称。举例如下：
 
-### Trends
+```shell
+twarc friends deray > friend_ids.txt
+```
+
+### 当下流行
 
 The `trends` command lets you retrieve information from Twitter's API about trending hashtags. You need to supply a [Where On Earth](https://web.archive.org/web/20180102203025/https://developer.yahoo.com/geo/geoplanet/) identifier (`woeid`) to indicate what trends you are interested in. For example here's how you can get the current trends for St Louis:
 
@@ -509,10 +534,10 @@ Each script can also generate an html demo of a D3 visualization, e.g.
 [timelines](https://wallandbinkley.com/twarc/bill10/) or a
 [directed graph of retweets](https://wallandbinkley.com/twarc/bill10/directed-retweets.html).
 
-[Chinese]: https://github.com/DocNow/twarc/blob/main/README_zw_zh.md
-[Japanese]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
-[Portuguese]: https://github.com/DocNow/twarc/blob/main/README_pt_br.md
-[Spanish]: https://github.com/DocNow/twarc/blob/main/README_es_mx.md
-[Swedish]: https://github.com/DocNow/twarc/blob/main/README_sv_se.md
-[Swahili]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
+[英语]: https://github.com/DocNow/twarc/blob/main/README.md
+[日语]: https://github.com/DocNow/twarc/blob/main/README_ja_jp.md
+[葡萄牙语]: https://github.com/DocNow/twarc/blob/main/README_pt_br.md
+[西班牙语]: https://github.com/DocNow/twarc/blob/main/README_es_mx.md
+[瑞典语]: https://github.com/DocNow/twarc/blob/main/README_sv_se.md
+[斯瓦希里语]: https://github.com/DocNow/twarc/blob/main/README_sw_ke.md
 [ISO 639-1]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
