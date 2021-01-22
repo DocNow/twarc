@@ -8,9 +8,9 @@ twarc
 twarc is a command line tool and Python library for archiving Twitter JSON data.
 Each tweet is represented as a JSON object that is
 [exactly](https://dev.twitter.com/overview/api/tweets) what was returned from
-the Twitter API.  Tweets are stored as [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  Twarc will handle
+the Twitter API.  Tweets are stored as [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  twarc will handle
 Twitter API's [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
-for you. In addition to letting you collect tweets Twarc can also help you
+for you. In addition to letting you collect tweets twarc can also help you
 collect users, trends and hydrate tweet ids.
 
 twarc was developed as part of the [Documenting the Now](http://www.docnow.io)
@@ -164,7 +164,7 @@ The `dehydrate` command generates an id list from a file of tweets:
 
 ### Hydrate
 
-Twarc's `hydrate` command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
+twarc's `hydrate` command will read a file of tweet identifiers and write out the tweet JSON for them using Twitter's [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
 
     twarc hydrate ids.txt > tweets.jsonl
 
@@ -312,7 +312,7 @@ non-sandboxed environments is 500)
 
 ## Gnip Enterprise API
 
-Twarc supports integration with the Gnip Twitter Full-Archive Enterprise API.
+twarc supports integration with the Gnip Twitter Full-Archive Enterprise API.
 To do so, you must pass in the `--gnip_auth` argument. Additionally, set the
 `GNIP_USERNAME`, `GNIP_PASSWORD`, and `GNIP_ACCOUNT` environment variables.
 You can then run the following:
@@ -328,7 +328,7 @@ You can then run the following:
 ## Use as a Library
 
 If you want you can use twarc programmatically as a library to collect
-tweets. You first need to create a `Twarc` instance (using your Twitter
+tweets. You first need to create a `twarc` instance (using your Twitter
 credentials), and then use it to iterate through search results, filter
 results or lookup results.
 
@@ -372,9 +372,9 @@ for tweet in t.hydrate(open('ids.txt')):
 
 ## User vs App Auth
 
-Twarc will manage rate limiting by Twitter. However, you should know that
+twarc will manage rate limiting by Twitter. However, you should know that
 their rate limiting varies based on the way that you authenticate. The two
-options are User Auth and App Auth. Twarc defaults to using User Auth but you
+options are User Auth and App Auth. twarc defaults to using User Auth but you
 can tell it to use App Auth.
 
 Switching to App Auth can be handy in some situations like when you are
@@ -391,7 +391,7 @@ If you know what you are doing and want to force App Auth, you can use the
 
     twarc --app_auth search ferguson > tweets.jsonl
 
-Similarly, if you are using Twarc as a library you can:
+Similarly, if you are using twarc as a library you can:
 
 ```python
 from twarc import Twarc

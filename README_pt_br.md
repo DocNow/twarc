@@ -8,8 +8,8 @@ twarc
 twarc é uma ferramenta de linha de comando e usa a biblioteca Python para arquivamento de dados do Twitter com JSON.
 Cada tweet será representado como um objeto JSON
 [exatamente](https://dev.twitter.com/overview/api/tweets) o que foi devolvido pela
-API do Twitter.  Os Tweets serão armazenados como [JSON, um por linha](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  Twarc controla totalmente a API [limites de uso](https://dev.twitter.com/rest/public/rate-limiting)
-para você. Além de permitir que você colete Tweets, Twarc também pode ajudá-lo
+API do Twitter.  Os Tweets serão armazenados como [JSON, um por linha](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  twarc controla totalmente a API [limites de uso](https://dev.twitter.com/rest/public/rate-limiting)
+para você. Além de permitir que você colete Tweets, twarc também pode ajudá-lo
 Coletar usuários, tendências e hidratar tweet ids.
 
 twarc Foi desenvolvido como parte [Documenting the Now](http://www.docnow.io)
@@ -155,7 +155,7 @@ O comando `dehydrate` gera uma lista de id de um arquivo de tweets:
 
 ### Hydrate
 
-O comando do Twarc `hydrate` Lê um arquivo de IDs de tweets e escreve o tweet em JSON para eles usando Twitter [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
+O comando do twarc `hydrate` Lê um arquivo de IDs de tweets e escreve o tweet em JSON para eles usando Twitter [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
 
     twarc hydrate ids.txt > tweets.jsonl
 
@@ -307,7 +307,7 @@ ambientes sem sandbox é 500)
 ## Usar twarc como uma biblioteca
 
 Se você quiser pode usar `twarc` programaticamente como uma biblioteca
-para coletar Tweets. Primeiro você precisa criar uma instância do `Twarc`
+para coletar Tweets. Primeiro você precisa criar uma instância do `twarc`
 (usando as suas Credenciais do Twitter) e, em seguida, usá-lo para iterar
 através de resultados de pesquisa ou filtrar resultados de pesquisa.
 
@@ -351,9 +351,9 @@ for tweet in t.hydrate(open('ids.txt')):
 
 ## User x App Auth
 
-Twarc gerenciará a limitação de taxas pelo Twitter. No entanto, você deve
+twarc gerenciará a limitação de taxas pelo Twitter. No entanto, você deve
 saber que a limitação de taxa varia de acordo com a maneira como você
-autentica. As duas opções são User Auth e App Auth. O padrão do Twarc é usar a
+autentica. As duas opções são User Auth e App Auth. O padrão do twarc é usar a
 autenticação do usuário, mas você pode dizer a ele para usar o App Auth.
 
 Mudar para App Auth pode ser útil em algumas situações, como quando você está
@@ -370,7 +370,7 @@ de linha de comando `--app_auth`:
 
     twarc --app_auth search ferguson > tweets.jsonl
 
-Da mesma forma, se você estiver usando Twarc como uma biblioteca, você pode:
+Da mesma forma, se você estiver usando twarc como uma biblioteca, você pode:
 
 ```python
 from twarc import Twarc

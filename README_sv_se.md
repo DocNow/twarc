@@ -7,9 +7,9 @@ twarc
 
 twarc är ett kommandoradsverktyg twarc och ett Pythonbibliotek för arkivering av Twitter JSON data.
 Varje tweet är representerat som ett JSON-objekt som är [exakt](https://dev.twitter.com/overview/api/tweets) vad som returneras från Twitters API
-Tweets lagras som [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  Twarc hanterar
+Tweets lagras som [line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON).  twarc hanterar
 Twitter API:ets [rate limits](https://dev.twitter.com/rest/public/rate-limiting)
-åt dig. Förutom att kunna samla in tweets kan även Twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets.
+åt dig. Förutom att kunna samla in tweets kan även twarc hjälpa dig att samla in användare, trender och omvandla tweet-id:n till tweets.
 
 twarc har utvecklats som en del av [Documenting the Now](http://www.docnow.io)
 projektet som finiansierades av [Mellon Foundation](https://mellon.org/).
@@ -123,7 +123,7 @@ Använd `sample` kommandot för att "lyssna" på Twitters [statuses/sample](http
 
 ### Hydrering
 
-Twarc's `hydrate` kommando läser en fil med tweetidentifierare och skriver ut som tweet JSON genom Twitters [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
+twarc's `hydrate` kommando läser en fil med tweetidentifierare och skriver ut som tweet JSON genom Twitters [status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) API.
 
     twarc hydrate ids.txt > tweets.jsonl
 
@@ -202,7 +202,7 @@ Du kan samla in retweets för ett givet tweetid genom:
 ### Svar
 
 Tyvärr så stödjer inte Twitters API att hämta svar till en tweet.
-Twarc använder istället sök-API:et för detta. Då sök-API:et inte kan användas för att samla in tweets äldre än en vecka kan twarc endast hämta alla svar till en tweet som har postats den senaste veckan.
+twarc använder istället sök-API:et för detta. Då sök-API:et inte kan användas för att samla in tweets äldre än en vecka kan twarc endast hämta alla svar till en tweet som har postats den senaste veckan.
 
 Om du vill hämta svaren till en tweet så kan du använda följande:
 
@@ -223,7 +223,7 @@ För att hämta användare som är med på en lista kan du använda list-URL:en 
 ## Använd som ett bibliotek
 
 Du kan också använda twarc programatiskt som ett bibliotek för att samla in tweets.
-Du behöver först skapa en instans av `Twarc` (genom att använda dina nycklar)
+Du behöver först skapa en instans av `twarc` (genom att använda dina nycklar)
 , och sedan använda det för att iterera genom sökresultat, filter och resultat.
 
 ```python

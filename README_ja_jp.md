@@ -5,22 +5,22 @@ twarc
 
 *翻訳: [英語], [ポルトガル語], [スペイン語], [スワヒリ語], [スウェーデン語]*
 
-Twarcは、TwitterのJSONデータをアーカイブするためのコマンドラインツールおよびPythonライブラリーのプログラムです。
+twarcは、TwitterのJSONデータをアーカイブするためのコマンドラインツールおよびPythonライブラリーのプログラムです。
 
 - 各ツイートは、Twitter APIから返された内容を[正確に](https://dev.twitter.com/overview/api/tweets)表すJSONオブジェクトとして表示されます。
 - ツイートは[line-oriented JSON](https://en.wikipedia.org/wiki/JSON_Streaming#Line-delimited_JSON)として保存されます。
-- TwarcがTwitterのAPI[レート制限](https://dev.twitter.com/rest/public/rate-limiting)を処理してくれます。
-- Twarcはツイートを収集できるだけでなく、ユーザー、トレンド、ツイートIDの詳細な情報の収集（hydrate; ハイドレート）にも役立ちます。
+- twarcがTwitterのAPI[レート制限](https://dev.twitter.com/rest/public/rate-limiting)を処理してくれます。
+- twarcはツイートを収集できるだけでなく、ユーザー、トレンド、ツイートIDの詳細な情報の収集（hydrate; ハイドレート）にも役立ちます。
 
-Twarcは[Mellon Foundation](https://mellon.org/)によって援助された[Documenting the Now](http://www.docnow.io)プロジェクトの一環として開発されました.
+twarcは[Mellon Foundation](https://mellon.org/)によって援助された[Documenting the Now](http://www.docnow.io)プロジェクトの一環として開発されました.
 
 ## Install | インストール
 
-Twarcを使う前に[Twitter Developers](http://apps.twitter.com)にあなたのアプリケーションを登録する必要があります.
+twarcを使う前に[Twitter Developers](http://apps.twitter.com)にあなたのアプリケーションを登録する必要があります.
 
 登録したら, コンシューマーキーとその秘密鍵を控えておきます.
 そして「Create my access token」をクリックして、アクセストークンと秘密鍵を生成して控えておいてください.
-これら4つの鍵が手元に揃えば, Twarcを使い始める準備は完了です.
+これら4つの鍵が手元に揃えば, twarcを使い始める準備は完了です.
 
 1. [Python](http://python.org/download)をインストールする (Version2か3)
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarcする
@@ -35,7 +35,7 @@ $ brew install twarc
 
 ## Quickstart | クイックスタート
 
-まず初めに, アプリケーションのAPIキーをTwarcに教え, 1つ以上のTwitterアカウントへのアクセスを許可する必要があります.
+まず初めに, アプリケーションのAPIキーをtwarcに教え, 1つ以上のTwitterアカウントへのアクセスを許可する必要があります.
 
     twarc configure
 
@@ -53,7 +53,8 @@ $ brew install twarc
 
 ### Configure | 設定
 
-`configure`コマンドで, 取得したアプリケーションキーをTwarcに教えることができます.
+`configure`コマンドで, 取得したアプリケーションキーをtwarcに教えることができます.
+    break
 
     twarc configure
 
@@ -141,7 +142,7 @@ Twitterはツイートの言語をコーディングしようとします.  [ISO
 
 ### Hydrate | ハイドレート
 
-Twarcの`hydrate`コマンドは, ツイートの識別子のファイルを読み込んで, Twitterの[status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) APIを用いてそれらのツイートのJSONを書き出します.
+twarcの`hydrate`コマンドは, ツイートの識別子のファイルを読み込んで, Twitterの[status/lookup](https://dev.twitter.com/rest/reference/get/statuses/lookup) APIを用いてそれらのツイートのJSONを書き出します.
 
     twarc hydrate ids.txt > tweets.jsonl
 
@@ -199,7 +200,7 @@ Geolocationがあれば, `WOE ID`の代わりにジオロケーションを使�
 
     twarc trends 39.9062,-79.4679
 
-バックグラウンドでTwarcは, Twitterの[trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) APIを使用して, 場所を検索し, 最も近い`WOE ID`を見つけます.
+バックグラウンドでtwarcは, Twitterの[trends/closest](https://dev.twitter.com/rest/reference/get/trends/closest) APIを使用して, 場所を検索し, 最も近い`WOE ID`を見つけます.
 
 ### Timeline | タイムライン
 
@@ -220,10 +221,10 @@ Geolocationがあれば, `WOE ID`の代わりにジオロケーションを使�
 ### Replies | 返信
 
 残念ながら, TwitterのAPIは現在, ツイートへの返信の取得をサポートしていません.
-代わりに, Twarcは検索APIを使用してその機能の近似を行います.
+代わりに, twarcは検索APIを使用してその機能の近似を行います.
 
 Twitterの検索APIは, 1週間以上前のツイートの取得をサポートしていません.
-そのため, Twarcは先週までに送信されたツイートに対する返信のみを取得できます.
+そのため, twarcは先週までに送信されたツイートに対する返信のみを取得できます.
 
 特定のツイートへの返信を取得したい場合は以下のようにします.
 
@@ -273,7 +274,7 @@ Premium APIを使用するには、使用しているエンドポイントと環
       --limit 1000 \
       > tweets.jsonl
 
-環境がサンドボックス化されている場合、Twarcが一度に100件以上のツイートを要求しないように、
+環境がサンドボックス化されている場合、twarcが一度に100件以上のツイートを要求しないように、
 `--sandbox`を使用する必要があります。（サンドボックス化されていない環境のデフォルトは 500）
 
     twarc search blacklivesmatter \
@@ -286,8 +287,8 @@ Premium APIを使用するには、使用しているエンドポイントと環
 
 ## Use as a Library | ライブラリとして使用
 
-必要で応じてTwarcをプログラム的にライブラリとして使ってツイートを収集することができます。
-最初に（Twitterの資格情報を使用して）Twarcインスタンスを作成し、検索結果、フィルタ結果、
+必要で応じてtwarcをプログラム的にライブラリとして使ってツイートを収集することができます。
+最初に（Twitterの資格情報を使用して）twarcインスタンスを作成し、検索結果、フィルタ結果、
 または検索結果の反復を処理するために使用できます。
 
 ```python
@@ -328,8 +329,8 @@ for tweet in t.hydrate(open('ids.txt')):
 
 ## User vs App Auth
 
-TwarcはTwitterによるレート制限を管理しますが、 それらのレート制限は、認証方法によって
-異なります。ユーザー認証とアプリ認証の２つのオプションがありますが、Twarcは
+twarcはTwitterによるレート制限を管理しますが、 それらのレート制限は、認証方法によって
+異なります。ユーザー認証とアプリ認証の２つのオプションがありますが、twarcは
 デフォルトでユーザー認証を使用するので、アプリ認証を使用するように指示することもできます。
 
 アプリ認証への切り替えは、ツイートを検索するときなんかに便利です。ユーザー認証は
@@ -345,7 +346,7 @@ TwarcはTwitterによるレート制限を管理しますが、 それらのレ�
 
     twarc --app_auth search ferguson > tweets.jsonl
 
-同様に、Twarcをライブラリとして使用している場合は、次のことができます。
+同様に、twarcをライブラリとして使用している場合は、次のことができます。
 
 ```python
 from twarc import Twarc
@@ -441,7 +442,7 @@ URLを短縮すると, 最もよくツイートされたURLのランキングリ
 ## twarc-report
 
 [twarc-report](https://github.com/pbinkley/twarc-report)プロジェクトでは, [D3.js](http://d3js.org/)でのビジュアライゼーションでの使用に適したCSVまたはJSONを生成・出力するユーティリティスクリプトを用意しています.
-以前はTwarcの一部であった`directed.py`は`d3graph.py`としてtwarc-reportプロジェクトに移管しました.
+以前はtwarcの一部であった`directed.py`は`d3graph.py`としてtwarc-reportプロジェクトに移管しました.
 
 またそれぞれのスクリプトは, ビジュアライゼーションのHTMLでのデモを生成できます.
 

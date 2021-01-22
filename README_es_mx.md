@@ -2,16 +2,16 @@
 
 *Traducciones: [japonés], [Inglés], [Portugués], [Sueco], [Swahili]*
 
-Twarc es una recurso de línea de commando y catálogo de Python para archivar JSON dato de Twitter. Cada tweet se representa como
-un artículo de JSON que es [exactamente](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object) lo que fue capturado del API de Twitter. Los Tweets se archivan como [JSON de línea orientado](https://en.wikipedia.org/wiki/JSON_streaming#Line-delimited_JSON). Twarc se encarga del [límite de tarifa](https://developer.twitter.com/en/docs/basics/rate-limiting) del API de Twitter. Twarc también puede facilitar la colección de usuarios, tendencias y detallar las identificaciones de los tweets.
+twarc es una recurso de línea de commando y catálogo de Python para archivar JSON dato de Twitter. Cada tweet se representa como
+un artículo de JSON que es [exactamente](https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/tweet-object) lo que fue capturado del API de Twitter. Los Tweets se archivan como [JSON de línea orientado](https://en.wikipedia.org/wiki/JSON_streaming#Line-delimited_JSON). twarc se encarga del [límite de tarifa](https://developer.twitter.com/en/docs/basics/rate-limiting) del API de Twitter. twarc también puede facilitar la colección de usuarios, tendencias y detallar las identificaciones de los tweets.
 
-Twarc fue desarrollado como parte del proyecto [Documenting the Now](http://www.docnow.io/) el cual fue financiado por el [Mellon Foundation](https://mellon.org/).
+twarc fue desarrollado como parte del proyecto [Documenting the Now](http://www.docnow.io/) el cual fue financiado por el [Mellon Foundation](https://mellon.org/).
 
 ## La Instalación
 
-Antes de usar Twarc es necesario registrarse por [apps.twitter.com](https://apps.twitter.com/). Después de establecer la solicitud, se anota el clabe del consumidor, el secreto del consumidor, y entoces clickear para generar un access token y el secretro del access token. Con estos quatros requisitos, está listo para usar Twarc.
+Antes de usar twarc es necesario registrarse por [apps.twitter.com](https://apps.twitter.com/). Después de establecer la solicitud, se anota el clabe del consumidor, el secreto del consumidor, y entoces clickear para generar un access token y el secretro del access token. Con estos quatros requisitos, está listo para usar twarc.
 1. Instala [Python](https://www.python.org/downloads/) (2 ó 3)
-2. Instala Twarc atraves de pip (si estas acezando de categoría: pip install --upgrade twarc)
+2. Instala twarc atraves de pip (si estas acezando de categoría: pip install --upgrade twarc)
 
 ## Quickstart:
 
@@ -151,7 +151,7 @@ Si tiene un geo-location, puede usarlo.
 
 `twarc trends 39.9062,-79.4679`
 
-Twarc buscara el lugar usando el [trends/closest](https://developer.twitter.com/en/docs/api-reference-index) API para encontrar el `woeid` más cerca.
+twarc buscara el lugar usando el [trends/closest](https://developer.twitter.com/en/docs/api-reference-index) API para encontrar el `woeid` más cerca.
 
 ### Timeline
 
@@ -189,7 +189,7 @@ Para conseguir los usuarios en una lista, se puede usar el list URL con el comma
 
 ## Use as a Library
 
-Twarc se puede usar programáticamente como una biblioteca para coleccionar tweets. Necesitas usar un `Twarc` instance (usando tus credenciales de Twitter), y luego lo usas para buscar por resultados de búsqueda.
+twarc se puede usar programáticamente como una biblioteca para coleccionar tweets. Necesitas usar un `twarc` instance (usando tus credenciales de Twitter), y luego lo usas para buscar por resultados de búsqueda.
 
 `from twarc import Twarc
 

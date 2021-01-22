@@ -337,7 +337,7 @@ twarc search blacklivesmatter \
 
 ## 作为一个 Python 包的 twarc
 
-如果你想在你自己的代码里使用 twarc 的话，你需要首先创建一个 `Tawrc` 实例，传入你的推特应用凭证然后用它进行搜索、过滤和检索。 举例如下：
+如果你想在你自己的代码里使用 twarc 的话，你需要首先创建一个 `twarc` 实例，传入你的推特应用凭证然后用它进行搜索、过滤和检索。 举例如下：
 
 ```python
 from twarc import Twarc
