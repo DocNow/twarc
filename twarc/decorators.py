@@ -56,6 +56,9 @@ def rate_limit(f):
                 log.warning("%s from Twitter API, sleeping %s",
                              resp.status_code, seconds)
                 time.sleep(seconds)
+            elif resp.status_code== 422:
+                log.error("Recieved HTTP 422 response from Twitter API. Are you using the Premium API and forgot to use --sandbox or sandbox parameter?")
+                return resp
             else:
                 resp.raise_for_status()
     return new_f

@@ -152,7 +152,7 @@ class Twarc(object):
             to_date=None, max_results=None, sandbox=False, limit=0):
         """
         Search using the Premium Search API. You will need to pass in a query
-        a product (30day or fullarchive) and and environment to use. Optionally
+        a product (30day or fullarchive) and environment to use. Optionally
         you can pass in a from_date and to_date to limit the search using
         datetime objects. If you would like to set max_results you can, or
         you can accept the maximum results (500). If using the a sandbox 
@@ -218,6 +218,8 @@ class Twarc(object):
                     params['next'] = data['next']
                 else:
                     stop = True
+            elif resp.status_code == 422:
+                raise RuntimeError("Twitter API 422 response: are you using a premium search sandbox environment and forgot the --sandbox argument?")
 
     def timeline(self, user_id=None, screen_name=None, max_id=None,
                  since_id=None, max_pages=None):
