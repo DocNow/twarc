@@ -10,8 +10,10 @@ to locate deleted accounts.
 import re
 import json
 import twarc
+import logging
 import fileinput
 
+logging.basicConfig(filename="deleted_users.log", level=logging.INFO)
 t = twarc.Twarc()
 
 for line in fileinput.input():
