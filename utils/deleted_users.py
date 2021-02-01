@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 '''
-Will read in user ids, or tweet JSON data and look up each user_id. If the user
-no longer exists the user_id or tweet JSON will be written to stdout. It acts
-like a filter to locate deleted accounts.
+This utility Will read in user ids, or tweet JSON data, and look up each
+user_id. If the user no longer exists the user_id or tweet JSON will be written
+to stdout. If the user exists no output will be written. It acts like a filter
+to locate deleted accounts.
 '''
 
 import re
