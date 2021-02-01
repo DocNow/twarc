@@ -27,6 +27,6 @@ for line in fileinput.input():
     try:
         user = next(t.user_lookup([user_id]))
     except Exception as e: 
-        print(line, end=None)
+        print(line)
 
 
