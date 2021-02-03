@@ -7,6 +7,25 @@ calls seem similar the most significant change is the response payload with
 is [totally new]. The representation of a tweet now can take a very
 different shape depending on what you ask for and how you ask for it. 
 
+## Design principles for twarc2
+
+- twarc2's primary use case is collection and archiving of Twitter API data, especially
+  for research purposes
+- twarc2 should be usable and tested as both a library for integration with other
+  software, and as a command line tool
+- twarc2 by default should capture as comprehensive data as possible from the Twitter 
+  API
+- twarc2 should encourage workflows that preserve raw Twitter API responses as a 
+  reproducible and interoperable baseline for data storage
+- Reuse as many of the battletested parts of the current Twarc implementation as 
+  possible
+- Up to the limitations of the new API, enable an easy migration to the Twitter V2 API
+  endpoints
+- Listen to users to find the right balance between simplicity and ease of use against 
+  flexibility and additional functionality
+
+## Command Line Interface
+
 As with twarc the goal of twarc2 is to make it easy to continue to get the
 fullest representation of tweets and Twitter users, with the minimum amount
 of fuss, and maximum amount of reliability. Here's a sketch of what the
