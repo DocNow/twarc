@@ -1,3 +1,5 @@
+# these are here as a baseline from twarc v1.x
+
 import os
 import re
 import json
@@ -9,10 +11,7 @@ import datetime
 
 dotenv.load_dotenv()
 
-try:
-    from unittest.mock import patch, call, MagicMock  # Python 3
-except ImportError:
-    from mock import patch, call, MagicMock  # Python 2
+from unittest.mock import patch, call, MagicMock  # Python 3
 
 from requests_oauthlib import OAuth1Session
 import requests
