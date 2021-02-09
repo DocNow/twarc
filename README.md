@@ -1,6 +1,8 @@
 twarc
 =====
 
+![tests](https://github.com/docnow/twarc/workflows/tests/badge.svg)
+
 *Translations: [Chinese], [Japanese], [Portuguese], [Spanish], [Swahili], [Swedish]*
 
 twarc is a command line tool and Python library for archiving Twitter JSON data.
