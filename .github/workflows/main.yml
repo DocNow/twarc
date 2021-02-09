@@ -1,0 +1,25 @@
+name: twarc tests
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Test with pytest
+        env:
+          CONSUMER_KEY: ${{ secrets.consumer_key }}
+          CONSUMER_SECRET: ${{ secrets.consumer_secret }}
+          ACCESS_TOKEN: ${{ secrets.access_token }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.access_token_secret }}
+        run: python setup.py test
