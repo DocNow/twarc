@@ -17,9 +17,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Test with pytest
-        env:
-          CONSUMER_KEY: ${{ secrets.consumer_key }}
-          CONSUMER_SECRET: ${{ secrets.consumer_secret }}
-          ACCESS_TOKEN: ${{ secrets.access_token }}
-          ACCESS_TOKEN_SECRET: ${{ secrets.access_token_secret }}
-        run: python setup.py test
+      env:
+        CONSUMER_KEY: ${{ secrets.consumer_key }}
+        CONSUMER_SECRET: ${{ secrets.consumer_secret }}
+        ACCESS_TOKEN: ${{ secrets.access_token }}
+        ACCESS_TOKEN_SECRET: ${{ secrets.access_token_secret }}
+      run: python setup.py test
