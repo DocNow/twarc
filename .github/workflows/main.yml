@@ -34,3 +34,4 @@ jobs:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_USERNAME: docnow-build
         SLACK_ICON_EMOJI: ":test-tube:"
+        SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
