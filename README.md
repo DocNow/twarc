@@ -1,11 +1,11 @@
 # twarc2 🐦🐍💾
 
-twarc2 is a *proposed* new version of [twarc] custom made for the new
-Twitter v2 API. Twitter [substantially changed] their API in July 2020.
-They have deprecated the v1.1 and premium endpoints. While some of the API
-calls seem similar the most significant change is the response payload with
-is [totally new]. The representation of a tweet now can take a very
-different shape depending on what you ask for and how you ask for it. 
+twarc2 is a *proposed* evolution of [twarc] custom made for the new Twitter v2 API.
+Twitter [substantially changed] their API in July 2020. Twitter plans to deprecate the
+v1.1 and premium endpoints. While some of the API calls seem similar the most
+significant change is the response payload with is [totally new]. The representation of
+a tweet now can take a very different shape depending on what you ask for and how you
+ask for it. 
 
 ## Design principles for twarc2
 
@@ -21,8 +21,45 @@ different shape depending on what you ask for and how you ask for it.
   possible
 - Up to the limitations of the new API, enable an easy migration to the Twitter V2 API
   endpoints
+- Release early and release often to allow people to test and work against new 
+  functionality/identify problems as soon as possible
 - Listen to users to find the right balance between simplicity and ease of use against 
   flexibility and additional functionality
+
+## Data Collection Architecture and Components
+
+The proposed architecture is broadly aligned with existing twarc functionality:
+
+- A new Twarc2 client, parallel to the existing Twarc client
+- Functionality to read configuration details (whether from the existing config files or
+  elsewhere is to be determined).
+- A command line interface module that calls and configures the Twarc2 client
+
+
+## Transition Plan
+
+Maintain Twarc classic as is - as long as v1.1 endpoints are still supported, there 
+will be a v1.1 compatible client. However, as Twitter deprecates functionality, the
+corresponding twarc functionality will be removed, with a transitional stub describing a
+way forward in twarc2. For example, calling `twarc.sample` after the streams endpoints
+are removed could raise an error describing the `twarc2.sample` method. This should also
+be supported through the command line.
+
+## Implementation Plan
+
+This is a proposed set of things to be done, in an approximate order. Once the initial
+client and command line structure is in place, it should be straightforward to build
+out the rest of the API functionality on that baseline.
+
+- Layout a minimal Twarc2 client object. This allows us to tackle the work of
+interacting with the new API as soon as possible so we can get a better community
+understanding of the technical issues, as well as collecting new format data to work
+with other tools. 
+- Layout the new CLI for data collection on top of the client, resolving the initial
+needs for configuration and/or profile management. 
+- Implement a tentative workflow for data transformation/conformance between v1.1 and v2
+collected data
+
 
 ## Command Line Interface
 
@@ -150,25 +187,47 @@ Download and output the results of a completed compliance job:
 twarc2 get-compliance-job <job-id>
 ```
 
-### Stitching
+## Utilities and Data Formats
 
-The big difference with the v2 API is that some information (users, media,
-etc) are not included inline in the tweets and are included as a separate
-[extended entities] objects. This cuts down on duplication of information in
-a payload (e.g. information about the same user, repeated over and over)
-but it also means your output stream will contain individual tweets followed
-by an entities object.
+Since the v2 Twitter API changes the data formats in a fundamental way, existing tools
+and pipelines, including the utilities scripts will no longer work with Twitter data
+collected through twarc2. Since it is likely that during the transition period and
+afterwards there will be many mixed data collections, instead of porting existing
+utilities to the new data format it is proposed that data handling is supported by twarc
+as additional functionality, separate from data collection, and working in a readonly
+fashion on collected data. As additional advantages, this also makes it easier to 
+support future changes in the Twitter API by updating only the transform process, and
+allows a starting point for external packages to extend the utils.
 
-If you would like entities to replace the id references in tweets you
-can use the `--stitch` option. Depending on your use case this could make
-downstream processing easier since it can expect each line to contain
-a complete tweet.
+To support this, and better handle future change, we propose: 
+
+- providing a workflow that can process v1.1 and v2 data into a common schema (such as
+  into an SQLite database)
+- port the existing utilities to read from that schema
+- provide some architectural support, to elevate the utilities folder from a set of 
+  scripts in a github repo to a part of twarc itself.
+
+A hypothetical example of this workflow might be:
 
 ```shell
-twarc2 search blacklivesmatter --stitch > tweets.jsonl
+# Collect some data using the search API
+twarc2 search auspol --output auspol_v2.jsonl
+
+# Preprocess the data into the common schema, including some existing data
+# This is a non-destructive operation, the existing files are only read.
+# The transform process handles common data quality issues like deduplication of tweets.
+twarc2 transform auspol.db --files auspol_v2.jsonl auspol_v1.1.jsonl
+
+# Read a flat file from that data
+twarc2 utils to_csv auspol.db --output output.csv
+
+# Generate a hashtag cooccurrence network
+twarc2 utils hashtag_cooccurrence auspol.db --output hashtag_network.graphml
 ```
 
-The proposed behavior is that this not be the default behavior, since twarc has been used in the past to display exactly what has been retrieved from the Twitter API.
+This common schema could also be a base for further analysis (for example natively 
+through SQLite/programming languages), or through tools like Tableau and Excel that 
+can read from the database directly.
 
 [twarc]: https://github.com/docnow/twarc
 [substantially changed]: https://blog.twitter.com/developer/en_us/topics/tools/2020/introducing_new_twitter_api.html
