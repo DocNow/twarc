@@ -3,9 +3,10 @@ twarc
 
 ![tests](https://github.com/docnow/twarc/workflows/tests/badge.svg)
 
-*Translations: [Chinese], [Japanese], [Portuguese], [Spanish], [Swahili], [Swedish]*
-
+*Translations: [Chinese], [Japanese], [Portuguese], [Spanish], [Swahili], [Swedish]*  
 *See the [twarc2](https://github.com/DocNow/twarc/wiki/twarc2) page on the wiki for details about our plans to support the Twitter v2 API* 
+
+---
 
 twarc is a command line tool and Python library for archiving Twitter JSON data.
 Each tweet is represented as a JSON object that is
