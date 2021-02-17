@@ -97,13 +97,13 @@ relevant for that location and radius:
 
 ### Filter
 
-The `filter` command will use Twitter's [statuses/filter](https://dev.twitter.com/streaming/reference/post/statuses/filter) API to collect tweets as they happen.
+The `filter` command will use Twitter's [statuses/filter](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/filter-realtime/api-reference/post-statuses-filter) API to collect tweets as they happen.
 
     twarc filter blacklivesmatter,blm > tweets.jsonl
 
-Please note that the syntax for the Twitter's track queries is slightly
-different than what queries in their search API. So please consult the
-documentation on how best to express the filter option you are using.
+Please note that the syntax for the Twitter's track queries is significantly
+different than what queries in their search API. Consult the
+[track documentation](https://developer.twitter.com/en/docs/twitter-api/v1/tweets/filter-realtime/guides/basic-stream-parameters#track) on how best to express the filter option you are using.
 
 Use the `follow` command line argument if you would like to collect tweets from
 a given user id as they happen. This includes retweets. For example this will
