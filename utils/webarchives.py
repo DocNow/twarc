@@ -17,6 +17,7 @@ archives = [
 for line in fileinput.input():
     tweet = json.loads(line)
     for url in tweet['entities']['urls']:
+        done = False
         for host in archives:
             if host in url['expanded_url']:
                 print(line, end='')
