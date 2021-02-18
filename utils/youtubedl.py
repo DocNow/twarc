@@ -185,5 +185,7 @@ for line in fileinput.input(args.files):
         else:
             filename = q.get()
 
+        p.join()
+
         # write the result to the mapping file
         results.write("{}\t{}\n".format(url, filename))
