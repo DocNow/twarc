@@ -26,6 +26,7 @@ jobs:
         CONSUMER_SECRET: ${{ secrets.consumer_secret }}
         ACCESS_TOKEN: ${{ secrets.access_token }}
         ACCESS_TOKEN_SECRET: ${{ secrets.access_token_secret }}
+        BEARER_TOKEN: ${{ secrets.bearer_token }}
       run: python setup.py test
 
     - name: Slack Notification
