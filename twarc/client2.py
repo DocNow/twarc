@@ -5,20 +5,18 @@ This is the client for the Twitter V2 API.
 """
 import os
 import re
+import ssl
 import sys
 import json
 import types
 import logging
 import datetime
-import ssl
-
 import requests
+
+from twarc import expansions
+from twarc.decorators import *
 from requests.exceptions import ConnectionError
 from requests.packages.urllib3.exceptions import ProtocolError
-
-from decorators import *
-import expansions
-
 
 log = logging.getLogger("twarc")
 
@@ -77,11 +75,12 @@ class Twarc2:
         The sample is based on slices of each second, not truely randomised. The
         same tweets are returned for all users of this endpoint.
 
-        If a threading.Event is provided for event and the event is set, the sample will
-        be interrupted. This can be used for coordination with other programs.
+        If a threading.Event is provided for event and the event is set, the
+        sample will be interrupted. This can be used for coordination with other
+        programs.
 
-        This method yields an iterator of responses from the Twitter API,
-        each response potentially containing many tweets.
+        This method yields an iterator of responses from the Twitter API, each
+        response potentially containing many tweets.
 
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
