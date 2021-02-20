@@ -1,9 +1,11 @@
 """
 This module contains a list of the known Twitter V2+ API expansions and fields for
-each expansion.
+each expansion, and a function for "flattening" a result set,
+including all expansions inline
 
 """
 
+from collections import defaultdict
 
 EXPANSIONS = [
     "author_id",
@@ -91,3 +93,82 @@ EVERYTHING = {
     "poll.fields": ",".join(POLL_FIELDS),
     "place.fields": ",".join(PLACE_FIELDS),
 }
+
+
+def extract_includes(response, expansion, _id="id"):
+    if expansion in response["includes"]:
+        return defaultdict(
+            lambda: {},
+            {include[_id]: include for include in response["includes"][expansion]},
+        )
+    else:
+        return defaultdict(lambda: {})
+
+
+def formatted_output(response):
+    """
+    Atomic / flattended output format. Expects an entire page response from the API (data, includes, meta)
+    Defaults: Return empty objects for things missing in includes. Doesn't modify tweets, only adds extra data.
+    """
+    includes_media = extract_includes(response, "media", "media_key")
+    includes_users = extract_includes(response, "users")
+    includes_user_names = extract_includes(response, "users", "username")
+    includes_polls = extract_includes(response, "polls")
+    includes_place = extract_includes(response, "places")
+    includes_tweets = extract_includes(response, "tweets")
+
+    def expand_tweet(tweet):
+        if "author_id" in tweet:
+            tweet["author"] = includes_users[tweet["author_id"]]
+        if "in_reply_to_user_id" in tweet:
+            tweet["in_reply_to_user"] = includes_users[tweet["in_reply_to_user_id"]]
+        if "attachments" in tweet:
+            if "media_keys" in tweet["attachments"]:
+                tweet["attachments"]["media"] = [
+                    includes_media[media_key]
+                    for media_key in tweet["attachments"]["media_keys"]
+                ]
+            if "poll_ids" in tweet["attachments"]:
+                tweet["attachments"]["polls"] = [
+                    includes_polls[poll_id]
+                    for poll_id in tweet["attachments"]["poll_ids"]
+                ]
+        if "geo" in tweet and len(includes_place) > 0:
+            tweet["geo"] = [
+                {**referenced_place, **includes_place[referenced_place["place_id"]]}
+                for referenced_place in tweet["geo"]
+            ]
+        if "entities" in tweet:
+            if "mentions" in tweet["entities"]:
+                tweet["entities"]["mentions"] = [
+                    {
+                        **referenced_user,
+                        **includes_user_names[referenced_user["username"]],
+                    }
+                    for referenced_user in tweet["entities"]["mentions"]
+                ]
+        if "referenced_tweets" in tweet:
+            tweet["referenced_tweets"] = [
+                {**referenced_tweet, **includes_tweets[referenced_tweet["id"]]}
+                for referenced_tweet in tweet["referenced_tweets"]
+            ]
+        return tweet
+
+    # Now expand the included tweets ahead of time using all of the above:
+    includes_tweets = (
+        defaultdict(
+            lambda: {},
+            {
+                tweet["id"]: expand_tweet(tweet)
+                for tweet in response["includes"]["tweets"]
+            },
+        )
+        if "tweets" in response["includes"]
+        else defaultdict(lambda: {})
+    )
+
+    # Finally, format the data results tweets with "atomic" objects:
+    response["data"] = list(expand_tweet(tweet) for tweet in response["data"])
+    response.pop("includes", None)  # remove includes
+
+    return response
