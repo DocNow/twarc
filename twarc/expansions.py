@@ -105,10 +105,11 @@ def extract_includes(response, expansion, _id="id"):
         return defaultdict(lambda: {})
 
 
-def formatted_output(response):
+def flatten(response):
     """
-    Atomic / flattended output format. Expects an entire page response from the API (data, includes, meta)
-    Defaults: Return empty objects for things missing in includes. Doesn't modify tweets, only adds extra data.
+    Flatten the response. Expects an entire page response from the API (data,
+    includes, meta) Defaults: Return empty objects for things missing in
+    includes. Doesn't modify tweets, only adds extra data.
     """
     includes_media = extract_includes(response, "media", "media_key")
     includes_users = extract_includes(response, "users")
@@ -134,10 +135,9 @@ def formatted_output(response):
                     for poll_id in tweet["attachments"]["poll_ids"]
                 ]
         if "geo" in tweet and len(includes_place) > 0:
-            tweet["geo"] = [
-                {**referenced_place, **includes_place[referenced_place["place_id"]]}
-                for referenced_place in tweet["geo"]
-            ]
+            place_id = tweet["geo"]["place_id"]
+            tweet["geo"]["place"] = includes_place[place_id]
+
         if "entities" in tweet:
             if "mentions" in tweet["entities"]:
                 tweet["entities"]["mentions"] = [
@@ -167,8 +167,13 @@ def formatted_output(response):
         else defaultdict(lambda: {})
     )
 
-    # Finally, format the data results tweets with "atomic" objects:
-    response["data"] = list(expand_tweet(tweet) for tweet in response["data"])
-    response.pop("includes", None)  # remove includes
+    # flatten a list of tweets or an individual tweet
+    if type(response["data"]) == list: 
+        response["data"] = list(expand_tweet(tweet) for tweet in response["data"])
+    elif type(response["data"]) == dict:
+        response["data"] = expand_tweet(response["data"])
+
+    # Hmm, should we do this? All the other changes are additive right?
+    response.pop("includes", None) 
 
     return response

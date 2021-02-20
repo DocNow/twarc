@@ -68,9 +68,9 @@ class Twarc2:
     def user_lookup(self, user_ids):
         pass
 
-    def sample(self, event=None, record_keepalive=False):
+    def sample(self, event=None, record_keepalive=False, flatten=False):
         """
-        Returns a small sample of all publically posted tweets.
+        Returns a sample of all publically posted tweets.
 
         The sample is based on slices of each second, not truely randomised. The
         same tweets are returned for all users of this endpoint.
@@ -78,10 +78,6 @@ class Twarc2:
         If a threading.Event is provided for event and the event is set, the
         sample will be interrupted. This can be used for coordination with other
         programs.
-
-        This method yields an iterator of responses from the Twitter API, each
-        response potentially containing many tweets.
-
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
         errors = 0
@@ -103,10 +99,10 @@ class Twarc2:
                             yield "keep-alive"
                         continue
                     else:
-                        try:
+                        if flatten:
+                            yield expansions.flatten(json.loads(line.decode()))
+                        else:
                             yield json.loads(line.decode())
-                        except Exception as e:
-                            log.error("json parse error: %s - %s", e, line)
             except requests.exceptions.HTTPError as e:
                 errors += 1
                 log.error("caught http error %s on %s try", e, errors)
@@ -121,16 +117,6 @@ class Twarc2:
                     if interruptible_sleep(errors * 5, event):
                         log.info("stopping filter")
                         return
-
-            except Exception as e:
-                errors += 1
-                log.error("caught exception %s on %s try", e, errors)
-                if self.http_errors and errors == self.http_errors:
-                    log.warning("too many errors")
-                    raise e
-                if interruptible_sleep(errors, event):
-                    log.info("stopping filter")
-                    return
 
     @rate_limit
     @catch_conn_reset
