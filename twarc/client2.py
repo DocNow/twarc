@@ -59,8 +59,40 @@ class Twarc2:
 
         self.connect()
 
-    def search(self):
-        pass
+    def recent_search(
+        self,
+        query,
+        since_id=None,
+        until_id=None
+    ):
+        """
+        Search Twitter for the given query, using the recent search endpoint.
+
+        Approximately the last seven days are indexed by Twitter - if you want
+        to search the full archive you can use the `full_archive_search` method,
+        but note the need for an elevated access level.
+
+        query: The query string to be passed directly to the Twitter API.
+        since_id: Return all tweets since this tweet_id.
+        until_id: Return all tweets up to this tweet_id.
+
+        TODO: add support for the start_time and end_time parameters.
+
+        """
+
+        url = "https://api.twitter.com/2/tweets/search/recent"
+
+        params = expansions.EVERYTHING.copy()
+        params["max_results"] = 100
+        params["query"] = query
+
+        if since_id: 
+            params["since_id"] = since_id
+        if until_id: 
+            params["until_id"] = until_id
+
+        for response in self.get_paginated(url, params=params):
+            yield response
 
     def hydrate(self, tweet_ids):
         pass
@@ -153,6 +185,28 @@ class Twarc2:
                 kwargs["allow_404"] = allow_404
                 return self.get(*args, **kwargs)
 
+    def get_paginated(self, *args, **kwargs):
+        """
+        A wrapper around the `get` method that handles Twitter token based
+        pagination.
+
+        Yields one page (one API response) at a time.
+
+        """
+
+        page = self.get(*args, **kwargs).json()
+
+        yield page
+
+        while "next_token" in page["meta"]:
+            if "params" in kwargs:
+                kwargs["params"]["next_token"] = page["meta"]["next_token"]
+            else:
+                kwargs["params"] = {"next_token": page["meta"]["next_token"]}                
+
+            page = self.get(*args, **kwargs).json()
+            yield page
+
     def connect(self):
         """
         Sets up the HTTP session to talk to Twitter. If one is active it is
@@ -181,10 +235,11 @@ class Twarc2:
 
 if __name__ == "__main__":
     import sys
+
     bearer_token = sys.argv[1]
 
     tw = Twarc2(bearer_token)
 
     # print(tw.client.headers)
-    for response in tw.sample():
+    for i, response in enumerate(tw.recent_search("borscht")):
         print(response)
