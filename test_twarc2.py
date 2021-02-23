@@ -8,15 +8,12 @@ import threading
 dotenv.load_dotenv()
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
-T = None
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
+
+T = twarc.Twarc2(bearer_token=BEARER_TOKEN)
 
 def test_bearer_token():
     assert BEARER_TOKEN
-
-def test_constructor():
-    global T
-    T = twarc.Twarc2(bearer_token=BEARER_TOKEN)
 
 def test_sample():
     count = 0
