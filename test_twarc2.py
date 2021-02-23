@@ -35,6 +35,26 @@ def test_sample():
 
     assert count == 11
 
+def test_recent_search():
+    """
+    Extremely basic search test.
+    """
+
+    found_tweets = 0
+    pages = 0
+
+    for response_page in T.recent_search("#auspol"):
+        pages += 1
+        tweets = response_page["data"]
+        found_tweets += len(tweets)
+        print(response_page.keys())
+
+        if pages == 3:
+            break
+
+    assert 200 <= found_tweets <= 300
+
+
 def test_sample_flattened():
     """
     This test uses the sample stream with the flatten option to move the 
