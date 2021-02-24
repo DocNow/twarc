@@ -59,12 +59,7 @@ class Twarc2:
 
         self.connect()
 
-    def recent_search(
-        self,
-        query,
-        since_id=None,
-        until_id=None
-    ):
+    def recent_search(self, query, since_id=None, until_id=None):
         """
         Search Twitter for the given query, using the recent search endpoint.
 
@@ -86,9 +81,9 @@ class Twarc2:
         params["max_results"] = 100
         params["query"] = query
 
-        if since_id: 
+        if since_id:
             params["since_id"] = since_id
-        if until_id: 
+        if until_id:
             params["until_id"] = until_id
 
         for response in self.get_paginated(url, params=params):
@@ -98,7 +93,38 @@ class Twarc2:
         pass
 
     def user_lookup(self, user_ids):
-        pass
+        """
+        Returns fully populated user profiles for the given iterator of user_ids
+
+        This method only supports lookup by numerical user ID.
+
+        Yields one page of results at a time (in blocks of at most 100 user
+        profiles).
+
+        """
+
+        def lookup_batch(user_ids):
+
+            url = "https://api.twitter.com/2/users"
+
+            params = expansions.USER_EVERYTHING.copy()
+            params["ids"] = ",".join(user_ids)
+
+            resp = self.get(url, params=params)
+
+            return resp.json()
+
+        user_id_batch = []
+
+        for user_id in user_ids:
+            user_id_batch.append(str(int(user_id)))
+
+            if len(user_id_batch) == 100:
+                yield lookup_batch(user_id_batch)
+                user_id_batch = []
+
+        if user_id_batch:
+            yield (lookup_batch(user_id_batch))
 
     def sample(self, event=None, record_keepalive=False, flatten=False):
         """
@@ -117,7 +143,7 @@ class Twarc2:
         while True:
             try:
                 log.info("Connecting to V2 sample stream")
-                resp = self.get(url, params=expansions.EVERYTHING, stream=True)
+                resp = self.get(url, params=expansions.EVERYTHING.copy(), stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
                     if event and event.is_set():
@@ -202,7 +228,7 @@ class Twarc2:
             if "params" in kwargs:
                 kwargs["params"]["next_token"] = page["meta"]["next_token"]
             else:
-                kwargs["params"] = {"next_token": page["meta"]["next_token"]}                
+                kwargs["params"] = {"next_token": page["meta"]["next_token"]}
 
             page = self.get(*args, **kwargs).json()
             yield page
@@ -231,15 +257,3 @@ class Twarc2:
         client.headers.update({"Authorization": f"Bearer {self.bearer_token}"})
 
         self.client = client
-
-
-if __name__ == "__main__":
-    import sys
-
-    bearer_token = sys.argv[1]
-
-    tw = Twarc2(bearer_token)
-
-    # print(tw.client.headers)
-    for i, response in enumerate(tw.recent_search("borscht")):
-        print(response)

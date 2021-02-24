@@ -47,12 +47,32 @@ def test_recent_search():
         pages += 1
         tweets = response_page["data"]
         found_tweets += len(tweets)
-        print(response_page.keys())
 
         if pages == 3:
             break
 
     assert 200 <= found_tweets <= 300
+
+
+def test_user_lookup():
+
+    users_found = 0
+    users_not_found = 0
+
+    for response in T.user_lookup(range(1, 1000)):
+
+        for profile in response["data"]:
+            users_found += 1
+
+        for error in response["errors"]:
+            # Note that errors includes lookup of contained entitites within a tweet,
+            # so a pinned tweet that doesn't exist anymore results in an additional
+            # error entry, even if the profile is present.
+            if error["resource_type"] == "user":
+                users_not_found += 1
+
+    assert users_found >= 1
+    assert users_found + users_not_found == 999
 
 
 def test_sample_flattened():
