@@ -94,6 +94,15 @@ EVERYTHING = {
     "place.fields": ",".join(PLACE_FIELDS),
 }
 
+# For endpoints focused on user objects such as looking up users and followers.
+# Not all of the expansions are available for these endpoints.
+USER_EVERYTHING = {
+    "expansions": "pinned_tweet_id",
+    "tweet.fields":  ",".join(TWEET_FIELDS),
+    "user.fields": ",".join(USER_FIELDS)
+    
+}
+
 
 def extract_includes(response, expansion, _id="id"):
     if expansion in response["includes"]:
