@@ -75,6 +75,28 @@ def test_user_lookup():
     assert users_found + users_not_found == 999
 
 
+def test_tweet_lookup():
+
+    tweets_found = 0
+    tweets_not_found = 0
+
+    for response in T.tweet_lookup(range(1000, 2000)):
+
+        for tweet in response["data"]:
+            print(tweet["id"])
+            tweets_found += 1
+
+        for error in response["errors"]:
+            # Note that errors includes lookup of contained entitites within a tweet,
+            # so a pinned tweet that doesn't exist anymore results in an additional
+            # error entry, even if the profile is present.
+            if error["resource_type"] == "tweet":
+                tweets_not_found += 1
+                
+    assert tweets_found >= 1
+    assert tweets_found + tweets_not_found == 1000
+
+
 def test_sample_flattened():
     """
     This test uses the sample stream with the flatten option to move the 

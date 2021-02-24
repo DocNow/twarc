@@ -89,8 +89,39 @@ class Twarc2:
         for response in self.get_paginated(url, params=params):
             yield response
 
-    def hydrate(self, tweet_ids):
-        pass
+    def tweet_lookup(self, tweet_ids):
+        """
+        Lookup tweets, taking an iterator of IDs and returning pages of fully
+        expanded tweet objects.
+        
+        This can be used to rehydrate a collection shared as only tweet IDs.
+
+        Yields one page of tweets at a time, in blocks of up to 100.
+
+        """
+
+        def lookup_batch(tweet_id):
+
+            url = "https://api.twitter.com/2/tweets"
+
+            params = expansions.EVERYTHING.copy()
+            params["ids"] = ",".join(tweet_id)
+
+            resp = self.get(url, params=params)
+
+            return resp.json()
+
+        tweet_id_batch = []
+
+        for tweet_id in tweet_ids:
+            tweet_id_batch.append(str(int(tweet_id)))
+
+            if len(tweet_id_batch) == 100:
+                yield lookup_batch(tweet_id_batch)
+                tweet_id_batch = []
+
+        if tweet_id_batch:
+            yield (lookup_batch(tweet_id_batch))
 
     def user_lookup(self, user_ids):
         """
