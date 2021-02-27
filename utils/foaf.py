@@ -40,7 +40,9 @@ def friendships(user_id, level=2):
     logging.info("getting friends for user %s", user_id)
     level -= 1
     try:
+        count = 0
         for friend_id in t.friend_ids(user_id):
+            count += 1
             add_friendship(user_id, friend_id)
             yield (user_id, friend_id)
             if level > 0:
@@ -48,6 +50,9 @@ def friendships(user_id, level=2):
                     yield from friendships(friend_id, level)
                 else:
                     logging.info('already collected %s', friend_id)
+            if count % 1000 == 0:
+                db.commit()
+
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 401:
             logging.error("can't get friends for protected user %s", user_id)
@@ -88,7 +93,6 @@ def add_friendship(user_id, friend_id):
         'INSERT INTO friends (user_id, friend_id) VALUES (?, ?)',
         [user_id, friend_id]
     )
-    db.commit()
 
 
 def add_user(u):
@@ -120,7 +124,6 @@ def add_user(u):
             u['verified']
         ]
     )
-    db.commit()
 
 # get command line arguments
 parser = argparse.ArgumentParser("tweet.py")
@@ -172,6 +175,8 @@ for friendship in friendships(seed_user_id, args.level):
 # lookup user metadata
 for user in t.user_lookup(user_ids()):
     add_user(user)
+
+db.commit()
 
 # write out friendships
 with open('{}.csv'.format(seed_user_id), 'w') as fh:
