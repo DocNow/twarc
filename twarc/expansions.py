@@ -181,7 +181,4 @@ def flatten(response):
     elif type(response["data"]) == dict:
         response["data"] = expand_tweet(response["data"])
 
-    # Hmm, should we do this? All the other changes are additive right?
-    response.pop("includes", None)
-
     return response
