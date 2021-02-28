@@ -119,66 +119,80 @@ def flatten(response):
     includes, meta) Defaults: Return empty objects for things missing in
     includes. Doesn't modify tweets, only adds extra data.
     """
+
+    # Users extracted both by id and by username for expanding mentions
+    includes_users = {
+        **extract_includes(response, "users", "id"),
+        **extract_includes(response, "users", "username"),
+    }
+    # Media is by media_key, not id
     includes_media = extract_includes(response, "media", "media_key")
-    includes_users = extract_includes(response, "users")
-    includes_user_names = extract_includes(response, "users", "username")
     includes_polls = extract_includes(response, "polls")
-    includes_place = extract_includes(response, "places")
+    includes_places = extract_includes(response, "places")
+    # Tweets in includes will themselves be expanded
     includes_tweets = extract_includes(response, "tweets")
+    # Errors are returned but unused here for now
+    includes_errors = extract_includes(response, "errors")
 
-    def expand_tweet(tweet):
-        if "author_id" in tweet:
-            tweet["author"] = includes_users[tweet["author_id"]]
-        if "in_reply_to_user_id" in tweet:
-            tweet["in_reply_to_user"] = includes_users[tweet["in_reply_to_user_id"]]
-        if "attachments" in tweet:
-            if "media_keys" in tweet["attachments"]:
-                tweet["attachments"]["media"] = [
-                    includes_media[media_key]
-                    for media_key in tweet["attachments"]["media_keys"]
-                ]
-            if "poll_ids" in tweet["attachments"]:
-                tweet["attachments"]["polls"] = [
-                    includes_polls[poll_id]
-                    for poll_id in tweet["attachments"]["poll_ids"]
-                ]
-        if "geo" in tweet and len(includes_place) > 0:
-            place_id = tweet["geo"]["place_id"]
-            tweet["geo"]["place"] = includes_place[place_id]
+    def expand_payload(payload):
+        """
+        Recursively step through an object and sub objects and append extra data.
+        Can be applied to any tweet, list of tweets, sub object of tweet etc.
+        """
 
-        if "entities" in tweet:
-            if "mentions" in tweet["entities"]:
-                tweet["entities"]["mentions"] = [
-                    {
-                        **referenced_user,
-                        **includes_user_names[referenced_user["username"]],
-                    }
-                    for referenced_user in tweet["entities"]["mentions"]
-                ]
-        if "referenced_tweets" in tweet:
-            tweet["referenced_tweets"] = [
+        # Don't try to expand on primitive values, return strings as is:
+        if isinstance(payload, (str, bool, int, float)):
+            return payload
+        # expand list items individually:
+        elif isinstance(payload, list):
+            payload = [expand_payload(item) for item in payload]
+            return payload
+        # Try to expand on dicts within dicts:
+        elif isinstance(payload, dict):
+            for key, value in payload.items():
+                payload[key] = expand_payload(value)
+
+        if "author_id" in payload:
+            payload["author"] = includes_users[payload["author_id"]]
+
+        if "in_reply_to_user_id" in payload:
+            payload["in_reply_to_user"] = includes_users[payload["in_reply_to_user_id"]]
+
+        if "media_keys" in payload:
+            payload["media"] = list(
+                includes_media[media_key] for media_key in payload["media_keys"]
+            )
+
+        if "poll_ids" in payload:
+            poll_id = payload["poll_ids"][-1]  # only ever 1 poll per tweet.
+            payload["poll"] = includes_polls[poll_id]
+
+        if "geo" in payload:
+            place_id = payload["geo"]["place_id"]
+            payload["geo"] = {**payload["geo"], **includes_places[place_id]}
+
+        if "mentions" in payload:
+            payload["mentions"] = list(
+                {**referenced_user, **includes_users[referenced_user["username"]]}
+                for referenced_user in payload["mentions"]
+            )
+
+        if "referenced_tweets" in payload:
+            payload["referenced_tweets"] = list(
                 {**referenced_tweet, **includes_tweets[referenced_tweet["id"]]}
-                for referenced_tweet in tweet["referenced_tweets"]
-            ]
-        return tweet
+                for referenced_tweet in payload["referenced_tweets"]
+            )
 
-    # Now expand the included tweets ahead of time using all of the above:
-    includes_tweets = (
-        defaultdict(
-            lambda: {},
-            {
-                tweet["id"]: expand_tweet(tweet)
-                for tweet in response["includes"]["tweets"]
-            },
-        )
-        if "tweets" in response["includes"]
-        else defaultdict(lambda: {})
-    )
+        if "pinned_tweet_id" in payload:
+            payload["pinned_tweet"] = includes_tweets[payload["pinned_tweet_id"]]
 
-    # flatten a list of tweets or an individual tweet
-    if type(response["data"]) == list:
-        response["data"] = list(expand_tweet(tweet) for tweet in response["data"])
-    elif type(response["data"]) == dict:
-        response["data"] = expand_tweet(response["data"])
+        return payload
+
+    # First, expand the included tweets, before processing actual result tweets:
+    for included_id, included_tweet in extract_includes(response, "tweets").items():
+        includes_tweets[included_id] = expand_payload(included_tweet)
+
+    # Now flatten the list of tweets or an individual tweet
+    response["data"] = expand_payload(response["data"])
 
     return response
