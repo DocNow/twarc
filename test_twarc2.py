@@ -133,7 +133,7 @@ def test_sample_flattened():
                 assert "media" in tweet["attachments"]
                 found_attachments_media = True
             if "poll_ids" in tweet["attachments"]:
-                assert "polls" in tweet["attachments"]
+                assert "poll" in tweet["attachments"]
                 found_attachments_polls = True
 
         if "geo" in tweet:
