@@ -138,7 +138,7 @@ def test_sample_flattened():
 
         if "geo" in tweet:
             assert tweet["geo"]["place_id"]
-            assert tweet["geo"]["place_id"] == tweet["geo"]["place"]["id"]
+            assert tweet["geo"]["place_id"] == tweet["geo"]["id"]
             found_geo = True
 
         if "entities" in tweet and "mentions" in tweet["entities"]:
