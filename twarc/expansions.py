@@ -98,9 +98,8 @@ EVERYTHING = {
 # Not all of the expansions are available for these endpoints.
 USER_EVERYTHING = {
     "expansions": "pinned_tweet_id",
-    "tweet.fields":  ",".join(TWEET_FIELDS),
-    "user.fields": ",".join(USER_FIELDS)
-    
+    "tweet.fields": ",".join(TWEET_FIELDS),
+    "user.fields": ",".join(USER_FIELDS),
 }
 
 
@@ -177,12 +176,12 @@ def flatten(response):
     )
 
     # flatten a list of tweets or an individual tweet
-    if type(response["data"]) == list: 
+    if type(response["data"]) == list:
         response["data"] = list(expand_tweet(tweet) for tweet in response["data"])
     elif type(response["data"]) == dict:
         response["data"] = expand_tweet(response["data"])
 
     # Hmm, should we do this? All the other changes are additive right?
-    response.pop("includes", None) 
+    response.pop("includes", None)
 
     return response
