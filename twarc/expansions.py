@@ -121,10 +121,13 @@ def flatten(response):
     """
 
     # Users extracted both by id and by username for expanding mentions
-    includes_users = {
-        **extract_includes(response, "users", "id"),
-        **extract_includes(response, "users", "username"),
-    }
+    includes_users = defaultdict(
+        lambda: {},
+        {
+            **extract_includes(response, "users", "id"),
+            **extract_includes(response, "users", "username"),
+        },
+    )
     # Media is by media_key, not id
     includes_media = extract_includes(response, "media", "media_key")
     includes_polls = extract_includes(response, "polls")
