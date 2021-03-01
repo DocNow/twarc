@@ -1,5 +1,4 @@
+click
 pytest
 python-dateutil
 requests_oauthlib
-unicodecsv
-mock

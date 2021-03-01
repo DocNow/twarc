@@ -55,6 +55,7 @@ class Twarc(object):
         be used.
         """
 
+        self.api_version = "1.1"
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
         self.access_token = access_token

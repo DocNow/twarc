@@ -50,6 +50,7 @@ class Twarc2:
         - bearer_token: the Twitter API bearer_token for autghe
 
         """
+        self.api_version = "2"
         self.bearer_token = bearer_token
         self.connection_errors = connection_errors
         self.http_errors = http_errors

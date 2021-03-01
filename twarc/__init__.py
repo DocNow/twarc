@@ -1,5 +1,4 @@
-__version__ = '1.12.1'  # also in setup.py
+__version__ = '2.0.0'
 
 from .client import Twarc
 from .client2 import Twarc2
-from .command import main
