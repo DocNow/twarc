@@ -3,6 +3,10 @@ import json
 import twarc
 import click
 
+from click_plugins import with_plugins
+from pkg_resources import iter_entry_points
+
+@with_plugins(iter_entry_points('twarc.plugins'))
 @click.group()
 @click.option('--consumer-key', type=str)
 @click.option('--consumer-secret', type=str)
@@ -21,6 +25,9 @@ def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret, b
 @click.option('--flatten', is_flag=True, default=False)
 @click.pass_obj
 def sample(T, flatten):
+    """
+    Fetch tweets from the sample stream.
+    """
     if T.api_version == "1.1":
         sample = T.sample()
     else:
