@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-This is the client for the Twitter V2 API.
 
 """
-import os
-import re
+A client for talking to the Twitter V2 API.
+"""
+
 import ssl
-import sys
 import json
-import types
 import logging
-import datetime
 import requests
 
 from twarc import expansions
@@ -22,6 +18,7 @@ log = logging.getLogger("twarc")
 
 
 class Twarc2:
+
     def __init__(
         self,
         bearer_token,
@@ -31,12 +28,12 @@ class Twarc2:
         """
         Instantiate a Twarc2 instance to talk to the Twitter V2+ API.
 
-        Currently only bearer_token authentication is supported (ie, only Oauth2.0 app
-        authentication). You can retrieve your bearer_token from the Twitter developer
-        dashboard for your project.
+        Currently only bearer_token authentication is supported (ie, only
+        Oauth2.0 app authentication). You can retrieve your bearer_token from
+        the Twitter developer dashboard for your project.
 
-        Unlike the original Twarc client, this object does not perform any configuration
-        directly.
+        Unlike the original Twarc client, this object does not perform any
+        configuration directly.
 
         TODO: Figure out how to handle the combinations of:
 
@@ -48,7 +45,6 @@ class Twarc2:
         Arguments:
 
         - bearer_token: the Twitter API bearer_token for autghe
-
         """
         self.api_version = "2"
         self.bearer_token = bearer_token
@@ -73,7 +69,6 @@ class Twarc2:
         until_id: Return all tweets up to this tweet_id.
 
         TODO: add support for the start_time and end_time parameters.
-
         """
 
         url = "https://api.twitter.com/2/tweets/search/recent"
@@ -98,7 +93,6 @@ class Twarc2:
         This can be used to rehydrate a collection shared as only tweet IDs.
 
         Yields one page of tweets at a time, in blocks of up to 100.
-
         """
 
         def lookup_batch(tweet_id):
@@ -132,7 +126,6 @@ class Twarc2:
 
         Yields one page of results at a time (in blocks of at most 100 user
         profiles).
-
         """
 
         def lookup_batch(user_ids):
@@ -158,7 +151,7 @@ class Twarc2:
         if user_id_batch:
             yield (lookup_batch(user_id_batch))
 
-    def sample(self, event=None, record_keepalive=False, flatten=False):
+    def sample(self, event=None, record_keepalive=False):
         """
         Returns a sample of all publically posted tweets.
 
@@ -189,10 +182,7 @@ class Twarc2:
                             yield "keep-alive"
                         continue
                     else:
-                        if flatten:
-                            yield expansions.flatten(json.loads(line.decode()))
-                        else:
-                            yield json.loads(line.decode())
+                        yield json.loads(line.decode())
             except requests.exceptions.HTTPError as e:
                 errors += 1
                 log.error("caught http error %s on %s try", e, errors)
@@ -213,6 +203,7 @@ class Twarc2:
     @catch_timeout
     @catch_gzip_errors
     def get(self, *args, **kwargs):
+
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop("allow_404", False)
         connection_error_count = kwargs.pop("connection_error_count", 0)
@@ -249,7 +240,6 @@ class Twarc2:
         pagination.
 
         Yields one page (one API response) at a time.
-
         """
 
         page = self.get(*args, **kwargs).json()
@@ -283,9 +273,9 @@ class Twarc2:
 
         client = requests.Session()
 
-        # For bearer token authentication we only need to setup this header - no OAuth
-        # 1.0a dance required. This will likely become more complex when we consider
-        # user auth rather than just application authentication.
+        # For bearer token authentication we only need to setup this header - no
+        # OAuth 1.0a dance required. This will likely become more complex when
+        # we consider user auth rather than just application authentication.
         client.headers.update({"Authorization": f"Bearer {self.bearer_token}"})
 
         self.client = client

@@ -1,7 +1,7 @@
 """
-This module contains a list of the known Twitter V2+ API expansions and fields for
-each expansion, and a function for "flattening" a result set,
-including all expansions inline
+This module contains a list of the known Twitter V2+ API expansions and fields
+for each expansion, and a function for "flattening" a result set, including all
+expansions inline
 
 """
 
@@ -104,7 +104,7 @@ USER_EVERYTHING = {
 
 
 def extract_includes(response, expansion, _id="id"):
-    if expansion in response["includes"]:
+    if "includes" in response and expansion in response["includes"]:
         return defaultdict(
             lambda: {},
             {include[_id]: include for include in response["includes"][expansion]},
@@ -196,6 +196,7 @@ def flatten(response):
         includes_tweets[included_id] = expand_payload(included_tweet)
 
     # Now flatten the list of tweets or an individual tweet
-    response["data"] = expand_payload(response["data"])
+    if "data" in response:
+        response["data"] = expand_payload(response["data"])
 
     return response

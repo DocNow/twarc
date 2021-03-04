@@ -6,14 +6,15 @@ import logging
 import threading
 
 dotenv.load_dotenv()
+bearer_token = os.environ.get("BEARER_TOKEN")
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
-BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
+T = None
 
-T = twarc.Twarc2(bearer_token=BEARER_TOKEN)
-
-def test_bearer_token():
-    assert BEARER_TOKEN
+def test_constructor():
+    global T
+    T = twarc.Twarc2(bearer_token=bearer_token)
+    assert T.bearer_token
 
 def test_sample():
     count = 0
@@ -36,9 +37,6 @@ def test_sample():
     assert count == 11
 
 def test_recent_search():
-    """
-    Extremely basic search test.
-    """
 
     found_tweets = 0
     pages = 0
@@ -97,14 +95,13 @@ def test_tweet_lookup():
     assert tweets_found + tweets_not_found == 1000
 
 
-def test_sample_flattened():
+def test_flattened():
     """
-    This test uses the sample stream with the flatten option to move the 
-    expansions into place into each tweet. It will look at each tweet to find
-    evidence that all the expansions have worked. Once it finds them all it
-    stops. If it has listened to 5000 tweets and not found them it stops and
-    assumes that something is not right. But it could be that it needed to wait
-    longer. This 5000 cutoff may need to be adjusted based on experience.
+    This test uses the sample stream to test response flattening.  It will look
+    at each tweet to find evidence that all the expansions have worked. Once it
+    finds them all it stops. If it has listened to 5000 tweets and not found any
+    of the expansions it stops and assumes that something is not right.  This
+    5000 cutoff may need to be adjusted based on experience.
     """
     found_geo = False
     found_in_reply_to_user = False
@@ -115,7 +112,9 @@ def test_sample_flattened():
 
     count = 0
     event = threading.Event()
-    for result in T.sample(flatten=True, event=event):
+    for result in T.sample(event=event):
+        result = twarc.expansions.flatten(result)
+
         tweet = result["data"]
         assert "id" in tweet
         logging.info("got sample tweet #%s %s", count, tweet["id"])
