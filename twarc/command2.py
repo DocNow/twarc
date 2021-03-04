@@ -48,10 +48,10 @@ def recent_search(T, query, since_id, until_id, start_time, end_time, flatten):
     """
     Search for recent tweets.
     """
-    for obj in T.recent_search(query, since_id, until_id, start_time, end_time):
+    for result in T.recent_search(query, since_id, until_id, start_time, end_time):
         if flatten:
-            obj = flat(obj)
-        click.echo(json.dumps(obj), file=outfile)
+            result = flat(result)
+        click.echo(json.dumps(result), file=outfile)
 
 
 @cli.command()
@@ -63,10 +63,10 @@ def sample(T, flatten, outfile):
     """
     Fetch tweets from the sample stream.
     """
-    for obj in T.sample():
+    for result in T.sample():
         if flatten:
-            obj = flat(obj)
-        click.echo(json.dumps(obj), file=outfile)
+            result = flat(result)
+        click.echo(json.dumps(result), file=outfile)
 
 
 @cli.command()
@@ -80,8 +80,22 @@ def hydrate(T, infile, outfile, flatten):
     Hydrate tweet ids from a file or stdin to a file or stdout.
     """
     for result in T.tweet_lookup(infile):
+        if flatten:
+            result = flat(result)
         click.echo(json.dumps(result), file=outfile)
-    
+
+
+@cli.command()
+@click.option('--usernames', is_flag=True, default=False)
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets.') 
+@click.argument('infile', type=click.File('r'), default='-')
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+def users(T, infile, outfile, usernames, flatten):
+    for result in T.user_lookup(infile, usernames):
+        click.echo(json.dumps(result), file=outfile)
+
 
 @cli.command()
 @click.argument('infile', type=click.File('r'), default='-')
@@ -94,3 +108,5 @@ def flatten(infile, outfile):
         result = json.loads(line)
         result = twarc.expansions.flatten(result)
         click.echo(json.dumps(result), file=outfile)
+
+

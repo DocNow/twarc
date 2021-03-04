@@ -129,38 +129,40 @@ class Twarc2:
         if tweet_id_batch:
             yield (lookup_batch(tweet_id_batch))
 
-    def user_lookup(self, user_ids):
+    def user_lookup(self, users, usernames=False):
         """
-        Returns fully populated user profiles for the given iterator of user_ids
-
-        This method only supports lookup by numerical user ID.
+        Returns fully populated user profiles for the given iterator of
+        user_id or usernames. By default user_lookup expects user ids but if
+        you want to pass in usernames set usernames = True.
 
         Yields one page of results at a time (in blocks of at most 100 user
         profiles).
         """
 
-        def lookup_batch(user_ids):
-
+        if usernames:
+            url = "https://api.twitter.com/2/users/by"
+        else:
             url = "https://api.twitter.com/2/users"
 
+        def lookup_batch(users):
             params = expansions.USER_EVERYTHING.copy()
-            params["ids"] = ",".join(user_ids)
+            if usernames:
+                params["usernames"] = ",".join(users)
+            else:
+                params["ids"] = ",".join(users)
 
             resp = self.get(url, params=params)
-
             return resp.json()
 
-        user_id_batch = []
+        batch = []
+        for item in users:
+            batch.append(str(item).strip())
+            if len(batch) == 100:
+                yield lookup_batch(batch)
+                batch = []
 
-        for user_id in user_ids:
-            user_id_batch.append(str(int(user_id)))
-
-            if len(user_id_batch) == 100:
-                yield lookup_batch(user_id_batch)
-                user_id_batch = []
-
-        if user_id_batch:
-            yield (lookup_batch(user_id_batch))
+        if batch:
+            yield (lookup_batch(batch))
 
     def sample(self, event=None, record_keepalive=False):
         """

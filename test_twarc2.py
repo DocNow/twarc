@@ -78,8 +78,7 @@ def test_search_recent_times():
     assert found
 
 
-def test_user_lookup():
-
+def test_user_ids_lookup():
     users_found = 0
     users_not_found = 0
 
@@ -97,6 +96,15 @@ def test_user_lookup():
 
     assert users_found >= 1
     assert users_found + users_not_found == 999
+
+
+def test_usernames_lookup():
+    users_found = 0
+    usernames = ['jack', 'barackobama', 'rihanna']
+    for response in T.user_lookup(usernames, usernames=True):
+        for profile in response["data"]:
+            users_found += 1
+    assert users_found == 3
 
 
 def test_tweet_lookup():
@@ -120,7 +128,7 @@ def test_tweet_lookup():
     assert tweets_found + tweets_not_found == 1000
 
 
-def atest_flattened():
+def test_flattened():
     """
     This test uses the sample stream to test response flattening.  It will look
     at each tweet to find evidence that all the expansions have worked. Once it
