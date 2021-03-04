@@ -43,8 +43,8 @@ class Twarc2:
 
         - bearer_token
         - api_key and api_secret (which can be used to retrieve a bearer token)
-        - access_token and access_token_secret (used with the api_key/secret for user
-          authentication/OAuth 1.0a)
+        - access_token and access_token_secret (used with the api_key/secret for
+          user authentication/OAuth 1.0a)
 
         Arguments:
 
