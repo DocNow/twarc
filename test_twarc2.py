@@ -1,8 +1,10 @@
 import os
 import json
+import pytz
 import twarc
 import dotenv
 import logging
+import datetime
 import threading
 
 dotenv.load_dotenv()
@@ -15,6 +17,7 @@ def test_constructor():
     global T
     T = twarc.Twarc2(bearer_token=bearer_token)
     assert T.bearer_token
+
 
 def test_sample():
     count = 0
@@ -36,12 +39,13 @@ def test_sample():
 
     assert count == 11
 
-def test_recent_search():
+
+def test_search_recent():
 
     found_tweets = 0
     pages = 0
 
-    for response_page in T.recent_search("#auspol"):
+    for response_page in T.search_recent("#auspol"):
         pages += 1
         tweets = response_page["data"]
         found_tweets += len(tweets)
@@ -50,6 +54,28 @@ def test_recent_search():
             break
 
     assert 200 <= found_tweets <= 300
+
+
+def test_search_recent_times():
+    found = False
+    now = datetime.datetime.now(tz=pytz.timezone('Australia/Melbourne'))
+    # twitter api doesn't resolve microseconds so strip them for comparison
+    now = now.replace(microsecond=0)
+    end = now - datetime.timedelta(seconds=60)
+    start = now - datetime.timedelta(seconds=61)
+
+    for response_page in T.search_recent("tweet", start_time=start, 
+            end_time=end):
+        for tweet in response_page["data"]:
+            found = True
+            # convert created_at to datetime with utc timezone
+            dt = tweet['created_at'].strip('Z')
+            dt = datetime.datetime.fromisoformat(dt)
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+            assert dt >= start 
+            assert dt <= end
+
+    assert found
 
 
 def test_user_lookup():
@@ -81,7 +107,6 @@ def test_tweet_lookup():
     for response in T.tweet_lookup(range(1000, 2000)):
 
         for tweet in response["data"]:
-            print(tweet["id"])
             tweets_found += 1
 
         for error in response["errors"]:
@@ -95,7 +120,7 @@ def test_tweet_lookup():
     assert tweets_found + tweets_not_found == 1000
 
 
-def test_flattened():
+def atest_flattened():
     """
     This test uses the sample stream to test response flattening.  It will look
     at each tweet to find evidence that all the expansions have worked. Once it
@@ -164,6 +189,7 @@ def test_flattened():
     assert found_attachments_polls, "found polls"
     assert found_entities_mentions, "found mentions"
     assert found_referenced_tweets, "found referenced tweets"
+
 
 def pick_id(id, objects):
     """pick an object out of a list of objects using its id

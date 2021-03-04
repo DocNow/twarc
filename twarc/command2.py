@@ -5,6 +5,7 @@ import click
 
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
+from twarc.expansions import flatten as flat
 
 @with_plugins(iter_entry_points('twarc.plugins'))
 @click.group()
@@ -21,7 +22,32 @@ def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret, b
     ctx.obj = twarc.Twarc2(bearer_token)
 
 @cli.command()
-@click.option('--flatten', is_flag=True, default=False) 
+@click.option('--since-id', type=int,
+    help='Match tweets sent after tweet id')
+@click.option('--until-id', type=int,
+    help='Match tweets sent prior to tweet id')
+@click.option('--start-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+@click.option('--end-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Match tweets sent before time (ISO 8601/RFC 3339)')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets.') 
+@click.argument('query', type=str)
+@click.pass_obj
+def recent_search(T, query, since_id, until_id, start_time, end_time, flatten):
+    """
+    Search for recent tweets .
+    """
+    for obj in T.recent_search(query, since_id, until_id, start_time, end_time):
+        if flatten:
+            obj = flat(obj)
+        click.echo(json.dumps(obj))
+
+@cli.command()
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets.') 
 @click.pass_obj
 def sample(T, flatten):
     """
@@ -33,7 +59,7 @@ def sample(T, flatten):
         sample = T.sample()
     for obj in sample:
         if flatten:
-            obj = twarc.expansions.flatten(obj)
+            obj = flat(obj)
         click.echo(json.dumps(obj))
 
 @cli.command()

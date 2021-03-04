@@ -7,6 +7,7 @@ Support for the Twitter v2 API.
 import ssl
 import json
 import logging
+import datetime
 import requests
 
 from twarc import expansions
@@ -59,9 +60,10 @@ class Twarc2:
 
         self.connect()
 
-    def recent_search(self, query, since_id=None, until_id=None):
+    def search_recent(self, query, since_id=None, until_id=None,
+            start_time=None, end_time=None):
         """
-        Search Twitter for the given query, using the recent search endpoint.
+        Search Twitter for the given query, using the /search/recent endpoint.
 
         Approximately the last seven days are indexed by Twitter - if you want
         to search the full archive you can use the `full_archive_search` method,
@@ -70,8 +72,8 @@ class Twarc2:
         query: The query string to be passed directly to the Twitter API.
         since_id: Return all tweets since this tweet_id.
         until_id: Return all tweets up to this tweet_id.
-
-        TODO: add support for the start_time and end_time parameters.
+        start_time: Return all tweets after this time (UTC datetime).
+        end_time: Return all tweets before this time (UTC datetime).
         """
 
         url = "https://api.twitter.com/2/tweets/search/recent"
@@ -84,9 +86,15 @@ class Twarc2:
             params["since_id"] = since_id
         if until_id:
             params["until_id"] = until_id
+        if start_time:
+            params["start_time"] = _ts(start_time)
+        if end_time:
+            params["end_time"] = _ts(end_time)
 
         for response in self.get_paginated(url, params=params):
-            yield response
+            # can return without 'data' if there are no results
+            if 'data' in response:
+                yield response
 
     def tweet_lookup(self, tweet_ids):
         """
@@ -282,3 +290,16 @@ class Twarc2:
         client.headers.update({"Authorization": f"Bearer {self.bearer_token}"})
 
         self.client = client
+
+def _ts(dt):
+    """
+    Return ISO 8601 / RFC 3339 datetime in UTC. If no timezone is specified it
+    is assumed to be in UTC. The Twitter API does not resolve accept
+    microseconds.
+    """
+    if dt.tzinfo:
+        dt = dt.astimezone(datetime.timezone.utc)
+    else:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt.isoformat(timespec='seconds')
+
