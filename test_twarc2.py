@@ -89,9 +89,9 @@ def test_user_lookup():
             users_found += 1
 
         for error in response["errors"]:
-            # Note that errors includes lookup of contained entitites within a tweet,
-            # so a pinned tweet that doesn't exist anymore results in an additional
-            # error entry, even if the profile is present.
+            # Note that errors includes lookup of contained entitites within a
+            # tweet, so a pinned tweet that doesn't exist anymore results in an
+            # additional error entry, even if the profile is present.
             if error["resource_type"] == "user":
                 users_not_found += 1
 
@@ -110,9 +110,9 @@ def test_tweet_lookup():
             tweets_found += 1
 
         for error in response["errors"]:
-            # Note that errors includes lookup of contained entitites within a tweet,
-            # so a pinned tweet that doesn't exist anymore results in an additional
-            # error entry, even if the profile is present.
+            # Note that errors includes lookup of contained entitites within a
+            # tweet, so a pinned tweet that doesn't exist anymore results in an
+            # additional error entry, even if the profile is present.
             if error["resource_type"] == "tweet":
                 tweets_not_found += 1
                 
