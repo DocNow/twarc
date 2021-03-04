@@ -21,8 +21,9 @@ def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret, b
     ctx.obj = twarc.Twarc2(bearer_token)
 
 @cli.command()
+@click.option('--flatten', is_flag=True, default=False) 
 @click.pass_obj
-def sample(T):
+def sample(T, flatten):
     """
     Fetch tweets from the sample stream.
     """
@@ -31,6 +32,8 @@ def sample(T):
     else:
         sample = T.sample()
     for obj in sample:
+        if flatten:
+            obj = twarc.expansions.flatten(obj)
         click.echo(json.dumps(obj))
 
 @cli.command()

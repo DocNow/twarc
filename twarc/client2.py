@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-A client for talking to the Twitter V2 API.
+Support for the Twitter v2 API.
 """
 
 import ssl
@@ -18,6 +18,9 @@ log = logging.getLogger("twarc")
 
 
 class Twarc2:
+    """
+    A client for the Twitter v2 API.
+    """
 
     def __init__(
         self,
