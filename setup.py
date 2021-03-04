@@ -25,5 +25,8 @@ if __name__ == "__main__":
         install_requires=dependencies,
         setup_requires=['pytest-runner'],
         tests_require=['pytest', 'python-dotenv'],
-        entry_points={'console_scripts': ['twarc = twarc.command:cli']}
+        entry_points={'console_scripts': [
+            'twarc = twarc.command:main',
+            'twarc2 = twarc.command2:cli',
+        ]}
     )
