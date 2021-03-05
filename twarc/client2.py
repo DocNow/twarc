@@ -232,6 +232,7 @@ class Twarc2:
         params = expansions.EVERYTHING.copy()
         resp = self.get(url, params=params, stream=True)
         for line in resp.iter_lines():
+
             # quit & close the stream if the event is set
             if event and event.is_set():
                 log.info('stopping filter')

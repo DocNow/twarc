@@ -149,15 +149,25 @@ def stream_rules(T):
     """
     pass
 
+
 @stream_rules.command()
 @click.pass_obj
 def list(T):
     result = T.get_stream_rules()
+    colors = [ "red", "green", "yellow", "blue", "magenta", "cyan" ]
     if 'data' not in result or len(result['data']) == 0:
-        click.echo('No rules yet, add them with twarc rules-add')
+        click.echo('No rules yet. Add them with ' + click.style('twarc2 stream-rules add', bold=True))
     else:
+        count = 0
         for rule in result['data']:
-            click.echo(f"- {_rule_str(rule)}")
+            if count > 5:
+                count = 0
+            s = rule['value']
+            if 'tag' in rule:
+                s += f" (tag: {rule['tag']})"
+            click.echo(click.style(f'☑ {s}', fg=colors[count]))
+            count += 1
+
 
 @stream_rules.command()
 @click.pass_obj
@@ -170,28 +180,55 @@ def add(T, value, tag):
         rules = [{"value": value}] 
 
     results = T.add_stream_rules(rules)
-
     if 'errors' in results:
         click.echo(_error_str(results['errors']), err=True)
     else:
-        rule = results['data'][0]
-        click.echo(click.style(f"Added rule: {_rule_str(rule)}", fg='green'))
+        click.echo(click.style(f'🚀 Added rule for "{value}"', fg='green'))
+
 
 @stream_rules.command()
-@click.argument('rule_id')
+@click.argument('value')
 @click.pass_obj
-def delete(T, rule_id):
-    results = T.delete_stream_rule_ids([rule_id])
-    if 'errors' in results:
-        click.echo(_error_str(results['errors']), err=True)
+def delete(T, value):
+    # find the rule id
+    result = T.get_stream_rules()
+    if 'data' not in result:
+        click.echo(click.style('💔 There are no rules to delete!', fg='red'), err=True)
     else:
-        click.echo(f"Deleted stream rule {rule_id}") 
+        rule_id = None
+        for rule in result['data']:
+            if rule['value'] == value:
+                rule_id = rule['id']
+                break
+        if not rule_id:
+            click.echo(click.style(f'🙃 No rule could be found for "{value}"',
+                fg='red'), err=True)
+        else:
+            results = T.delete_stream_rule_ids([rule_id])
+            if 'errors' in results:
+                click.echo(_error_str(results['errors']), err=True)
+            else:
+                click.echo(f"🗑 Deleted stream rule for {value}", color='green') 
+
+
+@stream_rules.command()
+@click.pass_obj
+def delete_all(T):
+    result = T.get_stream_rules()
+    if 'data' not in result:
+        click.echo(click.style('💔 There are no rules to delete!', fg='red'), err=True)
+    else:
+        rule_ids = [r['id'] for r in result['data']]
+        results = T.delete_stream_rule_ids(rule_ids)
+        click.echo(f"🗑 Deleted {len(rule_ids)} rules.")
+
 
 def _rule_str(rule):
     s = f"id={rule['id']} value={rule['value']}"
     if 'tag' in rule:
         s += f" tag={rule['tag']}"
     return s
+
 
 def _error_str(errors):
     # collapse all the error messages into a newline delimited red colored list
@@ -204,10 +241,11 @@ def _error_str(errors):
     parts = []
     for error in errors:
         for part in error['errors']:
+            s = "💣 "
             if 'message' in part:
-                s = part['message']
+                s += part['message']
             elif 'title' in part:
-                s = part['title']
+                s += part['title']
             else:
                 s = 'Unknown error'
             if 'type' in part:
