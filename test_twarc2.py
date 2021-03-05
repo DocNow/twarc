@@ -128,6 +128,58 @@ def test_tweet_lookup():
     assert tweets_found + tweets_not_found == 1000
 
 
+def test_stream():
+    # remove any active stream rules
+    rules = T.get_stream_rules()
+    if 'data' in rules and len(rules['data']) > 0:
+        rule_ids = [r['id'] for r in rules['data']]
+        T.delete_stream_rule_ids(rule_ids)
+
+    # make sure they are empty
+    rules = T.get_stream_rules()
+    assert 'data' not in rules
+
+    # add two rules
+    rules = T.add_stream_rules([
+        {"value": "hey", "tag": "twarc-test"},
+        {"value": "joe", "tag": "twarc-test"}
+    ])
+    assert len(rules['data']) == 2
+
+    # make sure they are there
+    rules = T.get_stream_rules()
+    assert len(rules['data']) == 2
+    assert rules['data'][0]["id"]
+    assert rules['data'][0]["value"] == "hey"
+    assert rules['data'][0]["tag"] == "twarc-test"
+    assert rules['data'][1]["id"]
+    assert rules['data'][1]["value"] == "joe"
+    assert rules['data'][1]["tag"] == "twarc-test"
+
+    # collect some data
+    count = 0
+    event = threading.Event()
+    for result in T.stream(event=event):
+        count += 1
+        assert result['data']['id']
+        assert result['data']['text']
+        assert len(result['matching_rules']) > 0
+        for rule in result['matching_rules']:
+            assert rule['id']
+            assert rule['tag'] == 'twarc-test'
+        if count > 25:
+            event.set()
+    assert count > 25 
+
+    # delete the rules
+    rule_ids = [r['id'] for r in rules['data']]
+    T.delete_stream_rule_ids(rule_ids)
+
+    # make sure they are gone
+    rules = T.get_stream_rules()
+    assert 'data' not in rules
+    
+
 def test_flattened():
     """
     This test uses the sample stream to test response flattening.  It will look

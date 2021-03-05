@@ -19,7 +19,7 @@ def rate_limit(f):
         errors = 0
         while True:
             resp = f(*args, **kwargs)
-            if resp.status_code == 200:
+            if resp.status_code in [200, 201]:
                 errors = 0
                 return resp
             elif resp.status_code == 401:

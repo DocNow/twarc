@@ -7,6 +7,7 @@ import re
 import json
 import twarc
 import click
+import threading
 
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
@@ -55,15 +56,21 @@ def recent_search(T, query, since_id, until_id, start_time, end_time, flatten):
 
 
 @cli.command()
+@click.option('--max-tweets', default=0, help='Maximum number of tweets to return.')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets.') 
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
-def sample(T, flatten, outfile):
+def sample(T, flatten, outfile, max_tweets):
     """
     Fetch tweets from the sample stream.
     """
-    for result in T.sample():
+    count = 0
+    event = threading.Event()
+    for result in T.sample(event=event):
+        count += 1
+        if max_tweets != 0 and count >= max_tweets:
+            event.set()
         if flatten:
             result = flat(result)
         click.echo(json.dumps(result), file=outfile)
@@ -93,6 +100,9 @@ def hydrate(T, infile, outfile, flatten):
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 def users(T, infile, outfile, usernames, flatten):
+    """
+    Get data for user ids or usernames.
+    """
     for result in T.user_lookup(infile, usernames):
         click.echo(json.dumps(result), file=outfile)
 
@@ -110,3 +120,98 @@ def flatten(infile, outfile):
         click.echo(json.dumps(result), file=outfile)
 
 
+@cli.command()
+@click.option('--max-tweets', default=0, help='Maximum number of tweets to return.')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets.') 
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+def stream(T, flatten, outfile, max_tweets):
+    """
+    Fetch tweets from the live stream.
+    """
+    event = threading.Event()
+    count = 0
+    for result in T.stream(event=event):
+        count += 1
+        if max_tweets != 0 and count == max_tweets:
+            event.set()
+        if flatten:
+            result = flat(result)
+        click.echo(json.dumps(result), file=outfile)
+
+
+@cli.group()
+@click.pass_obj
+def stream_rules(T):
+    """
+    List, add and delete rules for your stream.
+    """
+    pass
+
+@stream_rules.command()
+@click.pass_obj
+def list(T):
+    result = T.get_stream_rules()
+    if 'data' not in result or len(result['data']) == 0:
+        click.echo('No rules yet, add them with twarc rules-add')
+    else:
+        for rule in result['data']:
+            click.echo(f"- {_rule_str(rule)}")
+
+@stream_rules.command()
+@click.pass_obj
+@click.option('--tag', type=str, help='a tag to help identify the rule')
+@click.argument('value', type=str)
+def add(T, value, tag):
+    if tag:
+        rules = [{"value": value, "tag": tag}]
+    else:
+        rules = [{"value": value}] 
+
+    results = T.add_stream_rules(rules)
+
+    if 'errors' in results:
+        click.echo(_error_str(results['errors']), err=True)
+    else:
+        rule = results['data'][0]
+        click.echo(click.style(f"Added rule: {_rule_str(rule)}", fg='green'))
+
+@stream_rules.command()
+@click.argument('rule_id')
+@click.pass_obj
+def delete(T, rule_id):
+    results = T.delete_stream_rule_ids([rule_id])
+    if 'errors' in results:
+        click.echo(_error_str(results['errors']), err=True)
+    else:
+        click.echo(f"Deleted stream rule {rule_id}") 
+
+def _rule_str(rule):
+    s = f"id={rule['id']} value={rule['value']}"
+    if 'tag' in rule:
+        s += f" tag={rule['tag']}"
+    return s
+
+def _error_str(errors):
+    # collapse all the error messages into a newline delimited red colored list
+    # the passed in errors can be single error object or a list of objects, each 
+    # of which has an errors key that points to a list of error objects
+
+    if type(errors) != list:
+        errors = [{"errors": errors}]
+
+    parts = []
+    for error in errors:
+        for part in error['errors']:
+            if 'message' in part:
+                s = part['message']
+            elif 'title' in part:
+                s = part['title']
+            else:
+                s = 'Unknown error'
+            if 'type' in part:
+                s += f" see: {part['type']}"
+            parts.append(s)
+
+    return click.style("\n".join(parts), fg="red")

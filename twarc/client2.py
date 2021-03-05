@@ -184,11 +184,14 @@ class Twarc2:
                 resp = self.get(url, params=expansions.EVERYTHING.copy(), stream=True)
                 errors = 0
                 for line in resp.iter_lines(chunk_size=512):
+
+                    # quit & close the stream if the event is set
                     if event and event.is_set():
                         log.info("stopping sample")
-                        # Explicitly close response
                         resp.close()
                         return
+
+                    # return the JSON data w/ optional keep-alive
                     if not line:
                         log.info("keep-alive")
                         if record_keepalive:
@@ -196,6 +199,7 @@ class Twarc2:
                         continue
                     else:
                         yield json.loads(line.decode())
+
             except requests.exceptions.HTTPError as e:
                 errors += 1
                 log.error("caught http error %s on %s try", e, errors)
@@ -210,6 +214,36 @@ class Twarc2:
                     if interruptible_sleep(errors * 5, event):
                         log.info("stopping filter")
                         return
+
+    def add_stream_rules(self, rules):
+        url = "https://api.twitter.com/2/tweets/search/stream/rules"
+        return self.post(url, {"add": rules}).json()
+
+    def get_stream_rules(self):
+        url = "https://api.twitter.com/2/tweets/search/stream/rules"
+        return self.get(url).json()
+
+    def delete_stream_rule_ids(self, rule_ids):
+        url = "https://api.twitter.com/2/tweets/search/stream/rules"
+        return self.post(url, {"delete": {"ids": rule_ids}}).json()
+
+    def stream(self, event=None, record_keep_alives=False):
+        url = "https://api.twitter.com/2/tweets/search/stream"
+        params = expansions.EVERYTHING.copy()
+        resp = self.get(url, params=params, stream=True)
+        for line in resp.iter_lines():
+            # quit & close the stream if the event is set
+            if event and event.is_set():
+                log.info('stopping filter')
+                resp.close()
+                return
+
+            if line == b'' and record_keep_alives:
+                log.info('keep-alive')
+                yield "keep-alive"
+            else:
+                yield json.loads(line.decode())
+
 
     @rate_limit
     @catch_conn_reset
@@ -268,6 +302,12 @@ class Twarc2:
             page = self.get(*args, **kwargs).json()
             yield page
 
+    @rate_limit
+    def post(self, url, json_data):
+        if not self.client:
+            self.connect()
+        return self.client.post(url, json=json_data)
+
     def connect(self):
         """
         Sets up the HTTP session to talk to Twitter. If one is active it is
@@ -305,3 +345,5 @@ def _ts(dt):
         dt = dt.replace(tzinfo=datetime.timezone.utc)
     return dt.isoformat(timespec='seconds')
 
+
+_r = []
