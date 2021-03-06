@@ -1,5 +1,6 @@
-click
-click-plugins
 pytest
 python-dateutil
 requests_oauthlib
+click
+click-plugins
+click-config-file

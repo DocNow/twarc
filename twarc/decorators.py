@@ -150,13 +150,17 @@ def filter_protected(f):
 
     return new_f
 
-def cli_api_error(f):
+class cli_api_error():
     """
     A decorator to catch HTTP errors for the command line.
     """
-    def new_f(*args, **kwargs):
+    def __init__(self, f):
+        self.f = f
+        self.__doc__ = f.__doc__
+
+    def __call__(self, *args, **kwargs):
         try:
-            f(*args, **kwargs)
+            return self.f(*args, **kwargs)
         except HTTPError as e:
             result = e.response.json()
             if 'errors' in result:
@@ -169,4 +173,3 @@ def cli_api_error(f):
             click.echo(
                 click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
                 err=True)
-    return new_f

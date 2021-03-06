@@ -8,35 +8,71 @@ import json
 import twarc
 import click
 import logging
+import pathlib
+import configobj
 import threading
 
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 from twarc.decorators import cli_api_error
 from twarc.expansions import flatten as flat
-
+from click_config_file import configuration_option
 
 
 @with_plugins(iter_entry_points('twarc.plugins'))
 @click.group()
-@click.option('--consumer-key', type=str)
-@click.option('--consumer-secret', type=str)
-@click.option('--access-token', type=str)
-@click.option('--access-token-secret', type=str)
-@click.option('--bearer-token', type=str)
+@click.option('--bearer-token', type=str, envvar='BEARER_TOKEN',
+    help='Twitter app bearer token')
 @click.option('--log', default='twarc.log')
+@configuration_option(cmd_name='twarc')
 @click.pass_context
-def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret,
-        bearer_token, log):
+def cli(ctx, bearer_token, log):
     """
     Collect raw data from the Twitter V2 API.
     """
-    ctx.obj = twarc.Twarc2(bearer_token)
     logging.basicConfig(
         filename=log,
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
+
+    if bearer_token is None:
+        click.echo()
+        click.echo("👋  Hi I don't see a configuration file yet, so lets make one.")
+        click.echo()
+        click.echo("Please follow these steps:")
+        click.echo()
+        click.echo("1. visit https://developer.twitter.com/en/portal/")
+        click.echo("2. create a project and an app")
+        click.echo("3. go to your Keys and Tokens and generate your keys and bearer token")
+        click.echo()
+        ctx.invoke(configure)
+    else:
+        ctx.obj = twarc.Twarc2(bearer_token)
+
+
+@cli.command('configure')
+@click.pass_context
+def configure(ctx):
+    """
+    Set up your Twitter app bearer token.
+    """
+    prompt = "Please enter your bearer token: "
+    bearer_token = input(prompt)
+
+    config_dir = pathlib.Path(click.get_app_dir('twarc'))
+    if not config_dir.is_dir():
+        config_dir.mkdir()
+    config_file = config_dir / "config"
+
+    config = configobj.ConfigObj(unrepr=True)
+    config.filename = config_file
+    config['bearer_token'] = bearer_token
+    config.write()
+
+    click.echo('\n✨ ✨ ✨  Happy twarcing! ✨ ✨ ✨\n')
+    ctx.exit()
+
 
 @cli.command('search')
 @click.option('--since-id', type=int,
@@ -198,7 +234,7 @@ def add_stream_rule(T, value, tag):
     if 'errors' in results:
         click.echo(_error_str(results['errors']), err=True)
     else:
-        click.echo(click.style(f'🚀  Added rule for "{value}"', fg='green'))
+        click.echo(click.style(f'🚀  Added rule for ', fg='green') + f'"{value}"')
 
 
 @stream_rules.command('delete')
@@ -260,11 +296,11 @@ def _error_str(errors):
         for part in error['errors']:
             s = "💣  "
             if 'message' in part:
-                s += part['message']
+                s += click.style(part['message'], fg='red')
             elif 'title' in part:
-                s += part['title']
+                s += click.style(part['title'], fg='red')
             else:
-                s = 'Unknown error'
+                s = click.style('Unknown error', fg='red')
             if 'type' in part:
                 s += f" see: {part['type']}"
             parts.append(s)
