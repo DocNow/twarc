@@ -60,27 +60,34 @@ class Twarc2:
 
         self.connect()
 
-    def search_recent(self, query, since_id=None, until_id=None,
-            start_time=None, end_time=None):
+    def search(self, query, since_id=None, until_id=None, start_time=None, 
+            end_time=None, limit=0, archive=False, max_results=100):
         """
         Search Twitter for the given query, using the /search/recent endpoint.
-
-        Approximately the last seven days are indexed by Twitter - if you want
-        to search the full archive you can use the `full_archive_search` method,
-        but note the need for an elevated access level.
+        If you have Academic Search permission and have access to the full
+        archive you can search /search/all/ by setting all to True.
 
         query: The query string to be passed directly to the Twitter API.
         since_id: Return all tweets since this tweet_id.
         until_id: Return all tweets up to this tweet_id.
         start_time: Return all tweets after this time (UTC datetime).
         end_time: Return all tweets before this time (UTC datetime).
+        all: Set to True if you would like to search the full archive.
+        limit: Limit search to n tweets.
+        max_results: The maximum number of results per request. Max is 100 or 
+                     500 for academic search.
         """
 
-        url = "https://api.twitter.com/2/tweets/search/recent"
-
         params = expansions.EVERYTHING.copy()
-        params["max_results"] = 100
+        params['max_results'] = max_results
         params["query"] = query
+
+        if archive:
+            url = "https://api.twitter.com/2/tweets/search/all"
+            # if the default of 100 was used it can be upped to 500
+            params['max_results'] = 500 if max_results == 100 else max_results
+        else:
+            url = "https://api.twitter.com/2/tweets/search/recent"
 
         if since_id:
             params["since_id"] = since_id
@@ -91,10 +98,17 @@ class Twarc2:
         if end_time:
             params["end_time"] = _ts(end_time)
 
+        count = 0
         for response in self.get_paginated(url, params=params):
             # can return without 'data' if there are no results
             if 'data' in response:
+                count += len(response['data'])
                 yield response
+                if limit != 0 and count >= limit:
+                    log.info(f'stopping search, met limit of {limit}')
+                    break
+            else:
+                log.info(f'no more results for search')
 
     def tweet_lookup(self, tweet_ids):
         """

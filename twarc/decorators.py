@@ -1,4 +1,5 @@
 import time
+import click
 import logging
 
 from requests import HTTPError
@@ -147,4 +148,25 @@ def filter_protected(f):
                     continue
             yield obj
 
+    return new_f
+
+def cli_api_error(f):
+    """
+    A decorator to catch HTTP errors for the command line.
+    """
+    def new_f(*args, **kwargs):
+        try:
+            f(*args, **kwargs)
+        except HTTPError as e:
+            result = e.response.json()
+            if 'errors' in result:
+                for error in result['errors']:
+                    msg = error.get('message', 'Unknown error')
+            elif 'title' in result:
+                msg = result['title']
+            else:
+                msg = 'Unknown error'
+            click.echo(
+                click.style("⚡", fg="yellow") + click.style(f"Uhoh, {msg}", fg="red"),
+                err=True)
     return new_f
