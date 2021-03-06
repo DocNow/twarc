@@ -7,12 +7,14 @@ import re
 import json
 import twarc
 import click
+import logging
 import threading
 
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 from twarc.decorators import cli_api_error
 from twarc.expansions import flatten as flat
+
 
 
 @with_plugins(iter_entry_points('twarc.plugins'))
@@ -22,13 +24,19 @@ from twarc.expansions import flatten as flat
 @click.option('--access-token', type=str)
 @click.option('--access-token-secret', type=str)
 @click.option('--bearer-token', type=str)
+@click.option('--log', default='twarc.log')
 @click.pass_context
-def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token):
+def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret,
+        bearer_token, log):
     """
     Collect raw data from the Twitter V2 API.
     """
     ctx.obj = twarc.Twarc2(bearer_token)
-
+    logging.basicConfig(
+        filename=log,
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
 
 @cli.command('search')
 @click.option('--since-id', type=int,
@@ -43,9 +51,9 @@ def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret, b
     help='Match tweets sent before time (ISO 8601/RFC 3339)')
 @click.option('--archive', is_flag=True, default=False,
     help='Search the full archive (requires Academic Research track)')
-@click.option('--limit', default=0, help='Limit search to n tweets')
+@click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--flatten', is_flag=True, default=False,
-    help='Include expansions inline with tweets, and one line per tweet.') 
+    help='Include expansions inline with tweets, and one line per tweet') 
 @click.argument('query', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
@@ -54,18 +62,22 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, a
     """
     Search for recent tweets.
     """
-    for result in T.search(query, since_id, until_id, start_time, end_time, limit, archive):
+    count = 0
+    for result in T.search(query, since_id, until_id, start_time, end_time, archive):
         _write(result, outfile, flatten)
+        count += len(result['data'])
+        if limit != 0 and count >= limit:
+            break
 
 
 @cli.command('sample')
-@click.option('--max-tweets', default=0, help='Maximum number of tweets to return.')
+@click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet.') 
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def sample(T, flatten, outfile, max_tweets):
+def sample(T, flatten, outfile, limit):
     """
     Fetch tweets from the sample stream.
     """
@@ -73,7 +85,7 @@ def sample(T, flatten, outfile, max_tweets):
     event = threading.Event()
     for result in T.sample(event=event):
         count += 1
-        if max_tweets != 0 and count >= max_tweets:
+        if limit != 0 and count >= limit:
             event.set()
         _write(result, outfile, flatten)
 
@@ -123,13 +135,13 @@ def flatten(infile, outfile):
 
 
 @cli.command('stream')
-@click.option('--max-tweets', default=0, help='Maximum number of tweets to return.')
+@click.option('--limit', default=0, help='Maximum number of tweets to return')
 @click.option('--flatten', is_flag=True, default=False,
-    help='Include expansions inline with tweets, and one line per tweet.') 
+    help='Include expansions inline with tweets, and one line per tweet') 
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def stream(T, flatten, outfile, max_tweets):
+def stream(T, flatten, outfile, limit):
     """
     Fetch tweets from the live stream.
     """
@@ -137,7 +149,8 @@ def stream(T, flatten, outfile, max_tweets):
     count = 0
     for result in T.stream(event=event):
         count += 1
-        if max_tweets != 0 and count == max_tweets:
+        if limit != 0 and count == limit:
+            logging.info(f'reached limit {limit}')
             event.set()
         _write(result, outfile, flatten)
 
@@ -166,7 +179,7 @@ def list_stream_rules(T):
             s = rule['value']
             if 'tag' in rule:
                 s += f" (tag: {rule['tag']})"
-            click.echo(click.style(f'☑ {s}'))
+            click.echo(click.style(f'☑  {s}'))
             count += 1
 
 
@@ -185,7 +198,7 @@ def add_stream_rule(T, value, tag):
     if 'errors' in results:
         click.echo(_error_str(results['errors']), err=True)
     else:
-        click.echo(click.style(f'🚀 Added rule for "{value}"', fg='green'))
+        click.echo(click.style(f'🚀  Added rule for "{value}"', fg='green'))
 
 
 @stream_rules.command('delete')
@@ -196,7 +209,7 @@ def delete_stream_rule(T, value):
     # find the rule id
     result = T.get_stream_rules()
     if 'data' not in result:
-        click.echo(click.style('💔 There are no rules to delete!', fg='red'), err=True)
+        click.echo(click.style('💔  There are no rules to delete!', fg='red'), err=True)
     else:
         rule_id = None
         for rule in result['data']:
@@ -204,7 +217,7 @@ def delete_stream_rule(T, value):
                 rule_id = rule['id']
                 break
         if not rule_id:
-            click.echo(click.style(f'🙃 No rule could be found for "{value}"',
+            click.echo(click.style(f'🙃  No rule could be found for "{value}"',
                 fg='red'), err=True)
         else:
             results = T.delete_stream_rule_ids([rule_id])
@@ -220,11 +233,11 @@ def delete_stream_rule(T, value):
 def delete_all(T):
     result = T.get_stream_rules()
     if 'data' not in result:
-        click.echo(click.style('💔 There are no rules to delete!', fg='red'), err=True)
+        click.echo(click.style('💔  There are no rules to delete!', fg='red'), err=True)
     else:
         rule_ids = [r['id'] for r in result['data']]
         results = T.delete_stream_rule_ids(rule_ids)
-        click.echo(f"🗑 Deleted {len(rule_ids)} rules.")
+        click.echo(f"🗑  Deleted {len(rule_ids)} rules.")
 
 
 def _rule_str(rule):
@@ -239,13 +252,13 @@ def _error_str(errors):
     # the passed in errors can be single error object or a list of objects, each 
     # of which has an errors key that points to a list of error objects
 
-    if type(errors) != list:
+    if type(errors) != list or "errors" not in errors:
         errors = [{"errors": errors}]
 
     parts = []
     for error in errors:
         for part in error['errors']:
-            s = "💣 "
+            s = "💣  "
             if 'message' in part:
                 s += part['message']
             elif 'title' in part:
@@ -265,7 +278,7 @@ def _write(results, outfile, flatten):
                 for r in flat(results)['data']:
                     click.echo(json.dumps(r), file=outfile)
             else:
-                r = flat(results)['data'][0]
-                click.echo(json.dumps(r) + "\n", file=outfile)
+                r = flat(results)['data']
+                click.echo(json.dumps(r), file=outfile)
         else:
-            click.echo(json.dumps(results) + "\n", file=outfile)
+            click.echo(json.dumps(results), file=outfile)

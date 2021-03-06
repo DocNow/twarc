@@ -61,7 +61,7 @@ class Twarc2:
         self.connect()
 
     def search(self, query, since_id=None, until_id=None, start_time=None, 
-            end_time=None, limit=0, archive=False, max_results=100):
+            end_time=None, archive=False, max_results=100):
         """
         Search Twitter for the given query, using the /search/recent endpoint.
         If you have Academic Search permission and have access to the full
@@ -73,7 +73,6 @@ class Twarc2:
         start_time: Return all tweets after this time (UTC datetime).
         end_time: Return all tweets before this time (UTC datetime).
         all: Set to True if you would like to search the full archive.
-        limit: Limit search to n tweets.
         max_results: The maximum number of results per request. Max is 100 or 
                      500 for academic search.
         """
@@ -104,9 +103,6 @@ class Twarc2:
             if 'data' in response:
                 count += len(response['data'])
                 yield response
-                if limit != 0 and count >= limit:
-                    log.info(f'stopping search, met limit of {limit}')
-                    break
             else:
                 log.info(f'no more results for search')
 
@@ -253,9 +249,10 @@ class Twarc2:
                 resp.close()
                 return
 
-            if line == b'' and record_keep_alives:
+            if line == b'':
                 log.info('keep-alive')
-                yield "keep-alive"
+                if record_keep_alives:
+                    yield "keep-alive"
             else:
                 yield json.loads(line.decode())
 

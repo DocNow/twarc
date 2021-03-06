@@ -167,6 +167,6 @@ def cli_api_error(f):
             else:
                 msg = 'Unknown error'
             click.echo(
-                click.style("⚡", fg="yellow") + click.style(f"Uhoh, {msg}", fg="red"),
+                click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
                 err=True)
     return new_f
