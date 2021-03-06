@@ -239,7 +239,7 @@ def test_flattened():
                 and found_referenced_tweets:
             logging.info("found all expansions!")
             event.set()
-        elif count > 5000:
+        elif count > 10000:
             logging.info("didn't find all expansions in 5000 tweets")
             event.set()
 
