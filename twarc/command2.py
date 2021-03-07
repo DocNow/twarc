@@ -204,6 +204,9 @@ def stream_rules(T):
 @click.pass_obj
 @cli_api_error
 def list_stream_rules(T):
+    """
+    List all the active stream rules.
+    """
     result = T.get_stream_rules()
     if 'data' not in result or len(result['data']) == 0:
         click.echo('No rules yet. Add them with ' + click.style('twarc2 stream-rules add', bold=True))
@@ -225,6 +228,10 @@ def list_stream_rules(T):
 @click.argument('value', type=str)
 @cli_api_error
 def add_stream_rule(T, value, tag):
+    """
+    Create a new stream rule to match a value. Rules can be grouped with
+    optional tags.
+    """
     if tag:
         rules = [{"value": value, "tag": tag}]
     else:
@@ -242,6 +249,9 @@ def add_stream_rule(T, value, tag):
 @click.pass_obj
 @cli_api_error
 def delete_stream_rule(T, value):
+    """
+    Delete the stream rule that matches a given value.
+    """
     # find the rule id
     result = T.get_stream_rules()
     if 'data' not in result:
@@ -267,6 +277,9 @@ def delete_stream_rule(T, value):
 @click.pass_obj
 @cli_api_error
 def delete_all(T):
+    """
+    Delete all stream rules!
+    """
     result = T.get_stream_rules()
     if 'data' not in result:
         click.echo(click.style('💔  There are no rules to delete!', fg='red'), err=True)
