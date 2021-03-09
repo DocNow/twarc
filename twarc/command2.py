@@ -9,11 +9,13 @@ import twarc
 import click
 import logging
 import pathlib
+import requests
 import configobj
 import threading
 
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
+from twarc.handshake import handshake
 from twarc.decorators import cli_api_error
 from twarc.expansions import flatten as flat
 from click_config_file import configuration_option
@@ -21,14 +23,23 @@ from click_config_file import configuration_option
 
 @with_plugins(iter_entry_points('twarc.plugins'))
 @click.group()
+@click.option('--consumer-key', type=str, envvar='CONSUMER_KEY',
+    help='Twitter app consumer key (aka "App Key")')
+@click.option('--consumer-secret', type=str, envvar='CONSUMER_SECRET',
+    help='Twitter app consumer secret (aka "App Secret")')
 @click.option('--bearer-token', type=str, envvar='BEARER_TOKEN',
     help='Twitter app bearer token')
+@click.option('--access-token', type=str, envvar='ACCESS_TOKEN',
+    help='Twitter app access token')
+@click.option('--access-token-secret', type=str, envvar='ACCESS_TOKEN_SECRET',
+    help='Twitter app access token secret')
 @click.option('--log', default='twarc.log')
 @configuration_option(cmd_name='twarc')
 @click.pass_context
-def cli(ctx, bearer_token, log):
+def cli(ctx, consumer_key, consumer_secret, bearer_token, access_token,
+        access_token_secret, log):
     """
-    Collect raw data from the Twitter V2 API.
+    Collect data from the Twitter V2 API.
     """
     logging.basicConfig(
         filename=log,
@@ -44,11 +55,12 @@ def cli(ctx, bearer_token, log):
         click.echo()
         click.echo("1. visit https://developer.twitter.com/en/portal/")
         click.echo("2. create a project and an app")
-        click.echo("3. go to your Keys and Tokens and generate your keys and bearer token")
+        click.echo("3. go to your Keys and Tokens and generate your keys")
         click.echo()
         ctx.invoke(configure)
     else:
-        ctx.obj = twarc.Twarc2(bearer_token)
+        ctx.obj = twarc.Twarc2(consumer_key, consumer_secret, bearer_token,
+                access_token, access_token_secret)
 
 
 @cli.command('configure')
@@ -57,20 +69,28 @@ def configure(ctx):
     """
     Set up your Twitter app bearer token.
     """
-    prompt = "Please enter your bearer token: "
-    bearer_token = input(prompt)
+    keys = handshake()
+    if keys is None:
+        raise click.ClickException("Unable to authenticate")
 
     config_dir = pathlib.Path(click.get_app_dir('twarc'))
     if not config_dir.is_dir():
         config_dir.mkdir()
-    config_file = config_dir / "config"
+    config_file = config_dir / 'config'
 
     config = configobj.ConfigObj(unrepr=True)
     config.filename = config_file
-    config['bearer_token'] = bearer_token
+    config['consumer_key'] = keys['consumer_key']
+    config['consumer_secret'] = keys['consumer_secret']
+    config['bearer_token'] = keys['bearer_token']
+    config['access_token'] = keys['access_token']
+    config['access_token_secret'] = keys['access_token_secret']
     config.write()
 
+    click.echo(click.style(f'\nYour keys have been written to {config_file}', fg='green'))
+    click.echo()
     click.echo('\n✨ ✨ ✨  Happy twarcing! ✨ ✨ ✨\n')
+
     ctx.exit()
 
 

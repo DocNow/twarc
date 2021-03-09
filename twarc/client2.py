@@ -25,37 +25,29 @@ class Twarc2:
 
     def __init__(
         self,
+        consumer_key,
+        consumer_secret,
         bearer_token,
+        access_token,
+        access_token_secret,
         connection_errors=0,
         http_errors=0,
     ):
         """
-        Instantiate a Twarc2 instance to talk to the Twitter V2+ API.
-
-        Currently only bearer_token authentication is supported (ie, only
-        Oauth2.0 app authentication). You can retrieve your bearer_token from
-        the Twitter developer dashboard for your project.
-
-        Unlike the original Twarc client, this object does not perform any
-        configuration directly.
-
-        TODO: Figure out how to handle the combinations of:
-
-        - bearer_token
-        - api_key and api_secret (which can be used to retrieve a bearer token)
-        - access_token and access_token_secret (used with the api_key/secret for
-          user authentication/OAuth 1.0a)
-
-        Arguments:
-
-        - bearer_token: the Twitter API bearer_token for autghe
+        Instantiate a Twarc2 instance to talk to the Twitter V2+ API. The client
+        uses both App and User authentication.
         """
         self.api_version = "2"
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
         self.bearer_token = bearer_token
+        self.access_token = access_token
+        self.access_token_secret = access_token_secret
         self.connection_errors = connection_errors
         self.http_errors = http_errors
 
-        self.client = None
+        self.app_client = None
+        self.user_client = None
         self.last_response = None
 
         self.connect()
@@ -268,7 +260,7 @@ class Twarc2:
         connection_error_count = kwargs.pop("connection_error_count", 0)
         try:
             log.info("getting %s %s", args, kwargs)
-            r = self.last_response = self.client.get(
+            r = self.last_response = self.app_client.get(
                 *args, timeout=(3.05, 31), **kwargs
             )
             # this has been noticed, believe it or not
@@ -316,9 +308,9 @@ class Twarc2:
 
     @rate_limit
     def post(self, url, json_data):
-        if not self.client:
+        if not self.app_client:
             self.connect()
-        return self.client.post(url, json=json_data)
+        return self.app_client.post(url, json=json_data)
 
     def connect(self):
         """
@@ -326,9 +318,9 @@ class Twarc2:
         closed and another one is opened.
         """
 
-        if self.client:
+        if self.app_client:
             log.info("closing existing http session")
-            self.client.close()
+            self.app_client.close()
 
         if self.last_response:
             log.info("closing last response")
@@ -343,7 +335,7 @@ class Twarc2:
         # we consider user auth rather than just application authentication.
         client.headers.update({"Authorization": f"Bearer {self.bearer_token}"})
 
-        self.client = client
+        self.app_client = client
 
 def _ts(dt):
     """

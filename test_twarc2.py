@@ -8,14 +8,20 @@ import datetime
 import threading
 
 dotenv.load_dotenv()
+consumer_key = os.environ.get('CONSUMER_KEY')
+consumer_secret = os.environ.get('CONSUMER_SECRET')
 bearer_token = os.environ.get("BEARER_TOKEN")
+access_token = os.environ.get('ACCESS_TOKEN')
+access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
+
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
 T = None
 
 def test_constructor():
     global T
-    T = twarc.Twarc2(bearer_token=bearer_token)
+    T = twarc.Twarc2(consumer_key, consumer_secret, bearer_token, access_token,
+            access_token_secret)
     assert T.bearer_token
 
 
