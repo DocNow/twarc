@@ -105,6 +105,26 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, a
         if limit != 0 and count >= limit:
             break
 
+@cli.command('tweet')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
+@click.option('--pretty', is_flag=True, default=False,
+    help='Pretty print the JSON')
+@click.argument('tweet_id', type=str)
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def tweet(T, tweet_id, outfile, flatten, pretty):
+    """
+    Look up a tweet using its tweet id or URL.
+    """
+    if 'https' in tweet_id:
+        tweet_id = url_or_id.split('/')[-1]
+    if not re.match('^\d+$', tweet_id):
+        click.echo(click.style("Please enter a tweet URL or ID", fg="red"), err=True)
+    result = next(T.tweet_lookup([tweet_id]))
+    _write(result, outfile, flatten, pretty=pretty)
+
 
 @cli.command('sample')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
@@ -320,14 +340,15 @@ def _error_str(errors):
 
     return click.style("\n".join(parts), fg="red")
 
-def _write(results, outfile, flatten):
+def _write(results, outfile, flatten, pretty=False):
+    indent = 2 if pretty else None
     if 'data' in results:
         if flatten:
             if isinstance(results['data'], list):
                 for r in flat(results)['data']:
-                    click.echo(json.dumps(r), file=outfile)
+                    click.echo(json.dumps(r, indent=indent), file=outfile)
             else:
                 r = flat(results)['data']
-                click.echo(json.dumps(r), file=outfile)
+                click.echo(json.dumps(r, indent=indent), file=outfile)
         else:
-            click.echo(json.dumps(results), file=outfile)
+            click.echo(json.dumps(results, indent=indent), file=outfile)
