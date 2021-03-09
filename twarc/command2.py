@@ -27,8 +27,6 @@ from click_config_file import configuration_option
     help='Twitter app consumer key (aka "App Key")')
 @click.option('--consumer-secret', type=str, envvar='CONSUMER_SECRET',
     help='Twitter app consumer secret (aka "App Secret")')
-@click.option('--bearer-token', type=str, envvar='BEARER_TOKEN',
-    help='Twitter app bearer token')
 @click.option('--access-token', type=str, envvar='ACCESS_TOKEN',
     help='Twitter app access token')
 @click.option('--access-token-secret', type=str, envvar='ACCESS_TOKEN_SECRET',
@@ -36,8 +34,8 @@ from click_config_file import configuration_option
 @click.option('--log', default='twarc.log')
 @configuration_option(cmd_name='twarc')
 @click.pass_context
-def cli(ctx, consumer_key, consumer_secret, bearer_token, access_token,
-        access_token_secret, log):
+def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret, 
+        log):
     """
     Collect data from the Twitter V2 API.
     """
@@ -47,7 +45,8 @@ def cli(ctx, consumer_key, consumer_secret, bearer_token, access_token,
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    if bearer_token is None:
+    if not (consumer_key and consumer_secret and access_token and
+            access_token_secret):
         click.echo()
         click.echo("👋  Hi I don't see a configuration file yet, so lets make one.")
         click.echo()
@@ -59,15 +58,15 @@ def cli(ctx, consumer_key, consumer_secret, bearer_token, access_token,
         click.echo()
         ctx.invoke(configure)
     else:
-        ctx.obj = twarc.Twarc2(consumer_key, consumer_secret, bearer_token,
-                access_token, access_token_secret)
+        ctx.obj = twarc.Twarc2(consumer_key, consumer_secret, access_token,
+                access_token_secret)
 
 
 @cli.command('configure')
 @click.pass_context
 def configure(ctx):
     """
-    Set up your Twitter app bearer token.
+    Set up your Twitter app keys.
     """
     keys = handshake()
     if keys is None:
@@ -82,7 +81,6 @@ def configure(ctx):
     config.filename = config_file
     config['consumer_key'] = keys['consumer_key']
     config['consumer_secret'] = keys['consumer_secret']
-    config['bearer_token'] = keys['bearer_token']
     config['access_token'] = keys['access_token']
     config['access_token_secret'] = keys['access_token_secret']
     config.write()

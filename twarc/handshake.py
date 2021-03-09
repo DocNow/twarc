@@ -1,5 +1,5 @@
 """
-A function for asking th euser for thei Twitter API keys.
+A function for asking the user for their Twitter API keys.
 """
 
 import requests
@@ -11,10 +11,10 @@ def handshake():
     consumer_key = input("Please enter your API key: ")
     consumer_secret = input("Please enter your API secret: ")
 
+    # verify that the keys work to get the bearer token
     url = "https://api.twitter.com/oauth2/token"
     params = {"grant_type": "client_credentials"}
     auth = requests.auth.HTTPBasicAuth(consumer_key, consumer_secret)
-
     try:
         resp = requests.post(url, params, auth=auth)
         resp.raise_for_status()
@@ -79,7 +79,6 @@ def handshake():
     return {
         "consumer_key": consumer_key,
         "consumer_secret": consumer_secret,
-        "bearer_token": bearer_token, 
         "access_token": access_token,
         "access_token_secret": access_token_secret
     }

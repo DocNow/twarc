@@ -12,8 +12,11 @@ import requests
 
 from twarc import expansions
 from twarc.decorators import *
+from oauthlib.oauth2 import BackendApplicationClient
 from requests.exceptions import ConnectionError
 from requests.packages.urllib3.exceptions import ProtocolError
+from requests_oauthlib import OAuth1Session, OAuth2Session
+
 
 log = logging.getLogger("twarc")
 
@@ -27,7 +30,6 @@ class Twarc2:
         self,
         consumer_key,
         consumer_secret,
-        bearer_token,
         access_token,
         access_token_secret,
         connection_errors=0,
@@ -40,7 +42,6 @@ class Twarc2:
         self.api_version = "2"
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
-        self.bearer_token = bearer_token
         self.access_token = access_token
         self.access_token_secret = access_token_secret
         self.connection_errors = connection_errors
@@ -319,23 +320,31 @@ class Twarc2:
         """
 
         if self.app_client:
-            log.info("closing existing http session")
             self.app_client.close()
+        if self.user_client:
+            self.user_client.close()
 
         if self.last_response:
-            log.info("closing last response")
             self.last_response.close()
 
-        log.info("creating http session")
+        log.info("creating http sessions")
 
-        client = requests.Session()
-
-        # For bearer token authentication we only need to setup this header - no
-        # OAuth 1.0a dance required. This will likely become more complex when
-        # we consider user auth rather than just application authentication.
-        client.headers.update({"Authorization": f"Bearer {self.bearer_token}"})
-
-        self.app_client = client
+        logging.info('creating user auth client')
+        self.user_client = OAuth1Session(
+            client_key=self.consumer_key,
+            client_secret=self.consumer_secret,
+            resource_owner_key=self.access_token,
+            resource_owner_secret=self.access_token_secret
+        )
+        
+        logging.info('creating app auth client')
+        client = BackendApplicationClient(client_id=self.consumer_key)
+        self.app_client = OAuth2Session(client=client)
+        self.app_client.fetch_token(
+            token_url='https://api.twitter.com/oauth2/token',
+            client_id=self.consumer_key,
+            client_secret=self.consumer_secret
+        )
 
 def _ts(dt):
     """
