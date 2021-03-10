@@ -34,6 +34,7 @@ class Twarc2:
         access_token_secret,
         connection_errors=0,
         http_errors=0,
+        metadata=True,
     ):
         """
         Instantiate a Twarc2 instance to talk to the Twitter V2+ API. The client
@@ -46,6 +47,7 @@ class Twarc2:
         self.access_token_secret = access_token_secret
         self.connection_errors = connection_errors
         self.http_errors = http_errors
+        self.metadata = metadata
 
         self.app_client = None
         self.user_client = None
@@ -53,7 +55,7 @@ class Twarc2:
 
         self.connect()
 
-    def search(self, query, since_id=None, until_id=None, start_time=None, 
+    def search(self, query, since_id=None, until_id=None, start_time=None,
             end_time=None, archive=False, max_results=100):
         """
         Search Twitter for the given query, using the /search/recent endpoint.
@@ -66,7 +68,7 @@ class Twarc2:
         start_time: Return all tweets after this time (UTC datetime).
         end_time: Return all tweets before this time (UTC datetime).
         all: Set to True if you would like to search the full archive.
-        max_results: The maximum number of results per request. Max is 100 or 
+        max_results: The maximum number of results per request. Max is 100 or
                      500 for academic search.
         """
 
@@ -103,7 +105,7 @@ class Twarc2:
         """
         Lookup tweets, taking an iterator of IDs and returning pages of fully
         expanded tweet objects.
-        
+
         This can be used to rehydrate a collection shared as only tweet IDs.
 
         Yields one page of tweets at a time, in blocks of up to 100.
@@ -116,9 +118,15 @@ class Twarc2:
             params = expansions.EVERYTHING.copy()
             params["ids"] = ",".join(tweet_id)
 
-            resp = self.get(url, params=params)
+            resp = self.get(url, params=params).json()
 
-            return resp.json()
+            if self.metadata:
+                resp["__twarc"] = {
+                    "url": url,
+                    "retrieved_at": _utcnow()
+                }
+
+            return resp
 
         tweet_id_batch = []
 
@@ -154,8 +162,15 @@ class Twarc2:
             else:
                 params["ids"] = ",".join(users)
 
-            resp = self.get(url, params=params)
-            return resp.json()
+            resp = self.get(url, params=params).json()
+
+            if self.metadata:
+                resp["__twarc"] = {
+                    "url": url,
+                    "retrieved_at": _utcnow()
+                }
+
+            return resp
 
         batch = []
         for item in users:
@@ -201,7 +216,13 @@ class Twarc2:
                             yield "keep-alive"
                         continue
                     else:
-                        yield json.loads(line.decode())
+                        data = json.loads(line.decode())
+                        if self.metadata:
+                            data["__twarc"] = {
+                                "url": url,
+                                "retrieved_at": _utcnow()
+                            }
+                        yield data
 
             except requests.exceptions.HTTPError as e:
                 errors += 1
@@ -247,8 +268,13 @@ class Twarc2:
                 if record_keep_alives:
                     yield "keep-alive"
             else:
-                yield json.loads(line.decode())
-
+                data = json.loads(line.decode())
+                if self.metadata:
+                    data["__twarc"] = {
+                        "url": url,
+                        "retrieved_at": _utcnow()
+                    }
+                yield data
 
     @rate_limit
     @catch_conn_reset
@@ -296,6 +322,8 @@ class Twarc2:
 
         page = self.get(*args, **kwargs).json()
 
+        url = args[0]
+
         yield page
 
         while "next_token" in page["meta"]:
@@ -305,6 +333,13 @@ class Twarc2:
                 kwargs["params"] = {"next_token": page["meta"]["next_token"]}
 
             page = self.get(*args, **kwargs).json()
+
+            if self.metadata:
+                page["__twarc"] = {
+                    "url": url,
+                    "retrieved_at": _utcnow()
+                }
+
             yield page
 
     @rate_limit
@@ -336,7 +371,7 @@ class Twarc2:
             resource_owner_key=self.access_token,
             resource_owner_secret=self.access_token_secret
         )
-        
+
         logging.info('creating app auth client')
         client = BackendApplicationClient(client_id=self.consumer_key)
         self.app_client = OAuth2Session(client=client)
@@ -358,5 +393,10 @@ def _ts(dt):
         dt = dt.replace(tzinfo=datetime.timezone.utc)
     return dt.isoformat(timespec='seconds')
 
+def _utcnow():
+    """Return _now_ in ISO 8601 / RFC 3339 datetime in UTC."""
+    return datetime.datetime.now(datetime.timezone.utc).isoformat(
+        timespec='seconds'
+    )
 
 _r = []

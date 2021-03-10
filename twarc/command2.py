@@ -32,10 +32,16 @@ from click_config_file import configuration_option
 @click.option('--access-token-secret', type=str, envvar='ACCESS_TOKEN_SECRET',
     help='Twitter app access token secret')
 @click.option('--log', default='twarc.log')
+@click.option(
+    '--metadata/--no-metadata',
+    default=True,
+    help="Include/don't include metadata about when and how data was collected.",
+    show_default=True,
+)
 @configuration_option(cmd_name='twarc')
 @click.pass_context
-def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret, 
-        log):
+def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret,
+        log, metadata):
     """
     Collect data from the Twitter V2 API.
     """
@@ -59,7 +65,7 @@ def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret,
         ctx.invoke(configure)
     else:
         ctx.obj = twarc.Twarc2(consumer_key, consumer_secret, access_token,
-                access_token_secret)
+                access_token_secret, metadata=metadata)
 
 
 @cli.command('configure')
@@ -107,7 +113,7 @@ def configure(ctx):
     help='Search the full archive (requires Academic Research track)')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--flatten', is_flag=True, default=False,
-    help='Include expansions inline with tweets, and one line per tweet') 
+    help='Include expansions inline with tweets, and one line per tweet')
 @click.argument('query', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
@@ -147,7 +153,7 @@ def tweet(T, tweet_id, outfile, flatten, pretty):
 @cli.command('sample')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--flatten', is_flag=True, default=False,
-    help='Include expansions inline with tweets, and one line per tweet.') 
+    help='Include expansions inline with tweets, and one line per tweet.')
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
@@ -168,7 +174,7 @@ def sample(T, flatten, outfile, limit):
 @click.argument('infile', type=click.File('r'), default='-')
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.option('--flatten', is_flag=True, default=False,
-    help='Include expansions inline with tweets, and one line per tweet.') 
+    help='Include expansions inline with tweets, and one line per tweet.')
 @click.pass_obj
 @cli_api_error
 def hydrate(T, infile, outfile, flatten):
@@ -182,7 +188,7 @@ def hydrate(T, infile, outfile, flatten):
 @cli.command('users')
 @click.option('--usernames', is_flag=True, default=False)
 @click.option('--flatten', is_flag=True, default=False,
-    help='Include expansions inline with tweets, and one line per tweet.') 
+    help='Include expansions inline with tweets, and one line per tweet.')
 @click.argument('infile', type=click.File('r'), default='-')
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
@@ -211,7 +217,7 @@ def flatten(infile, outfile):
 @cli.command('stream')
 @click.option('--limit', default=0, help='Maximum number of tweets to return')
 @click.option('--flatten', is_flag=True, default=False,
-    help='Include expansions inline with tweets, and one line per tweet') 
+    help='Include expansions inline with tweets, and one line per tweet')
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
@@ -273,7 +279,7 @@ def add_stream_rule(T, value, tag):
     if tag:
         rules = [{"value": value, "tag": tag}]
     else:
-        rules = [{"value": value}] 
+        rules = [{"value": value}]
 
     results = T.add_stream_rules(rules)
     if 'errors' in results:
@@ -308,7 +314,7 @@ def delete_stream_rule(T, value):
             if 'errors' in results:
                 click.echo(_error_str(results['errors']), err=True)
             else:
-                click.echo(f"🗑  Deleted stream rule for {value}", color='green') 
+                click.echo(f"🗑  Deleted stream rule for {value}", color='green')
 
 
 @stream_rules.command('delete-all')
@@ -336,7 +342,7 @@ def _rule_str(rule):
 
 def _error_str(errors):
     # collapse all the error messages into a newline delimited red colored list
-    # the passed in errors can be single error object or a list of objects, each 
+    # the passed in errors can be single error object or a list of objects, each
     # of which has an errors key that points to a list of error objects
 
     if type(errors) != list or "errors" not in errors:

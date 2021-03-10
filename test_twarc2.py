@@ -16,13 +16,16 @@ access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
 
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
-T = None
+# Implicitly test the constructor. This ensures that the tests don't depend on test
+# ordering, and allows using the pytest functionality to only run a single test at a
+# time.
 
-def test_constructor():
-    global T
-    T = twarc.Twarc2(consumer_key, consumer_secret, bearer_token, access_token,
-            access_token_secret)
-    assert T.bearer_token
+T = twarc.Twarc2(
+    consumer_key,
+    consumer_secret,
+    access_token,
+    access_token_secret
+)
 
 
 def test_sample():
@@ -70,7 +73,7 @@ def test_search_times():
     end = now - datetime.timedelta(seconds=60)
     start = now - datetime.timedelta(seconds=61)
 
-    for response_page in T.search("tweet", start_time=start, 
+    for response_page in T.search("tweet", start_time=start,
             end_time=end):
         for tweet in response_page["data"]:
             found = True
@@ -78,7 +81,7 @@ def test_search_times():
             dt = tweet['created_at'].strip('Z')
             dt = datetime.datetime.fromisoformat(dt)
             dt = dt.replace(tzinfo=datetime.timezone.utc)
-            assert dt >= start 
+            assert dt >= start
             assert dt <= end
 
     assert found
@@ -129,7 +132,7 @@ def test_tweet_lookup():
             # additional error entry, even if the profile is present.
             if error["resource_type"] == "tweet":
                 tweets_not_found += 1
-                
+
     assert tweets_found >= 1
     assert tweets_found + tweets_not_found == 1000
 
@@ -175,7 +178,7 @@ def test_stream():
             assert rule['tag'] == 'twarc-test'
         if count > 25:
             event.set()
-    assert count > 25 
+    assert count > 25
 
     # delete the rules
     rule_ids = [r['id'] for r in rules['data']]
@@ -184,7 +187,7 @@ def test_stream():
     # make sure they are gone
     rules = T.get_stream_rules()
     assert 'data' not in rules
-    
+
 
 def test_flattened():
     """
@@ -211,7 +214,7 @@ def test_flattened():
         logging.info("got sample tweet #%s %s", count, tweet["id"])
 
         author_id = tweet["author_id"]
-        assert "author" in tweet 
+        assert "author" in tweet
         assert result["data"]["author"]["id"] == author_id
 
         if "in_reply_to_user_id" in tweet:
@@ -249,7 +252,7 @@ def test_flattened():
             logging.info("didn't find all expansions in 5000 tweets")
             event.set()
 
-    assert found_geo, "found geo" 
+    assert found_geo, "found geo"
     assert found_in_reply_to_user, "found in_reply_to_user"
     assert found_attachments_media, "found media"
     assert found_attachments_polls, "found polls"
@@ -261,3 +264,30 @@ def pick_id(id, objects):
     """pick an object out of a list of objects using its id
     """
     return list(filter(lambda o: o["id"] == id, objects))
+
+
+def test_metadata_option():
+
+    event = threading.Event()
+
+    # With metadata (default)
+    for i, response in enumerate(T.sample(event=event)):
+        assert "__twarc" in response
+        if i == 100:
+            event.set()
+
+    for response in T.tweet_lookup(range(1000, 2000)):
+        assert "__twarc" in response
+
+    T.metadata = False
+
+    # Turn off metadata
+    for i, response in enumerate(T.sample(event=event)):
+        assert "__twarc" not in response
+        if i == 100:
+            break
+
+    for response in T.tweet_lookup(range(1000, 2000)):
+        assert "__twarc" not in response
+
+    T.metadata = True
