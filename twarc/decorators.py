@@ -7,6 +7,7 @@ from requests.packages.urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ChunkedEncodingError, ReadTimeout, \
                                 ContentDecodingError
 
+
 log = logging.getLogger('twarc')
 
 
@@ -175,6 +176,12 @@ class cli_api_error():
                 err=True)
 
 
+class InvalidAuthType(Exception):
+    """
+    Raised when the endpoint called is not supported by the current auth type.
+    """
+
+
 def requires_app_auth(f):
     """
     Ensure that application authentication is set for calls that only work in that mode.
@@ -183,7 +190,7 @@ def requires_app_auth(f):
     def new_f(self, *args, **kwargs):
         if self.auth_type != "application":
             raise InvalidAuthType(
-                "The academic full archive search endpoint requires application auth."
+                "This endpoint only works with application authentication"
             )
 
         else:
