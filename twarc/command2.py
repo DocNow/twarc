@@ -28,9 +28,11 @@ from click_config_file import configuration_option
 @click.option('--consumer-secret', type=str, envvar='CONSUMER_SECRET',
     help='Twitter app consumer secret (aka "App Secret")')
 @click.option('--access-token', type=str, envvar='ACCESS_TOKEN',
-    help='Twitter app access token')
+    help='Twitter app access token for user authentication.')
 @click.option('--access-token-secret', type=str, envvar='ACCESS_TOKEN_SECRET',
-    help='Twitter app access token secret')
+    help='Twitter app access token secret for user authentication.')
+@click.option('--bearer-token', type=str, envvar='BEARER_TOKEN',
+    help='Twitter app access bearer token.')
 @click.option('--log', default='twarc.log')
 @click.option(
     '--metadata/--no-metadata',
@@ -40,8 +42,10 @@ from click_config_file import configuration_option
 )
 @configuration_option(cmd_name='twarc')
 @click.pass_context
-def cli(ctx, consumer_key, consumer_secret, access_token, access_token_secret,
-        log, metadata):
+def cli(
+    ctx, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token,
+    log, metadata
+):
     """
     Collect data from the Twitter V2 API.
     """
@@ -123,7 +127,9 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, a
     Search for recent tweets.
     """
     count = 0
-    for result in T.search(query, since_id, until_id, start_time, end_time, archive):
+    search_method = T.full_archive_search if archive else T.recent_search
+
+    for result in search_method(query, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
         count += len(result['data'])
         if limit != 0 and count >= limit:
