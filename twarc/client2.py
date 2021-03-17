@@ -371,6 +371,26 @@ class Twarc2:
             user_id, 'mentions', since_id, until_id, start_time, end_time
         )
 
+    def following(self, user_id):
+        """
+        Retrieve the user profiles of accounts followed by the given user.
+
+        """
+        params = expansions.USER_EVERYTHING.copy()
+        params["max_results"] = 1000
+        url = f"https://api.twitter.com/2/users/{user_id}/following"
+        return self.get_paginated(url, params=params)
+
+    def followers(self, user_id):
+        """
+        Retrieve the user profiles of accounts following the given user.
+
+        """
+        params = expansions.USER_EVERYTHING.copy()
+        params["max_results"] = 1000
+        url = f"https://api.twitter.com/2/users/{user_id}/followers"
+        return self.get_paginated(url, params=params)
+
     @rate_limit
     @catch_conn_reset
     @catch_timeout
@@ -421,15 +441,17 @@ class Twarc2:
 
         yield page
 
-        while "next_token" in page["meta"]:
-            # The search endpoints only take a next_token, but the timeline
-            # endpoints take a pagination_token instead - this is a bit of
-            # a hack, but check the URL to see which we should use.
-            if url.endswith('mentions') or url.endswith('tweets'):
-                token_param = "pagination_token"
-            else:
-                token_param = "next_token"
+        endings = ['mentions', 'tweets', 'following', 'followers']
 
+        # The search endpoints only take a next_token, but the timeline
+        # endpoints take a pagination_token instead - this is a bit of a hack,
+        # but check the URL ending to see which we should use.
+        if any(url.endswith(end) for end in endings):
+            token_param = "pagination_token"
+        else:
+            token_param = "next_token"
+
+        while "next_token" in page["meta"]:
             if "params" in kwargs:
                 kwargs["params"][token_param] = page["meta"]["next_token"]
             else:

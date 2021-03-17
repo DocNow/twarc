@@ -184,6 +184,50 @@ def tweet(T, tweet_id, outfile, flatten, pretty):
     _write(result, outfile, flatten, pretty=pretty)
 
 
+@cli.command('followers')
+@click.option('--limit', default=0, help='Maximum number of followers to save')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with users, and one line per user')
+@click.argument('user_id', type=str)
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def followers(T, query, outfile, limit, flatten):
+    """
+    Search for recent tweets.
+    """
+    count = 0
+    search_method = T.full_archive_search if archive else T.recent_search
+
+    for result in T.followers(user_id):
+        _write(result, outfile, flatten)
+        count += len(result['data'])
+        if limit != 0 and count >= limit:
+            break
+
+
+@cli.command('following')
+@click.option('--limit', default=0, help='Maximum number of followers to save')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with users, and one line per user')
+@click.argument('user_id', type=str)
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def following(T, query, outfile, limit, flatten):
+    """
+    Search for recent tweets.
+    """
+    count = 0
+    search_method = T.full_archive_search if archive else T.recent_search
+
+    for result in T.following(user_id):
+        _write(result, outfile, flatten)
+        count += len(result['data'])
+        if limit != 0 and count >= limit:
+            break
+
+
 @cli.command('sample')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--flatten', is_flag=True, default=False,

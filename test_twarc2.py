@@ -231,7 +231,7 @@ def test_timelines():
     Test the user timeline endpoints.
 
     """
-    # user_id 12 is @jack
+    # get @jack's first pages of tweets and mentions
     found = 0
     pages = 0
 
@@ -239,16 +239,48 @@ def test_timelines():
         pages += 1
         found += len(tweets["data"])
 
-    assert found
-    assert pages
+        if pages == 3:
+            break
+
+    assert found >= 200
+
 
     for tweets in T.mentions(12):
         pages += 1
         found += len(tweets["data"])
 
-    assert found
-    assert pages
+        if pages == 3:
+            break
 
+    assert found >=200
+
+
+def test_follows():
+    """
+    Test the user timeline endpoints.
+
+    """
+    found = 0
+    pages = 0
+
+    # get @jack's first pages of followers and friend
+    for users in T.following(12):
+        pages += 1
+        found += len(users["data"])
+
+        if pages == 2:
+            break
+
+    assert found >= 1000
+
+    for users in T.followers(12):
+        pages += 1
+        found += len(users["data"])
+
+        if pages == 2:
+            break
+
+    assert found >= 1000
 
 def test_flattened():
     """
