@@ -33,6 +33,13 @@ from click_config_file import configuration_option
     help='Twitter app access token secret for user authentication.')
 @click.option('--bearer-token', type=str, envvar='BEARER_TOKEN',
     help='Twitter app access bearer token.')
+@click.option(
+    '--app-auth/--user-auth',
+    default=True,
+    help="Use application authentication or user authentication. Some rate limits are "
+    "higher with user authentication, but not all endpoints are supported.",
+    show_default=True,
+)
 @click.option('--log', default='twarc.log')
 @click.option(
     '--metadata/--no-metadata',
@@ -44,7 +51,7 @@ from click_config_file import configuration_option
 @click.pass_context
 def cli(
     ctx, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token,
-    log, metadata
+    log, metadata, app_auth
 ):
     """
     Collect data from the Twitter V2 API.
@@ -55,8 +62,32 @@ def cli(
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    if not (consumer_key and consumer_secret and access_token and
-            access_token_secret):
+    if bearer_token or (consumer_key and consumer_secret):
+        if app_auth and (bearer_token or (consumer_key and consumer_secret)):
+            ctx.obj = twarc.Twarc2(
+                consumer_key=consumer_key, consumer_secret=consumer_secret,
+                bearer_token=bearer_token, metadata=metadata
+            )
+        # Check everything is present for user auth.
+        elif (consumer_key and consumer_secret and access_token and access_token_secret):
+            ctx.obj = twarc.Twarc2(
+                consumer_key=consumer_key, consumer_secret=consumer_secret,
+                access_token=access_token, access_token_secret=access_token_secret,
+                metadata=metadata
+            )
+        else:
+            click.echo(
+                click.style(
+                    '🙃  To use user authentication, you need all of the following:\n'
+                    '- consumer_key\n',
+                    '- consumer_secret\n',
+                    '- access_token\n',
+                    '- access_token_secret\n',
+                     fg='red'),
+                err=True
+            )
+            click.echo("You can configure twarc2 using the `twarc2 configure` command.")
+    else:
         click.echo()
         click.echo("👋  Hi I don't see a configuration file yet, so lets make one.")
         click.echo()
@@ -67,9 +98,6 @@ def cli(
         click.echo("3. go to your Keys and Tokens and generate your keys")
         click.echo()
         ctx.invoke(configure)
-    else:
-        ctx.obj = twarc.Twarc2(consumer_key, consumer_secret, access_token,
-                access_token_secret, metadata=metadata)
 
 
 @cli.command('configure')
