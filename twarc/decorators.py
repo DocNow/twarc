@@ -11,6 +11,12 @@ from requests.exceptions import ChunkedEncodingError, ReadTimeout, \
 log = logging.getLogger('twarc')
 
 
+class InvalidAuthType(Exception):
+    """
+    Raised when the endpoint called is not supported by the current auth type.
+    """
+
+
 def rate_limit(f):
     """
     A decorator to handle rate limiting from the Twitter API. If
@@ -175,11 +181,16 @@ class cli_api_error():
                 click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
                 err=True)
 
-
-class InvalidAuthType(Exception):
-    """
-    Raised when the endpoint called is not supported by the current auth type.
-    """
+        except InvalidAuthType as e:
+            click.echo(
+                click.style("⚡ ", fg="yellow") +
+                click.style(
+                    "This command requires application authentication, try passing "
+                    "--app-auth,",
+                    fg="red"
+                ),
+                err=True
+            )
 
 
 def requires_app_auth(f):
