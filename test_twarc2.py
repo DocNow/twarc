@@ -7,6 +7,8 @@ import logging
 import datetime
 import threading
 
+import pytest
+
 dotenv.load_dotenv()
 consumer_key = os.environ.get('CONSUMER_KEY')
 consumer_secret = os.environ.get('CONSUMER_SECRET')
@@ -16,16 +18,51 @@ access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
 
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
-# Implicitly test the constructor. This ensures that the tests don't depend on test
-# ordering, and allows using the pytest functionality to only run a single test at a
-# time.
-
+# Implicitly test the constructor in application auth mode. This ensures that the tests
+# don't depend on test ordering, and allows using the pytest functionality to only run a
+# single test at a time.
 T = twarc.Twarc2(
-    consumer_key,
-    consumer_secret,
-    access_token,
-    access_token_secret
+    consumer_key=consumer_key,
+    consumer_secret=consumer_secret,
 )
+
+
+def test_auth_types_interaction():
+    """Test the various options for configuration work as expected."""
+    # 1. bearer_token auth -> app auth
+    tw = twarc.Twarc2(bearer_token=bearer_token)
+    assert tw.auth_type == "application"
+
+    for response in tw.user_lookup(range(1, 101)):
+        assert response["data"]
+
+    tw.client.close()
+
+    # 2. consumer_keys
+    tw = twarc.Twarc2(consumer_key=consumer_key, consumer_secret=consumer_secret)
+    assert tw.auth_type == "application"
+
+    for response in tw.user_lookup(range(1, 101)):
+        assert response["data"]
+
+    tw.client.close()
+
+    # 3. Full user auth
+    tw = twarc.Twarc2(
+        access_token=access_token,
+        access_token_secret=access_token_secret,
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret
+    )
+    assert tw.auth_type == "user"
+
+    for response in tw.user_lookup(range(1, 101)):
+        assert response["data"]
+
+    tw.client.close()
+
+    with pytest.raises(twarc.client2.InvalidAuthType):
+        tw.sample()
 
 
 def test_sample():
@@ -49,12 +86,12 @@ def test_sample():
     assert count == 11
 
 
-def test_search():
+def test_recent_search():
 
     found_tweets = 0
     pages = 0
 
-    for response_page in T.search("#auspol"):
+    for response_page in T.recent_search("#auspol"):
         pages += 1
         tweets = response_page["data"]
         found_tweets += len(tweets)
@@ -73,7 +110,7 @@ def test_search_times():
     end = now - datetime.timedelta(seconds=60)
     start = now - datetime.timedelta(seconds=61)
 
-    for response_page in T.search("tweet", start_time=start,
+    for response_page in T.recent_search("tweet", start_time=start,
             end_time=end):
         for tweet in response_page["data"]:
             found = True
