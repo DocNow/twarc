@@ -177,20 +177,12 @@ class cli_api_error():
                 msg = result['title']
             else:
                 msg = 'Unknown error'
-            click.echo(
-                click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
-                err=True)
-
         except InvalidAuthType as e:
-            click.echo(
-                click.style("⚡ ", fg="yellow") +
-                click.style(
-                    "This command requires application authentication, try passing "
-                    "--app-auth,",
-                    fg="red"
-                ),
-                err=True
-            )
+            msg = "This command requires application authentication, try passing --app-auth"
+        click.echo(
+            click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
+            err=True
+        )
 
 
 def requires_app_auth(f):
