@@ -33,20 +33,14 @@ from click_config_file import configuration_option
     help='Twitter app access token secret for user authentication.')
 @click.option('--bearer-token', type=str, envvar='BEARER_TOKEN',
     help='Twitter app access bearer token.')
-@click.option(
-    '--app-auth/--user-auth',
-    default=True,
+@click.option('--app-auth/--user-auth', default=True,
     help="Use application authentication or user authentication. Some rate limits are "
     "higher with user authentication, but not all endpoints are supported.",
     show_default=True,
 )
 @click.option('--log', default='twarc.log')
-@click.option(
-    '--metadata/--no-metadata',
-    default=True,
-    help="Include/don't include metadata about when and how data was collected.",
-    show_default=True,
-)
+@click.option('--metadata/--no-metadata', default=True, show_default=True,
+    help="Include/don't include metadata about when and how data was collected.")
 @configuration_option(cmd_name='twarc')
 @click.pass_context
 def cli(
