@@ -188,17 +188,17 @@ def tweet(T, tweet_id, outfile, flatten, pretty):
 @click.option('--limit', default=0, help='Maximum number of followers to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with users, and one line per user')
-@click.argument('user_id', type=str)
+@click.argument('user', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def followers(T, user_id, outfile, limit, flatten):
+def followers(T, user, outfile, limit, flatten):
     """
-    Search for recent tweets.
+    Get the followers for a given user. 
     """
     count = 0
 
-    for result in T.followers(user_id):
+    for result in T.followers(user):
         _write(result, outfile, flatten)
         count += len(result['data'])
         if limit != 0 and count >= limit:
@@ -209,17 +209,17 @@ def followers(T, user_id, outfile, limit, flatten):
 @click.option('--limit', default=0, help='Maximum number of friends to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with users, and one line per user')
-@click.argument('user_id', type=str)
+@click.argument('userd', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def following(T, user_id, outfile, limit, flatten):
+def following(T, user, outfile, limit, flatten):
     """
-    Search for recent tweets.
+    Get the users who are following a given user.
     """
     count = 0
 
-    for result in T.following(user_id):
+    for result in T.following(user):
         _write(result, outfile, flatten)
         count += len(result['data'])
         if limit != 0 and count >= limit:
@@ -255,7 +255,7 @@ def sample(T, flatten, outfile, limit):
 @cli_api_error
 def hydrate(T, infile, outfile, flatten):
     """
-    Hydrate tweet ids from a file or stdin to a file or stdout.
+    Hydrate tweet ids.
     """
     for result in T.tweet_lookup(infile):
         _write(result, outfile, flatten)
@@ -295,7 +295,7 @@ def users(T, infile, outfile, usernames, flatten):
 @cli_api_error
 def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time, flatten):
     """
-    Retrieve the 800 most recent tweets mentioning the given user.
+    Retrieve the most recent tweets mentioning the given user.
     """
     for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
@@ -321,7 +321,7 @@ def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time, flat
     """
     Retrieve the 800 most recent tweets mentioning the given user.
     """
-    for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
+    for result in T.timeline(user_id, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
 
 

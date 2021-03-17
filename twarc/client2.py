@@ -4,13 +4,14 @@
 Support for the Twitter v2 API.
 """
 
-import datetime
+import re
+import ssl
 import json
 import logging
-import ssl
+import requests
+import datetime
 
 from oauthlib.oauth2 import BackendApplicationClient
-import requests
 from requests.exceptions import ConnectionError
 from requests.packages.urllib3.exceptions import ProtocolError
 from requests_oauthlib import OAuth1Session, OAuth2Session
@@ -351,41 +352,45 @@ class Twarc2:
                 log.info(f'no more results for timeline')
 
     def timeline(
-        self, user_id, since_id=None, until_id=None, start_time=None,
+        self, user, since_id=None, until_id=None, start_time=None,
         end_time=None
     ):
         """Retrieve up to the 3200 most recent tweets made by the given user."""
+        user_id = self._ensure_user_id(user)
         return self._timeline(
             user_id, 'tweets', since_id, until_id, start_time, end_time
         )
 
     def mentions(
-        self, user_id, since_id=None, until_id=None, start_time=None,
+        self, user, since_id=None, until_id=None, start_time=None,
         end_time=None
     ):
         """
         Retrieve up to the 800 most recent tweets mentioning the given user.
 
         """
+        user_id = self._ensure_user_id(user)
         return self._timeline(
             user_id, 'mentions', since_id, until_id, start_time, end_time
         )
 
-    def following(self, user_id):
+    def following(self, user):
         """
         Retrieve the user profiles of accounts followed by the given user.
 
         """
+        user_id = self._ensure_user_id(user)
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/following"
         return self.get_paginated(url, params=params)
 
-    def followers(self, user_id):
+    def followers(self, user):
         """
         Retrieve the user profiles of accounts following the given user.
 
         """
+        user_id = self._ensure_user_id(user)
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
@@ -508,12 +513,21 @@ class Twarc2:
                 resource_owner_secret=self.access_token_secret
             )
 
+    def _ensure_user_id(self, user):
+        user = str(user)
+        if re.match(r'^\d+$', user):
+            return user
+        else:
+            results = next(self.user_lookup([user], usernames=True))
+            if 'data' in results and len(results['data']) > 0:
+                return results['data'][0]['id']
+            else:
+                raise ValueError(f"No such user {user}")
 
 def _ts(dt):
     """
     Return ISO 8601 / RFC 3339 datetime in UTC. If no timezone is specified it
-    is assumed to be in UTC. The Twitter API does not resolve accept
-    microseconds.
+    is assumed to be in UTC. The Twitter API does not accept microseconds.
     """
     if dt.tzinfo:
         dt = dt.astimezone(datetime.timezone.utc)

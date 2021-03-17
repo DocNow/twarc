@@ -233,54 +233,83 @@ def test_timelines():
     """
     # get @jack's first pages of tweets and mentions
     found = 0
-
     for pages, tweets in enumerate(T.timeline(12)):
-
         found += len(tweets["data"])
-
         if pages == 3:
             break
-
     assert found >= 200
 
     found = 0
-
     for pages, tweets in enumerate(T.mentions(12)):
-
         found += len(tweets["data"])
-
         if pages == 3:
             break
+    assert found >= 200
 
-    assert found >=200
+
+def test_timelines_username():
+    """
+    Test the user timeline endpoints with username.
+
+    """
+
+    found = 0
+    for pages, tweets in enumerate(T.timeline("jack")):
+        found += len(tweets["data"])
+        if pages == 3:
+            break
+    assert found >= 200
+
+    found = 0
+    for pages, tweets in enumerate(T.mentions("jack")):
+        found += len(tweets["data"])
+        if pages == 3:
+            break
+    assert found >= 200
 
 
 def test_follows():
     """
-    Test the user timeline endpoints.
+    Test followers and and following. 
 
     """
-    found = 0
 
-    # get @jack's first pages of followers and friend
+    found = 0
     for pages, users in enumerate(T.following(12)):
         pages += 1
         found += len(users["data"])
-
         if pages == 2:
             break
-
     assert found >= 1000
 
     found = 0
-
     for pages, users in enumerate(T.followers(12)):
         found += len(users["data"])
-
         if pages == 2:
             break
-
     assert found >= 1000
+
+def test_follows_username():
+    """
+    Test followers and and following by username. 
+
+    """
+
+    found = 0
+    for pages, users in enumerate(T.following('jack')):
+        pages += 1
+        found += len(users["data"])
+        if pages == 2:
+            break
+    assert found >= 1000
+
+    found = 0
+    for pages, users in enumerate(T.followers('jack')):
+        found += len(users["data"])
+        if pages == 2:
+            break
+    assert found >= 1000
+
 
 def test_flattened():
     """
