@@ -233,10 +233,9 @@ def test_timelines():
     """
     # get @jack's first pages of tweets and mentions
     found = 0
-    pages = 0
 
-    for tweets in T.timeline(12):
-        pages += 1
+    for pages, tweets in enumerate(T.timeline(12)):
+
         found += len(tweets["data"])
 
         if pages == 3:
@@ -244,9 +243,10 @@ def test_timelines():
 
     assert found >= 200
 
+    found = 0
 
-    for tweets in T.mentions(12):
-        pages += 1
+    for pages, tweets in enumerate(T.mentions(12)):
+
         found += len(tweets["data"])
 
         if pages == 3:
@@ -261,10 +261,9 @@ def test_follows():
 
     """
     found = 0
-    pages = 0
 
     # get @jack's first pages of followers and friend
-    for users in T.following(12):
+    for pages, users in enumerate(T.following(12)):
         pages += 1
         found += len(users["data"])
 
@@ -273,8 +272,9 @@ def test_follows():
 
     assert found >= 1000
 
-    for users in T.followers(12):
-        pages += 1
+    found = 0
+
+    for pages, users in enumerate(T.followers(12)):
         found += len(users["data"])
 
         if pages == 2:

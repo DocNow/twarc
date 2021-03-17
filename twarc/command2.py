@@ -192,12 +192,11 @@ def tweet(T, tweet_id, outfile, flatten, pretty):
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def followers(T, query, outfile, limit, flatten):
+def followers(T, user_id, outfile, limit, flatten):
     """
     Search for recent tweets.
     """
     count = 0
-    search_method = T.full_archive_search if archive else T.recent_search
 
     for result in T.followers(user_id):
         _write(result, outfile, flatten)
@@ -207,19 +206,18 @@ def followers(T, query, outfile, limit, flatten):
 
 
 @cli.command('following')
-@click.option('--limit', default=0, help='Maximum number of followers to save')
+@click.option('--limit', default=0, help='Maximum number of friends to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with users, and one line per user')
 @click.argument('user_id', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def following(T, query, outfile, limit, flatten):
+def following(T, user_id, outfile, limit, flatten):
     """
     Search for recent tweets.
     """
     count = 0
-    search_method = T.full_archive_search if archive else T.recent_search
 
     for result in T.following(user_id):
         _write(result, outfile, flatten)
