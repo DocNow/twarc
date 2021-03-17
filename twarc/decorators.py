@@ -173,3 +173,20 @@ class cli_api_error():
             click.echo(
                 click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
                 err=True)
+
+
+def requires_app_auth(f):
+    """
+    Ensure that application authentication is set for calls that only work in that mode.
+
+    """
+    def new_f(self, *args, **kwargs):
+        if self.auth_type != "application":
+            raise InvalidAuthType(
+                "The academic full archive search endpoint requires application auth."
+            )
+
+        else:
+            return f(self, *args, **kwargs)
+
+    return new_f
