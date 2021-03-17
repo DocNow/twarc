@@ -322,6 +322,55 @@ class Twarc2:
                     }
                 yield data
 
+    def _timeline(
+        self, user_id, timeline_type, since_id, until_id, start_time, end_time
+    ):
+        """Helper function for user and mention timelines"""
+
+        url = f"https://api.twitter.com/2/users/{user_id}/{timeline_type}"
+
+        params = expansions.EVERYTHING.copy()
+        params["max_results"] = 100
+
+        if since_id:
+            params["since_id"] = since_id
+        if until_id:
+            params["until_id"] = until_id
+        if start_time:
+            params["start_time"] = _ts(start_time)
+        if end_time:
+            params["end_time"] = _ts(end_time)
+
+        count = 0
+        for response in self.get_paginated(url, params=params):
+            # can return without 'data' if there are no results
+            if 'data' in response:
+                count += len(response['data'])
+                yield response
+            else:
+                log.info(f'no more results for timeline')
+
+    def timeline(
+        self, user_id, since_id=None, until_id=None, start_time=None,
+        end_time=None
+    ):
+        """Retrieve up to the 3200 most recent tweets made by the given user."""
+        return self._timeline(
+            user_id, 'tweets', since_id, until_id, start_time, end_time
+        )
+
+    def mentions(
+        self, user_id, since_id=None, until_id=None, start_time=None,
+        end_time=None
+    ):
+        """
+        Retrieve up to the 800 most recent tweets mentioning the given user.
+
+        """
+        return self._timeline(
+            user_id, 'mentions', since_id, until_id, start_time, end_time
+        )
+
     @rate_limit
     @catch_conn_reset
     @catch_timeout
@@ -373,10 +422,18 @@ class Twarc2:
         yield page
 
         while "next_token" in page["meta"]:
-            if "params" in kwargs:
-                kwargs["params"]["next_token"] = page["meta"]["next_token"]
+            # The search endpoints only take a next_token, but the timeline
+            # endpoints take a pagination_token instead - this is a bit of
+            # a hack, but check the URL to see which we should use.
+            if url.endswith('mentions') or url.endswith('tweets'):
+                token_param = "pagination_token"
             else:
-                kwargs["params"] = {"next_token": page["meta"]["next_token"]}
+                token_param = "next_token"
+
+            if "params" in kwargs:
+                kwargs["params"][token_param] = page["meta"]["next_token"]
+            else:
+                kwargs["params"] = {token_param: page["meta"]["next_token"]}
 
             page = self.get(*args, **kwargs).json()
 

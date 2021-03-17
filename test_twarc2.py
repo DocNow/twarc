@@ -226,6 +226,30 @@ def test_stream():
     assert 'data' not in rules
 
 
+def test_timelines():
+    """
+    Test the user timeline endpoints.
+
+    """
+    # user_id 12 is @jack
+    found = 0
+    pages = 0
+
+    for tweets in T.timeline(12):
+        pages += 1
+        found += len(tweets["data"])
+
+    assert found
+    assert pages
+
+    for tweets in T.mentions(12):
+        pages += 1
+        found += len(tweets["data"])
+
+    assert found
+    assert pages
+
+
 def test_flattened():
     """
     This test uses the sample stream to test response flattening.  It will look

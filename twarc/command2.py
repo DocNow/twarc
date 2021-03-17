@@ -234,6 +234,54 @@ def users(T, infile, outfile, usernames, flatten):
     for result in T.user_lookup(infile, usernames):
         _write(result, outfile, flatten)
 
+@cli.command('mentions')
+@click.option('--since-id', type=int,
+    help='Match tweets sent after tweet id')
+@click.option('--until-id', type=int,
+    help='Match tweets sent prior to tweet id')
+@click.option('--start-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+@click.option('--end-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Match tweets sent before time (ISO 8601/RFC 3339)')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
+@click.argument('user_id', type=str)
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time, flatten):
+    """
+    Retrieve the 800 most recent tweets mentioning the given user.
+    """
+    for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
+        _write(result, outfile, flatten)
+
+@cli.command('timeline')
+@click.option('--since-id', type=int,
+    help='Match tweets sent after tweet id')
+@click.option('--until-id', type=int,
+    help='Match tweets sent prior to tweet id')
+@click.option('--start-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+@click.option('--end-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Match tweets sent before time (ISO 8601/RFC 3339)')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
+@click.argument('user_id', type=str)
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time, flatten):
+    """
+    Retrieve the 800 most recent tweets mentioning the given user.
+    """
+    for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
+        _write(result, outfile, flatten)
+
 
 @cli.command('flatten')
 @click.argument('infile', type=click.File('r'), default='-')
