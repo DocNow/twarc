@@ -443,6 +443,12 @@ class Twarc2:
         page = self.get(*args, **kwargs).json()
 
         url = args[0]
+        
+        if self.metadata:
+            page["__twarc"] = {
+                "url": url,
+                "retrieved_at": _utcnow()
+            }
 
         yield page
 
