@@ -329,7 +329,7 @@ def flatten(infile, outfile):
     """
     for line in infile:
         result = json.loads(line)
-        _flatten(result, outfile, True)
+        _write(result, outfile, True)
 
 
 @cli.command('stream')
