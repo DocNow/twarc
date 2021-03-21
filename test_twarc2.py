@@ -66,19 +66,16 @@ def test_auth_types_interaction():
 
 
 def test_sample():
-    count = 0
-
     # event to tell the filter stream to close
     event = threading.Event()
 
-    for result in T.sample(event=event):
+    for count, result in enumerate(T.sample(event=event)):
         assert int(result["data"]["id"])
 
         # users are passed by reference an dincluded as includes
         user_id = result["data"]["author_id"]
         assert len(pick_id(user_id, result["includes"]["users"])) == 1
 
-        count += 1
         if count > 10:
             # close the sample
             event.set()
@@ -203,10 +200,8 @@ def test_stream():
     assert rules['data'][1]["tag"] == "twarc-test"
 
     # collect some data
-    count = 0
     event = threading.Event()
-    for result in T.stream(event=event):
-        count += 1
+    for count, result in enumerate(T.stream(event=event)):
         assert result['data']['id']
         assert result['data']['text']
         assert len(result['matching_rules']) > 0
@@ -326,9 +321,8 @@ def test_flattened():
     found_entities_mentions = False
     found_referenced_tweets = False
 
-    count = 0
     event = threading.Event()
-    for result in T.sample(event=event):
+    for count, result in enumerate(T.sample(event=event)):
         result = twarc.expansions.flatten(result)
 
         tweet = result["data"]
@@ -364,7 +358,6 @@ def test_flattened():
             assert tweet["referenced_tweets"][0]["id"]
             found_referenced_tweets = True
 
-        count += 1
         if found_geo and found_in_reply_to_user and found_attachments_media \
                 and found_attachments_polls and found_entities_mentions \
                 and found_referenced_tweets:
@@ -388,7 +381,7 @@ def pick_id(id, objects):
     return list(filter(lambda o: o["id"] == id, objects))
 
 
-def test_metadata_option():
+def test_twarc_metadata():
 
     event = threading.Event()
 
@@ -400,6 +393,7 @@ def test_metadata_option():
 
     for response in T.tweet_lookup(range(1000, 2000)):
         assert "__twarc" in response
+        assert "__twarc" in twarc.expansions.flatten(response)
 
     T.metadata = False
 
