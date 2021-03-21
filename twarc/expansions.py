@@ -199,4 +199,9 @@ def flatten(response):
     if "data" in response:
         response["data"] = expand_payload(response["data"])
 
+    # Add the __twarc metadata from the response to each tweet if it's a result set
+    if "__twarc" in response and isinstance(response["data"], list):
+        for tweet in response["data"]:
+            tweet["__twarc"] = response["__twarc"]
+
     return response
