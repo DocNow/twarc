@@ -164,7 +164,7 @@ class Twarc2:
             resp = self.get(url, params=params).json()
 
             if self.metadata:
-                resp = _append_metadata(resp)
+                resp = _append_metadata(resp, url)
 
             return resp
 
@@ -205,7 +205,7 @@ class Twarc2:
             resp = self.get(url, params=params).json()
 
             if self.metadata:
-                resp = _append_metadata(resp)
+                resp = _append_metadata(resp, url)
 
             return resp
 
@@ -256,7 +256,7 @@ class Twarc2:
                     else:
                         data = json.loads(line.decode())
                         if self.metadata:
-                            data = _append_metadata(data)
+                            data = _append_metadata(data, url)
                         yield data
 
             except requests.exceptions.HTTPError as e:
@@ -308,7 +308,7 @@ class Twarc2:
             else:
                 data = json.loads(line.decode())
                 if self.metadata:
-                    data = _append_metadata(data)
+                    data = _append_metadata(data, url)
 
                 yield data
 
@@ -434,7 +434,7 @@ class Twarc2:
         url = args[0]
         
         if self.metadata:
-            page = _append_metadata(page)
+            page = _append_metadata(page, url)
 
         yield page
 
@@ -457,7 +457,7 @@ class Twarc2:
             page = self.get(*args, **kwargs).json()
 
             if self.metadata:
-                page = _append_metadata(page)
+                page = _append_metadata(page, url)
 
             yield page
 
@@ -530,7 +530,7 @@ def _utcnow():
         timespec='seconds'
     )
 
-def _append_metadata(result):
+def _append_metadata(result, url):
     result["__twarc"] = {
                     "url": url,
                     "retrieved_at": _utcnow()
