@@ -164,10 +164,7 @@ class Twarc2:
             resp = self.get(url, params=params).json()
 
             if self.metadata:
-                resp["__twarc"] = {
-                    "url": url,
-                    "retrieved_at": _utcnow()
-                }
+                resp = _append_metadata(resp)
 
             return resp
 
@@ -208,10 +205,7 @@ class Twarc2:
             resp = self.get(url, params=params).json()
 
             if self.metadata:
-                resp["__twarc"] = {
-                    "url": url,
-                    "retrieved_at": _utcnow()
-                }
+                resp = _append_metadata(resp)
 
             return resp
 
@@ -262,10 +256,7 @@ class Twarc2:
                     else:
                         data = json.loads(line.decode())
                         if self.metadata:
-                            data["__twarc"] = {
-                                "url": url,
-                                "retrieved_at": _utcnow()
-                            }
+                            data = _append_metadata(data)
                         yield data
 
             except requests.exceptions.HTTPError as e:
@@ -317,10 +308,8 @@ class Twarc2:
             else:
                 data = json.loads(line.decode())
                 if self.metadata:
-                    data["__twarc"] = {
-                        "url": url,
-                        "retrieved_at": _utcnow()
-                    }
+                    data = _append_metadata(data)
+
                 yield data
 
     def _timeline(
@@ -445,10 +434,7 @@ class Twarc2:
         url = args[0]
         
         if self.metadata:
-            page["__twarc"] = {
-                "url": url,
-                "retrieved_at": _utcnow()
-            }
+            page = _append_metadata(page)
 
         yield page
 
@@ -471,10 +457,7 @@ class Twarc2:
             page = self.get(*args, **kwargs).json()
 
             if self.metadata:
-                page["__twarc"] = {
-                    "url": url,
-                    "retrieved_at": _utcnow()
-                }
+                page = _append_metadata(page)
 
             yield page
 
@@ -547,3 +530,9 @@ def _utcnow():
         timespec='seconds'
     )
 
+def _append_metadata(result):
+    result["__twarc"] = {
+                    "url": url,
+                    "retrieved_at": _utcnow()
+                }
+    return result
