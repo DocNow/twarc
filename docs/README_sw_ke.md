@@ -1,10 +1,6 @@
 twarc
 =====
 
-[![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
-
-*Tafsiri: [Kiingereza], [Kijapani], [Kihispania], [Kireno], [Kisweden]*
-
 twarc ni chombo ya command-line na Python Library ya kuhifadhi Twitter JSON
 data. Kila Tweet ita akilishwa kama kitu ya JSON ita onyeshwa
 [hivi](https://dev.twitter.com/overview/api/tweets) kutoka kwa Twitter API.

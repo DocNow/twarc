@@ -43,7 +43,7 @@ from click_config_file import configuration_option
     help="Include/don't include metadata about when and how data was collected.")
 @configuration_option(cmd_name='twarc')
 @click.pass_context
-def cli(
+def twarc2(
     ctx, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token,
     log, metadata, app_auth
 ):
@@ -94,7 +94,7 @@ def cli(
         ctx.invoke(configure)
 
 
-@cli.command('configure')
+@twarc2.command('configure')
 @click.pass_context
 def configure(ctx):
     """
@@ -124,7 +124,7 @@ def configure(ctx):
     ctx.exit()
 
 
-@cli.command('search')
+@twarc2.command('search')
 @click.option('--since-id', type=int,
     help='Match tweets sent after tweet id')
 @click.option('--until-id', type=int,
@@ -157,7 +157,7 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, a
         if limit != 0 and count >= limit:
             break
 
-@cli.command('tweet')
+@twarc2.command('tweet')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet')
 @click.option('--pretty', is_flag=True, default=False,
@@ -178,7 +178,7 @@ def tweet(T, tweet_id, outfile, flatten, pretty):
     _write(result, outfile, flatten, pretty=pretty)
 
 
-@cli.command('followers')
+@twarc2.command('followers')
 @click.option('--limit', default=0, help='Maximum number of followers to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with users, and one line per user')
@@ -199,7 +199,7 @@ def followers(T, user, outfile, limit, flatten):
             break
 
 
-@cli.command('following')
+@twarc2.command('following')
 @click.option('--limit', default=0, help='Maximum number of friends to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with users, and one line per user')
@@ -220,7 +220,7 @@ def following(T, user, outfile, limit, flatten):
             break
 
 
-@cli.command('sample')
+@twarc2.command('sample')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet.')
@@ -240,7 +240,7 @@ def sample(T, flatten, outfile, limit):
         _write(result, outfile, flatten)
 
 
-@cli.command('hydrate')
+@twarc2.command('hydrate')
 @click.argument('infile', type=click.File('r'), default='-')
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.option('--flatten', is_flag=True, default=False,
@@ -255,7 +255,7 @@ def hydrate(T, infile, outfile, flatten):
         _write(result, outfile, flatten)
 
 
-@cli.command('users')
+@twarc2.command('users')
 @click.option('--usernames', is_flag=True, default=False)
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet.')
@@ -270,7 +270,7 @@ def users(T, infile, outfile, usernames, flatten):
     for result in T.user_lookup(infile, usernames):
         _write(result, outfile, flatten)
 
-@cli.command('mentions')
+@twarc2.command('mentions')
 @click.option('--since-id', type=int,
     help='Match tweets sent after tweet id')
 @click.option('--until-id', type=int,
@@ -294,7 +294,7 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time, flat
     for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
 
-@cli.command('timeline')
+@twarc2.command('timeline')
 @click.option('--since-id', type=int,
     help='Match tweets sent after tweet id')
 @click.option('--until-id', type=int,
@@ -319,7 +319,7 @@ def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time, flat
         _write(result, outfile, flatten)
 
 
-@cli.command('flatten')
+@twarc2.command('flatten')
 @click.argument('infile', type=click.File('r'), default='-')
 @click.argument('outfile', type=click.File('w'), default='-')
 @cli_api_error
@@ -332,7 +332,7 @@ def flatten(infile, outfile):
         _write(result, outfile, True)
 
 
-@cli.command('stream')
+@twarc2.command('stream')
 @click.option('--limit', default=0, help='Maximum number of tweets to return')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet')
@@ -353,7 +353,7 @@ def stream(T, flatten, outfile, limit):
         _write(result, outfile, flatten)
 
 
-@cli.group()
+@twarc2.group()
 @click.pass_obj
 def stream_rules(T):
     """

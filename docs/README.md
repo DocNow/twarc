@@ -1,10 +1,7 @@
 twarc
 =====
 
-![tests](https://github.com/docnow/twarc/workflows/tests/badge.svg)
-
-*Translations: [Chinese], [Japanese], [Portuguese], [Spanish], [Swahili], [Swedish]*  
-*See the [twarc2](https://github.com/DocNow/twarc/wiki/twarc2) page on the wiki for details about our plans to support the Twitter v2 API* 
+***For information about working with the Twitter V2 API please see the [twarc2](twarc2) page.***
 
 ---
 
@@ -438,9 +435,7 @@ you can generate a GEXF file with the following:
     utils/network.py --users tweets.jsonl tweets.gexf
     utils/network.py --hashtags tweets.jsonl tweets.gexf
 
-Additionally if you want to convert the network into a dynamic network with timeline enabled (i.e. nodes will appear and disappear according to their  attributes), you can open up your GEXF file in Gephi and follow [these instructions](https://seinecle.github.io/gephi-tutorials/generated-html/converting-a-network-with-dates-into-dynamic.html). Note that in tweets.gexf there is a column for "start_date" (which is the day the post was created) but none for "end_date" and that in the dynamic timeline, the nodes will appear on the screen at their start date and stay on screen forever after.  For the "Time Interval creation options" pop-up in Gephi, the "Start time column" should be "start_date", the "End time column" should be empty, the "Parse dates" should be selected, and the Date format should be the last option, "dd/MM/yyyy HH:mm:ss", just as pictured below.
-
-![Image of Correctly Chosen Options in Gephi's Create Time Interval Popup](gephi_correct_options_for_time_interval_popup.png)
+Additionally if you want to convert the network into a dynamic network with timeline enabled (i.e. nodes will appear and disappear according to their  attributes), you can open up your GEXF file in Gephi and follow [these instructions](https://seinecle.github.io/gephi-tutorials/generated-html/converting-a-network-with-dates-into-dynamic.html). Note that in tweets.gexf there is a column for "start_date" (which is the day the post was created) but none for "end_date" and that in the dynamic timeline, the nodes will appear on the screen at their start date and stay on screen forever after.  For the "Time Interval creation options" pop-up in Gephi, the "Start time column" should be "start_date", the "End time column" should be empty, the "Parse dates" should be selected, and the Date format should be the last option, "dd/MM/yyyy HH:mm:ss".
 
 gender.py is a filter which allows you to filter tweets based on a guess about
 the gender of the author. So for example you can filter out all the tweets that

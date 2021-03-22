@@ -7,19 +7,28 @@ repo_name: twarc
 
 theme:
   name: "material"
+  logo: images/docnow.png
+  palette:
+    scheme: preference
 
 nav: 
-  - README.md
-  - README_es_mx.md
-  - README_ja_jp.md
-  - README_pt_br.md
-  - README_sv_se.md
-  - README_sw_ke.md
-  - README_zw_zh.md
-  - client.md
-  - client2.md
+  - Home: 
+    - Home (en): README.md
+    - Home (es): README_es_mx.md
+    - Home (ja): README_ja_jp.md
+    - Home (pt): README_pt_br.md
+    - Home (sv): README_sv_se.md
+    - Home (sw): README_sw_ke.md
+    - Home (zw): README_zw_zh.md
+  - twarc2: twarc2.md
+  - API:
+    - api/client.md
+    - api/client2.md
 
 plugins:
 - search
 - mkdocstrings
+
+markdown_extensions:
+- mkdocs-click
 
