@@ -1,3 +1,0 @@
-pytest
-python-dateutil
-requests_oauthlib

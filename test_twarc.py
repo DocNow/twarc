@@ -46,11 +46,6 @@ logging.basicConfig(filename="test.log", level=logging.INFO)
 T = twarc.Twarc()
 
 
-def test_version():
-    import setup
-    assert setup.__version__ == twarc.__version__
-
-
 def test_search():
     count = 0
     for tweet in T.search('obama'):

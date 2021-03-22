@@ -1,23 +1,18 @@
 import sys
+import setuptools
 
-from os.path import join
-from setuptools import setup
-
-# Also in twarc/__init__.py
-__version__ = '1.12.1'
+version = 'v2.0.0'
 
 with open("README.md") as f:
     long_description = f.read()
 
-if sys.version_info[0] < 3:
-    dependencies = open(join('requirements', 'python2.txt')).read().split()
-else:
-    dependencies = open(join('requirements', 'python3.txt')).read().split()
+with open("requirements.txt") as f:
+    dependencies = f.read().split()
 
 if __name__ == "__main__":
-    setup(
+    setuptools.setup(
         name='twarc',
-        version=__version__,
+        version=version,
         url='https://github.com/docnow/twarc',
         author='Ed Summers',
         author_email='ehs@pobox.com',
@@ -25,9 +20,12 @@ if __name__ == "__main__":
         description='Archive tweets from the command line',
         long_description=long_description,
         long_description_content_type="text/markdown",
-        python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+        python_requires='>=3.3',
         install_requires=dependencies,
         setup_requires=['pytest-runner'],
-        tests_require=['pytest', 'python-dotenv'],
-        entry_points={'console_scripts': ['twarc = twarc:main']}
+        tests_require=['pytest', 'python-dotenv', 'pytz'],
+        entry_points={'console_scripts': [
+            'twarc = twarc.command:main',
+            'twarc2 = twarc.command2:cli',
+        ]}
     )

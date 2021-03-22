@@ -1,4 +1,5 @@
 import time
+import click
 import logging
 
 from requests import HTTPError
@@ -6,7 +7,14 @@ from requests.packages.urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ChunkedEncodingError, ReadTimeout, \
                                 ContentDecodingError
 
+
 log = logging.getLogger('twarc')
+
+
+class InvalidAuthType(Exception):
+    """
+    Raised when the endpoint called is not supported by the current auth type.
+    """
 
 
 def rate_limit(f):
@@ -19,7 +27,7 @@ def rate_limit(f):
         errors = 0
         while True:
             resp = f(*args, **kwargs)
-            if resp.status_code == 200:
+            if resp.status_code in [200, 201]:
                 errors = 0
                 return resp
             elif resp.status_code == 401:
@@ -146,5 +154,51 @@ def filter_protected(f):
                 elif 'protected' in obj and obj['protected']:
                     continue
             yield obj
+
+    return new_f
+
+class cli_api_error():
+    """
+    A decorator to catch HTTP errors for the command line.
+    """
+    def __init__(self, f):
+        self.f = f
+        self.__doc__ = f.__doc__
+
+    def __call__(self, *args, **kwargs):
+        try:
+            return self.f(*args, **kwargs)
+        except HTTPError as e:
+            result = e.response.json()
+            if 'errors' in result:
+                for error in result['errors']:
+                    msg = error.get('message', 'Unknown error')
+            elif 'title' in result:
+                msg = result['title']
+            else:
+                msg = 'Unknown error'
+        except InvalidAuthType as e:
+            msg = "This command requires application authentication, try passing --app-auth"
+        except ValueError as e:
+            msg = str(e)
+        click.echo(
+            click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
+            err=True
+        )
+
+
+def requires_app_auth(f):
+    """
+    Ensure that application authentication is set for calls that only work in that mode.
+
+    """
+    def new_f(self, *args, **kwargs):
+        if self.auth_type != "application":
+            raise InvalidAuthType(
+                "This endpoint only works with application authentication"
+            )
+
+        else:
+            return f(self, *args, **kwargs)
 
     return new_f

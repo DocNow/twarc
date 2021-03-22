@@ -1,5 +1,6 @@
 pytest
 python-dateutil
 requests_oauthlib
-unicodecsv
-mock
+click
+click-plugins
+click-config-file
