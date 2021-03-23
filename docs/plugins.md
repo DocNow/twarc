@@ -1,10 +1,11 @@
 # Plugins
 
-In twarc v1 a set of programs for working with tweet JSON were collected in the
-[utils] directory of the GitHub repository. This was a handy way to share
-snippets of code. But some had different dependencies which weren't managed,
-and the utilities sometimes had slightly different interfaces. They needed to
-be downloaded from GitHub and weren't easily accessible at the command line.
+twarc v1 collected a set of utilities for working with tweet json in the
+[utils] directory of the git repository. This was a handy way to develop and
+share snippets of code. But some utilities had different dependencies which
+weren't managed in a uniform way. Some of the utilities had slightly different
+interfaces. They needed to be downloaded from GitHub manually and weren't
+easily accessible at the command line if you remembered where you put them.
 
 With *twarc2* these utilities are now installable as plugins, which are made
 available as subcommands using the same twarc2 command line. Plugins are
