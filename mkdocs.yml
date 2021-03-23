@@ -21,6 +21,7 @@ nav:
     - Home (sw): README_sw_ke.md
     - Home (zw): README_zw_zh.md
   - twarc2: twarc2.md
+  - Plugins: plugins.md
   - API:
     - api/client.md
     - api/client2.md
@@ -31,4 +32,5 @@ plugins:
 
 markdown_extensions:
 - mkdocs-click
-
+- pymdownx.highlight
+- pymdownx.superfences
