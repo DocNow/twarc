@@ -113,7 +113,7 @@ class Twarc2:
             else:
                 log.info(f'no more results for search')
 
-    def recent_search(
+    def search_recent(
             self, query, since_id=None, until_id=None, start_time=None,
             end_time=None, max_results=100
         ):
@@ -135,7 +135,7 @@ class Twarc2:
         )
 
     @requires_app_auth
-    def full_archive_search(
+    def search_all(
         self, query, since_id=None, until_id=None, start_time=None,
         end_time=None, max_results=500
     ):

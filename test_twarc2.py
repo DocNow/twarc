@@ -83,12 +83,12 @@ def test_sample():
     assert count == 11
 
 
-def test_recent_search():
+def test_search_recent():
 
     found_tweets = 0
     pages = 0
 
-    for response_page in T.recent_search("#auspol"):
+    for response_page in T.search_recent("#auspol"):
         pages += 1
         tweets = response_page["data"]
         found_tweets += len(tweets)
@@ -107,7 +107,7 @@ def test_search_times():
     end = now - datetime.timedelta(seconds=60)
     start = now - datetime.timedelta(seconds=61)
 
-    for response_page in T.recent_search("tweet", start_time=start,
+    for response_page in T.search_recent("tweet", start_time=start,
             end_time=end):
         for tweet in response_page["data"]:
             found = True

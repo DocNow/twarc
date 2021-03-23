@@ -146,10 +146,10 @@ def configure(ctx):
 @cli_api_error
 def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, archive, flatten):
     """
-    Search for recent tweets.
+    Search for tweets.
     """
     count = 0
-    search_method = T.full_archive_search if archive else T.recent_search
+    search_method = T.search_all if archive else T.search_recent
 
     for result in search_method(query, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
