@@ -46,12 +46,12 @@ class Twarc2:
         time. Whether app auth or user auth is used depends on which credentials
         are provided on initialisation:
 
-            1. If a `bearer_token` is passed, app auth is always used.
-            2. If a `consumer_key` and `consumer_secret` are passed without an
-               `access_token` and `access_token_secret`, app auth is used.
-            3. If `consumer_key`, `consumer_secret`, `access_token` and
-               `access_token_secret` are all passed, then user authentication
-               is used instead.
+        1. If a `bearer_token` is passed, app auth is always used.
+        2. If a `consumer_key` and `consumer_secret` are passed without an
+           `access_token` and `access_token_secret`, app auth is used.
+        3. If `consumer_key`, `consumer_secret`, `access_token` and
+           `access_token_secret` are all passed, then user authentication
+           is used instead.
 
         """
         self.api_version = "2"

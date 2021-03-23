@@ -1,10 +1,6 @@
 twarc
 =====
 
-[![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
-
-*翻訳: [英語], [ポルトガル語], [スペイン語], [スワヒリ語], [スウェーデン語]*
-
 twarcは、TwitterのJSONデータをアーカイブするためのコマンドラインツールおよびPythonライブラリーのプログラムです。
 
 - 各ツイートは、Twitter APIから返された内容を[正確に](https://dev.twitter.com/overview/api/tweets)表すJSONオブジェクトとして表示されます。

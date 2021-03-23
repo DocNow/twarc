@@ -1,10 +1,6 @@
 twarc
 =====
 
-[![Build Status](https://secure.travis-ci.org/DocNow/twarc.png)](http://travis-ci.org/DocNow/twarc)
-
-*翻译: [英语], [日语], [葡萄牙语], [西班牙语], [斯瓦希里语], [瑞典语]*
-
 twarc 是一个用来处理并存档推特 JSON 数据的命令行工具和 Python 包。
 
 [正如](https://dev.twitter.com/overview/api/tweets)推特 API 返回的一样，twarc 处理的每一条推文都用一个 JSON 对象来表示。twarc 会自动处理推特 API 的[流量限制](https://dev.twitter.com/rest/public/rate-limiting)。除了可以让你收集推文之外，twarc 还可以帮助你收集用户信息、当下流行的标签和根据 id 获得推文的详细信息。
@@ -442,8 +438,6 @@ utils/network.py --hashtags tweets.jsonl tweets.gexf
 ```
 
 额外的，如果你想将网络转换成一个随时间线动态变化（节点会出现和消失）的动态网络，你可以在 Gephi 中打开生成的 `GEXF` 文件，跟随这个[教程](https://seinecle.github.io/gephi-tutorials/generated-html/converting-a-network-with-dates-into-dynamic.html)实现。注意在 `tweets.gexf` 文件里，仅有 `start_date` 一栏但是却没有 `end_date` 一栏，这会导致节点出现在屏幕上后便不再消失。对于 Gephi 中的 `Time interval creation options` 跳出窗口，`Start time column` 应该是 `start_date`, 而 `End time column` 则是空白的。`Parse dates` 应该勾选，同时选择最后一个日期格式选项：`dd/MM/yyyy HH:mm:ss`, 如下图所示。
-
-![Image of Correctly Chosen Options in Gephi's Create Time Interval Popup](gephi_correct_options_for_time_interval_popup.png)
 
 `gender.py` 是一个可以猜测推文作者性别的脚本。比如下面的例子展示了如何保留看上去像是女性发出的推文并生成一个词云。
 

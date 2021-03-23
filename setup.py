@@ -3,7 +3,7 @@ import setuptools
 
 version = 'v2.0.0'
 
-with open("README.md") as f:
+with open("docs/README.md") as f:
     long_description = f.read()
 
 with open("requirements.txt") as f:
@@ -26,6 +26,6 @@ if __name__ == "__main__":
         tests_require=['pytest', 'python-dotenv', 'pytz'],
         entry_points={'console_scripts': [
             'twarc = twarc.command:main',
-            'twarc2 = twarc.command2:cli',
+            'twarc2 = twarc.command2:twarc2',
         ]}
     )
