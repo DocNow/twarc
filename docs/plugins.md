@@ -13,8 +13,8 @@ published separately from twarc on [PyPI] and are installed with [pip]. Here is
 a list of some known plugins (if you write one please [let us know] so we can
 add it to this list):
 
-* [twarc-ids](https://github.com/docnow/twarc-ids): extract tweet ids from tweets
-* [twarc-videos](https://github.com/docnow/twarc-videos): extract platform video from tweets
+* [twarc-ids](https://pypi.org/project/twarc-ids/): extract tweet ids from tweets
+* [twarc-videos](https://pypi.org/project/twarc-videos): extract videos from tweets
 
 ## Writing a Plugin
 
