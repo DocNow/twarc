@@ -166,11 +166,11 @@ def flatten(response):
                 includes_media[media_key] for media_key in payload["media_keys"]
             )
 
-        if "poll_ids" in payload:
+        if "poll_ids" in payload and len(payload["poll_ids"]) > 0:
             poll_id = payload["poll_ids"][-1]  # only ever 1 poll per tweet.
             payload["poll"] = includes_polls[poll_id]
 
-        if "geo" in payload:
+        if "geo" in payload and "place_id" in payload["geo"]:
             place_id = payload["geo"]["place_id"]
             payload["geo"] = {**payload["geo"], **includes_places[place_id]}
 
