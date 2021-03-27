@@ -491,7 +491,7 @@ def test_hydrate():
     for tweet in T.hydrate(iter(ids)):
         assert tweet['id_str']
         count += 1
-    assert count > 100  # may need to adjust as these might get deleted
+    assert count > 90  # may need to adjust as these might get deleted
 
 
 @patch("twarc.client.OAuth1Session", autospec=True)
