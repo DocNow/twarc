@@ -15,6 +15,7 @@ add it to this list):
 
 * [twarc-ids](https://pypi.org/project/twarc-ids/): extract tweet ids from tweets
 * [twarc-videos](https://pypi.org/project/twarc-videos): extract videos from tweets
+* [twarc-csv](https://pypi.org/project/twarc-csv/): export tweets to CSV
 
 ## Writing a Plugin
 
