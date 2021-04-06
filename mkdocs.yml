@@ -25,8 +25,9 @@ nav:
   - API:
     - api/client.md
     - api/client2.md
-  - WIKI:
-    - wiki/
+  - 'wiki Pages':
+    - 'Twitter Developer Access' : 'wiki/Twitter-Developer-Access'
+    - 'twarc2 on Windows 10' : 'wiki/twarc2-on-Windows-10'
 
 plugins:
 - search
