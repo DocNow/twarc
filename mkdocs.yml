@@ -25,6 +25,8 @@ nav:
   - API:
     - api/client.md
     - api/client2.md
+  - WIKI:
+    - wiki/
 
 plugins:
 - search
@@ -34,3 +36,6 @@ markdown_extensions:
 - mkdocs-click
 - pymdownx.highlight
 - pymdownx.superfences
+
+submodules:
+  include: all
