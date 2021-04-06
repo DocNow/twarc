@@ -36,6 +36,3 @@ markdown_extensions:
 - mkdocs-click
 - pymdownx.highlight
 - pymdownx.superfences
-
-submodules:
-  include: all
