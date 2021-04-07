@@ -1,3 +1,4 @@
 [submodule "docs"]
 	path = docs
-	url = https://github.com/DocNow/twarc.wiki.git
+        url = https://github.com/DocNow/twarc.wiki.git
+        branch = master

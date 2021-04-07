@@ -6,7 +6,6 @@ mkdocs:
 submodules:
   include:
     - docs 
-  recursive: true
 
 python:
   version: 3.8
