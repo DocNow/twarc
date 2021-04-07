@@ -4,6 +4,7 @@ site_description: Collect Twitter JSON data from the command line.
 
 repo_url: https://github.com/docnow/twarc
 repo_name: twarc
+edit_uri: edit/main/docs/
 
 theme:
   name: "material"
