@@ -161,12 +161,13 @@ class Twarc2:
             params = expansions.EVERYTHING.copy()
             params["ids"] = ",".join(tweet_id)
 
-            resp = self.get(url, params=params).json()
+            resp = self.get(url, params=params)
+            data = resp.json()
 
             if self.metadata:
-                resp = _append_metadata(resp, url)
+                data = _append_metadata(data, resp.url)
 
-            return resp
+            return data
 
         tweet_id_batch = []
 
@@ -202,12 +203,13 @@ class Twarc2:
             else:
                 params["ids"] = ",".join(users)
 
-            resp = self.get(url, params=params).json()
+            resp = self.get(url, params=params)
+            data = resp.json()
 
             if self.metadata:
-                resp = _append_metadata(resp, url)
+                data = _append_metadata(data, resp.url)
 
-            return resp
+            return data
 
         batch = []
         for item in users:
@@ -256,7 +258,7 @@ class Twarc2:
                     else:
                         data = json.loads(line.decode())
                         if self.metadata:
-                            data = _append_metadata(data, url)
+                            data = _append_metadata(data, resp.url)
                         yield data
 
             except requests.exceptions.HTTPError as e:
@@ -308,7 +310,7 @@ class Twarc2:
             else:
                 data = json.loads(line.decode())
                 if self.metadata:
-                    data = _append_metadata(data, url)
+                    data = _append_metadata(data, resp.url)
 
                 yield data
 
@@ -429,12 +431,13 @@ class Twarc2:
         Yields one page (one API response) at a time.
         """
 
-        page = self.get(*args, **kwargs).json()
+        resp = self.get(*args, **kwargs)
+        page = resp.json()
 
         url = args[0]
         
         if self.metadata:
-            page = _append_metadata(page, url)
+            page = _append_metadata(page, resp.url)
 
         yield page
 
@@ -454,10 +457,11 @@ class Twarc2:
             else:
                 kwargs["params"] = {token_param: page["meta"]["next_token"]}
 
-            page = self.get(*args, **kwargs).json()
+            resp = self.get(*args, **kwargs)
+            page = resp.json()
 
             if self.metadata:
-                page = _append_metadata(page, url)
+                page = _append_metadata(page, resp.url)
 
             yield page
 
