@@ -1,0 +1,22 @@
+name: docs
+on: gollum
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Auto push wiki changes
+      run: |
+        cd docs
+        git reset --hard origin/master
+        git pull origin master
+        GIT_USER=`git show --format='%aN' --quiet`
+        GIT_EMAIL=`git show --format='%aE' --quiet`
+        GIT_COMMIT=`git log -1  --pretty='%s'`
+        cd ..
+        git config --local user.name $GIT_USER
+        git config --local user.email $GIT_EMAIL
+        git add .
+        git diff-index --quiet HEAD || git commit -m "$GIT_COMMIT" && git push
