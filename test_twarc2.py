@@ -28,7 +28,7 @@ T = twarc.Twarc2(
 
 def test_version():
     import setup
-    assert setup.version == twarc.__version__
+    assert setup.version == twarc.version
 
 def test_auth_types_interaction():
     """Test the various options for configuration work as expected."""

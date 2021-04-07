@@ -16,7 +16,7 @@ import threading
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 
-from twarc import __version__
+from twarc.version import version
 from twarc.handshake import handshake
 from twarc.decorators import cli_api_error
 from twarc.expansions import flatten as flat
@@ -139,7 +139,7 @@ def get_version():
     """
     Return the version of twarc that is installed.
     """
-    click.echo(f'twarc v{__version__}')
+    click.echo(f'twarc v{version')
 
 
 @twarc2.command('search')
