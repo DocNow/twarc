@@ -1,5 +1,8 @@
 name: tests
-on: [push]
+on:
+  push:
+    paths-ignore:
+    - 'docs/**'
 jobs:
   build:
     runs-on: ubuntu-latest
