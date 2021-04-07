@@ -224,7 +224,7 @@ def following(T, user, outfile, limit, flatten):
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet.')
-@click.argument('outfile', type=click.File('w'), default='-')
+@click.argument('outfile', type=click.File('a+'), default='-')
 @click.pass_obj
 @cli_api_error
 def sample(T, flatten, outfile, limit):
@@ -233,6 +233,7 @@ def sample(T, flatten, outfile, limit):
     """
     count = 0
     event = threading.Event()
+    click.echo(click.style(f'Started a random sample stream, writing to {outfile.name}\nCTRL+C to stop...', fg='green'))
     for result in T.sample(event=event):
         count += 1
         if limit != 0 and count >= limit:
@@ -336,7 +337,7 @@ def flatten(infile, outfile):
 @click.option('--limit', default=0, help='Maximum number of tweets to return')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet')
-@click.argument('outfile', type=click.File('w'), default='-')
+@click.argument('outfile', type=click.File('a+'), default='-')
 @click.pass_obj
 @cli_api_error
 def stream(T, flatten, outfile, limit):
@@ -345,6 +346,9 @@ def stream(T, flatten, outfile, limit):
     """
     event = threading.Event()
     count = 0
+    click.echo(click.style(f'Started a stream with rules:', fg='green'))
+    _print_stream_rules(T)
+    click.echo(click.style(f'Writing to {outfile.name}\nCTRL+C to stop...', fg='green'))
     for result in T.stream(event=event):
         count += 1
         if limit != 0 and count == limit:
@@ -368,6 +372,12 @@ def stream_rules(T):
 def list_stream_rules(T):
     """
     List all the active stream rules.
+    """
+    _print_stream_rules(T)
+
+def _print_stream_rules(T):
+    """
+    Output all the active stream rules
     """
     result = T.get_stream_rules()
     if 'data' not in result or len(result['data']) == 0:
