@@ -8,6 +8,28 @@ from requests_oauthlib import OAuth1
 from urllib.parse import parse_qs
 
 def handshake():
+
+    # Default empty keys
+    consumer_key = ""
+    consumer_secret = ""
+    access_token = ""
+    access_token_secret = ""
+
+    bearer_token = input(
+        "Please enter your Bearer Token (Leave blank to continue on to API key and secret configuration): "
+    )
+
+    if bearer_token:
+        continue_adding = input(
+            "(Optional) Add API keys and secrets for user mode authentication [y or n]? "
+        )
+
+        # Save a config with just the bearer_token
+        if continue_adding.lower() != "y":
+            return {"bearer_token": bearer_token}
+        else:
+            "Configure API keys and secrets."
+
     consumer_key = input("Please enter your API key: ")
     consumer_secret = input("Please enter your API secret: ")
 
@@ -80,5 +102,6 @@ def handshake():
         "consumer_key": consumer_key,
         "consumer_secret": consumer_secret,
         "access_token": access_token,
-        "access_token_secret": access_token_secret
+        "access_token_secret": access_token_secret,
+        "bearer_token": bearer_token,
     }
