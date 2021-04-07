@@ -4,7 +4,8 @@ mkdocs:
   configuration: mkdocs.yml
 
 submodules:
-  include: docs 
+  include:
+    - docs 
   recursive: true
 
 python:
