@@ -22,12 +22,11 @@ nav:
     - Home (zw): README_zw_zh.md
   - twarc2: twarc2.md
   - Plugins: plugins.md
-  - API:
+  - Twitter Developer Access: twitter-developer-access.md 
+  - Windows 10: windows10.md
+  - Library API:
     - api/client.md
     - api/client2.md
-  - 'wiki Pages':
-    - 'Twitter Developer Access' : 'wiki/Twitter-Developer-Access'
-    - 'twarc2 on Windows 10' : 'wiki/twarc2-on-Windows-10'
 
 plugins:
 - search
