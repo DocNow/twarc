@@ -161,12 +161,13 @@ class Twarc2:
             params = expansions.EVERYTHING.copy()
             params["ids"] = ",".join(tweet_id)
 
-            resp = self.get(url, params=params).json()
+            resp = self.get(url, params=params)
+            data = resp.json()
 
             if self.metadata:
-                resp = _append_metadata(resp, resp.url)
+                data = _append_metadata(data, resp.url)
 
-            return resp
+            return data
 
         tweet_id_batch = []
 
@@ -202,12 +203,13 @@ class Twarc2:
             else:
                 params["ids"] = ",".join(users)
 
-            resp = self.get(url, params=params).json()
+            resp = self.get(url, params=params)
+            data = resp.json()
 
             if self.metadata:
-                resp = _append_metadata(resp, resp.url)
+                data = _append_metadata(data, resp.url)
 
-            return resp
+            return data
 
         batch = []
         for item in users:
