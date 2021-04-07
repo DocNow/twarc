@@ -11,7 +11,7 @@ import datetime
 import argparse
 import fileinput
 
-from twarc.version import version
+from twarc import __version__
 from twarc.client import Twarc
 from twarc.json2csv import csv, get_headings, get_row
 from dateutil.parser import parse as parse_dt
@@ -73,7 +73,7 @@ def main():
     signal.signal(signal.SIGINT, stop)
 
     if command == "version":
-        print("twarc v%s" % version)
+        print("twarc v%s" % __version__)
         sys.exit()
     elif command == "help" or not command:
         parser.print_help()

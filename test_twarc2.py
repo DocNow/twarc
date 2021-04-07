@@ -3,11 +3,10 @@ import json
 import pytz
 import twarc
 import dotenv
+import pytest
 import logging
 import datetime
 import threading
-
-import pytest
 
 dotenv.load_dotenv()
 consumer_key = os.environ.get('CONSUMER_KEY')
@@ -18,14 +17,18 @@ access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
 
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
-# Implicitly test the constructor in application auth mode. This ensures that the tests
-# don't depend on test ordering, and allows using the pytest functionality to only run a
-# single test at a time.
+# Implicitly test the constructor in application auth mode. This ensures that
+# the tests don't depend on test ordering, and allows using the pytest
+# functionality to only run a single test at a time.
+
 T = twarc.Twarc2(
     consumer_key=consumer_key,
     consumer_secret=consumer_secret,
 )
 
+def test_version():
+    import setup
+    assert setup.version == twarc.__version__
 
 def test_auth_types_interaction():
     """Test the various options for configuration work as expected."""

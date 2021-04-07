@@ -1,2 +1,2 @@
-include requirements/*.txt
-include bin/twarc.*
+include requirements.txt
+include docs/README.md

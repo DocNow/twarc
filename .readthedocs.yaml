@@ -3,10 +3,6 @@ version: 2
 mkdocs:
   configuration: mkdocs.yml
 
-submodules:
-  include:
-    - docs 
-
 python:
   version: 3.8
   install:
