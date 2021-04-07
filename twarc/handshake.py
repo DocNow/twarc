@@ -16,7 +16,7 @@ def handshake():
     access_token_secret = ""
 
     bearer_token = input(
-        "Please enter your Bearer Token (Leave blank to continue on to API key and secret configuration): "
+        "Please enter your Bearer Token (leave blank to skip to API key configuration): "
     )
 
     if bearer_token:
