@@ -1,7 +1,8 @@
 import sys
 import setuptools
 
-version = "2.0.2" # note: also in twarc/__init__.py
+with open("twarc/version.py") as f:
+    exec(f.read())
 
 with open("docs/README.md") as f:
     long_description = f.read()
