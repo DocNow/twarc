@@ -18,6 +18,7 @@ from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from twarc import expansions
 from twarc.decorators import *
+from twarc.version import version
 
 
 log = logging.getLogger("twarc")
@@ -537,6 +538,7 @@ def _utcnow():
 def _append_metadata(result, url):
     result["__twarc"] = {
                     "url": url,
+                    "version": version,
                     "retrieved_at": _utcnow()
                 }
     return result
