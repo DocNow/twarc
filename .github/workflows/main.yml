@@ -3,6 +3,10 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
+    - 'mkdocs.yml'
+    - '.readthedocs.yaml'
+    - 'requirements-mkdocs.txt'
+    - 'README.md'
 jobs:
   build:
     runs-on: ubuntu-latest
