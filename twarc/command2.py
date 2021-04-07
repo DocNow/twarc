@@ -139,7 +139,7 @@ def get_version():
     """
     Return the version of twarc that is installed.
     """
-    click.echo(f'twarc v{version')
+    click.echo(f'twarc v{version}')
 
 
 @twarc2.command('search')
