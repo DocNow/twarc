@@ -1,7 +1,7 @@
 import sys
 import setuptools
 
-from twarc.version import version
+version = "2.0.0" # note: also in twarc/__init__.py
 
 with open("docs/README.md") as f:
     long_description = f.read()
