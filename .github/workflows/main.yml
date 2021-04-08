@@ -45,3 +45,4 @@ jobs:
         SLACK_USERNAME: docnow-build
         SLACK_ICON_EMOJI: ":test-tube:"
         SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
+        SLACK_MESSAGE: "Tests Results: ${{ job.status }}"
