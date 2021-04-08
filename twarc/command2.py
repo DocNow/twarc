@@ -522,3 +522,5 @@ def _write(results, outfile, flatten, pretty=False):
                 click.echo(json.dumps(r, indent=indent), file=outfile)
         else:
             click.echo(json.dumps(results, indent=indent), file=outfile)
+    else:
+        click.echo(json.dumps(results, indent=indent), file=outfile)

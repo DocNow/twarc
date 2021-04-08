@@ -378,35 +378,50 @@ def test_flattened():
     assert found_referenced_tweets, "found referenced tweets"
 
 
-def pick_id(id, objects):
-    """pick an object out of a list of objects using its id
+def test_flatten_noop():
     """
-    return list(filter(lambda o: o["id"] == id, objects))
+    Flattening twice should be a no-op.
+    """
+    resp = next(T.tweet_lookup(range(1000, 2000)))
+
+    flat1 = twarc.expansions.flatten(resp)
+    assert len(flat1) > 0
+
+    flat2 = twarc.expansions.flatten(flat1)
+    assert len(flat2) > 0
+    assert len(flat1) == len(flat2)
 
 
 def test_twarc_metadata():
 
-    event = threading.Event()
-
     # With metadata (default)
+    event = threading.Event()
     for i, response in enumerate(T.sample(event=event)):
         assert "__twarc" in response
-        if i == 100:
+        if i == 10:
             event.set()
 
     for response in T.tweet_lookup(range(1000, 2000)):
         assert "__twarc" in response
         assert "__twarc" in twarc.expansions.flatten(response)
 
+    # Witout metadata
     T.metadata = False
-
-    # Turn off metadata
+    event = threading.Event()
     for i, response in enumerate(T.sample(event=event)):
         assert "__twarc" not in response
-        if i == 100:
-            break
+        if i == 10:
+            event.set()
 
     for response in T.tweet_lookup(range(1000, 2000)):
         assert "__twarc" not in response
 
     T.metadata = True
+
+
+def pick_id(id, objects):
+    """pick an object out of a list of objects using its id
+    """
+    return list(filter(lambda o: o["id"] == id, objects))
+
+
