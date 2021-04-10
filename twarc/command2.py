@@ -108,7 +108,7 @@ def configure(ctx):
 
     config_dir = pathlib.Path(click.get_app_dir('twarc'))
     if not config_dir.is_dir():
-        config_dir.mkdir()
+        config_dir.mkdir(parents=True)
     config_file = config_dir / 'config'
 
     config = configobj.ConfigObj(unrepr=True)
