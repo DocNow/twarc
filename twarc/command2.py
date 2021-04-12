@@ -332,7 +332,7 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time, flat
 @cli_api_error
 def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time, flatten):
     """
-    Retrieve the 800 most recent tweets mentioning the given user.
+    Retrieve the 3200 most recent tweets for the given user.
     """
     for result in T.timeline(user_id, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
