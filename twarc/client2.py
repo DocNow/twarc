@@ -53,7 +53,6 @@ class Twarc2:
         3. If `consumer_key`, `consumer_secret`, `access_token` and
            `access_token_secret` are all passed, then user authentication
            is used instead.
-
         """
         self.api_version = "2"
         self.connection_errors = connection_errors
@@ -127,8 +126,7 @@ class Twarc2:
         until_id: Return all tweets up to this tweet_id.
         start_time: Return all tweets after this time (UTC datetime).
         end_time: Return all tweets before this time (UTC datetime).
-        max_results: The maximum number of results per request. Max is 100 or
-                     for recent search.
+        max_results: The maximum number of results per request. Max is 100.
         """
         url = "https://api.twitter.com/2/tweets/search/recent"
         return self._search(
@@ -140,6 +138,17 @@ class Twarc2:
         self, query, since_id=None, until_id=None, start_time=None,
         end_time=None, max_results=500
     ):
+        """
+        Search Twitter for the given query in the full archive, using the
+        /search/all endpoint (Requires Academic Access).
+
+        query: The query string to be passed directly to the Twitter API.
+        since_id: Return all tweets since this tweet_id.
+        until_id: Return all tweets up to this tweet_id.
+        start_time: Return all tweets after this time (UTC datetime).
+        end_time: Return all tweets before this time (UTC datetime).
+        max_results: The maximum number of results per request. Max is 500.
+        """
         url = "https://api.twitter.com/2/tweets/search/all"
         return self._search(
             url, query, since_id, until_id, start_time, end_time, max_results
@@ -225,12 +234,12 @@ class Twarc2:
     @requires_app_auth
     def sample(self, event=None, record_keepalive=False):
         """
-        Returns a sample of all publically posted tweets.
+        Returns a sample of all publicly posted tweets.
 
-        The sample is based on slices of each second, not truely randomised. The
+        The sample is based on slices of each second, not truly randomised. The
         same tweets are returned for all users of this endpoint.
 
-        If a threading.Event is provided for event and the event is set, the
+        If a threading event is provided and the event is set, the
         sample will be interrupted. This can be used for coordination with other
         programs.
         """
@@ -278,21 +287,40 @@ class Twarc2:
                         return
     @requires_app_auth
     def add_stream_rules(self, rules):
+        """
+        Adds a new rule to the filter stream.
+        """
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.post(url, {"add": rules}).json()
 
     @requires_app_auth
     def get_stream_rules(self):
+        """
+        Returns a list of rules for the filter stream.
+        """
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.get(url).json()
 
     @requires_app_auth
     def delete_stream_rule_ids(self, rule_ids):
+        """
+        Deletes a rule from the filter stream.
+        """
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.post(url, {"delete": {"ids": rule_ids}}).json()
 
     @requires_app_auth
     def stream(self, event=None, record_keep_alives=False):
+        """
+        Returns a stream of tweets matching the defined rules.
+        
+        Rules can be added or removed out-of-band, without disconnecting. 
+        Tweet results will contain metadata about the rule that matched it.
+        
+        If event is set with a threading.Event object, the sample stream 
+        will be interrupted. This can be used for coordination with other
+        programs.
+        """
         url = "https://api.twitter.com/2/tweets/search/stream"
         params = expansions.EVERYTHING.copy()
         resp = self.get(url, params=params, stream=True)
@@ -347,7 +375,9 @@ class Twarc2:
         self, user, since_id=None, until_id=None, start_time=None,
         end_time=None
     ):
-        """Retrieve up to the 3200 most recent tweets made by the given user."""
+        """
+        Retrieve up to the 3200 most recent tweets made by the given user.
+        """
         user_id = self._ensure_user_id(user)
         return self._timeline(
             user_id, 'tweets', since_id, until_id, start_time, end_time
@@ -359,7 +389,6 @@ class Twarc2:
     ):
         """
         Retrieve up to the 800 most recent tweets mentioning the given user.
-
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
@@ -369,7 +398,6 @@ class Twarc2:
     def following(self, user):
         """
         Retrieve the user profiles of accounts followed by the given user.
-
         """
         user_id = self._ensure_user_id(user)
         params = expansions.USER_EVERYTHING.copy()
@@ -380,7 +408,6 @@ class Twarc2:
     def followers(self, user):
         """
         Retrieve the user profiles of accounts following the given user.
-
         """
         user_id = self._ensure_user_id(user)
         params = expansions.USER_EVERYTHING.copy()
