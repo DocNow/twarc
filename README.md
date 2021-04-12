@@ -13,6 +13,12 @@ Collect data at the command line from the Twitter API (v1.1 and v2).
 
 The documentation is managed at ReadTheDocs. If you would like to improve the documentation you can edit the Markdown files in `docs` or add new ones. Then send a pull request and we can add it.
 
+To view your documentation locally you should be able to:
+
+    pip install -r requirements-mkdocs.txt
+    mkdocs serve
+    open http://127.0.0.1:8000/
+
 If you prefer you can create a page on the [wiki](https://github.com/docnow/twarc/wiki/) to workshop the documentation, and then when/if you think it's ready to be merged with the documentation create an [issue](https://github.com/docnow/twarc/issues). Please feel free to create whatever documentation is useful in the wiki area.
 
 ### Code
@@ -21,6 +27,7 @@ If you are interested in adding functionality to twarc or fixing something that'
 
     git clone https://github.io/docnow/twarc
     cd twarc
+    pip install -r requirements.txt
 
 Create a .env file that included Twitter App keys to use during testing:
 
