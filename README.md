@@ -9,13 +9,13 @@ Collect data at the command line from the Twitter API (v1.1 and v2).
 
 ## Contributing 
 
-## Documentation
+### Documentation
 
 The documentation is managed at ReadTheDocs. If you would like to improve the documentation you can edit the Markdown files in `docs` or add new ones. Then send a pull request and we can add it.
 
 If you prefer you can create a page on the [wiki](https://github.com/docnow/twarc/wiki/) to workshop the documentation, and then when/if you think it's ready to merged with the documentation create an [issue](https://github.com/docnow/twarc/issues). Please feel free to create whatever documentation is useful in the wiki area.
 
-## Code
+### Code
 
 If you are interested in adding functionality to twarc or fixing something that's broken here are the steps to setting up your development environment:
 
