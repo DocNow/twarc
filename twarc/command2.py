@@ -9,6 +9,7 @@ import twarc
 import click
 import logging
 import pathlib
+import datetime
 import requests
 import configobj
 import threading
@@ -167,7 +168,18 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, a
     Search for tweets.
     """
     count = 0
-    search_method = T.search_all if archive else T.search_recent
+
+    if archive:
+        search_method = T.search_all
+        # if the user is searching the historical archive the assumption is that
+        # they want to search everything, and not just the previous month which
+        # is the default: https://github.com/DocNow/twarc/issues/434
+        if start_time == None:
+            start_time = datetime.datetime(2006, 3, 21, 0, 0, 0, 0,
+                datetime.timezone.utc)
+    else:
+        search_method = T.search_recent
+
 
     for result in search_method(query, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
