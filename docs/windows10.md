@@ -6,7 +6,7 @@ This guide assumes you already have a Twitter Developer Account, a registered Ap
 
 You must have Python installed and working on Windows.
 
-Python will be located in different places on your computer if you installed Python from either the official website or from the Microsoft App store.
+Python will be located in different places on your computer if you installed Python from either the [official website](https://www.python.org/downloads/windows/), or from the [Microsoft App store](https://www.microsoft.com/en-us/p/python-38/9mssztt1n39l), or via [Anaconda](https://www.anaconda.com/products/individual#windows).
 
 Check that you can run these successfully:
 
@@ -56,6 +56,8 @@ If you can see the instructions, everything is ready to go.
 In powershell or command prompt, run:
 
 `twarc2 configure`
+
+Paste in your Bearer token, taking care not to accidentally copy an extra new line or space. It's not recommended to type these in manually, the API Secret entry will also not display what's being typed, but it still accepts input. If something went wrong, you can repeat the command and start over. The keys will be saved in a file that youcan use Notepad to view, saved in `C:\Users\youraccount\AppData\Roaming\twarc\config` or sometimes a different location, twarc will output the location of this file after the command runs.
 
 When this is completed, twarc2 is ready to use.
 
