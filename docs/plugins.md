@@ -56,8 +56,22 @@ Note that the plugin takes input file *infile* and writes to an output file
 utilities to be used as part of pipelines. You can add options using the
 standard facilities that click provides if your plugin needs them.
 
-Then you just need to create a `setup.py` file for your project that looks
-something like this:
+If your plugin needs to talk to the Twitter API then just add the
+`@click.pass_obj` decorator which will ensure that the first parameter in
+your function will be a Twarc2 client that is configured to use the
+client's keys.
+
+```python
+@click.command()
+@click.argument('infile', type=click.File('r'), default='-')
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+def ids(twarc_client, infile, outfile):
+    # do something with the twarc client here
+```
+
+Finally you just need to create a `setup.py` file for your project that
+looks something like this:
 
 ```python
 
