@@ -71,10 +71,10 @@ For example, if you want to search for tweets that contain the phrase `"live lau
 lang:en ("live laugh love" OR "home sweet home") place_country:US
 ```
 
-Changing the `"` to `""` The twarc2 command for this would be:
+Changing the `"` to `""` The twarc2 command (`--limit` is optional) for this would be:
 
 ```
-twarc2 --archive "lang:en (""live laugh love"" OR ""home sweet home"") place_country:US" output.json
+twarc2 search --limit 500 "lang:en (""live laugh love"" OR ""home sweet home"") place_country:US" output.json
 ```
 
 This Stackoverflow answer has the long version that explains why this works: https://stackoverflow.com/a/15262019
