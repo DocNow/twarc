@@ -59,6 +59,26 @@ In powershell or command prompt, run:
 
 When this is completed, twarc2 is ready to use.
 
+## Escaping `"` Characters in Windows
+
+The query you specify to search can contain `"` quotes for phrases, spaces and other special characters like `:` and `()`. When entered directly into the prompt these can be interpreted as part of the command, not part of the command line argument value. Windows has an odd way of escaping characters in the command line.
+
+To use a `"` in a query, change it to `""` in Windows. The more common escape `\"` does not work.
+
+For example, if you want to search for tweets that contain the phrase `"live laugh love"` or `"home sweet home"` in english, from the US, the query would be:
+
+```
+lang:en ("live laugh love" OR "home sweet home") place_country:US
+```
+
+Changing the `"` to `""` The twarc2 command for this would be:
+
+```
+twarc2 --archive "lang:en (""live laugh love"" OR ""home sweet home"") place_country:US" output.json
+```
+
+This Stackoverflow answer has the long version that explains why this works: https://stackoverflow.com/a/15262019
+
 ## Output Format Errors:
 
 If you see this kind of error, for example when using `twarc2 flatten`:
