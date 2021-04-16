@@ -53,6 +53,24 @@ class Twarc2:
         3. If `consumer_key`, `consumer_secret`, `access_token` and
            `access_token_secret` are all passed, then user authentication
            is used instead.
+
+        Args:
+            consumer_key (str):
+                The API key.
+            consumer_secret (str):
+                The API secret.
+            access_token (str):
+                The Access Token 
+            access_token_secret (str):
+                The Access Token Secret
+            bearer_token (str):
+                Bearer Token, can be generated from API keys.
+            connection_errors (int):
+                Number of retries for GETs
+            http_errors (int):
+                Number of retries for sample stream.
+            metadata (bool):
+                Append `__twarc` metadata to results.
         """
         self.api_version = "2"
         self.connection_errors = connection_errors
@@ -118,15 +136,27 @@ class Twarc2:
             end_time=None, max_results=100
         ):
         """
-        Search Twitter for the given query in the last seven days, using the
-        /search/recent endpoint.
+        Search Twitter for the given query in the last seven days,
+        using the `/search/recent` endpoint.
 
-        query: The query string to be passed directly to the Twitter API.
-        since_id: Return all tweets since this tweet_id.
-        until_id: Return all tweets up to this tweet_id.
-        start_time: Return all tweets after this time (UTC datetime).
-        end_time: Return all tweets before this time (UTC datetime).
-        max_results: The maximum number of results per request. Max is 100.
+        Calls [GET /2/tweets/search/recent](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-recent)
+
+        Args:
+            query (str): 
+                The query string to be passed directly to the Twitter API.
+            since_id (int): 
+                Return all tweets since this tweet_id.
+            until_id (int): 
+                Return all tweets up to this tweet_id.
+            start_time (datetime): 
+                Return all tweets after this time (UTC datetime).
+            end_time (datetime): 
+                Return all tweets before this time (UTC datetime).
+            max_results (int): 
+                The maximum number of results per request. Max is 100.
+
+        Returns:
+            generator[dict]: a generator, dict for each paginated response.
         """
         url = "https://api.twitter.com/2/tweets/search/recent"
         return self._search(
@@ -139,15 +169,27 @@ class Twarc2:
         end_time=None, max_results=500
     ):
         """
-        Search Twitter for the given query in the full archive, using the
-        /search/all endpoint (Requires Academic Access).
+        Search Twitter for the given query in the full archive,
+        using the `/search/all` endpoint (Requires Academic Access).
 
-        query: The query string to be passed directly to the Twitter API.
-        since_id: Return all tweets since this tweet_id.
-        until_id: Return all tweets up to this tweet_id.
-        start_time: Return all tweets after this time (UTC datetime).
-        end_time: Return all tweets before this time (UTC datetime).
-        max_results: The maximum number of results per request. Max is 500.
+        Calls [GET /2/tweets/search/all](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-all)
+
+        Args:
+            query (str):
+                The query string to be passed directly to the Twitter API.
+            since_id (int):
+                Return all tweets since this tweet_id.
+            until_id (int):
+                Return all tweets up to this tweet_id.
+            start_time (datetime): 
+                Return all tweets after this time (UTC datetime).
+            end_time (datetime): 
+                Return all tweets before this time (UTC datetime).
+            max_results (int): 
+                The maximum number of results per request. Max is 500.
+
+        Returns:
+            generator[dict]: a generator, dict for each paginated response.
         """
         url = "https://api.twitter.com/2/tweets/search/all"
         return self._search(
@@ -160,8 +202,15 @@ class Twarc2:
         expanded tweet objects.
 
         This can be used to rehydrate a collection shared as only tweet IDs.
-
         Yields one page of tweets at a time, in blocks of up to 100.
+        
+        Calls [GET /2/tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference/get-tweets)
+
+        Args:
+            tweet_ids (iterable): A list of tweet IDs
+        
+        Returns:
+            generator[dict]: a generator, dict for each batch of 100 tweets.
         """
 
         def lookup_batch(tweet_id):
@@ -199,6 +248,15 @@ class Twarc2:
 
         Yields one page of results at a time (in blocks of at most 100 user
         profiles).
+
+        Calls [GET /2/users](https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users)
+
+        Args:
+            users (iterable): User IDs or usernames to lookup.
+            usernames (bool): Parse `users` as usernames, not IDs.
+
+        Returns:
+            generator[dict]: a generator, dict for each batch of 100 users.
         """
 
         if usernames:
@@ -239,9 +297,18 @@ class Twarc2:
         The sample is based on slices of each second, not truly randomised. The
         same tweets are returned for all users of this endpoint.
 
-        If a threading event is provided and the event is set, the
+        If a `threading.Event` is provided and the event is set, the
         sample will be interrupted. This can be used for coordination with other
         programs.
+
+        Calls [GET /2/tweets/sample/stream](https://developer.twitter.com/en/docs/twitter-api/tweets/sampled-stream/api-reference/get-tweets-sample-stream)
+
+        Args:
+            event (threading.Event): Manages a flag to stop the process.
+            record_keepalive (bool): whether to output keep-alive events.
+        
+        Returns:
+            generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
         errors = 0
@@ -288,7 +355,15 @@ class Twarc2:
     @requires_app_auth
     def add_stream_rules(self, rules):
         """
-        Adds a new rule to the filter stream.
+        Adds new rules to the filter stream. 
+
+        Calls [POST /2/tweets/search/stream/rules](https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/api-reference/post-tweets-search-stream-rules)
+
+        Args:
+            rules (list[dict]): A list of rules to add.
+
+        Returns:
+            dict: JSON Response from Twitter API.
         """
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.post(url, {"add": rules}).json()
@@ -297,6 +372,11 @@ class Twarc2:
     def get_stream_rules(self):
         """
         Returns a list of rules for the filter stream.
+
+        Calls [GET /2/tweets/search/stream/rules](https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/api-reference/get-tweets-search-stream-rules)
+
+        Returns:
+            dict: JSON Response from Twitter API with a list of defined rules.
         """
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.get(url).json()
@@ -304,7 +384,15 @@ class Twarc2:
     @requires_app_auth
     def delete_stream_rule_ids(self, rule_ids):
         """
-        Deletes a rule from the filter stream.
+        Deletes rules from the filter stream.
+
+        Calls [POST /2/tweets/search/stream/rules](https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/api-reference/post-tweets-search-stream-rules)
+
+        Args:
+            rules (list[int]): A list of rule ids to delete.
+
+        Returns:
+            dict: JSON Response from Twitter API.
         """
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.post(url, {"delete": {"ids": rule_ids}}).json()
@@ -320,6 +408,15 @@ class Twarc2:
         If event is set with a threading.Event object, the sample stream 
         will be interrupted. This can be used for coordination with other
         programs.
+
+        Calls [GET /2/tweets/search/stream](https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/api-reference/get-tweets-search-stream)
+
+        Args:
+            event (threading.Event): Manages a flag to stop the process.
+            record_keepalive (bool): whether to output keep-alive events.
+        
+        Returns:
+            generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/search/stream"
         params = expansions.EVERYTHING.copy()
@@ -346,7 +443,23 @@ class Twarc2:
     def _timeline(
         self, user_id, timeline_type, since_id, until_id, start_time, end_time
     ):
-        """Helper function for user and mention timelines"""
+        """
+        Helper function for user and mention timelines
+        
+        Calls [GET /2/users/:id/tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets)
+        or [GET /2/users/:id/mentions](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-mentions)
+
+        Args:
+            user_id (int): ID of the user.
+            timeline_type (str): timeline type: `tweets` or `mentions`
+            since_id (int): results with a Tweet ID greater than (newer) than specified
+            until_id (int): results with a Tweet ID less than (older) than specified
+            start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
+            end_time (datetime): newest UTC timestamp from which the Tweets will be provided
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
+        """
 
         url = f"https://api.twitter.com/2/users/{user_id}/{timeline_type}"
 
@@ -377,6 +490,18 @@ class Twarc2:
     ):
         """
         Retrieve up to the 3200 most recent tweets made by the given user.
+
+        Calls [GET /2/users/:id/tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets)
+
+        Args:
+            user (int): ID of the user.
+            since_id (int): results with a Tweet ID greater than (newer) than specified
+            until_id (int): results with a Tweet ID less than (older) than specified
+            start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
+            end_time (datetime): newest UTC timestamp from which the Tweets will be provided
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
@@ -389,6 +514,18 @@ class Twarc2:
     ):
         """
         Retrieve up to the 800 most recent tweets mentioning the given user.
+
+        Calls [GET /2/users/:id/mentions](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-mentions)
+
+        Args:
+            user (int): ID of the user.
+            since_id (int): results with a Tweet ID greater than (newer) than specified
+            until_id (int): results with a Tweet ID less than (older) than specified
+            start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
+            end_time (datetime): newest UTC timestamp from which the Tweets will be provided
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
@@ -398,6 +535,14 @@ class Twarc2:
     def following(self, user):
         """
         Retrieve the user profiles of accounts followed by the given user.
+
+        Calls [GET /2/users/:id/following](https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-following)
+
+        Args:
+            user (int): ID of the user.
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         params = expansions.USER_EVERYTHING.copy()
@@ -408,6 +553,14 @@ class Twarc2:
     def followers(self, user):
         """
         Retrieve the user profiles of accounts following the given user.
+
+        Calls [GET /2/users/:id/followers](https://developer.twitter.com/en/docs/twitter-api/users/follows/api-reference/get-users-id-followers)
+
+        Args:
+            user (int): ID of the user.
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         params = expansions.USER_EVERYTHING.copy()
@@ -420,6 +573,16 @@ class Twarc2:
     @catch_timeout
     @catch_gzip_errors
     def get(self, *args, **kwargs):
+        """
+        Make a GET request to a specified URL.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            requests.Response: Response from Twitter API.
+        """
 
         # Pass allow 404 to not retry on 404
         allow_404 = kwargs.pop("allow_404", False)
@@ -457,6 +620,13 @@ class Twarc2:
         pagination.
 
         Yields one page (one API response) at a time.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
         """
 
         resp = self.get(*args, **kwargs)
@@ -495,6 +665,16 @@ class Twarc2:
 
     @rate_limit
     def post(self, url, json_data):
+        """
+        Make a POST request to the specified URL.
+
+        Args:
+            url (str): URL to make a POST request
+            json_data (dict): JSON data to send.
+        
+        Returns:
+            requests.Response: Response from Twitter API.
+        """
         if not self.client:
             self.connect()
         return self.client.post(url, json=json_data)
@@ -549,6 +729,12 @@ def _ts(dt):
     """
     Return ISO 8601 / RFC 3339 datetime in UTC. If no timezone is specified it
     is assumed to be in UTC. The Twitter API does not accept microseconds.
+
+    Args:
+        dt (datetime): a `datetime` object to format.
+    
+    Returns:
+        str: an ISO 8601 / RFC 3339 datetime in UTC.
     """
     if dt.tzinfo:
         dt = dt.astimezone(datetime.timezone.utc)
@@ -557,12 +743,29 @@ def _ts(dt):
     return dt.isoformat(timespec='seconds')
 
 def _utcnow():
-    """Return _now_ in ISO 8601 / RFC 3339 datetime in UTC."""
+    """
+    Return _now_ in ISO 8601 / RFC 3339 datetime in UTC.
+    
+    Returns:
+        datetime: Current timestamp in UTC.
+    """
     return datetime.datetime.now(datetime.timezone.utc).isoformat(
         timespec='seconds'
     )
 
 def _append_metadata(result, url):
+    """
+    Appends `__twarc` metadata to the result.
+    Adds the full URL with parameters used, the version
+    and current timestamp in seconds.
+
+    Args:
+        result (dict): API Response to append data to.
+        url (str): URL of the API endpoint called.
+    
+    Returns:
+        dict: API Response with append metadata
+    """
     result["__twarc"] = {
                     "url": url,
                     "version": version,
