@@ -1,6 +1,7 @@
 import time
 import click
 import logging
+from functools import wraps
 
 from requests import HTTPError
 from requests.packages.urllib3.exceptions import ReadTimeoutError
@@ -23,6 +24,7 @@ def rate_limit(f):
     a rate limit error is encountered we will sleep until we can
     issue the API call again.
     """
+    @wraps(f)
     def new_f(*args, **kwargs):
         errors = 0
         while True:
@@ -84,6 +86,7 @@ def catch_conn_reset(f):
     except:
         ConnectionError = None
 
+    @wraps(f)
     def new_f(self, *args, **kwargs):
         # Only handle if pyOpenSSL is installed.
         if ConnectionError:
@@ -102,6 +105,7 @@ def catch_timeout(f):
     """
     A decorator to handle read timeouts from Twitter.
     """
+    @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
@@ -117,6 +121,7 @@ def catch_gzip_errors(f):
     A decorator to handle gzip encoding errors which have been known to
     happen during hydration.
     """
+    @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
@@ -146,6 +151,7 @@ def filter_protected(f):
     filter_protected will filter out protected tweets and users unless
     explicitly requested not to.
     """
+    @wraps(f)
     def new_f(self, *args, **kwargs):
         for obj in f(self, *args, **kwargs):
             if self.protected == False:
@@ -192,6 +198,7 @@ def requires_app_auth(f):
     Ensure that application authentication is set for calls that only work in that mode.
 
     """
+    @wraps(f)
     def new_f(self, *args, **kwargs):
         if self.auth_type != "application":
             raise InvalidAuthType(
