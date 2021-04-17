@@ -359,8 +359,8 @@ def flatten(infile, outfile):
     "Flatten" tweets, or move expansions inline with tweet objects.
     """
     if (infile.name == outfile.name):
-        outfile.name = outfile.name + '_flattened.jsonl'
-        click.echo(click.style(f"💔 Cannot flatten files in-place, writing to a new file instead: {outfile.name}", fg='red'), err=True)
+        click.echo(click.style(f"💔 Cannot flatten files in-place, specify a different output file!", fg='red'), err=True)
+        return
 
     for line in infile:
         result = json.loads(line)
