@@ -2,11 +2,13 @@
 
 If you have established that you would like to use Twitter Data in your study, you will need access to the API. There are several steps required to get access to the API. This is a guide on how best to engage with this process. Allow plenty of time for this.
 
-Twitter has made the process of accessing their API more strict. There are a number of restricted use cases that may require you implement additional safeguards. Before applying, the Terms of Service for Developers and the [Restricted Use Cases](https://developer.twitter.com/en/developer-terms/more-on-restricted-use-cases) are very short and relevant to read.
+Twitter has made the process of accessing their API more strict. There are a number of restricted use cases that may require you implement additional safeguards. 
+
+Before applying, the Terms of Service for Developers and the [Restricted Use Cases](https://developer.twitter.com/en/developer-terms/more-on-restricted-use-cases) are very short and relevant to read.
 
 ## Step 0: Have a Twitter account in good standing
 
-Create and edit your profile to fit your person or organization. Basic things like verifying your email and phone number, setting a non default profile picture and header, a description, links to your research group or website, a good description that identifies you as you, and preferably some friends and followers who are already on twitter in your research community. Use a good stable email provider (gmail) or your institution email as long as it is reliable and you can see any emails that may end up in spam, just in case.
+Create and or edit your Twitter profile to fit your person or organization, preferably in English. Make sure it's public and you do the basic things like verifying your email and phone number (do not use a VoIP service), setting a non default profile picture and header, a description, links to your research group or website, a good description that identifies you as you, and preferably some friends and followers who are already on twitter in your research community. Use a good stable email provider (gmail) or your institution email as long as it is reliable and you can see any emails that may end up in spam, just in case.
 
 ## Step 1: Applying for a Developer Account
 
@@ -14,9 +16,11 @@ Fill out the forms for a new developer Account here: <https://developer.twitter.
 
 ## Step 2: Apply for the special Academic Access v2 Endpoint
 
-Even if you specify your use case as "Academic" you will not automatically get access to the [new Search endpoint](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-all) with higher limits for academic use. You must fill in an additional form: <https://developer.twitter.com/en/portal/petition/academic/is-it-right-for-you>
+Even if you specify your use case as "Academic" use case in your developer application form, you will not automatically get access to the [new Search endpoint](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-all) with higher limits for academic use. You must fill in an additional form: <https://developer.twitter.com/en/portal/petition/academic/is-it-right-for-you>
 
-This may also take a couple of days or weeks.
+Twitter generally prefers to grant access to faculty and postgrad researchers, not undergrad or masters students or contractors or collaborators. It may be better for the principal investigator or professor to log in from an institution account or their own one, provided it is in good standing and has an obviously identifiable online academic presense.
+
+This application may also take a couple of days or weeks.
 
 ## Step 3: Create a Project and App
 
