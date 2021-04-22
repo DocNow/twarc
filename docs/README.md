@@ -24,7 +24,7 @@ application, note down the consumer key, consumer secret and then click to
 generate an access token and access token secret. With these four variables
 in hand you are ready to start using twarc.
 
-1. install [Python](http://python.org/download) (2 or 3)
+1. install [Python 3](http://python.org/download)
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc
 
 ### Homebrew (macOS only)
