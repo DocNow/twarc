@@ -103,6 +103,15 @@ It's good practice to include a test or two for your plugin to ensure it works
 over time. Check out the example [here] for how to test command line utilities
 easily with click.
 
+To publish your plugin on PyPi:
+
+```
+pip install twine
+python setup.py sdist
+twine upload dist/*
+# enter pypi login details
+```
+
 [twarc-ids]: https://github.com/docnow/twarc-ids/
 [PyPI]: https://python.org/pypi/
 [pip]: https://pip.pypa.io/en/stable/
