@@ -649,7 +649,7 @@ class Twarc2:
         else:
             token_param = "next_token"
 
-        while "next_token" in page["meta"]:
+        while "meta" in page and "next_token" in page["meta"]:
             if "params" in kwargs:
                 kwargs["params"][token_param] = page["meta"]["next_token"]
             else:

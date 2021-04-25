@@ -224,7 +224,7 @@ def test_stream():
     assert 'data' not in rules
 
 
-def test_timelines():
+def test_timeline():
     """
     Test the user timeline endpoints.
 
@@ -245,7 +245,7 @@ def test_timelines():
     assert found >= 200
 
 
-def test_timelines_username():
+def test_timeline_username():
     """
     Test the user timeline endpoints with username.
 
@@ -264,6 +264,11 @@ def test_timelines_username():
         if pages == 3:
             break
     assert found >= 200
+
+
+def test_missing_timeline():
+    results = T.timeline(1033441111677788160)
+    assert len(list(results)) == 0
 
 
 def test_follows():
