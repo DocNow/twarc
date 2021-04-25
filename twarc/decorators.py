@@ -175,14 +175,17 @@ class cli_api_error():
         try:
             return self.f(*args, **kwargs)
         except HTTPError as e:
-            result = e.response.json()
-            if 'errors' in result:
-                for error in result['errors']:
-                    msg = error.get('message', 'Unknown error')
-            elif 'title' in result:
-                msg = result['title']
-            else:
-                msg = 'Unknown error'
+            try:
+                result = e.response.json()
+                if 'errors' in result:
+                    for error in result['errors']:
+                        msg = error.get('message', 'Unknown error')
+                elif 'title' in result:
+                    msg = result['title']
+                else:
+                    msg = 'Unknown error'
+            except JSONDecodeError:
+                msg = 'Unable to parse error as JSON, received: ' + e.response.text
         except InvalidAuthType as e:
             msg = "This command requires application authentication, try passing --app-auth"
         except ValueError as e:
