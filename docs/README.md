@@ -25,11 +25,15 @@ generate an access token and access token secret. With these four variables
 in hand you are ready to start using twarc.
 
 1. install [Python 3](http://python.org/download)
-2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc
+2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc:
+
+```
+    pip install --upgrade twarc
+```
 
 ### Homebrew (macOS only)
 
-For macOS users, you can install `twarc` via:
+For macOS users, you can also install `twarc` via [Homebrew](https://brew.sh/):
 
 ```bash
 $ brew install twarc
