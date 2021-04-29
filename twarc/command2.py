@@ -157,13 +157,15 @@ def get_version():
 @click.option('--archive', is_flag=True, default=False,
     help='Search the full archive (requires Academic Research track)')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
+@click.option('--max-results', default=0, help='Maximum number of tweets per API response')
 @click.option('--flatten', is_flag=True, default=False,
     help='Include expansions inline with tweets, and one line per tweet')
 @click.argument('query', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, archive, flatten):
+def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
+        max_results, archive, flatten):
     """
     Search for tweets.
     """
@@ -171,17 +173,23 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit, a
 
     if archive:
         search_method = T.search_all
+
+        # default number of tweets per response 500 when not set otherwise
+        if max_results == 0:
+            max_results = 500
+
         # if the user is searching the historical archive the assumption is that
         # they want to search everything, and not just the previous month which
         # is the default: https://github.com/DocNow/twarc/issues/434
         if start_time == None:
-            start_time = datetime.datetime(2006, 3, 21, 0, 0, 0, 0,
-                datetime.timezone.utc)
+            start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
+        if max_results == 0:
+            max_results = 100
         search_method = T.search_recent
 
-
-    for result in search_method(query, since_id, until_id, start_time, end_time):
+    for result in search_method(query, since_id, until_id, start_time, end_time,
+            max_results):
         _write(result, outfile, flatten)
         count += len(result['data'])
         if limit != 0 and count >= limit:
