@@ -39,6 +39,12 @@ For macOS users, you can also install `twarc` via [Homebrew](https://brew.sh/):
 $ brew install twarc
 ```
 
+### Windows
+
+If you installed with pip and see a "failed to create process" when running twarc try reinstalling like this:
+
+    python -m pip install --upgrade --force-reinstall twarc
+
 ## Quickstart:
 
 First you're going to need to tell twarc about your application API keys and
