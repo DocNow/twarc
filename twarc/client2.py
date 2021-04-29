@@ -135,6 +135,9 @@ class Twarc2:
 
                 # Calculate the amount of time to sleep, accounting for any
                 # processing time used by the rest of the application.
+                # This is to satisfy the 1 request / 1 second rate limit
+                # on the search/all endpoint.
+
                 time.sleep(
                     max(0, sleep_between - (time.monotonic() - made_call))
                 )
