@@ -184,7 +184,7 @@ class cli_api_error():
                     msg = result['title']
                 else:
                     msg = 'Unknown error'
-            except JSONDecodeError:
+            except ValueError:
                 msg = 'Unable to parse error as JSON, received: ' + e.response.text
         except InvalidAuthType as e:
             msg = "This command requires application authentication, try passing --app-auth"
