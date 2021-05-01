@@ -181,7 +181,7 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
         # if the user is searching the historical archive the assumption is that
         # they want to search everything, and not just the previous month which
         # is the default: https://github.com/DocNow/twarc/issues/434
-        if start_time == None:
+        if start_time == None and since_id == None:
             start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         if max_results == 0:
