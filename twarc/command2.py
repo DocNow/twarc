@@ -150,10 +150,10 @@ def get_version():
     help='Match tweets sent prior to tweet id')
 @click.option('--start-time',
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
-    help='Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+    help='Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
 @click.option('--end-time',
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
-    help='Match tweets sent before time (ISO 8601/RFC 3339)')
+    help='Match tweets sent before UTC time (ISO 8601/RFC 3339)')
 @click.option('--archive', is_flag=True, default=False,
     help='Search the full archive (requires Academic Research track)')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
