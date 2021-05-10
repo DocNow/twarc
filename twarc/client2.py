@@ -9,7 +9,6 @@ import ssl
 import json
 import logging
 import requests
-import datetime
 import time
 
 from oauthlib.oauth2 import BackendApplicationClient
@@ -121,9 +120,9 @@ class Twarc2:
         if until_id:
             params["until_id"] = until_id
         if start_time:
-            params["start_time"] = _ts(start_time)
+            params["start_time"] = ts(start_time)
         if end_time:
-            params["end_time"] = _ts(end_time)
+            params["end_time"] = ts(end_time)
 
         count = 0
         made_call = time.monotonic()
@@ -487,9 +486,9 @@ class Twarc2:
         if until_id:
             params["until_id"] = until_id
         if start_time:
-            params["start_time"] = _ts(start_time)
+            params["start_time"] = ts(start_time)
         if end_time:
-            params["end_time"] = _ts(end_time)
+            params["end_time"] = ts(end_time)
 
         count = 0
         for response in self.get_paginated(url, params=params):
@@ -757,6 +756,6 @@ def _append_metadata(result, url):
     result["__twarc"] = {
                     "url": url,
                     "version": version,
-                    "retrieved_at": _utcnow()
+                    "retrieved_at": utcnow()
                 }
     return result
