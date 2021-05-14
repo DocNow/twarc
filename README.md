@@ -25,7 +25,7 @@ If you prefer you can create a page on the [wiki](https://github.com/docnow/twar
 
 If you are interested in adding functionality to twarc or fixing something that's broken here are the steps to setting up your development environment:
 
-    git clone https://github.io/docnow/twarc
+    git clone https://github.com/docnow/twarc
     cd twarc
     pip install -r requirements.txt
 
