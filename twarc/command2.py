@@ -150,10 +150,10 @@ def get_version():
     help='Match tweets sent prior to tweet id')
 @click.option('--start-time',
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
-    help='Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+    help='Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
 @click.option('--end-time',
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
-    help='Match tweets sent before time (ISO 8601/RFC 3339)')
+    help='Match tweets sent before UTC time (ISO 8601/RFC 3339)')
 @click.option('--archive', is_flag=True, default=False,
     help='Search the full archive (requires Academic Research track)')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
@@ -388,9 +388,11 @@ def stream(T, flatten, outfile, limit):
     """
     event = threading.Event()
     count = 0
-    click.echo(click.style(f'Started a stream with rules:', fg='green'))
+    click.echo(click.style(f'Started a stream with rules:', fg='green'),
+            err=True)
     _print_stream_rules(T)
-    click.echo(click.style(f'Writing to {outfile.name}\nCTRL+C to stop...', fg='green'))
+    click.echo(click.style(f'Writing to {outfile.name}\nCTRL+C to stop...',
+        fg='green'), err=True)
     for result in T.stream(event=event):
         count += 1
         if limit != 0 and count == limit:
@@ -423,7 +425,7 @@ def _print_stream_rules(T):
     """
     result = T.get_stream_rules()
     if 'data' not in result or len(result['data']) == 0:
-        click.echo('No rules yet. Add them with ' + click.style('twarc2 stream-rules add', bold=True))
+        click.echo('No rules yet. Add them with ' + click.style('twarc2 stream-rules add', bold=True), err=True)
     else:
         count = 0
         for rule in result['data']:
@@ -432,7 +434,7 @@ def _print_stream_rules(T):
             s = rule['value']
             if 'tag' in rule:
                 s += f" (tag: {rule['tag']})"
-            click.echo(click.style(f'☑  {s}'))
+            click.echo(click.style(f'☑  {s}'), err=True)
             count += 1
 
 
