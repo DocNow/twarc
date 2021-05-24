@@ -355,6 +355,21 @@ class Twarc2:
                             data = _append_metadata(data, resp.url)
                         yield data
 
+                        # Check for an operational disconnect error in the response
+                        if data.get("errors", []):
+                            for error in data["errors"]:
+                                if error.get("disconnect_type") == "OperationalDisconnect":
+                                    log.info(
+                                        "Received operational disconnect message: "
+                                        "This stream has fallen too far behind in "
+                                        "processing tweets. Some data may have been "
+                                        "lost."
+                                    )
+                                    # Sleep briefly, then break this get call and
+                                    # attempt to reconnect.
+                                    time.sleep(5)
+                                    break
+
             except requests.exceptions.HTTPError as e:
                 errors += 1
                 log.error("caught http error %s on %s try", e, errors)
