@@ -357,6 +357,26 @@ def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time, flat
     for result in T.timeline(user_id, since_id, until_id, start_time, end_time):
         _write(result, outfile, flatten)
 
+@twarc2.command('conversation')
+@click.option('--archive', is_flag=True, default=False,
+    help='Search the full archive (requires Academic Research track)')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
+@click.argument('tweet_id', type=str)
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def conversation(T, tweet_id, archive, flatten, outfile):
+    """
+    Retrieve a conversation thread using the tweet id.
+    """
+    q = f'conversation_id:{tweet_id}'
+    if archive:
+        search = T.search_all(q)
+    else:
+        search = T.search_recent(q)
+    for resp in search:
+        _write(resp, outfile, flatten)
 
 @twarc2.command('flatten')
 @click.argument('infile', type=click.File('r'), default='-')
