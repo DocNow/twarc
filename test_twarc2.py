@@ -5,6 +5,7 @@ import twarc
 import dotenv
 import pytest
 import logging
+import pathlib
 import datetime
 import threading
 
@@ -15,6 +16,7 @@ bearer_token = os.environ.get("BEARER_TOKEN")
 access_token = os.environ.get('ACCESS_TOKEN')
 access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
 
+test_data = pathlib.Path('test-data')
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
 # Implicitly test the constructor in application auth mode. This ensures that
@@ -292,6 +294,7 @@ def test_follows():
             break
     assert found >= 1000
 
+
 def test_follows_username():
     """
     Test followers and and following by username. 
@@ -331,15 +334,20 @@ def test_flattened():
 
     event = threading.Event()
     for count, result in enumerate(T.sample(event=event)):
-        result = twarc.expansions.flatten(result)
+        results = twarc.expansions.flatten(result)
 
-        tweet = result["data"]
+        # streaming api always returns a tweet at a time but flatten
+        # will put these in a list so they can be treated uniformly
+
+        assert len(results) == 1
+
+        tweet = results[0]
         assert "id" in tweet
         logging.info("got sample tweet #%s %s", count, tweet["id"])
 
         author_id = tweet["author_id"]
         assert "author" in tweet
-        assert result["data"]["author"]["id"] == author_id
+        assert tweet["author"]["id"] == author_id
 
         if "in_reply_to_user_id" in tweet:
             assert "in_reply_to_user" in tweet
@@ -383,18 +391,33 @@ def test_flattened():
     assert found_referenced_tweets, "found referenced tweets"
 
 
-def test_flatten_noop():
-    """
-    Flattening twice should be a no-op.
-    """
-    resp = next(T.tweet_lookup(range(1000, 2000)))
+def test_ensure_flattened():
+    resp = next(T.search_recent('twitter'))
 
-    flat1 = twarc.expansions.flatten(resp)
-    assert len(flat1) > 0
+    # flatten a response
+    flat1 = twarc.expansions.ensure_flattened(resp)
+    assert isinstance(flat1, list)
+    assert len(flat1) > 1
+    assert 'author' in flat1[0]
 
-    flat2 = twarc.expansions.flatten(flat1)
-    assert len(flat2) > 0
-    assert len(flat1) == len(flat2)
+    # flatten the flattened list
+    flat2 = twarc.expansions.ensure_flattened(flat1)
+    assert isinstance(flat2, list)
+    assert len(flat2) == len(flat1)
+    assert 'author' in flat2[0]
+
+    # flatten a tweet object which will force it into a list
+    flat3 = twarc.expansions.ensure_flattened(flat2[0])
+    assert isinstance(flat3, list)
+    assert len(flat3) == 1
+
+    with pytest.raises(ValueError):
+        twarc.expansions.ensure_flattened({'fake': 'tweet'})
+    with pytest.raises(ValueError):
+        twarc.expansions.ensure_flattened([{'fake': 'tweet'}])
+    with pytest.raises(ValueError):
+        flat1[0].pop('author')
+        twarc.expansions.ensure_flattened(flat1)
 
 
 def test_twarc_metadata():
@@ -408,7 +431,7 @@ def test_twarc_metadata():
 
     for response in T.tweet_lookup(range(1000, 2000)):
         assert "__twarc" in response
-        assert "__twarc" in twarc.expansions.flatten(response)
+        assert "__twarc" in twarc.expansions.flatten(response)[0]
 
     # Witout metadata
     T.metadata = False
