@@ -2,7 +2,3 @@
 
 ::: twarc.client
   handler: python
-
-
-
-
