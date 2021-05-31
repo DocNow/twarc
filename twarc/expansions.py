@@ -194,7 +194,9 @@ def flatten(response):
 
         return payload
 
-    # First, expand the included tweets, before processing actual result tweets:
+    # First expand the included tweets, before processing actual result tweets:
+    for included_id, included_tweet in extract_includes(response, "tweets").items():
+        includes_tweets[included_id] = expand_payload(included_tweet)
 
     # Now flatten the list of tweets or an individual tweet
     tweets = []

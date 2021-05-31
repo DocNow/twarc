@@ -333,15 +333,14 @@ def test_flattened():
     found_referenced_tweets = False
 
     event = threading.Event()
-    for count, result in enumerate(T.sample(event=event)):
-        results = twarc.expansions.flatten(result)
+    for count, response in enumerate(T.sample(event=event)):
 
         # streaming api always returns a tweet at a time but flatten
         # will put these in a list so they can be treated uniformly
+        tweets = twarc.expansions.flatten(response)
+        assert len(tweets) == 1
+        tweet = tweets[0]
 
-        assert len(results) == 1
-
-        tweet = results[0]
         assert "id" in tweet
         logging.info("got sample tweet #%s %s", count, tweet["id"])
 
@@ -370,8 +369,11 @@ def test_flattened():
             assert tweet["entities"]["mentions"][0]["username"]
             found_entities_mentions = True
 
-        if "referenced_tweets" in tweet:
-            assert tweet["referenced_tweets"][0]["id"]
+        # need to ensure there are no errors because a referenced tweet
+        # might be protected or deleted in which case it would not have been
+        # included in the response and would not have been flattened
+        if "errors" not in response and "referenced_tweets" in tweet:
+            assert tweet["referenced_tweets"][0]["text"]
             found_referenced_tweets = True
 
         if found_geo and found_in_reply_to_user and found_attachments_media \
