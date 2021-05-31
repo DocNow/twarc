@@ -20,7 +20,7 @@ from pkg_resources import iter_entry_points
 from twarc.version import version
 from twarc.handshake import handshake
 from twarc.decorators import cli_api_error
-from twarc.expansions import flatten as flat
+from twarc.expansions import ensure_flattened
 from click_config_file import configuration_option
 
 
@@ -364,15 +364,16 @@ def conversation(T, tweet_id, archive, outfile):
 @cli_api_error
 def flatten(infile, outfile):
     """
-    "Flatten" tweets, or move expansions inline with tweet objects.
+    "Flatten" tweets, or move expansions inline with tweet objects and ensure
+    that each line of output is a signle tweet.
     """
     if (infile.name == outfile.name):
         click.echo(click.style(f"💔 Cannot flatten files in-place, specify a different output file!", fg='red'), err=True)
         return
 
     for line in infile:
-        result = json.loads(line)
-        _write(result, outfile, True)
+        for tweet in ensure_flattened(json.loads(line)):
+            _write(tweet, outfile, False)
 
 
 @twarc2.command('stream')
