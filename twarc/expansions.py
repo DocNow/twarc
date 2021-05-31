@@ -1,8 +1,10 @@
 """
 This module contains a list of the known Twitter V2+ API expansions and fields
-for each expansion, and a function for "flattening" a result set, including all
-expansions inline
+for each expansion, and a function flatten() for "flattening" a result set, 
+including all expansions inline. 
 
+ensure_flattened() can be used in tweet processing programs that need to make 
+sure that data is flattened.
 """
 
 from collections import defaultdict
@@ -116,11 +118,12 @@ def extract_includes(response, expansion, _id="id"):
 def flatten(response):
     """
     Flatten an API response by moving all "included" entities inline with the
-    tweets they are referenced from. Expects an entire page response from the 
-    API (data, includes, meta) and will raise a ValueError if what is passed in
-    does not appear to be an API response. Returns empty objects for things 
-    missing in includes. Returns a list of dictionaries where each dictionary 
-    is a tweet.
+    tweets they are referenced from. flatten expects an entire page response
+    from the API (data, includes, meta) and will raise a ValueError if what is
+    passed in does not appear to be an API response. It will return a list of
+    dictionaries where each dictionary represents a tweet. Empty objects will
+    be returned for things that are missing in includes, which can happen when
+    protected or delete users or tweets are referenced.
     """
 
     # Users extracted both by id and by username for expanding mentions
@@ -220,10 +223,16 @@ def flatten(response):
 
 def ensure_flattened(data):
     """
-    Will ensure that the supplied data is "flattened". The supplied data can be a
+    Will ensure that the supplied data is "flattened". The input data can be a
     response from the Twitter API, a list of tweet dictionaries, or a single tweet
-    dictionary. An exception will be thrown if the supplied data is not 
-    recognizable or it cannot be flattened.
+    dictionary. It will always return a list of tweet dictionaries. A ValueError 
+    will be thrown if the supplied data is not recognizable or it cannot be 
+    flattened.
+
+    ensure_flattened is designed for use in twarc plugins and other tweet
+    processing applications that want to operate on a stream of tweets, and 
+    examine included entities like users and tweets without hunting and
+    pecking in the response data.
     """
     if isinstance(data, dict) and 'data' in data:
         return flatten(data)
