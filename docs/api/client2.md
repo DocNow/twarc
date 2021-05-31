@@ -1,4 +1,4 @@
-# twarc.expansions
+# twarc.Client2
 
-::: twarc.expansions
+::: twarc.client2
   handler: python
