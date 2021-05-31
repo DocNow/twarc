@@ -1,8 +1,10 @@
 """
 This module contains a list of the known Twitter V2+ API expansions and fields
-for each expansion, and a function for "flattening" a result set, including all
-expansions inline
+for each expansion, and a function flatten() for "flattening" a result set, 
+including all expansions inline. 
 
+ensure_flattened() can be used in tweet processing programs that need to make 
+sure that data is flattened.
 """
 
 from collections import defaultdict
@@ -115,9 +117,13 @@ def extract_includes(response, expansion, _id="id"):
 
 def flatten(response):
     """
-    Flatten the response. Expects an entire page response from the API (data,
-    includes, meta) Defaults: Return empty objects for things missing in
-    includes. Doesn't modify tweets, only adds extra data.
+    Flatten an API response by moving all "included" entities inline with the
+    tweets they are referenced from. flatten expects an entire page response
+    from the API (data, includes, meta) and will raise a ValueError if what is
+    passed in does not appear to be an API response. It will return a list of
+    dictionaries where each dictionary represents a tweet. Empty objects will
+    be returned for things that are missing in includes, which can happen when
+    protected or delete users or tweets are referenced.
     """
 
     # Users extracted both by id and by username for expanding mentions
@@ -191,17 +197,60 @@ def flatten(response):
 
         return payload
 
-    # First, expand the included tweets, before processing actual result tweets:
+    # First expand the included tweets, before processing actual result tweets:
     for included_id, included_tweet in extract_includes(response, "tweets").items():
         includes_tweets[included_id] = expand_payload(included_tweet)
 
     # Now flatten the list of tweets or an individual tweet
+    tweets = []
     if "data" in response:
-        response["data"] = expand_payload(response["data"])
+        data = response['data']
+
+        if isinstance(data, list):
+            tweets = expand_payload(response["data"])
+        elif isinstance(data, dict):
+            tweets = [expand_payload(response["data"])]
 
         # Add the __twarc metadata to each tweet if it's a result set
-        if "__twarc" in response and isinstance(response["data"], list):
-            for tweet in response["data"]:
+        if "__twarc" in response:
+            for tweet in tweets:
                 tweet["__twarc"] = response["__twarc"]
+    else:
+        raise ValueError(f'missing data stanza in response: {response}')
 
-    return response
+    return tweets
+
+
+def ensure_flattened(data):
+    """
+    Will ensure that the supplied data is "flattened". The input data can be a
+    response from the Twitter API, a list of tweet dictionaries, or a single tweet
+    dictionary. It will always return a list of tweet dictionaries. A ValueError 
+    will be thrown if the supplied data is not recognizable or it cannot be 
+    flattened.
+
+    ensure_flattened is designed for use in twarc plugins and other tweet
+    processing applications that want to operate on a stream of tweets, and 
+    examine included entities like users and tweets without hunting and
+    pecking in the response data.
+    """
+    if isinstance(data, dict) and 'data' in data:
+        return flatten(data)
+
+    elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+        # if author is present it is already flattened
+        if 'author' in data[0]:
+            return data
+        else:
+            raise ValueError('unable to flatten list of tweets without origin response response data: {data}')
+
+    elif isinstance(data, dict) and 'author' in data:
+        # if author is present it is already flattened
+        if 'author' in data:
+            return [data]
+        else:
+            raise ValueError(f'unable to flatten tweet dictionary without original response data: {data}')
+
+    else:
+        raise ValueError(f'cannot flatten unrecognized data: {data}')
+

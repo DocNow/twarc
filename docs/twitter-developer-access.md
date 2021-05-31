@@ -61,6 +61,8 @@ Now that you have your keys and tokens, you can start using the API. You may be 
 
 Be careful not to commit your keys into a public repository or make them visible to the public - do not include them in a client side js script for example. Most apps will ask for API Key and Secret, but "Consumer Key" is "API Key" and "Consumer Secret" is "API Secret".
 
+For Academic Access, there is only one endpoint that takes Bearer (App Only) authentication, so in most cases, the Bearer Token is all you need to share.
+
 ## Step 5: Next Steps
 
 Install `twarc`, and run `twarc2 configure` to set it up.

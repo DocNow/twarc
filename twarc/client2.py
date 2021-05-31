@@ -133,17 +133,19 @@ class Twarc2:
                 count += len(response['data'])
                 yield response
 
-                # Calculate the amount of time to sleep, accounting for any
-                # processing time used by the rest of the application.
-                # This is to satisfy the 1 request / 1 second rate limit
-                # on the search/all endpoint.
-
-                time.sleep(
-                    max(0, sleep_between - (time.monotonic() - made_call))
-                )
-                made_call = time.monotonic()
             else:
-                log.info(f'no more results for search')
+                log.info(f'Retrieved an empty page of results.')
+
+            # Calculate the amount of time to sleep, accounting for any
+            # processing time used by the rest of the application.
+            # This is to satisfy the 1 request / 1 second rate limit
+            # on the search/all endpoint.
+            time.sleep(
+                max(0, sleep_between - (time.monotonic() - made_call))
+            )
+            made_call = time.monotonic()
+
+        log.info(f'No more results for search {query}.')
 
     def search_recent(
             self, query, since_id=None, until_id=None, start_time=None,
@@ -497,7 +499,9 @@ class Twarc2:
                 count += len(response['data'])
                 yield response
             else:
-                log.info(f'no more results for timeline')
+                log.info(f'Retrieved an empty page of results for timeline {user_id}')
+
+        log.info(f'No more results for timeline {user_id}.')
 
     def timeline(
         self, user, since_id=None, until_id=None, start_time=None,
