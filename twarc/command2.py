@@ -175,12 +175,6 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
             max_results = 500
-
-        # if the user is searching the historical archive the assumption is that
-        # they want to search everything, and not just the previous month which
-        # is the default: https://github.com/DocNow/twarc/issues/434
-        if start_time == None and since_id == None:
-            start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         if max_results == 0:
             max_results = 100
@@ -295,6 +289,7 @@ def users(T, infile, outfile, usernames):
     for result in T.user_lookup(infile, usernames):
         _write(result, outfile)
 
+
 @twarc2.command('mentions')
 @click.option('--since-id', type=int,
     help='Match tweets sent after tweet id')
@@ -317,7 +312,9 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
     for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
         _write(result, outfile)
 
+
 @twarc2.command('timeline')
+@click.option('--limit', default=0, help='Maximum number of tweets to return')
 @click.option('--since-id', type=int,
     help='Match tweets sent after tweet id')
 @click.option('--until-id', type=int,
@@ -328,16 +325,87 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
 @click.option('--end-time',
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
     help='Match tweets sent before time (ISO 8601/RFC 3339)')
+@click.option('--use-search', is_flag=True, default=False,
+    help='Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.')
 @click.argument('user_id', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time):
+def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time,
+        use_search, limit):
     """
-    Retrieve the 3200 most recent tweets for the given user.
+    Retrieve st recent tweets for the given user.
     """
-    for result in T.timeline(user_id, since_id, until_id, start_time, end_time):
+
+    if use_search:
+        q = f'from:{user_id}'
+        tweets = T.search_all(q, since_id, until_id, start_time, end_time)
+    else:
+        tweets = T.timeline(user_id, since_id, until_id, start_time, end_time)
+
+    count = 0
+    for result in tweets:
         _write(result, outfile)
+
+        count += len(result['data'])
+        if limit != 0 and count >= limit:
+            break
+
+
+@twarc2.command('timelines')
+@click.option('--limit', default=0, help='Maximum number of tweets to return')
+@click.option('--timeline-limit', default=0,
+    help='Maximum number of tweets to return per-timeline')
+@click.option('--use-search', is_flag=True, default=False,
+    help='Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.')
+@click.argument('infile', type=click.File('r'), default='-')
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+def timelines(T, infile, outfile, limit, timeline_limit, use_search):
+    """
+    Fetch the timelines of every user in an input source of tweets. If
+    the input is a line oriented text file of user ids or usernames that will 
+    be used instead.
+    """
+    total_count = 0
+    seen = set()
+    for line in infile:
+        line = line.strip()
+
+        users = []
+        try:
+            data = ensure_flattened(json.loads(line))
+            users = set([t['author']['id'] for t in ensure_flattened(data)])
+        except json.JSONDecodeError:
+            users = set([line])
+
+        for user in users:
+
+            # only process a given user once
+            if user in seen:
+                continue
+            seen.add(user)
+
+            # which api endpoint to use
+            if use_search and since_id:
+                tweets = T.search_all(f'from:{user}', since_id=since_id)
+            elif use_search:
+                tweets = T.search_all(f'from:{user}')
+            else:
+                tweets = T.timeline(user)
+
+            timeline_count = 0
+            for response in tweets:
+                _write(response, outfile)
+
+                timeline_count += len(response['data'])
+                if timeline_limit != 0 and timeline_count >= timeline_limit:
+                    break
+
+                total_count += len(response['data'])
+                if limit != 0 and total_count >= limit:
+                    return
+
 
 @twarc2.command('conversation')
 @click.option('--archive', is_flag=True, default=False,
@@ -357,6 +425,80 @@ def conversation(T, tweet_id, archive, outfile):
         search = T.search_recent(q)
     for resp in search:
         _write(resp, outfile)
+
+
+@twarc2.command('conversations')
+@click.option('--limit', default=0, help='Maximum number of tweets to return')
+@click.option('--conversation-limit', default=0,
+    help='Maximum number of tweets to return per-conversation')
+@click.option('--archive', is_flag=True, default=False,
+    help='Use the Academic Research project track access to the full archive')
+@click.argument('infile', type=click.File('r'), default='-')
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def conversations(T, infile, outfile, archive, limit, conversation_limit):
+    """
+    Fetch the full conversation threads that the input tweets are a part of.
+    Alternatively the input can be a line oriented file of conversation ids.
+    """
+
+    # keep track of converstation ids that have been fetched so that they
+    # aren't fetched twice
+    seen = set()
+
+    # use the archive or recent search?
+    search = T.search_all if archive else T.search_recent
+
+    count = 0
+    stop = False
+    for line in infile:
+        conv_ids = []
+
+        # stop will get set when the total tweet limit has been met
+        if stop:
+            break
+
+        # get a specific conversation id
+        line = line.strip()
+        if re.match(r'^\d+$', line):
+            if line in seen:
+                continue
+            conv_ids = [line]
+
+        # generate all conversation_ids that are referenced in tweets input
+        else:
+            def f():
+                for tweet in ensure_flattened(json.loads(line)):
+                    yield tweet.get('conversation_id')
+            conv_ids = f()
+
+        # output results while paying attention to the set limits
+        conv_count = 0
+
+        for conv_id in conv_ids:
+
+            if conv_id in seen:
+                logging.info(f'already fetched conversation_id {conv_id}')
+            seen.add(conv_id)
+
+            conv_count = 0
+
+            logging.info(f'fetching conversation {conv_id}')
+            for result in search(f'conversation_id:{conv_id}'): 
+                _write(result, outfile, False)
+
+                count += len(result['data'])
+                if limit != 0 and count >= limit:
+                    logging.info(f'reached tweet limit of {limit}')
+                    stop = True
+                    break
+
+                conv_count += len(result['data'])
+                if conversation_limit !=0 and conv_count >= conversation_limit:
+                    logging.info(f'reached conversation limit {conversation_limit}')
+                    break
+
 
 @twarc2.command('flatten')
 @click.argument('infile', type=click.File('r'), default='-')

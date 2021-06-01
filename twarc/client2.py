@@ -7,10 +7,11 @@ Support for the Twitter v2 API.
 import re
 import ssl
 import json
+import time
 import logging
+import datetime
 import requests
 import datetime
-import time
 
 from oauthlib.oauth2 import BackendApplicationClient
 from requests.exceptions import ConnectionError
@@ -23,6 +24,8 @@ from twarc.version import version
 
 
 log = logging.getLogger("twarc")
+
+TWITTER_EPOCH = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
 
 
 class Twarc2:
@@ -208,6 +211,13 @@ class Twarc2:
             generator[dict]: a generator, dict for each paginated response.
         """
         url = "https://api.twitter.com/2/tweets/search/all"
+
+        # start time defaults to the beginning of Twitter to override the 
+        # default of the last month. Only do this if start_time is not already
+        # specified and since_id isn't being used
+        if start_time is None and since_id is None:
+            start_time = TWITTER_EPOCH
+
         return self._search(
             url, query, since_id, until_id, start_time, end_time, max_results,
             sleep_between=1.05

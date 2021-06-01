@@ -242,7 +242,7 @@ def ensure_flattened(data):
         if 'author' in data[0]:
             return data
         else:
-            raise ValueError('unable to flatten list of tweets without origin response response data: {data}')
+            raise ValueError('unable to flatten list of tweets without original response data: {data}')
 
     elif isinstance(data, dict) and 'author' in data:
         # if author is present it is already flattened
