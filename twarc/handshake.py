@@ -6,7 +6,6 @@ import requests
 
 from requests_oauthlib import OAuth1
 from urllib.parse import parse_qs
-from getpass import getpass
 
 def handshake():
 
@@ -16,7 +15,7 @@ def handshake():
     access_token = ""
     access_token_secret = ""
 
-    bearer_token = getpass(
+    bearer_token = input(
         "Please enter your Bearer Token (leave blank to skip to API key configuration): "
     )
 
@@ -32,7 +31,7 @@ def handshake():
             "Configure API keys and secrets."
 
     consumer_key = input("Please enter your API key: ")
-    consumer_secret = getpass("Please enter your API secret: ")
+    consumer_secret = input("Please enter your API secret: ")
 
     # verify that the keys work to get the bearer token
     url = "https://api.twitter.com/oauth2/token"
@@ -96,7 +95,7 @@ def handshake():
         screen_name = credentials.get('screen_name')[0]
     else:
         access_token = input("Enter your Access Token: ")
-        access_token_secret = getpass("Enter your Access Token Secret: ")
+        access_token_secret = input("Enter your Access Token Secret: ")
         screen_name = "default"
 
     return {
