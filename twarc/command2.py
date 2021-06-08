@@ -371,6 +371,8 @@ def timelines(T, infile, outfile, limit, timeline_limit, use_search):
     seen = set()
     for line in infile:
         line = line.strip()
+        if line == "":
+            continue
 
         users = []
         try:
