@@ -19,10 +19,12 @@ from pkg_resources import iter_entry_points
 
 from twarc.version import version
 from twarc.handshake import handshake
+from twarc.config import ConfigProvider 
 from twarc.decorators import cli_api_error
 from twarc.expansions import ensure_flattened
 from click_config_file import configuration_option
 
+config_provider = ConfigProvider()
 
 @with_plugins(iter_entry_points('twarc.plugins'))
 @click.group()
@@ -42,22 +44,25 @@ from click_config_file import configuration_option
     show_default=True,
 )
 @click.option('--log', default='twarc.log')
+@click.option('--verbose', is_flag=True, default=False)
 @click.option('--metadata/--no-metadata', default=True, show_default=True,
     help="Include/don't include metadata about when and how data was collected.")
-@configuration_option(cmd_name='twarc')
+@configuration_option(cmd_name='twarc', config_file_name='config', provider=config_provider)
 @click.pass_context
 def twarc2(
     ctx, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token,
-    log, metadata, app_auth
+    log, metadata, app_auth, verbose
 ):
     """
     Collect data from the Twitter V2 API.
     """
     logging.basicConfig(
         filename=log,
-        level=logging.INFO,
+        level=logging.DEBUG if verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
+
+    logging.info("using config %s", config_provider.file_path)
 
     if bearer_token or (consumer_key and consumer_secret):
         if app_auth and (bearer_token or (consumer_key and consumer_secret)):
@@ -103,14 +108,13 @@ def configure(ctx):
     """
     Set up your Twitter app keys.
     """
+
+    config_file = config_provider.file_path
+    logging.info('creating config file: %s', config_file)
+
     keys = handshake()
     if keys is None:
         raise click.ClickException("Unable to authenticate")
-
-    config_dir = pathlib.Path(click.get_app_dir('twarc'))
-    if not config_dir.is_dir():
-        config_dir.mkdir(parents=True)
-    config_file = config_dir / 'config'
 
     config = configobj.ConfigObj(unrepr=True)
     config.filename = config_file
@@ -682,3 +686,12 @@ def _error_str(errors):
 def _write(results, outfile, pretty=False):
     indent = 2 if pretty else None
     click.echo(json.dumps(results, indent=indent), file=outfile)
+
+"""
+def _get_config_file():
+    config_dir = pathlib.Path(click.get_app_dir('twarc'))
+    if not config_dir.is_dir():
+        config_dir.mkdir(parents=True)
+    config_file = config_dir / 'config'
+    return config_file
+"""

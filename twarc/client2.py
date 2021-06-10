@@ -720,13 +720,15 @@ class Twarc2:
             self.client.close()
 
         if self.auth_type == "application" and self.bearer_token:
-            log.info('Creating HTTP session headers for app auth.')
+            log.info('creating HTTP session headers for app auth.')
+            auth = f"Bearer {self.bearer_token}"
+            log.debug('authorization: %s', auth)
             self.client = requests.Session()
-            self.client.headers.update(
-                {"Authorization": f"Bearer {self.bearer_token}"}
-            )
+            self.client.headers.update({"Authorization": auth})
         elif self.auth_type == "application":
-            log.info('Creating app auth client via OAuth2')
+            log.info('creating app auth client via OAuth2')
+            log.debug('client_id: %s', self.consumer_key)
+            log.debug('client_secret: %s', self.client_secret)
             client = BackendApplicationClient(client_id=self.consumer_key)
             self.client = OAuth2Session(client=client)
             self.client.fetch_token(
@@ -736,6 +738,10 @@ class Twarc2:
             )
         else:
             log.info('creating user auth client')
+            log.debug('client_id: %s', self.consumer_key)
+            log.debug('client_secret: %s', self.client_secret)
+            log.debug('resource_owner_key: %s', self.access_token)
+            log.debug('resource_owner_secret: %s', self.access_token_secret)
             self.client = OAuth1Session(
                 client_key=self.consumer_key,
                 client_secret=self.consumer_secret,
