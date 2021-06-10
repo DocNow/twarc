@@ -1,3 +1,2 @@
 include requirements.txt
 include docs/README.md
-include twarc2.py

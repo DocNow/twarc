@@ -334,7 +334,7 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
 def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time,
         use_search, limit):
     """
-    Retrieve st recent tweets for the given user.
+    Retrieve recent tweets for the given user.
     """
 
     if use_search:
