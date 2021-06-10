@@ -728,7 +728,7 @@ class Twarc2:
         elif self.auth_type == "application":
             log.info('creating app auth client via OAuth2')
             log.debug('client_id: %s', self.consumer_key)
-            log.debug('client_secret: %s', self.client_secret)
+            log.debug('client_secret: %s', self.consumer_secret)
             client = BackendApplicationClient(client_id=self.consumer_key)
             self.client = OAuth2Session(client=client)
             self.client.fetch_token(
@@ -739,7 +739,7 @@ class Twarc2:
         else:
             log.info('creating user auth client')
             log.debug('client_id: %s', self.consumer_key)
-            log.debug('client_secret: %s', self.client_secret)
+            log.debug('client_secret: %s', self.consumer_secret)
             log.debug('resource_owner_key: %s', self.access_token)
             log.debug('resource_owner_secret: %s', self.access_token_secret)
             self.client = OAuth1Session(
