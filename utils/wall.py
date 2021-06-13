@@ -111,7 +111,7 @@ print("""<!doctype html>
 
   <header>
   <h1>Title Here</h1>
-  <em>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a></em>
+  <em>created on the command line with <a href="https://github.com/DocNow/twarc">twarc</a></em>
   </header>
 
   <div id="tweets">
@@ -149,10 +149,10 @@ for line in lines:
         "created_at": tweet["created_at"],
         "name": tweet["user"]["name"],
         "username": tweet["user"]["screen_name"],
-        "user_url": "http://twitter.com/" + tweet["user"]["screen_name"],
+        "user_url": "https://twitter.com/" + tweet["user"]["screen_name"],
         "text": text(tweet),
         "avatar": AVATAR_DIR + "/" + filename,
-        "url": "http://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
+        "url": "https://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
     }
 
     if 'retweet_status' in tweet:
@@ -170,7 +170,7 @@ for line in lines:
         start, end = url['indices']
         t['text'] = t['text'][0:start] + a + t['text'][end:]
 
-    t['text'] = re.sub(' @([^ ]+)', ' <a href="http://twitter.com/\g<1>">@\g<1></a>', t['text'])
+    t['text'] = re.sub(' @([^ ]+)', ' <a href="https://twitter.com/\g<1>">@\g<1></a>', t['text'])
     t['text'] = re.sub(' #([^ ]+)', ' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
 
     html = u"""
@@ -199,7 +199,7 @@ print("""
 <footer id="page">
 <hr>
 <br>
-created on the command line with <a href="http://github.com/edsu/twarc">twarc</a>.
+created on the command line with <a href="https://github.com/DocNow/twarc">twarc</a>.
 <br>
 <br>
 </footer>
