@@ -158,10 +158,9 @@ for line in lines:
     else:
         t['retweet_count'] = tweet.get('retweet_count', 0)
 
-    if t['retweet_count'] == 1:
-        t['retweet_string'] = 'retweet'
-    else:
-        t['retweet_string'] = 'retweets'
+    t['favorite_count'] = tweet.get('favorite_count', 0)
+    t['retweet_string'] = 'retweet' if t['retweet_count'] == 1 else 'retweets'
+    t['favorite_string'] = 'like' if t['favorite_count'] == 1 else 'likes'
 
     for url in tweet['entities']['urls']:
         a = '<a href="%(expanded_url)s">%(url)s</a>' % url
@@ -179,7 +178,7 @@ for line in lines:
       <br>
       <div class="text">%(text)s</div><br>
       <footer>
-      %(retweet_count)s %(retweet_string)s<br>
+      %(retweet_count)s %(retweet_string)s, %(favorite_count)s %(favorite_string)s<br>
       <a href="%(url)s"><time>%(created_at)s</time></a>
       </footer>
     </article>
