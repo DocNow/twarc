@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 Feed wall.py your JSON and get a wall of tweets as HTML. If you want to get the
@@ -8,7 +7,6 @@ wall in chronological order, a handy trick is:
     % tail -r tweets.jsonl | ./wall.py > wall.html
 
 """
-from __future__ import print_function
 
 import os
 import re
@@ -170,10 +168,10 @@ for line in lines:
         start, end = url['indices']
         t['text'] = t['text'][0:start] + a + t['text'][end:]
 
-    t['text'] = re.sub(' @([^ ]+)', ' <a href="https://twitter.com/\g<1>">@\g<1></a>', t['text'])
-    t['text'] = re.sub(' #([^ ]+)', ' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
+    t['text'] = re.sub(' @([^ ]+)', r' <a href="https://twitter.com/\g<1>">@\g<1></a>', t['text'])
+    t['text'] = re.sub(' #([^ ]+)', r' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
 
-    html = u"""
+    html = """
     <article class="tweet">
       <img class="avatar" src="%(avatar)s">
       <a href="%(user_url)s" class="name">%(name)s</a><br>
