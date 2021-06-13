@@ -168,7 +168,7 @@ for line in lines:
         start, end = url['indices']
         t['text'] = t['text'][0:start] + a + t['text'][end:]
 
-    t['text'] = re.sub(' @([^ ]+)', r' <a href="https://twitter.com/\g<1>">@\g<1></a>', t['text'])
+    t['text'] = re.sub('@([A-Za-z0-9_]+)', r'<a href="https://twitter.com/\g<1>">@\g<1></a>', t['text'])
     t['text'] = re.sub(' #([^ ]+)', r' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
 
     html = """
