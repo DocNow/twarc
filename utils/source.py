@@ -5,7 +5,6 @@ Util to count which clients are most used.
 Example usage:
 utils/source.py tweets.jsonl > sources.html
 """
-from __future__ import print_function
 import json
 import fileinput
 from collections import defaultdict
@@ -55,14 +54,14 @@ print("""<!doctype html>
 
   <header>
   <h1>Twitter client sources</h1>
-  <em>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a></em>
+  <em>created on the command line with <a href="https://github.com/DocNow/twarc">twarc</a></em>
   </header>
 
   <table>
 """)
 
 for source in sumsort:
-    print('<tr><td>{}</td><td>{}</td></tr>'.format(source.encode('utf-8'), summary[source]))
+    print('<tr><td>{}</td><td>{}</td></tr>'.format(source, summary[source]))
 print("""
 
 
@@ -71,7 +70,7 @@ print("""
 <footer id="page">
 <hr>
 <br>
-created on the command line with <a href="http://github.com/edsu/twarc">twarc</a>.
+created on the command line with <a href="https://github.com/DocNow/twarc">twarc</a>.
 <br>
 <br>
 </footer>
