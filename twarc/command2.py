@@ -513,7 +513,7 @@ def conversations(T, infile, outfile, archive, limit, conversation_limit):
 def flatten(infile, outfile):
     """
     "Flatten" tweets, or move expansions inline with tweet objects and ensure
-    that each line of output is a signle tweet.
+    that each line of output is a single tweet.
     """
     if (infile.name == outfile.name):
         click.echo(click.style(f"💔 Cannot flatten files in-place, specify a different output file!", fg='red'), err=True)
