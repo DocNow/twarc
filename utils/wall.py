@@ -185,10 +185,7 @@ for line in lines:
     </article>
     """ % t
 
-    if sys.version_info.major == 2:
-        print(html.encode('utf8'))
-    else:
-        print(html)
+    print(html)
 
 print("""
 
