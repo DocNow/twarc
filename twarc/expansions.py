@@ -197,19 +197,14 @@ def flatten(response):
 
         return payload
 
-    # First expand the included tweets, before processing actual result tweets:
+    # First expand the tweets in "includes", before processing actual result tweets:
     for included_id, included_tweet in extract_includes(response, "tweets").items():
         includes_tweets[included_id] = expand_payload(included_tweet)
 
-    # Now flatten the list of tweets or an individual tweet
+    # Now expand the list of tweets or an individual tweet in "data"
     tweets = []
     if "data" in response:
-        data = response['data']
-
-        if isinstance(data, list):
-            tweets = expand_payload(response["data"])
-        elif isinstance(data, dict):
-            tweets = [expand_payload(response["data"])]
+        tweets = expand_payload(response["data"])
 
         # Add the __twarc metadata to each tweet if it's a result set
         if "__twarc" in response:
@@ -234,23 +229,32 @@ def ensure_flattened(data):
     examine included entities like users and tweets without hunting and
     pecking in the response data.
     """
-    if isinstance(data, dict) and 'data' in data:
+
+    # Single response 
+    # List of responses
+    # Single tweet 
+    # List of single tweets
+    # returns list of tweets
+
+    # If it's a single response from the API, with data and includes:
+    if isinstance(data, dict) and 'data' in data and 'includes' in data:
         return flatten(data)
 
-    elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
-        # if author is present it is already flattened
-        if 'author' in data[0]:
-            return data
-        else:
-            raise ValueError('unable to flatten list of tweets without original response data: {data}')
+    # If it's a single response with data, but without includes:
+    elif isinstance(data, dict) and 'data' in data and 'includes' not in data:
+        raise ValueError(f'unable to expand tweet dictionary without original response data and includes: {data}')
 
-    elif isinstance(data, dict) and 'author' in data:
-        # if author is present it is already flattened
-        if 'author' in data:
-            return [data]
-        else:
-            raise ValueError(f'unable to flatten tweet dictionary without original response data: {data}')
+    # If it's a single response and "includes" and "data" are missing,
+    # it is already flattened
+    elif isinstance(data, dict) and 'data' not in data and 'includes' not in data:
+        return [data]
+
+    # If it's a list of tweets with data and includes per tweet (eg: stream)
+    elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+        # if includes is not present it is already flattened
+        if 'data' not in data[0] and 'includes' not in data[0]:
+            return data
+        # expand lists?
 
     else:
         raise ValueError(f'cannot flatten unrecognized data: {data}')
-
