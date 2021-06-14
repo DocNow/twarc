@@ -112,6 +112,11 @@ def configure(ctx):
     config_file = config_provider.file_path
     logging.info('creating config file: %s', config_file)
 
+    config_dir = pathlib.Path(config_file).parent
+    if not config_dir.is_dir():
+        logging.info('creating config directory: %s', config_dir)
+        config_dir.mkdir(parents=True)
+ 
     keys = handshake()
     if keys is None:
         raise click.ClickException("Unable to authenticate")
@@ -686,12 +691,3 @@ def _error_str(errors):
 def _write(results, outfile, pretty=False):
     indent = 2 if pretty else None
     click.echo(json.dumps(results, indent=indent), file=outfile)
-
-"""
-def _get_config_file():
-    config_dir = pathlib.Path(click.get_app_dir('twarc'))
-    if not config_dir.is_dir():
-        config_dir.mkdir(parents=True)
-    config_file = config_dir / 'config'
-    return config_file
-"""
