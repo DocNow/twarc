@@ -389,6 +389,8 @@ def timelines(T, infile, outfile, limit, timeline_limit, use_search):
             users = set([t['author']['id'] for t in ensure_flattened(data)])
         except json.JSONDecodeError:
             users = set([line])
+        except ValueError:
+            users = set([line])
 
         for user in users:
 
