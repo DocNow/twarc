@@ -196,6 +196,52 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
         if limit != 0 and count >= limit:
             break
 
+@twarc2.command('counts')
+@click.option('--since-id', type=int,
+    help='Count tweets sent after tweet id')
+@click.option('--until-id', type=int,
+    help='Count tweets sent prior to tweet id')
+@click.option('--start-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Count tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+@click.option('--end-time',
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='Count tweets sent before UTC time (ISO 8601/RFC 3339)')
+@click.option('--archive', is_flag=True, default=False,
+    help='Count using the full archive (requires Academic Research track)')
+@click.option('--granularity', default='hour', 
+    type=click.Choice(['day', 'hour', 'minute'], case_sensitive=False),
+    help="Aggregation level for counts. Can be one of: day, hour, minute. Default is hour.")
+@click.option('--limit', default=0, help='Maximum number of results to save')
+@click.option('--max-results', default=0, help='Maximum number of results per API response')
+@click.argument('query', type=str)
+@click.argument('outfile', type=click.File('w'), default='-')
+@click.pass_obj
+@cli_api_error
+def counts(T, query, outfile, since_id, until_id, start_time, end_time, archive, granularity, limit, max_results):
+    """
+    Search for tweets.
+    """
+    count = 0
+
+    if archive:
+        count_method = T.count_all
+
+        # default number of tweets per response 500 when not set otherwise
+        if max_results == 0:
+            max_results = 500
+    else:
+        if max_results == 0:
+            max_results = 100
+        count_method = T.count_recent
+
+    for result in count_method(query, since_id, until_id, start_time, end_time, max_results, granularity,
+            ):
+        _write(result, outfile)
+        count += len(result['data'])
+        if limit != 0 and count >= limit:
+            break
+
 @twarc2.command('tweet')
 @click.option('--pretty', is_flag=True, default=False,
     help='Pretty print the JSON')
