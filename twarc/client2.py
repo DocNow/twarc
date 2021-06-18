@@ -115,9 +115,10 @@ class Twarc2:
     ):
 
         params = expansions.EVERYTHING.copy()
-        params['max_results'] = max_results
         params["query"] = query
 
+        if max_results:
+            params['max_results'] = max_results
         if since_id:
             params["since_id"] = since_id
         if until_id:
@@ -228,7 +229,7 @@ class Twarc2:
     @requires_app_auth
     def counts_recent(
             self, query, since_id=None, until_id=None, start_time=None,
-            end_time=None, max_results=100, granularity='hour'
+            end_time=None, granularity='hour'
         ):
         """
         Retrieve counts for the given query in the last seven days,
@@ -258,13 +259,13 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/counts/recent"
         return self._search(
-            url, query, since_id, until_id, start_time, end_time, max_results, granularity
+            url, query, since_id, until_id, start_time, end_time, None, granularity
         )
 
     @requires_app_auth
     def counts_all(
         self, query, since_id=None, until_id=None, start_time=None,
-        end_time=None, max_results=500, granularity='hour'
+        end_time=None, granularity='hour'
     ):
         """
         Retrieve counts for the given query in the full archive,
@@ -301,7 +302,7 @@ class Twarc2:
             start_time = TWITTER_EPOCH
 
         return self._search(
-            url, query, since_id, until_id, start_time, end_time, max_results,
+            url, query, since_id, until_id, start_time, end_time, None,
             granularity, sleep_between=1.05
         )
 

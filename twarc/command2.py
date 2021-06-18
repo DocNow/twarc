@@ -212,13 +212,12 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
 @click.option('--granularity', default='hour', 
     type=click.Choice(['day', 'hour', 'minute'], case_sensitive=False),
     help="Aggregation level for counts. Can be one of: day, hour, minute. Default is hour.")
-@click.option('--limit', default=0, help='Maximum number of results to save')
-@click.option('--max-results', default=0, help='Maximum number of results per API response')
+@click.option('--limit', default=0, help='Maximum number of days of results to save (minimum is 30)')
 @click.argument('query', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def counts(T, query, outfile, since_id, until_id, start_time, end_time, archive, granularity, limit, max_results):
+def counts(T, query, outfile, since_id, until_id, start_time, end_time, archive, granularity, limit):
     """
     Search for tweets.
     """
@@ -226,16 +225,10 @@ def counts(T, query, outfile, since_id, until_id, start_time, end_time, archive,
 
     if archive:
         count_method = T.count_all
-
-        # default number of tweets per response 500 when not set otherwise
-        if max_results == 0:
-            max_results = 500
     else:
-        if max_results == 0:
-            max_results = 100
         count_method = T.count_recent
 
-    for result in count_method(query, since_id, until_id, start_time, end_time, max_results, granularity,
+    for result in count_method(query, since_id, until_id, start_time, end_time, granularity,
             ):
         _write(result, outfile)
         count += len(result['data'])
