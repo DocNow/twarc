@@ -775,6 +775,19 @@ class Twarc2:
             else:
                 raise ValueError(f"No such user {user}")
 
+    @requires_app_auth
+    def compliance_job_list(self, start_time, end_time, status):
+        """Returns list of compliance jobs"""
+        params = {}
+        if start_time:
+            params["start_time"] = start_time
+        if end_time:
+            params["end_time"] = end_time
+        if status:
+            params["status"] = status
+        return self.client.get("https://api.twitter.com/2/tweets/compliance/jobs", params=params)
+
+
 def _ts(dt):
     """
     Return ISO 8601 / RFC 3339 datetime in UTC. If no timezone is specified it

@@ -659,6 +659,51 @@ def delete_all(T):
         click.echo(f"🗑  Deleted {len(rule_ids)} rules.")
 
 
+@twarc2.group()
+@click.pass_obj
+def compliance_job(T):
+    """
+    Create, retrieve and list batch Tweet compliance jobs
+    """
+    pass
+
+@compliance_job.command('list')
+@click.option('--start-time', default=None,
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='The oldest UTC timestamp from which jobs will be provided by job creation time. (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+@click.option('--end-time', default=None,
+    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
+    help='The newest, most recent UTC timestamp from which jobs will be provided by job creation time. (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+@click.pass_obj
+@cli_api_error
+def compliance_job_list(T):
+    """
+    Returns a list of recent compliance jobs for Tweets.
+    """
+    pass
+
+
+@compliance_job.command('create')
+@click.pass_obj
+@cli_api_error
+def compliance_job_create(T):
+    """
+    Create a new compliance job and upload tweet IDs.
+    """
+    pass
+
+
+@compliance_job.command('get')
+@click.argument('job')
+@click.pass_obj
+@cli_api_error
+def compliance_job_get(T, job):
+    """
+    Returns status and download information about the job with the specified ID.
+    """
+    pass
+
+
 def _rule_str(rule):
     s = f"id={rule['id']} value={rule['value']}"
     if 'tag' in rule:
