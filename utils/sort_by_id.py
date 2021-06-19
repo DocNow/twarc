@@ -20,7 +20,7 @@ for line in fileinput.input():
     tweet = json.loads(line)
     tweets.append(tweet)
 
-tweets = sorted(tweets, key=itemgetter('id'))
+tweets = sorted(tweets, key=itemgetter("id"))
 
 for tweet in tweets:
     print(json.dumps(tweet))

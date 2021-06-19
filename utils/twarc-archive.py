@@ -47,31 +47,58 @@ def main():
     config = os.path.join(os.path.expanduser("~"), ".twarc")
     e = os.environ.get
     parser = argparse.ArgumentParser("archive")
-    parser.add_argument("search", action="store",
-                        help="search for tweets matching a query")
-    parser.add_argument("archive_dir", action="store",
-                        help="a directory where results are stored")
-    parser.add_argument("--consumer_key", action="store",
-                        default=e('CONSUMER_KEY'),
-                        help="Twitter API consumer key")
-    parser.add_argument("--consumer_secret", action="store",
-                        default=e('CONSUMER_SECRET'),
-                        help="Twitter API consumer secret")
-    parser.add_argument("--access_token", action="store",
-                        default=e('ACCESS_TOKEN'),
-                        help="Twitter API access key")
-    parser.add_argument("--access_token_secret", action="store",
-                        default=e('ACCESS_TOKEN_SECRET'),
-                        help="Twitter API access token secret")
+    parser.add_argument(
+        "search", action="store", help="search for tweets matching a query"
+    )
+    parser.add_argument(
+        "archive_dir", action="store", help="a directory where results are stored"
+    )
+    parser.add_argument(
+        "--consumer_key",
+        action="store",
+        default=e("CONSUMER_KEY"),
+        help="Twitter API consumer key",
+    )
+    parser.add_argument(
+        "--consumer_secret",
+        action="store",
+        default=e("CONSUMER_SECRET"),
+        help="Twitter API consumer secret",
+    )
+    parser.add_argument(
+        "--access_token",
+        action="store",
+        default=e("ACCESS_TOKEN"),
+        help="Twitter API access key",
+    )
+    parser.add_argument(
+        "--access_token_secret",
+        action="store",
+        default=e("ACCESS_TOKEN_SECRET"),
+        help="Twitter API access token secret",
+    )
     parser.add_argument("--profile", action="store", default="main")
-    parser.add_argument('-c', '--config',
-                        default=config,
-                        help="Config file containing Twitter keys and secrets. Overridden by environment config.")
-    parser.add_argument("--tweet_mode", action="store", default="extended",
-                        dest="tweet_mode", choices=["compat", "extended"],
-                        help="set tweet mode")
-    parser.add_argument("--twarc_command", action="store", default="search", choices=["search", "timeline"],
-                        help="select twarc command to be used for harvest, currently supports search and timeline")
+    parser.add_argument(
+        "-c",
+        "--config",
+        default=config,
+        help="Config file containing Twitter keys and secrets. Overridden by environment config.",
+    )
+    parser.add_argument(
+        "--tweet_mode",
+        action="store",
+        default="extended",
+        dest="tweet_mode",
+        choices=["compat", "extended"],
+        help="set tweet mode",
+    )
+    parser.add_argument(
+        "--twarc_command",
+        action="store",
+        default="search",
+        choices=["search", "timeline"],
+        help="select twarc command to be used for harvest, currently supports search and timeline",
+    )
 
     args = parser.parse_args()
 
@@ -81,10 +108,10 @@ def main():
     logging.basicConfig(
         filename=os.path.join(args.archive_dir, "archive.log"),
         level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
+        format="%(asctime)s %(levelname)s %(message)s",
     )
 
-    lockfile = os.path.join(args.archive_dir, '') + "lockfile"
+    lockfile = os.path.join(args.archive_dir, "") + "lockfile"
     if not os.path.exists(lockfile):
         pid = os.getpid()
         lockfile_handle = open(lockfile, "w")
@@ -95,21 +122,29 @@ def main():
         with open(lockfile, "r") as lockfile_handle:
             old_pid = lockfile_handle.read()
 
-        sys.exit("Another twarc-archive.py process with pid " + old_pid + " is running. If the process is no longer active then it may have been interrupted. In that case remove the 'lockfile' in " + args.archive_dir + " and run the command again.")
+        sys.exit(
+            "Another twarc-archive.py process with pid "
+            + old_pid
+            + " is running. If the process is no longer active then it may have been interrupted. In that case remove the 'lockfile' in "
+            + args.archive_dir
+            + " and run the command again."
+        )
 
     logging.info("logging search for %s to %s", args.search, args.archive_dir)
 
-    t = twarc.Twarc(consumer_key=args.consumer_key,
-                    consumer_secret=args.consumer_secret,
-                    access_token=args.access_token,
-                    access_token_secret=args.access_token_secret,
-                    profile=args.profile,
-                    config=args.config,
-                    tweet_mode=args.tweet_mode)
+    t = twarc.Twarc(
+        consumer_key=args.consumer_key,
+        consumer_secret=args.consumer_secret,
+        access_token=args.access_token,
+        access_token_secret=args.access_token_secret,
+        profile=args.profile,
+        config=args.config,
+        tweet_mode=args.tweet_mode,
+    )
 
     last_archive = get_last_archive(args.archive_dir)
     if last_archive:
-        last_id = json.loads(next(gzip.open(last_archive, 'rt')))['id_str']
+        last_id = json.loads(next(gzip.open(last_archive, "rt")))["id_str"]
     else:
         last_id = None
 
