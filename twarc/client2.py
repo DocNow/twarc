@@ -764,6 +764,37 @@ class Twarc2:
                 resource_owner_secret=self.access_token_secret
             )
 
+
+    @requires_app_auth
+    def compliance_job_list(self, start_time, end_time, status):
+        """
+        Returns list of compliance jobs. Calls
+        
+        Calls [GET /2/tweets/compliance/jobs](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-tweet/api-reference/get-tweets-compliance-jobs)
+
+        Args:
+            start_time (date): The oldest UTC timestamp from which jobs will be provided by job creation time.
+            end_time (date): The newest, most recent UTC timestamp from which jobs will be provided by job creation time.
+
+        Returns:
+            list[dict]: A list of jobs.
+        """
+        params = {}
+        if start_time:
+            params["start_time"] = start_time
+        if end_time:
+            params["end_time"] = end_time
+        if status:
+            params["status"] = status
+        result = self.client.get("https://api.twitter.com/2/tweets/compliance/jobs", params=params).json()
+        if "data" in result:
+            return result["data"]
+        elif "error" in result:
+            raise ValueError(f"{result['error']['message']} Your app is most likely not in the alpha test for this feature. It is not yet available to you.")
+        else:
+            raise ValueError(f"Unknown response from twitter: {result}")
+
+
     def _ensure_user_id(self, user):
         user = str(user)
         if re.match(r'^\d+$', user):
@@ -774,19 +805,6 @@ class Twarc2:
                 return results['data'][0]['id']
             else:
                 raise ValueError(f"No such user {user}")
-
-    @requires_app_auth
-    def compliance_job_list(self, start_time, end_time, status):
-        """Returns list of compliance jobs"""
-        params = {}
-        if start_time:
-            params["start_time"] = start_time
-        if end_time:
-            params["end_time"] = end_time
-        if status:
-            params["status"] = status
-        return self.client.get("https://api.twitter.com/2/tweets/compliance/jobs", params=params)
-
 
 def _ts(dt):
     """

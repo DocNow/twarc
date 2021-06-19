@@ -663,7 +663,7 @@ def delete_all(T):
 @click.pass_obj
 def compliance_job(T):
     """
-    Create, retrieve and list batch Tweet compliance jobs
+    Create, retrieve and list batch Tweet compliance jobs. This feature is in alpha and not widely available.
     """
     pass
 
@@ -674,13 +674,23 @@ def compliance_job(T):
 @click.option('--end-time', default=None,
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
     help='The newest, most recent UTC timestamp from which jobs will be provided by job creation time. (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
+@click.option('--status', default='all', 
+    type=click.Choice(['all', 'in_progress', 'failed', 'complete', 'expired'], case_sensitive=False),
+    help="Allows to filter by job status. Only one of 'all', 'in_progress', 'failed', 'complete', 'expired' filter can be specified. Default: 'all'")
 @click.pass_obj
 @cli_api_error
-def compliance_job_list(T):
+def compliance_job_list(T, start_time, end_time, status):
     """
     Returns a list of recent compliance jobs for Tweets.
     """
-    pass
+    status = None if (status == 'all') else status # hack for broken API
+    result = T.compliance_job_list(start_time, end_time, status)   
+    if len(result) == 0:
+        click.echo(click.style(f"🙃  There are no compliance jobs.", fg='red'), err=True)
+    else:
+        for job in result:
+            print(job) #todo: pretty print
+
 
 
 @compliance_job.command('create')
