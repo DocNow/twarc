@@ -14,6 +14,7 @@ import requests
 import configobj
 import threading
 
+from tqdm import tqdm
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 
@@ -189,9 +190,11 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
             max_results = 100
         search_method = T.search_recent
 
+    pbar = _id_progress_bar(since_id, until_id, start_time, end_time)
     for result in search_method(query, since_id, until_id, start_time, end_time,
             max_results):
         _write(result, outfile)
+        pbar.update(int(result["meta"]["newest_id"]) - pbar.n)
         count += len(result['data'])
         if limit != 0 and count >= limit:
             break
@@ -658,6 +661,17 @@ def delete_all(T):
         results = T.delete_stream_rule_ids(rule_ids)
         click.echo(f"🗑  Deleted {len(rule_ids)} rules.")
 
+
+def _id_progress_bar():
+    """
+    Snowflake ID based progress bar.
+    """
+    return tqdm(
+        total=1,
+        )
+
+def _date_to_snowflake(date):
+    return 1
 
 def _rule_str(rule):
     s = f"id={rule['id']} value={rule['value']}"
