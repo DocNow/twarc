@@ -24,7 +24,7 @@ if __name__ == "__main__":
         python_requires=">=3.3",
         install_requires=dependencies,
         setup_requires=["pytest-runner"],
-        tests_require=["pytest", "pytest-black" "python-dotenv", "pytz"],
+        tests_require=["pytest", "pytest-black", "python-dotenv", "pytz"],
         entry_points={
             "console_scripts": [
                 "twarc = twarc.command:main",
