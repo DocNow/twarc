@@ -319,11 +319,11 @@ def test_follows_username():
 
 def test_flattened():
     """
-    This test uses the sample stream to test response flattening.  It will look
+    This test uses the search API to test response flattening. It will look
     at each tweet to find evidence that all the expansions have worked. Once it
-    finds them all it stops. If it has listened to 5000 tweets and not found any
-    of the expansions it stops and assumes that something is not right.  This
-    5000 cutoff may need to be adjusted based on experience.
+    finds them all it stops. If it has retrieved 500 tweets and not found any
+    of the expansions it stops and assumes that something is not right. This
+    500 cutoff or the query may need to be adjusted based on experience.
     """
     found_geo = False
     found_in_reply_to_user = False
@@ -332,58 +332,62 @@ def test_flattened():
     found_entities_mentions = False
     found_referenced_tweets = False
 
-    event = threading.Event()
-    for count, response in enumerate(T.sample(event=event)):
+    count = 0
 
-        # streaming api always returns a tweet at a time but flatten
-        # will put these in a list so they can be treated uniformly
+    for response in T.search_recent(
+            "(vote poll has:hashtags has:mentions -is:retweet) OR (checked into has:images -is:retweet)"
+        ):
+        # Search api always returns a response of tweets with metadata but flatten
+        # will put these in a list
         tweets = twarc.expansions.flatten(response)
-        assert len(tweets) == 1
-        tweet = tweets[0]
+        assert len(tweets) > 1
 
-        assert "id" in tweet
-        logging.info("got sample tweet #%s %s", count, tweet["id"])
+        for tweet in tweets:
+            count += 1
 
-        author_id = tweet["author_id"]
-        assert "author" in tweet
-        assert tweet["author"]["id"] == author_id
+            assert "id" in tweet
+            logging.info("got search tweet #%s %s", count, tweet["id"])
 
-        if "in_reply_to_user_id" in tweet:
-            assert "in_reply_to_user" in tweet
-            found_in_reply_to_user = True
+            author_id = tweet["author_id"]
+            assert "author" in tweet
+            assert tweet["author"]["id"] == author_id
 
-        if "attachments" in tweet:
-            if "media_keys" in tweet["attachments"]:
-                assert "media" in tweet["attachments"]
-                found_attachments_media = True
-            if "poll_ids" in tweet["attachments"]:
-                assert "poll" in tweet["attachments"]
-                found_attachments_polls = True
+            if "in_reply_to_user_id" in tweet:
+                assert "in_reply_to_user" in tweet
+                found_in_reply_to_user = True
 
-        if "geo" in tweet:
-            assert tweet["geo"]["place_id"]
-            assert tweet["geo"]["place_id"] == tweet["geo"]["id"]
-            found_geo = True
+            if "attachments" in tweet:
+                if "media_keys" in tweet["attachments"]:
+                    assert "media" in tweet["attachments"]
+                    found_attachments_media = True
+                if "poll_ids" in tweet["attachments"]:
+                    assert "poll" in tweet["attachments"]
+                    found_attachments_polls = True
 
-        if "entities" in tweet and "mentions" in tweet["entities"]:
-            assert tweet["entities"]["mentions"][0]["username"]
-            found_entities_mentions = True
+            if "geo" in tweet:
+                assert tweet["geo"]["place_id"]
+                assert tweet["geo"]["place_id"] == tweet["geo"]["id"]
+                found_geo = True
 
-        # need to ensure there are no errors because a referenced tweet
-        # might be protected or deleted in which case it would not have been
-        # included in the response and would not have been flattened
-        if "errors" not in response and "referenced_tweets" in tweet:
-            assert tweet["referenced_tweets"][0]["text"]
-            found_referenced_tweets = True
+            if "entities" in tweet and "mentions" in tweet["entities"]:
+                assert tweet["entities"]["mentions"][0]["username"]
+                found_entities_mentions = True
+
+            # need to ensure there are no errors because a referenced tweet
+            # might be protected or deleted in which case it would not have been
+            # included in the response and would not have been flattened
+            if "errors" not in response and "referenced_tweets" in tweet:
+                assert tweet["referenced_tweets"][0]["text"]
+                found_referenced_tweets = True
 
         if found_geo and found_in_reply_to_user and found_attachments_media \
                 and found_attachments_polls and found_entities_mentions \
                 and found_referenced_tweets:
-            logging.info("found all expansions!")
-            event.set()
-        elif count > 10000:
-            logging.info("didn't find all expansions in 5000 tweets")
-            event.set()
+            logging.info(f"found all expansions after {count} tweets!")
+            break
+        elif count > 500:
+            logging.info("didn't find all expansions in 500 tweets")
+            break
 
     assert found_geo, "found geo"
     assert found_in_reply_to_user, "found in_reply_to_user"
