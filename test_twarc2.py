@@ -393,10 +393,8 @@ def test_flattened():
             and found_referenced_tweets
         ):
             logging.info("found all expansions!")
-            event.set()
         elif count > 10000:
-            logging.info("didn't find all expansions in 5000 tweets")
-            event.set()
+            logging.info("didn't find all expansions in 10000 tweets")
 
     assert found_geo, "found geo"
     assert found_in_reply_to_user, "found in_reply_to_user"
