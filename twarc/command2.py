@@ -662,7 +662,7 @@ def delete_all(T):
         click.echo(f"🗑  Deleted {len(rule_ids)} rules.")
 
 
-def _id_progress_bar():
+def _id_progress_bar(since_id, until_id, start_time, end_time):
     """
     Snowflake ID based progress bar.
     """
