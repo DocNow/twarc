@@ -339,8 +339,8 @@ def test_flattened():
     count = 0
 
     for response in T.search_recent(
-            "(vote poll has:hashtags has:mentions -is:retweet) OR (checked into has:images -is:retweet)"
-        ):
+        "(vote poll has:hashtags has:mentions -is:retweet) OR (checked into has:images -is:retweet)"
+    ):
         # Search api always returns a response of tweets with metadata but flatten
         # will put these in a list
         tweets = twarc.expansions.flatten(response)
