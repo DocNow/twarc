@@ -17,7 +17,7 @@ if __name__ == "__main__":
         url='https://github.com/docnow/twarc',
         author='Ed Summers',
         author_email='ehs@pobox.com',
-        packages=['twarc', ],
+        packages=['twarc'],
         description='Archive tweets from the command line',
         long_description=long_description,
         long_description_content_type="text/markdown",

@@ -1,7 +1,7 @@
 twarc
 =====
 
-***For information about working with the Twitter V2 API please see the [twarc2](twarc2) page.***
+***For information about working with the Twitter V2 API please see the [twarc2](https://twarc-project.readthedocs.io/en/latest/twarc2/) page.***
 
 ---
 

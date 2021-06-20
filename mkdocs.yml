@@ -28,6 +28,7 @@ nav:
   - Library API:
     - api/client.md
     - api/client2.md
+    - api/expansions.md
 
 plugins:
 - search
