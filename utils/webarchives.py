@@ -8,19 +8,15 @@ supports archive.org and archive.is, but please add more if you want!
 import json
 import fileinput
 
-archives = [
-    'archive.is',
-    'web.archive.org',
-    'wayback.archive.org'
-]
+archives = ["archive.is", "web.archive.org", "wayback.archive.org"]
 
 for line in fileinput.input():
     tweet = json.loads(line)
-    for url in tweet['entities']['urls']:
+    for url in tweet["entities"]["urls"]:
         done = False
         for host in archives:
-            if host in url['expanded_url']:
-                print(line, end='')
+            if host in url["expanded_url"]:
+                print(line, end="")
                 done = True
         # prevent outputting same data twice if it contains
         # multiple archive urls

@@ -43,7 +43,7 @@ def main(files, enhance_tweet=False, print_results=True):
         tweet = json.loads(line)
         result = examine(tweet)
         if enhance_tweet:
-            tweet['delete_reason'] = result
+            tweet["delete_reason"] = result
             print(json.dumps(tweet))
         else:
             print(tweet_url(tweet), result)
@@ -59,7 +59,7 @@ def examine(tweet):
     if user_status != USER_OK:
         return user_status
     else:
-        retweet = tweet.get('retweeted_status', None)
+        retweet = tweet.get("retweeted_status", None)
         tweet_status = get_tweet_status(tweet)
 
         # If not a retweet and tweet deleted, then tweet deleted.
@@ -83,15 +83,17 @@ def examine(tweet):
             elif rt_status == TWEET_OK:
                 return RETWEET_DELETED
             else:
-                raise "Unexpected retweet status %s for %s" % (rt_status,
-                                                               tweet['id_str'])
+                raise "Unexpected retweet status %s for %s" % (
+                    rt_status,
+                    tweet["id_str"],
+                )
 
 
 users = {}
 
 
 def get_user_status(tweet):
-    user_id = tweet['user']['id_str']
+    user_id = tweet["user"]["id_str"]
     if user_id in users:
         return users[user_id]
 
@@ -105,7 +107,7 @@ def get_user_status(tweet):
     try:
         resp = t.get(url, params=params, allow_404=True)
         user = resp.json()
-        if user['protected']:
+        if user["protected"]:
             result = USER_PROTECTED
     except requests.exceptions.HTTPError as e:
         try:
@@ -127,7 +129,7 @@ tweets = {}
 
 
 def get_tweet_status(tweet):
-    id = tweet['id_str']
+    id = tweet["id_str"]
     if id in tweets:
         return tweets[id]
     # USER_SUSPENDED: 403 and {"errors":[{"code":63,"message":"User has been suspended."}]}
@@ -163,25 +165,42 @@ def get_tweet_status(tweet):
 
 def tweet_url(tweet):
     return "https://twitter.com/%s/status/%s" % (
-        tweet['user']['screen_name'], tweet['id_str'])
+        tweet["user"]["screen_name"],
+        tweet["id_str"],
+    )
 
 
 def has_error_code(resp, code):
     if isinstance(code, int):
-        code = (code, )
-    for error in resp['errors']:
-        if error['code'] in code:
+        code = (code,)
+    for error in resp["errors"]:
+        if error["code"] in code:
             return True
     return False
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--enhance', action='store_true',
-                        help='Enhance tweet with delete_reason and output enhanced tweet.')
-    parser.add_argument('--skip-results', action='store_true', help='Skip outputting delete reason summary')
-    parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
+    parser.add_argument(
+        "--enhance",
+        action="store_true",
+        help="Enhance tweet with delete_reason and output enhanced tweet.",
+    )
+    parser.add_argument(
+        "--skip-results",
+        action="store_true",
+        help="Skip outputting delete reason summary",
+    )
+    parser.add_argument(
+        "files",
+        metavar="FILE",
+        nargs="*",
+        help="files to read, if empty, stdin is used",
+    )
     args = parser.parse_args()
 
-    main(args.files if len(args.files) > 0 else ('-',), enhance_tweet=args.enhance,
-         print_results=not args.skip_results and not args.enhance)
+    main(
+        args.files if len(args.files) > 0 else ("-",),
+        enhance_tweet=args.enhance,
+        print_results=not args.skip_results and not args.enhance,
+    )

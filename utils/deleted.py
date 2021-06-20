@@ -13,12 +13,12 @@ t = twarc.Twarc()
 
 
 def missing(tweets):
-    tweet_ids = [t['id_str'] for t in tweets]
+    tweet_ids = [t["id_str"] for t in tweets]
     hydrated = t.hydrate(tweets)
-    hydrated_ids = [t['id_str'] for t in hydrated]
+    hydrated_ids = [t["id_str"] for t in hydrated]
     missing_ids = tweet_ids - hydrated_ids
     for t in tweets:
-        if t['id_str'] in missing_ids:
+        if t["id_str"] in missing_ids:
             yield t
 
 

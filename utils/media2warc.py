@@ -40,7 +40,6 @@ BLOCK_SIZE = 25600
 
 
 class GetResource(threading.Thread):
-
     def __init__(self, q):
         threading.Thread.__init__(self)
         self.q = q
@@ -53,21 +52,22 @@ class GetResource(threading.Thread):
             host = self.q.get()
 
             try:
-                r = requests.get(host, headers={'Accept-Encoding': 'identity'}, stream=True)
+                r = requests.get(
+                    host, headers={"Accept-Encoding": "identity"}, stream=True
+                )
                 data = [r.raw.headers.items(), r.raw, host, r.status_code, r.reason]
                 print(data[2])
                 self.out_queue.put(data)
                 self.q.task_done()
 
             except requests.exceptions.RequestException as e:
-                logging.error('%s for %s', e, data[2])
+                logging.error("%s for %s", e, data[2])
                 print(e)
                 self.q.task_done()
                 continue
 
 
 class WriteWarc(threading.Thread):
-
     def __init__(self, out_queue, warcfile):
         threading.Thread.__init__(self)
         self.out_queue = out_queue
@@ -77,19 +77,24 @@ class WriteWarc(threading.Thread):
 
     def run(self):
 
-        with open(self.warcfile, 'ab') as output:
+        with open(self.warcfile, "ab") as output:
             while True:
                 self.lock.acquire()
                 data = self.out_queue.get()
                 writer = WARCWriter(output, gzip=False)
                 headers_list = data[0]
-                http_headers = StatusAndHeaders('{} {}'.format(data[3], data[4]), headers_list, protocol='HTTP/1.0')
-                record = writer.create_warc_record(data[2], 'response', payload=data[1], http_headers=http_headers)
+                http_headers = StatusAndHeaders(
+                    "{} {}".format(data[3], data[4]), headers_list, protocol="HTTP/1.0"
+                )
+                record = writer.create_warc_record(
+                    data[2], "response", payload=data[1], http_headers=http_headers
+                )
                 h = hashlib.sha1()
                 h.update(record.raw_stream.read(BLOCK_SIZE))
                 if self.dedup.lookup(h.hexdigest()):
-                    record = writer.create_warc_record(data[2], 'revisit',
-                                                       http_headers=http_headers)
+                    record = writer.create_warc_record(
+                        data[2], "revisit", http_headers=http_headers
+                    )
                     writer.write_record(record)
                     self.out_queue.task_done()
                     self.lock.release()
@@ -108,30 +113,31 @@ class Dedup:
     """
 
     def __init__(self):
-        self.file = os.path.join(args.archive_dir, 'dedup.db')
+        self.file = os.path.join(args.archive_dir, "dedup.db")
 
     def start(self):
         conn = sqlite3.connect(self.file)
         conn.execute(
-            'create table if not exists dedup ('
-            '  key varchar(300) primary key,'
-            '  value varchar(4000)'
-            ');')
+            "create table if not exists dedup ("
+            "  key varchar(300) primary key,"
+            "  value varchar(4000)"
+            ");"
+        )
         conn.commit()
         conn.close()
 
     def save(self, digest_key, url):
         conn = sqlite3.connect(self.file)
         conn.execute(
-            'insert or replace into dedup (key, value) values (?, ?)',
-            (digest_key, url))
+            "insert or replace into dedup (key, value) values (?, ?)", (digest_key, url)
+        )
         conn.commit()
         conn.close()
 
     def lookup(self, digest_key, url=None):
         result = False
         conn = sqlite3.connect(self.file)
-        cursor = conn.execute('select value from dedup where key = ?', (digest_key,))
+        cursor = conn.execute("select value from dedup where key = ?", (digest_key,))
         result_tuple = cursor.fetchone()
         conn.close()
         if result_tuple:
@@ -202,7 +208,7 @@ def main():
     logging.basicConfig(
         filename=os.path.join(args.archive_dir, "media_harvest.log"),
         level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
+        format="%(asctime)s %(levelname)s %(message)s",
     )
     logging.getLogger(__name__)
     logging.info("Logging media harvest for %s", args.tweet_file)
@@ -213,10 +219,10 @@ def main():
     uniqueUrlCount = 0
     duplicateUrlCount = 0
 
-    if args.tweet_file.endswith('.gz'):
-        tweetfile = gzip.open(args.tweet_file, 'r')
+    if args.tweet_file.endswith(".gz"):
+        tweetfile = gzip.open(args.tweet_file, "r")
     else:
-        tweetfile = open(args.tweet_file, 'r')
+        tweetfile = open(args.tweet_file, "r")
 
     logging.info("Checking for duplicate urls")
 
@@ -227,11 +233,16 @@ def main():
             if not url in urls:
                 urls.append(url)
                 q.put(url)
-                uniqueUrlCount +=1
+                uniqueUrlCount += 1
             else:
                 duplicateUrlCount += 1
 
-    logging.info("Found %s total media urls %s unique and %s duplicates", uniqueUrlCount+duplicateUrlCount, uniqueUrlCount, duplicateUrlCount)
+    logging.info(
+        "Found %s total media urls %s unique and %s duplicates",
+        uniqueUrlCount + duplicateUrlCount,
+        uniqueUrlCount,
+        duplicateUrlCount,
+    )
 
     threads = int(args.threads)
 
@@ -243,19 +254,32 @@ def main():
         t.setDaemon(True)
         t.start()
 
-    wt = WriteWarc(out_queue, os.path.join(args.archive_dir, 'warc.warc'))
+    wt = WriteWarc(out_queue, os.path.join(args.archive_dir, "warc.warc"))
     wt.setDaemon(True)
     wt.start()
 
     q.join()
     out_queue.join()
-    logging.info("Finished media harvest in %s", str(timedelta(seconds=(time.time() - start))))
+    logging.info(
+        "Finished media harvest in %s", str(timedelta(seconds=(time.time() - start)))
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser("archive")
-    parser.add_argument("tweet_file", action="store", help="a twitter jsonl.gz input file")
-    parser.add_argument("archive_dir", action="store", help="a directory where the resulting warc is stored")
-    parser.add_argument("--threads", action="store", default=1, help="Number of threads that fetches media resources")
+    parser.add_argument(
+        "tweet_file", action="store", help="a twitter jsonl.gz input file"
+    )
+    parser.add_argument(
+        "archive_dir",
+        action="store",
+        help="a directory where the resulting warc is stored",
+    )
+    parser.add_argument(
+        "--threads",
+        action="store",
+        default=1,
+        help="Number of threads that fetches media resources",
+    )
     args = parser.parse_args()
     main()

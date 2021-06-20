@@ -11,9 +11,9 @@ import fileinput
 for line in fileinput.input():
     tweet = json.loads(line)
     for url in tweet["entities"]["urls"]:
-        if 'unshortened_url' in url:
-            print(url['unshortened_url'])
-        elif url.get('expanded_url'):
-            print(url['expanded_url'])
-        elif url.get('url'):
-            print(url['url'])
+        if "unshortened_url" in url:
+            print(url["unshortened_url"])
+        elif url.get("expanded_url"):
+            print(url["expanded_url"])
+        elif url.get("url"):
+            print(url["url"])
