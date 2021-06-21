@@ -7,6 +7,7 @@ ensure_flattened() can be used in tweet processing programs that need to make
 sure that data is flattened.
 """
 
+import logging
 from collections import defaultdict
 
 log = logging.getLogger("twarc")
