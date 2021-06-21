@@ -250,6 +250,7 @@ def ensure_flattened(data):
     elif isinstance(data, dict) and "data" in data and "includes" not in data:
         # flatten() will still work, just with {} empty expansions.
         log.warning(f"Unable to expand dictionary without includes: {data}")
+        return flatten(data)
 
     # If it's a single response and both "includes" and "data" are missing, it is already flattened
     elif isinstance(data, dict) and "data" not in data and "includes" not in data:
@@ -263,7 +264,10 @@ def ensure_flattened(data):
         elif "data" in data[0] and "includes" not in data[0]:
             # Log a warning because having databut no includes is still valid:
             log.warning(f"Unable to expand dictionary without includes: {data[0]}")
+            return flatten(data)
+        # Already flattened
         elif "data" not in data[0] and "includes" not in data[0]:
             return data
+    # Unknown format, eg: list of lists, or primitive
     else:
         raise ValueError(f"Cannot flatten unrecognized data: {data}")
