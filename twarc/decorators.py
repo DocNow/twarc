@@ -24,7 +24,8 @@ class TimestampProgressBar(tqdm):
     This can be used to display a progress bar for tweet ids and time ranges.
     """
 
-    def __init__(self, outfile, since_id, until_id, start_time, end_time, **kwargs):
+    def __init__(self, disable, since_id, until_id, start_time, end_time, **kwargs):
+        self.early_stop = False
 
         if start_time is None and since_id is None:
             start_time = datetime.datetime.now(
@@ -41,30 +42,31 @@ class TimestampProgressBar(tqdm):
             else _date2millis(end_time) - _date2millis(start_time)
         )
 
+        kwargs["miniters"] = 1
         kwargs["total"] = total
-        kwargs["disable"] = outfile.name == "<stdout>"
+        kwargs["disable"] = disable
         super().__init__(**kwargs)
 
     def update_with_snowflake(self, newest_id, oldest_id):
         """
         Update progress bar based on snowflake ids.
         """
-        n = _snowflake2millis(int(newest_id)) - _snowflake2millis(
-            int(meta["oldest_id"])
-        )
+        n = _snowflake2millis(int(newest_id)) - _snowflake2millis(int(oldest_id))
         self.update(n)
 
     @property
     def format_dict(self):
+        # Todo: Better Custom display
         d = super(TimestampProgressBar, self).format_dict
         total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
         d.update(total_time=self.format_interval(total_time) + " in total")
         return d
 
-    # def close(self):
-    #    if not super.it.hasnext():
-    #        self.update(self.total)
-    #    super().close()
+    def close(self):
+        if not self.early_stop:
+            # Finish the bar to 100% even if the last tweet ids do not cover the full time range
+            self.update(self.total - self.n)
+        super().close()
 
 
 def _date2millis(dt):
