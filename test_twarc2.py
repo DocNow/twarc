@@ -405,7 +405,7 @@ def test_flattened():
 
 
 def test_ensure_flattened():
-    resp = next(T.search_recent("twitter"))
+    resp = next(T.search_recent("twitter", max_results=20))
 
     # flatten a response
     flat1 = twarc.expansions.ensure_flattened(resp)
@@ -425,11 +425,11 @@ def test_ensure_flattened():
     assert len(flat3) == 1
 
     with pytest.raises(ValueError):
-        twarc.expansions.ensure_flattened({"fake": "tweet"})
+        twarc.expansions.ensure_flattened({"data": {"fake": "tweet"}})
     with pytest.raises(ValueError):
-        twarc.expansions.ensure_flattened([{"fake": "tweet"}])
+        twarc.expansions.ensure_flattened([{"data": {"fake": "tweet"}}])
     with pytest.raises(ValueError):
-        flat1[0].pop("author")
+        flat1[0].pop("includes")
         twarc.expansions.ensure_flattened(flat1)
 
 
