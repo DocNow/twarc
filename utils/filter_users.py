@@ -27,7 +27,7 @@ def read_user_list_file(user_list_filepath):
 
     with open(user_list_filepath) as f:
         for count, line in enumerate(f):
-            split_line = line.rstrip('\n\r').split(',')
+            split_line = line.rstrip("\n\r").split(",")
             if _is_header(count, split_line):
                 continue
             if split_line[0].isdigit():
@@ -54,18 +54,18 @@ def _is_header(count, split_line):
 def main(files, user_ids, screen_names, positive_match=True):
     for count, line in enumerate(fileinput.input(files=files)):
         try:
-            tweet = json.loads(line.rstrip('\n'))
+            tweet = json.loads(line.rstrip("\n"))
             match = False
-            if user_ids and tweet['user']['id_str'] in user_ids:
+            if user_ids and tweet["user"]["id_str"] in user_ids:
                 match = True
-            elif tweet['user']['screen_name'] in screen_names:
+            elif tweet["user"]["screen_name"] in screen_names:
                 match = True
 
             if not positive_match:
                 match = not match
 
             if match:
-                print(line.rstrip('\n'))
+                print(line.rstrip("\n"))
 
             if count % 100000 == 0:
                 logging.info("processed {:,} tweets".format(count))
@@ -74,18 +74,29 @@ def main(files, user_ids, screen_names, positive_match=True):
             pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
     )
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--neg-match', action='store_true', help='Return tweets that do not match users')
-    parser.add_argument('user_list_file', help='file containing list of users to filter tweets by')
-    parser.add_argument('tweet_files', metavar='FILE', nargs='*', help='file containing tweets to filter, if empty, '
-                                                                       'stdin is used')
+    parser.add_argument(
+        "--neg-match", action="store_true", help="Return tweets that do not match users"
+    )
+    parser.add_argument(
+        "user_list_file", help="file containing list of users to filter tweets by"
+    )
+    parser.add_argument(
+        "tweet_files",
+        metavar="FILE",
+        nargs="*",
+        help="file containing tweets to filter, if empty, " "stdin is used",
+    )
     args = parser.parse_args()
     m_user_ids, m_screen_names = read_user_list_file(args.user_list_file)
-    main(args.tweet_files if len(args.tweet_files) > 0 else ('-',), m_user_ids, m_screen_names,
-         positive_match=not args.neg_match)
+    main(
+        args.tweet_files if len(args.tweet_files) > 0 else ("-",),
+        m_user_ids,
+        m_screen_names,
+        positive_match=not args.neg_match,
+    )

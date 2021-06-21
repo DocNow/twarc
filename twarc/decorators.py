@@ -18,44 +18,37 @@ class InvalidAuthType(Exception):
     """
 
 
-def prbar(f):
-    """
-    A Decorator to add aprogress bar that uses timestamp ranges
-    """
-
-    @wraps(f)
-    def new_f(*args, **kwargs):
-        # print("f", args, kwargs)
-        pbar = _id_progress_bar(
-            kwargs["since_id"],
-            kwargs["until_id"],
-            kwargs["start_time"],
-            kwargs["end_time"],
-            kwargs["outfile"],
-        )
-        kwargs["progress_bar"] = pbar
-        return f(*args, **kwargs)
-
-    return new_f
-
-
 class TimestampProgressBar(tqdm):
-    def __init__(self, start_time, end_time, **kwargs):
-        total = _date2millis(end_time) - _date2millis(start_time)
+    """
+    A Timestamp based progress bar. Counts timestamp ranges in milliseconds.
+    This can be used to display a progress bar for tweet ids and time ranges.
+    """
+
+    def __init__(self, outfile, since_id, until_id, start_time, end_time, **kwargs):
+
+        if start_time is None and since_id is None:
+        start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
+            seconds=90
+        )
+        if end_time is None and until_id is None:
+            end_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
+                seconds=30
+        )
+
+        total = _snowflake2millis(until_id) - _snowflake2millis(since_id) if (since_id and until_id) else _date2millis(end_time) - _date2millis(start_time)
+
         kwargs["total"] = total
+        kwargs["disable"] = (outfile.name == "<stdout>")
         super().__init__(**kwargs)
 
-    def update_ids(self, meta):
+    def update_with_snowflake(self, newest_id, oldest_id):
         """
-        identical to update, except `n` should be current value and not delta.
+        Update progress bar based on snowflake ids.
         """
-        n = _snowflake2millis(int(meta["newest_id"])) - _snowflake2millis(
+        n = _snowflake2millis(int(newest_id)) - _snowflake2millis(
             int(meta["oldest_id"])
         )
-        # self.update(n - self.n)
         self.update(n)
-
-    """Provides a `total_time` format parameter"""
 
     @property
     def format_dict(self):
@@ -68,27 +61,6 @@ class TimestampProgressBar(tqdm):
     #    if not super.it.hasnext():
     #        self.update(self.total)
     #    super().close()
-
-
-def _id_progress_bar(since_id, until_id, start_time, end_time, outfile):
-    """
-    Snowflake ID based progress bar.
-    """
-    if start_time is None and since_id is None:
-        start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-            seconds=90
-        )
-    if end_time is None and until_id is None:
-        end_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-            seconds=30
-        )
-    # total = _date2millis(end_time) - _date2millis(start_time) if (start_time and end_time) else _snowflake2millis(until_id) - _snowflake2millis(since_id)
-    return TimestampProgressBar(
-        # total=total,
-        start_time=start_time,
-        end_time=end_time,
-        disable=(outfile.name == "<stdout>"),
-    )
 
 
 def _date2millis(dt):
@@ -110,17 +82,11 @@ def _millis2date(ms):
 
 
 def _date2snowflake(dt):
-    ms = int(dt.timestamp() * 1000)
-    snowflake_id = (int(ms) - 1288834974657) << 22
-    return snowflake_id
+    return _millis2snowflake(_date2millis(dt))
 
 
 def _snowflake2date(snowflake_id):
-    ms = (snowflake_id >> 22) + 1288834974657
-    dt = datetime.datetime.utcfromtimestamp(ms // 1000).replace(
-        microsecond=ms % 1000 * 1000
-    )
-    return dt
+    return _millis2date(_snowflake2millis(snowflake_id))
 
 
 def rate_limit(f):

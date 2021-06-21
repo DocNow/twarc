@@ -12,21 +12,23 @@ with open("requirements.txt") as f:
 
 if __name__ == "__main__":
     setuptools.setup(
-        name='twarc',
+        name="twarc",
         version=version,
-        url='https://github.com/docnow/twarc',
-        author='Ed Summers',
-        author_email='ehs@pobox.com',
-        packages=['twarc'],
-        description='Archive tweets from the command line',
+        url="https://github.com/docnow/twarc",
+        author="Ed Summers",
+        author_email="ehs@pobox.com",
+        packages=["twarc"],
+        description="Archive tweets from the command line",
         long_description=long_description,
         long_description_content_type="text/markdown",
-        python_requires='>=3.3',
+        python_requires=">=3.3",
         install_requires=dependencies,
-        setup_requires=['pytest-runner'],
-        tests_require=['pytest', 'python-dotenv', 'pytz'],
-        entry_points={'console_scripts': [
-            'twarc = twarc.command:main',
-            'twarc2 = twarc.command2:twarc2',
-        ]}
+        setup_requires=["pytest-runner"],
+        tests_require=["pytest", "pytest-black", "python-dotenv", "pytz"],
+        entry_points={
+            "console_scripts": [
+                "twarc = twarc.command:main",
+                "twarc2 = twarc.command2:twarc2",
+            ]
+        },
     )

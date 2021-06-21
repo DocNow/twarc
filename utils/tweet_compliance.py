@@ -33,10 +33,10 @@ import logging
 
 # Send logging to file instead of STDERR.
 logging.basicConfig(
-        filename="tweet_compliance.log",
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
-    )
+    filename="tweet_compliance.log",
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
 
 t = twarc.Twarc()
 
@@ -46,7 +46,7 @@ def process_tweets(tweets):
     # Hydrate the tweets.
     for tweet in t.hydrate(tweets.keys()):
         # Keep track of the tweet ids of the tweets that are available.
-        available_tweet_ids.add(tweet['id_str'])
+        available_tweet_ids.add(tweet["id_str"])
         # Print available tweets to STDOUT.
         print(json.dumps(tweet))
 
@@ -61,13 +61,13 @@ def process_tweets(tweets):
 
 
 tweets = {}
-for line in (line.rstrip('\n') for line in fileinput.input()):
+for line in (line.rstrip("\n") for line in fileinput.input()):
     # Add tweet or None to tweet map.
     tweet_id = line
     tweet = None
     if not line.isdigit():
         tweet = json.loads(line)
-        tweet_id = tweet['id_str']
+        tweet_id = tweet["id_str"]
     tweets[tweet_id] = tweet
 
     # When get to 100, process the tweets.

@@ -10,13 +10,13 @@ import datetime
 import threading
 
 dotenv.load_dotenv()
-consumer_key = os.environ.get('CONSUMER_KEY')
-consumer_secret = os.environ.get('CONSUMER_SECRET')
+consumer_key = os.environ.get("CONSUMER_KEY")
+consumer_secret = os.environ.get("CONSUMER_SECRET")
 bearer_token = os.environ.get("BEARER_TOKEN")
-access_token = os.environ.get('ACCESS_TOKEN')
-access_token_secret = os.environ.get('ACCESS_TOKEN_SECRET')
+access_token = os.environ.get("ACCESS_TOKEN")
+access_token_secret = os.environ.get("ACCESS_TOKEN_SECRET")
 
-test_data = pathlib.Path('test-data')
+test_data = pathlib.Path("test-data")
 logging.basicConfig(filename="test.log", level=logging.INFO)
 
 # Implicitly test the constructor in application auth mode. This ensures that
@@ -28,12 +28,18 @@ T = twarc.Twarc2(
     consumer_secret=consumer_secret,
 )
 
+
 def test_version():
     import setup
+
     assert setup.version == twarc.version
 
+
 def test_auth_types_interaction():
-    """Test the various options for configuration work as expected."""
+    """
+    Test the various options for configuration work as expected.
+    """
+
     # 1. bearer_token auth -> app auth
     tw = twarc.Twarc2(bearer_token=bearer_token)
     assert tw.auth_type == "application"
@@ -57,7 +63,7 @@ def test_auth_types_interaction():
         access_token=access_token,
         access_token_secret=access_token_secret,
         consumer_key=consumer_key,
-        consumer_secret=consumer_secret
+        consumer_secret=consumer_secret,
     )
     assert tw.auth_type == "user"
 
@@ -106,18 +112,17 @@ def test_search_recent():
 
 def test_search_times():
     found = False
-    now = datetime.datetime.now(tz=pytz.timezone('Australia/Melbourne'))
+    now = datetime.datetime.now(tz=pytz.timezone("Australia/Melbourne"))
     # twitter api doesn't resolve microseconds so strip them for comparison
     now = now.replace(microsecond=0)
     end = now - datetime.timedelta(seconds=60)
     start = now - datetime.timedelta(seconds=61)
 
-    for response_page in T.search_recent("tweet", start_time=start,
-            end_time=end):
+    for response_page in T.search_recent("tweet", start_time=start, end_time=end):
         for tweet in response_page["data"]:
             found = True
             # convert created_at to datetime with utc timezone
-            dt = tweet['created_at'].strip('Z')
+            dt = tweet["created_at"].strip("Z")
             dt = datetime.datetime.fromisoformat(dt)
             dt = dt.replace(tzinfo=datetime.timezone.utc)
             assert dt >= start
@@ -148,7 +153,7 @@ def test_user_ids_lookup():
 
 def test_usernames_lookup():
     users_found = 0
-    usernames = ['jack', 'barackobama', 'rihanna']
+    usernames = ["jack", "barackobama", "rihanna"]
     for response in T.user_lookup(usernames, usernames=True):
         for profile in response["data"]:
             users_found += 1
@@ -179,51 +184,50 @@ def test_tweet_lookup():
 def test_stream():
     # remove any active stream rules
     rules = T.get_stream_rules()
-    if 'data' in rules and len(rules['data']) > 0:
-        rule_ids = [r['id'] for r in rules['data']]
+    if "data" in rules and len(rules["data"]) > 0:
+        rule_ids = [r["id"] for r in rules["data"]]
         T.delete_stream_rule_ids(rule_ids)
 
     # make sure they are empty
     rules = T.get_stream_rules()
-    assert 'data' not in rules
+    assert "data" not in rules
 
     # add two rules
-    rules = T.add_stream_rules([
-        {"value": "hey", "tag": "twarc-test"},
-        {"value": "joe", "tag": "twarc-test"}
-    ])
-    assert len(rules['data']) == 2
+    rules = T.add_stream_rules(
+        [{"value": "hey", "tag": "twarc-test"}, {"value": "joe", "tag": "twarc-test"}]
+    )
+    assert len(rules["data"]) == 2
 
     # make sure they are there
     rules = T.get_stream_rules()
-    assert len(rules['data']) == 2
-    assert rules['data'][0]["id"]
-    assert rules['data'][0]["value"] == "hey"
-    assert rules['data'][0]["tag"] == "twarc-test"
-    assert rules['data'][1]["id"]
-    assert rules['data'][1]["value"] == "joe"
-    assert rules['data'][1]["tag"] == "twarc-test"
+    assert len(rules["data"]) == 2
+    assert rules["data"][0]["id"]
+    assert rules["data"][0]["value"] == "hey"
+    assert rules["data"][0]["tag"] == "twarc-test"
+    assert rules["data"][1]["id"]
+    assert rules["data"][1]["value"] == "joe"
+    assert rules["data"][1]["tag"] == "twarc-test"
 
     # collect some data
     event = threading.Event()
     for count, result in enumerate(T.stream(event=event)):
-        assert result['data']['id']
-        assert result['data']['text']
-        assert len(result['matching_rules']) > 0
-        for rule in result['matching_rules']:
-            assert rule['id']
-            assert rule['tag'] == 'twarc-test'
+        assert result["data"]["id"]
+        assert result["data"]["text"]
+        assert len(result["matching_rules"]) > 0
+        for rule in result["matching_rules"]:
+            assert rule["id"]
+            assert rule["tag"] == "twarc-test"
         if count > 25:
             event.set()
     assert count > 25
 
     # delete the rules
-    rule_ids = [r['id'] for r in rules['data']]
+    rule_ids = [r["id"] for r in rules["data"]]
     T.delete_stream_rule_ids(rule_ids)
 
     # make sure they are gone
     rules = T.get_stream_rules()
-    assert 'data' not in rules
+    assert "data" not in rules
 
 
 def test_timeline():
@@ -275,7 +279,7 @@ def test_missing_timeline():
 
 def test_follows():
     """
-    Test followers and and following. 
+    Test followers and and following.
 
     """
 
@@ -297,12 +301,12 @@ def test_follows():
 
 def test_follows_username():
     """
-    Test followers and and following by username. 
+    Test followers and and following by username.
 
     """
 
     found = 0
-    for pages, users in enumerate(T.following('jack')):
+    for pages, users in enumerate(T.following("jack")):
         pages += 1
         found += len(users["data"])
         if pages == 2:
@@ -310,7 +314,7 @@ def test_follows_username():
     assert found >= 1000
 
     found = 0
-    for pages, users in enumerate(T.followers('jack')):
+    for pages, users in enumerate(T.followers("jack")):
         found += len(users["data"])
         if pages == 2:
             break
@@ -319,11 +323,11 @@ def test_follows_username():
 
 def test_flattened():
     """
-    This test uses the sample stream to test response flattening.  It will look
+    This test uses the search API to test response flattening. It will look
     at each tweet to find evidence that all the expansions have worked. Once it
-    finds them all it stops. If it has listened to 5000 tweets and not found any
-    of the expansions it stops and assumes that something is not right.  This
-    5000 cutoff may need to be adjusted based on experience.
+    finds them all it stops. If it has retrieved 500 tweets and not found any
+    of the expansions it stops and assumes that something is not right. This
+    500 cutoff or the query may need to be adjusted based on experience.
     """
     found_geo = False
     found_in_reply_to_user = False
@@ -332,58 +336,65 @@ def test_flattened():
     found_entities_mentions = False
     found_referenced_tweets = False
 
-    event = threading.Event()
-    for count, response in enumerate(T.sample(event=event)):
+    count = 0
 
-        # streaming api always returns a tweet at a time but flatten
-        # will put these in a list so they can be treated uniformly
+    for response in T.search_recent(
+        "(vote poll has:hashtags has:mentions -is:retweet) OR (checked into has:images -is:retweet)"
+    ):
+        # Search api always returns a response of tweets with metadata but flatten
+        # will put these in a list
         tweets = twarc.expansions.flatten(response)
-        assert len(tweets) == 1
-        tweet = tweets[0]
+        assert len(tweets) > 1
 
-        assert "id" in tweet
-        logging.info("got sample tweet #%s %s", count, tweet["id"])
+        for tweet in tweets:
+            count += 1
 
-        author_id = tweet["author_id"]
-        assert "author" in tweet
-        assert tweet["author"]["id"] == author_id
+            assert "id" in tweet
+            logging.info("got search tweet #%s %s", count, tweet["id"])
 
-        if "in_reply_to_user_id" in tweet:
-            assert "in_reply_to_user" in tweet
-            found_in_reply_to_user = True
+            author_id = tweet["author_id"]
+            assert "author" in tweet
+            assert tweet["author"]["id"] == author_id
 
-        if "attachments" in tweet:
-            if "media_keys" in tweet["attachments"]:
-                assert "media" in tweet["attachments"]
-                found_attachments_media = True
-            if "poll_ids" in tweet["attachments"]:
-                assert "poll" in tweet["attachments"]
-                found_attachments_polls = True
+            if "in_reply_to_user_id" in tweet:
+                assert "in_reply_to_user" in tweet
+                found_in_reply_to_user = True
 
-        if "geo" in tweet:
-            assert tweet["geo"]["place_id"]
-            assert tweet["geo"]["place_id"] == tweet["geo"]["id"]
-            found_geo = True
+            if "attachments" in tweet:
+                if "media_keys" in tweet["attachments"]:
+                    assert "media" in tweet["attachments"]
+                    found_attachments_media = True
+                if "poll_ids" in tweet["attachments"]:
+                    assert "poll" in tweet["attachments"]
+                    found_attachments_polls = True
 
-        if "entities" in tweet and "mentions" in tweet["entities"]:
-            assert tweet["entities"]["mentions"][0]["username"]
-            found_entities_mentions = True
+            if "geo" in tweet:
+                assert tweet["geo"]["place_id"]
+                assert tweet["geo"]["place_id"] == tweet["geo"]["id"]
+                found_geo = True
 
-        # need to ensure there are no errors because a referenced tweet
-        # might be protected or deleted in which case it would not have been
-        # included in the response and would not have been flattened
-        if "errors" not in response and "referenced_tweets" in tweet:
-            assert tweet["referenced_tweets"][0]["text"]
-            found_referenced_tweets = True
+            if "entities" in tweet and "mentions" in tweet["entities"]:
+                assert tweet["entities"]["mentions"][0]["username"]
+                found_entities_mentions = True
 
-        if found_geo and found_in_reply_to_user and found_attachments_media \
-                and found_attachments_polls and found_entities_mentions \
-                and found_referenced_tweets:
+            # need to ensure there are no errors because a referenced tweet
+            # might be protected or deleted in which case it would not have been
+            # included in the response and would not have been flattened
+            if "errors" not in response and "referenced_tweets" in tweet:
+                assert tweet["referenced_tweets"][0]["text"]
+                found_referenced_tweets = True
+
+        if (
+            found_geo
+            and found_in_reply_to_user
+            and found_attachments_media
+            and found_attachments_polls
+            and found_entities_mentions
+            and found_referenced_tweets
+        ):
             logging.info("found all expansions!")
-            event.set()
         elif count > 10000:
-            logging.info("didn't find all expansions in 5000 tweets")
-            event.set()
+            logging.info("didn't find all expansions in 10000 tweets")
 
     assert found_geo, "found geo"
     assert found_in_reply_to_user, "found in_reply_to_user"
@@ -394,19 +405,19 @@ def test_flattened():
 
 
 def test_ensure_flattened():
-    resp = next(T.search_recent('twitter'))
+    resp = next(T.search_recent("twitter"))
 
     # flatten a response
     flat1 = twarc.expansions.ensure_flattened(resp)
     assert isinstance(flat1, list)
     assert len(flat1) > 1
-    assert 'author' in flat1[0]
+    assert "author" in flat1[0]
 
     # flatten the flattened list
     flat2 = twarc.expansions.ensure_flattened(flat1)
     assert isinstance(flat2, list)
     assert len(flat2) == len(flat1)
-    assert 'author' in flat2[0]
+    assert "author" in flat2[0]
 
     # flatten a tweet object which will force it into a list
     flat3 = twarc.expansions.ensure_flattened(flat2[0])
@@ -414,11 +425,11 @@ def test_ensure_flattened():
     assert len(flat3) == 1
 
     with pytest.raises(ValueError):
-        twarc.expansions.ensure_flattened({'fake': 'tweet'})
+        twarc.expansions.ensure_flattened({"fake": "tweet"})
     with pytest.raises(ValueError):
-        twarc.expansions.ensure_flattened([{'fake': 'tweet'}])
+        twarc.expansions.ensure_flattened([{"fake": "tweet"}])
     with pytest.raises(ValueError):
-        flat1[0].pop('author')
+        flat1[0].pop("author")
         twarc.expansions.ensure_flattened(flat1)
 
 
@@ -450,8 +461,5 @@ def test_twarc_metadata():
 
 
 def pick_id(id, objects):
-    """pick an object out of a list of objects using its id
-    """
+    """pick an object out of a list of objects using its id"""
     return list(filter(lambda o: o["id"] == id, objects))
-
-
