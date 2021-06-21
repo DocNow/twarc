@@ -211,7 +211,7 @@ def flatten(response):
             for tweet in tweets:
                 tweet["__twarc"] = response["__twarc"]
     else:
-        raise ValueError(f'missing data stanza in response: {response}')
+        raise ValueError(f"missing data stanza in response: {response}")
 
     return tweets
 
@@ -220,41 +220,51 @@ def ensure_flattened(data):
     """
     Will ensure that the supplied data is "flattened". The input data can be a
     response from the Twitter API, a list of tweet dictionaries, or a single tweet
-    dictionary. It will always return a list of tweet dictionaries. A ValueError 
-    will be thrown if the supplied data is not recognizable or it cannot be 
+    dictionary. It will always return a list of tweet dictionaries. A ValueError
+    will be thrown if the supplied data is not recognizable or it cannot be
     flattened.
 
     ensure_flattened is designed for use in twarc plugins and other tweet
-    processing applications that want to operate on a stream of tweets, and 
+    processing applications that want to operate on a stream of tweets, and
     examine included entities like users and tweets without hunting and
     pecking in the response data.
+
+    Todo: make tests for:
+        - Single response
+        - List of responses
+        - Single tweet
+        - List of single tweets
+        - Single user object
+        - List of user objects
+        - Returns list of tweets
     """
 
-    # Single response 
-    # List of responses
-    # Single tweet 
-    # List of single tweets
-    # returns list of tweets
-
-    # If it's a single response from the API, with data and includes:
-    if isinstance(data, dict) and 'data' in data and 'includes' in data:
+    # If it's a single response from the API, with data and includes, we can try to flatten it:
+    if isinstance(data, dict) and "data" in data and "includes" in data:
         return flatten(data)
 
     # If it's a single response with data, but without includes:
-    elif isinstance(data, dict) and 'data' in data and 'includes' not in data:
-        raise ValueError(f'unable to expand tweet dictionary without original response data and includes: {data}')
+    elif isinstance(data, dict) and "data" in data and "includes" not in data:
+        # Maybe this should be a warning instead? flatten() will still work, just with {}.
+        raise ValueError(
+            f"unable to expand tweet dictionary without original response data and includes: {data}"
+        )
 
-    # If it's a single response and "includes" and "data" are missing,
-    # it is already flattened
-    elif isinstance(data, dict) and 'data' not in data and 'includes' not in data:
+    # If it's a single response and both "includes" and "data" are missing, it is already flattened
+    elif isinstance(data, dict) and "data" not in data and "includes" not in data:
         return [data]
 
-    # If it's a list of tweets with data and includes per tweet (eg: stream)
+    # If it's a list of objects (eg: stream):
     elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
-        # if includes is not present it is already flattened
-        if 'data' not in data[0] and 'includes' not in data[0]:
+        # Same as above
+        if "data" in data[0] and "includes" in data[0]:
+            return [flatten(item) for item in data]
+        elif "data" in data[0] and "includes" not in data[0]:
+            # Again, maybe this should succeed with a warning?
+            raise ValueError(
+                f"unable to expand tweet dictionary without original response data and includes: {data[0]}"
+            )
+        elif "data" not in data[0] and "includes" not in data[0]:
             return data
-        # expand lists?
-
     else:
-        raise ValueError(f'cannot flatten unrecognized data: {data}')
+        raise ValueError(f"Cannot flatten unrecognized data: {data}")
