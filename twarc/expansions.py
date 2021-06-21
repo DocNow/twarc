@@ -237,24 +237,15 @@ def ensure_flattened(data):
     processing applications that want to operate on a stream of tweets, and
     examine included entities like users and tweets without hunting and
     pecking in the response data.
-
-    Todo: make tests for:
-        - Single response
-        - List of responses
-        - Single tweet
-        - List of single tweets
-        - Single user object
-        - List of user objects
-        - Returns list of tweets
     """
 
-    # If it's a single response from the API, with data and includes, we can try to flatten it:
+    # If it's a single response from the API, with data and includes, we flatten it:
     if isinstance(data, dict) and "data" in data and "includes" in data:
         return flatten(data)
 
     # If it's a single response with data, but without includes:
     elif isinstance(data, dict) and "data" in data and "includes" not in data:
-        # flatten() will still work, just with {} empty expansions.
+        # flatten() will still work, just with {} empty expansions, log a warning.
         log.warning(f"Unable to expand dictionary without includes: {data}")
         return flatten(data)
 
@@ -264,14 +255,15 @@ def ensure_flattened(data):
 
     # If it's a list of objects (could be list of responses, or tweets, or users):
     elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
-        # Same as above, but flatten each object individually
+        # Same as above,
         if "data" in data[0] and "includes" in data[0]:
+            # but flatten each object individually and return a single list
             return list(chain.from_iterable([flatten(item) for item in data]))
         elif "data" in data[0] and "includes" not in data[0]:
-            # Log a warning because having databut no includes is still valid:
+            # same as above, log warnings and return a single list
             log.warning(f"Unable to expand dictionary without includes: {data[0]}")
             return list(chain.from_iterable([flatten(item) for item in data]))
-        # Already flattened
+        # Return already flattened data as is
         elif "data" not in data[0] and "includes" not in data[0]:
             return data
     # Unknown format, eg: list of lists, or primitive

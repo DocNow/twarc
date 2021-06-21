@@ -430,7 +430,7 @@ def test_ensure_flattened():
     flat4 = twarc.expansions.ensure_flattened([{"data": {"fake": "tweet"}}])
     assert isinstance(flat4, list)
     assert len(flat4) == 1
-    # 1 records, data is a dict:
+    # 1 record, data is a dict:
     flat5 = twarc.expansions.ensure_flattened({"data": {"fake": "tweet"}})
     assert isinstance(flat5, list)
     assert len(flat5) == 1
@@ -453,7 +453,7 @@ def test_ensure_flattened():
     assert "author" in flat8[0]
     TestCase().assertDictEqual(flat8[0]['author'], {})
 
-    # If there's "some other type of data:
+    # If there's some other type of data:
     with pytest.raises(ValueError):
         twarc.expansions.ensure_flattened([[{"data": {"fake": "list_of_lists"}}]])
 
