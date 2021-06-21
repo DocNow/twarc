@@ -27,18 +27,22 @@ class TimestampProgressBar(tqdm):
     def __init__(self, outfile, since_id, until_id, start_time, end_time, **kwargs):
 
         if start_time is None and since_id is None:
-        start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-            seconds=90
-        )
+            start_time = datetime.datetime.now(
+                datetime.timezone.utc
+            ) - datetime.timedelta(seconds=90)
         if end_time is None and until_id is None:
-            end_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-                seconds=30
-        )
+            end_time = datetime.datetime.now(
+                datetime.timezone.utc
+            ) - datetime.timedelta(seconds=30)
 
-        total = _snowflake2millis(until_id) - _snowflake2millis(since_id) if (since_id and until_id) else _date2millis(end_time) - _date2millis(start_time)
+        total = (
+            _snowflake2millis(until_id) - _snowflake2millis(since_id)
+            if (since_id and until_id)
+            else _date2millis(end_time) - _date2millis(start_time)
+        )
 
         kwargs["total"] = total
-        kwargs["disable"] = (outfile.name == "<stdout>")
+        kwargs["disable"] = outfile.name == "<stdout>"
         super().__init__(**kwargs)
 
     def update_with_snowflake(self, newest_id, oldest_id):
