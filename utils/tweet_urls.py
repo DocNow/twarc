@@ -21,7 +21,7 @@ for line in fileinput.input():
         tweet_id = tweet["id_str"]
         screen_name = tweet["user"]["screen_name"]
         retweet_count = tweet["retweet_count"]
-        tweet_urls = "https://twitter.com/%s/status/%s" % (screen_name,tweet_id)
-        print ("%d retweets of %s" % (retweet_count, tweet_urls))
+        tweet_urls = "https://twitter.com/%s/status/%s" % (screen_name, tweet_id)
+        print("%d retweets of %s" % (retweet_count, tweet_urls))
     except Exception as e:
         sys.stderr.write("uhoh: %s\n" % e)

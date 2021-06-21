@@ -15,42 +15,39 @@ from datetime import datetime, timezone
 
 
 op = optparse.OptionParser()
-op.add_option('--unit', choices=['second', 'minute', 'hour', 'day', 'year'], default='hour')
+op.add_option(
+    "--unit", choices=["second", "minute", "hour", "day", "year"], default="hour"
+)
 
 opts, args = op.parse_args()
 
-if opts.unit == 'second':
+if opts.unit == "second":
     div = 1
-elif opts.unit == 'minute':
+elif opts.unit == "minute":
     div = 60
-elif opts.unit == 'hour':
+elif opts.unit == "hour":
     div = 60 * 60
-elif opts.unit == 'day':
+elif opts.unit == "day":
     div = 60 * 60 * 24
-elif opts.unit == 'year':
+elif opts.unit == "year":
     div = 60 * 60 * 24 * 365
 
 now = datetime.now(timezone.utc)
 
-print('screen_name,tweets per %s' % opts.unit)
+print("screen_name,tweets per %s" % opts.unit)
 
 for line in fileinput.input(args):
     t = json.loads(line)
-    if 'user' in t:
-        u = t['user']
-    elif 'screen_name' in t:
+    if "user" in t:
+        u = t["user"]
+    elif "screen_name" in t:
         u = t
     else:
         raise Exception("not a tweet or user JSON object")
 
-    created_at = dateutil.parser.parse(u['created_at'])
+    created_at = dateutil.parser.parse(u["created_at"])
     age = now - created_at
     unit = age.total_seconds() / float(div)
-    total = u['statuses_count']
+    total = u["statuses_count"]
     tweets_per_unit = total / unit
-    print('%s,%s,%s,%0.2f' % (
-        u['screen_name'],
-        total,
-        created_at,
-        tweets_per_unit
-    ))
+    print("%s,%s,%s,%0.2f" % (u["screen_name"], total, created_at, tweets_per_unit))

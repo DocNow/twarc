@@ -256,7 +256,7 @@ def ensure_flattened(data):
 
     # If it's a list of objects (eg: stream):
     elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
-        # Same as above
+        # Same as above, but flatten each object individually
         if "data" in data[0] and "includes" in data[0]:
             return [flatten(item) for item in data]
         elif "data" in data[0] and "includes" not in data[0]:

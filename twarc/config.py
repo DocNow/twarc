@@ -6,8 +6,8 @@ import configobj
 
 log = logging
 
-class ConfigProvider():
 
+class ConfigProvider:
     def __init__(self):
         self.file_path = None
 

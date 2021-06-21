@@ -30,33 +30,33 @@ import dateutil.parser
 
 
 def text(t):
-    return (t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']).replace('\n', ' ')
+    return (
+        t.get("full_text") or t.get("extended_tweet", {}).get("full_text") or t["text"]
+    ).replace("\n", " ")
 
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "-c", 
-    "--centroid", 
+    "-c",
+    "--centroid",
     dest="centroid",
-    action='store_true',
+    action="store_true",
     default=False,
-    help="store centroid instead of a bounding box"
+    help="store centroid instead of a bounding box",
 )
 
 parser.add_argument(
-    "-f", "--fuzz", 
-    type=float, 
-    dest="fuzz", 
+    "-f",
+    "--fuzz",
+    type=float,
+    dest="fuzz",
     default=0,
-    help="add a random lon and lat shift to bounding box centroids (0-0.1)"
+    help="add a random lon and lat shift to bounding box centroids (0-0.1)",
 )
 
 parser.add_argument(
-    'files',
-    nargs='*',
-    default=("-",),
-    help='files to read, if empty, stdin is used'
+    "files", nargs="*", default=("-",), help="files to read, if empty, stdin is used"
 )
 
 
@@ -66,7 +66,7 @@ features = []
 
 for line in fileinput.input(files=args.files):
     tweet = json.loads(line)
-    t = dateutil.parser.parse(tweet['created_at'])
+    t = dateutil.parser.parse(tweet["created_at"])
 
     f = {
         "type": "Feature",
@@ -76,20 +76,18 @@ for line in fileinput.input(files=args.files):
             "created_at": t.isoformat("T") + "Z",
             "text": text(tweet),
             "profile_image_url": tweet["user"]["profile_image_url"],
-            "url": "http://twitter.com/%s/status/%s" % (
-                tweet["user"]["screen_name"],
-                tweet["id_str"]
-            )
-        }
+            "url": "http://twitter.com/%s/status/%s"
+            % (tweet["user"]["screen_name"], tweet["id_str"]),
+        },
     }
-    
+
     if tweet["geo"]:
-        f['geometry'] = {
+        f["geometry"] = {
             "type": "Point",
             "coordinates": [
                 tweet["geo"]["coordinates"][1],
-                tweet["geo"]["coordinates"][0]
-            ]
+                tweet["geo"]["coordinates"][0],
+            ],
         }
 
     elif tweet["place"] and any(tweet["place"]["bounding_box"]):
@@ -101,35 +99,21 @@ for line in fileinput.input(files=args.files):
             max_x = bbox[2][0]
             max_y = bbox[2][1]
 
-            fuzz_x = args.fuzz * random.uniform(-1,1)
-            fuzz_y = args.fuzz * random.uniform(-1,1)
+            fuzz_x = args.fuzz * random.uniform(-1, 1)
+            fuzz_y = args.fuzz * random.uniform(-1, 1)
 
             center_x = ((max_x + min_x) / 2.0) + fuzz_x
             center_y = ((max_y + min_y) / 2.0) + fuzz_y
 
-            f['geometry'] = {
-                "type": "Point",
-                "coordinates": [
-                    center_x,
-                    center_y
-                ]
-            }
+            f["geometry"] = {"type": "Point", "coordinates": [center_x, center_y]}
 
         else:
-            f['geometry'] = {
+            f["geometry"] = {
                 "type": "Polygon",
-                "coordinates": [
-                    [
-                        bbox[0],
-                        bbox[1],
-                        bbox[2],
-                        bbox[3],
-                        bbox[0]
-                    ]
-                ],
+                "coordinates": [[bbox[0], bbox[1], bbox[2], bbox[3], bbox[0]]],
             }
 
-    if 'geometry' in f:
+    if "geometry" in f:
         features.append(f)
 
 geojson = {"type": "FeatureCollection", "features": features}

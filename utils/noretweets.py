@@ -12,5 +12,5 @@ import fileinput
 for line in fileinput.input():
     tweet = json.loads(line)
 
-    if not 'retweeted_status' in tweet:
+    if not "retweeted_status" in tweet:
         print(json.dumps(tweet))

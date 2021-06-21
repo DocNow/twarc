@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 Feed wall.py your JSON and get a wall of tweets as HTML. If you want to get the
@@ -8,7 +7,6 @@ wall in chronological order, a handy trick is:
     % tail -r tweets.jsonl | ./wall.py > wall.html
 
 """
-from __future__ import print_function
 
 import os
 import re
@@ -21,11 +19,11 @@ AVATAR_DIR = "img"
 
 
 def download_file(url):
-    local_filename = url.split('/')[-1]
+    local_filename = url.split("/")[-1]
     outfile = os.path.join(AVATAR_DIR, local_filename)
     if not os.path.isfile(outfile):
         r = requests.get(url, stream=True)
-        with open(outfile, 'wb') as f:
+        with open(outfile, "wb") as f:
             for chunk in r.iter_content(chunk_size=1024):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
@@ -34,10 +32,13 @@ def download_file(url):
 
 
 def text(t):
-    return (t.get('full_text') or t.get('extended_tweet', {}).get('full_text') or t['text']).replace('\n', ' ')
+    return (
+        t.get("full_text") or t.get("extended_tweet", {}).get("full_text") or t["text"]
+    ).replace("\n", " ")
 
 
-print("""<!doctype html>
+print(
+    """<!doctype html>
 <html>
 
 <head>
@@ -111,11 +112,12 @@ print("""<!doctype html>
 
   <header>
   <h1>Title Here</h1>
-  <em>created on the command line with <a href="http://github.com/edsu/twarc">twarc</a></em>
+  <em>created on the command line with <a href="https://github.com/DocNow/twarc">twarc</a></em>
   </header>
 
   <div id="tweets">
-""")
+"""
+)
 
 # Make avatar directory
 if not os.path.isdir(AVATAR_DIR):
@@ -149,31 +151,40 @@ for line in lines:
         "created_at": tweet["created_at"],
         "name": tweet["user"]["name"],
         "username": tweet["user"]["screen_name"],
-        "user_url": "http://twitter.com/" + tweet["user"]["screen_name"],
+        "user_url": "https://twitter.com/" + tweet["user"]["screen_name"],
         "text": text(tweet),
         "avatar": AVATAR_DIR + "/" + filename,
-        "url": "http://twitter.com/" + tweet["user"]["screen_name"] + "/status/" + tweet["id_str"],
+        "url": "https://twitter.com/"
+        + tweet["user"]["screen_name"]
+        + "/status/"
+        + tweet["id_str"],
     }
 
-    if 'retweet_status' in tweet:
-        t['retweet_count'] = tweet['retweet_status'].get('retweet_count', 0)
+    if "retweet_status" in tweet:
+        t["retweet_count"] = tweet["retweet_status"].get("retweet_count", 0)
     else:
-        t['retweet_count'] = tweet.get('retweet_count', 0)
+        t["retweet_count"] = tweet.get("retweet_count", 0)
 
-    if t['retweet_count'] == 1:
-        t['retweet_string'] = 'retweet'
-    else:
-        t['retweet_string'] = 'retweets'
+    t["favorite_count"] = tweet.get("favorite_count", 0)
+    t["retweet_string"] = "retweet" if t["retweet_count"] == 1 else "retweets"
+    t["favorite_string"] = "like" if t["favorite_count"] == 1 else "likes"
 
-    for url in tweet['entities']['urls']:
+    for url in tweet["entities"]["urls"]:
         a = '<a href="%(expanded_url)s">%(url)s</a>' % url
-        start, end = url['indices']
-        t['text'] = t['text'][0:start] + a + t['text'][end:]
+        start, end = url["indices"]
+        t["text"] = t["text"][0:start] + a + t["text"][end:]
 
-    t['text'] = re.sub(' @([^ ]+)', ' <a href="http://twitter.com/\g<1>">@\g<1></a>', t['text'])
-    t['text'] = re.sub(' #([^ ]+)', ' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>', t['text'])
+    t["text"] = re.sub(
+        "@([A-Za-z0-9_]+)", r'<a href="https://twitter.com/\g<1>">@\g<1></a>', t["text"]
+    )
+    t["text"] = re.sub(
+        " #([^ ]+)",
+        r' <a href="https://twitter.com/search?q=%23\g<1>&src=hash">#\g<1></a>',
+        t["text"],
+    )
 
-    html = u"""
+    html = (
+        """
     <article class="tweet">
       <img class="avatar" src="%(avatar)s">
       <a href="%(user_url)s" class="name">%(name)s</a><br>
@@ -181,28 +192,29 @@ for line in lines:
       <br>
       <div class="text">%(text)s</div><br>
       <footer>
-      %(retweet_count)s %(retweet_string)s<br>
+      %(retweet_count)s %(retweet_string)s, %(favorite_count)s %(favorite_string)s<br>
       <a href="%(url)s"><time>%(created_at)s</time></a>
       </footer>
     </article>
-    """ % t
+    """
+        % t
+    )
 
-    if sys.version_info.major == 2:
-        print(html.encode('utf8'))
-    else:
-        print(html)
+    print(html)
 
-print("""
+print(
+    """
 
 </div>
 
 <footer id="page">
 <hr>
 <br>
-created on the command line with <a href="http://github.com/edsu/twarc">twarc</a>.
+created on the command line with <a href="https://github.com/DocNow/twarc">twarc</a>.
 <br>
 <br>
 </footer>
 
 </body>
-</html>""")
+</html>"""
+)
