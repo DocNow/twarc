@@ -508,7 +508,15 @@ class Twarc2:
                 yield data
 
     def _timeline(
-        self, user_id, timeline_type, since_id, until_id, start_time, end_time
+        self,
+        user_id,
+        timeline_type,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        exclude_retweets,
+        exclude_replies,
     ):
         """
         Helper function for user and mention timelines
@@ -523,7 +531,8 @@ class Twarc2:
             until_id (int): results with a Tweet ID less than (older) than specified
             start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
             end_time (datetime): newest UTC timestamp from which the Tweets will be provided
-
+            exclude_retweets (boolean): remove retweets from timeline
+            exlucde_replies (boolean): remove replies from timeline
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
@@ -533,6 +542,12 @@ class Twarc2:
         params = expansions.EVERYTHING.copy()
         params["max_results"] = 100
 
+        excludes = []
+        if exclude_retweets:
+            excludes.append("retweets")
+        if exclude_replies:
+            excludes.append("replies")
+
         if since_id:
             params["since_id"] = since_id
         if until_id:
@@ -541,6 +556,8 @@ class Twarc2:
             params["start_time"] = _ts(start_time)
         if end_time:
             params["end_time"] = _ts(end_time)
+        if len(excludes) > 0:
+            params["exclude"] = ",".join(excludes)
 
         count = 0
         for response in self.get_paginated(url, params=params):
@@ -554,7 +571,14 @@ class Twarc2:
         log.info(f"No more results for timeline {user_id}.")
 
     def timeline(
-        self, user, since_id=None, until_id=None, start_time=None, end_time=None
+        self,
+        user,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        exclude_retweets=False,
+        exclude_replies=False,
     ):
         """
         Retrieve up to the 3200 most recent tweets made by the given user.
@@ -567,17 +591,33 @@ class Twarc2:
             until_id (int): results with a Tweet ID less than (older) than specified
             start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
             end_time (datetime): newest UTC timestamp from which the Tweets will be provided
+            exclude_retweets (boolean): remove retweets from timeline results
+            exclude_replies (boolean): remove replies from timeline results
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
-            user_id, "tweets", since_id, until_id, start_time, end_time
+            user_id,
+            "tweets",
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            exclude_retweets,
+            exclude_replies,
         )
 
     def mentions(
-        self, user, since_id=None, until_id=None, start_time=None, end_time=None
+        self,
+        user,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        exclude_retweets=False,
+        exclude_replies=False,
     ):
         """
         Retrieve up to the 800 most recent tweets mentioning the given user.
@@ -590,13 +630,22 @@ class Twarc2:
             until_id (int): results with a Tweet ID less than (older) than specified
             start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
             end_time (datetime): newest UTC timestamp from which the Tweets will be provided
+            exclude_retweets (boolean): remove retweets from timeline results
+            exclude_replies (boolean): remove replies from timeline results
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
-            user_id, "mentions", since_id, until_id, start_time, end_time
+            user_id,
+            "mentions",
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            exclude_retweets,
+            exclude_replies,
         )
 
     def following(self, user):
