@@ -9,6 +9,8 @@ sure that data is flattened.
 
 from collections import defaultdict
 
+log = logging.getLogger("twarc")
+
 EXPANSIONS = [
     "author_id",
     "in_reply_to_user_id",
@@ -245,10 +247,8 @@ def ensure_flattened(data):
 
     # If it's a single response with data, but without includes:
     elif isinstance(data, dict) and "data" in data and "includes" not in data:
-        # Maybe this should be a warning instead? flatten() will still work, just with {}.
-        raise ValueError(
-            f"unable to expand tweet dictionary without original response data and includes: {data}"
-        )
+        # flatten() will still work, just with {} empty expansions.
+        log.warning(f"Unable to expand dictionary without includes: {data}")
 
     # If it's a single response and both "includes" and "data" are missing, it is already flattened
     elif isinstance(data, dict) and "data" not in data and "includes" not in data:
@@ -260,10 +260,8 @@ def ensure_flattened(data):
         if "data" in data[0] and "includes" in data[0]:
             return [flatten(item) for item in data]
         elif "data" in data[0] and "includes" not in data[0]:
-            # Again, maybe this should succeed with a warning?
-            raise ValueError(
-                f"unable to expand tweet dictionary without original response data and includes: {data[0]}"
-            )
+            # Log a warning because having databut no includes is still valid:
+            log.warning(f"Unable to expand dictionary without includes: {data[0]}")
         elif "data" not in data[0] and "includes" not in data[0]:
             return data
     else:
