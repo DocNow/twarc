@@ -13,7 +13,7 @@ import fileinput
 for line in fileinput.input():
     tweet = json.loads(line)
 
-    if 'full_text' in tweet:
-        print(tweet['full_text'].encode('utf8'))
+    if "full_text" in tweet:
+        print(tweet["full_text"].encode("utf8"))
     else:
-        print(tweet['text'].encode('utf8'))
+        print(tweet["text"].encode("utf8"))

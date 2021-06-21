@@ -22,12 +22,12 @@ def main():
             tweet = json.loads(line)
         except:
             continue
-        if 'retweeted_status' not in tweet:
+        if "retweeted_status" not in tweet:
             continue
 
-        rt = tweet['retweeted_status']
-        id = rt['id_str']
-        count = rt['retweet_count']
+        rt = tweet["retweeted_status"]
+        id = rt["id_str"]
+        count = rt["retweet_count"]
         if count > counts[id]:
             counts[id] = count
 

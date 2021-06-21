@@ -25,24 +25,44 @@ else:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', '-o', help='write output to file instead of stdout')
-    parser.add_argument('--split', '-s', help='if writing to file, split into multiple files with this many lines per '
-                                              'file', type=int, default=0)
-    parser.add_argument('--extra-field', '-e', help='extra fields to include. Provide a field name and a pointer to '
-                                                    'the field. Example: -e verified user.verified',
-                        nargs=2, action='append')
-    parser.add_argument('--excel', '-x', help='create file compatible with Excel', action='store_true')
-    parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
+    parser.add_argument("--output", "-o", help="write output to file instead of stdout")
+    parser.add_argument(
+        "--split",
+        "-s",
+        help="if writing to file, split into multiple files with this many lines per "
+        "file",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
+        "--extra-field",
+        "-e",
+        help="extra fields to include. Provide a field name and a pointer to "
+        "the field. Example: -e verified user.verified",
+        nargs=2,
+        action="append",
+    )
+    parser.add_argument(
+        "--excel", "-x", help="create file compatible with Excel", action="store_true"
+    )
+    parser.add_argument(
+        "files",
+        metavar="FILE",
+        nargs="*",
+        help="files to read, if empty, stdin is used",
+    )
     args = parser.parse_args()
 
     file_count = 1
     csv_file = None
     if args.output:
         if args.split:
-            csv_file = codecs.open(numbered_filepath(args.output, file_count), 'wb', 'utf-8')
+            csv_file = codecs.open(
+                numbered_filepath(args.output, file_count), "wb", "utf-8"
+            )
             file_count += 1
         else:
-            csv_file = codecs.open(args.output, 'wb', 'utf-8')
+            csv_file = codecs.open(args.output, "wb", "utf-8")
     else:
         csv_file = sys.stdout
     sheet = csv.writer(csv_file)
@@ -56,11 +76,15 @@ def main():
 
     sheet.writerow(get_headings(extra_headings=extra_headings))
 
-    files = args.files if len(args.files) > 0 else ('-',)
-    for count, line in enumerate(fileinput.input(files, openhook=fileinput.hook_encoded("utf-8"))):
+    files = args.files if len(args.files) > 0 else ("-",)
+    for count, line in enumerate(
+        fileinput.input(files, openhook=fileinput.hook_encoded("utf-8"))
+    ):
         if args.split and count and count % args.split == 0:
             csv_file.close()
-            csv_file = codecs.open(numbered_filepath(args.output, file_count), 'wb', 'utf-8')
+            csv_file = codecs.open(
+                numbered_filepath(args.output, file_count), "wb", "utf-8"
+            )
             sheet = csv.writer(csv_file)
             sheet.writerow(get_headings(extra_headings=extra_headings))
             file_count += 1
@@ -70,7 +94,7 @@ def main():
 
 def numbered_filepath(filepath, num):
     path, ext = os.path.splitext(filepath)
-    return os.path.join('{}-{:0>3}{}'.format(path, num, ext))
+    return os.path.join("{}-{:0>3}{}".format(path, num, ext))
 
 
 def get_headings(extra_headings=None):
@@ -90,7 +114,7 @@ def get_row(t, extra_fields=None, excel=False):
 
 def extra_field(t, field_str):
     obj = t
-    for field in field_str.split('.'):
+    for field in field_str.split("."):
         if field in obj:
             obj = obj[field]
         else:

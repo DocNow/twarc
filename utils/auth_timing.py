@@ -21,9 +21,9 @@ from datetime import datetime
 from datetime import timedelta
 
 logging.basicConfig(
-    filename='time_test.log',
+    filename="time_test.log",
     level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s"
+    format="%(asctime)s %(levelname)s %(message)s",
 )
 
 
@@ -35,7 +35,7 @@ def count_tweets(app_auth):
     count = 0
     t = Twarc(app_auth=app_auth)
     start = None
-    for tweet in t.search('covid_19'):
+    for tweet in t.search("covid_19"):
         # start the timer when we get the first tweet
         if start is None:
             start = datetime.now()
@@ -46,5 +46,5 @@ def count_tweets(app_auth):
     return count
 
 
-print('app auth: ', count_tweets(app_auth=True))
-print('user auth: ', count_tweets(app_auth=False))
+print("app auth: ", count_tweets(app_auth=True))
+print("user auth: ", count_tweets(app_auth=False))

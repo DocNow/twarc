@@ -467,6 +467,18 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
 @click.option("--since-id", type=int, help="Match tweets sent after tweet id")
 @click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
 @click.option(
+    "--exclude-retweets",
+    is_flag=True,
+    default=False,
+    help="Exclude retweets from timeline",
+)
+@click.option(
+    "--exclude-replies",
+    is_flag=True,
+    default=False,
+    help="Exclude replies from timeline",
+)
+@click.option(
     "--start-time",
     type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
     help="Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
@@ -487,17 +499,33 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
 @click.pass_obj
 @cli_api_error
 def timeline(
-    T, user_id, outfile, since_id, until_id, start_time, end_time, use_search, limit
+    T,
+    user_id,
+    outfile,
+    since_id,
+    until_id,
+    start_time,
+    end_time,
+    use_search,
+    limit,
+    exclude_retweets,
+    exclude_replies,
 ):
     """
     Retrieve recent tweets for the given user.
     """
 
-    if use_search:
-        q = f"from:{user_id}"
-        tweets = T.search_all(q, since_id, until_id, start_time, end_time)
-    else:
-        tweets = T.timeline(user_id, since_id, until_id, start_time, end_time)
+    tweets = _timeline_tweets(
+        T,
+        use_search,
+        user_id,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        exclude_retweets,
+        exclude_replies,
+    )
 
     count = 0
     for result in tweets:
@@ -521,10 +549,31 @@ def timeline(
     default=False,
     help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
 )
+@click.option(
+    "--exclude-retweets",
+    is_flag=True,
+    default=False,
+    help="Exclude retweets from timeline",
+)
+@click.option(
+    "--exclude-replies",
+    is_flag=True,
+    default=False,
+    help="Exclude replies from timeline",
+)
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
-def timelines(T, infile, outfile, limit, timeline_limit, use_search):
+def timelines(
+    T,
+    infile,
+    outfile,
+    limit,
+    timeline_limit,
+    use_search,
+    exclude_retweets,
+    exclude_replies,
+):
     """
     Fetch the timelines of every user in an input source of tweets. If
     the input is a line oriented text file of user ids or usernames that will
@@ -553,13 +602,17 @@ def timelines(T, infile, outfile, limit, timeline_limit, use_search):
                 continue
             seen.add(user)
 
-            # which api endpoint to use
-            if use_search and since_id:
-                tweets = T.search_all(f"from:{user}", since_id=since_id)
-            elif use_search:
-                tweets = T.search_all(f"from:{user}")
-            else:
-                tweets = T.timeline(user)
+            tweets = _timeline_tweets(
+                T,
+                use_search,
+                user,
+                None,
+                None,
+                None,
+                None,
+                exclude_retweets,
+                exclude_replies,
+            )
 
             timeline_count = 0
             for response in tweets:
@@ -572,6 +625,37 @@ def timelines(T, infile, outfile, limit, timeline_limit, use_search):
                 total_count += len(response["data"])
                 if limit != 0 and total_count >= limit:
                     return
+
+
+def _timeline_tweets(
+    T,
+    use_search,
+    user_id,
+    since_id,
+    until_id,
+    start_time,
+    end_time,
+    exclude_retweets,
+    exclude_replies,
+):
+    if use_search:
+        q = f"from:{user_id}"
+        if exclude_retweets and "-is:retweet" not in q:
+            q += " -is:retweet"
+        if exclude_replies and "-is:reply" not in q:
+            q += " -is:reply"
+        tweets = T.search_all(q, since_id, until_id, start_time, end_time)
+    else:
+        tweets = T.timeline(
+            user_id,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            exclude_retweets,
+            exclude_replies,
+        )
+    return tweets
 
 
 @twarc2.command("conversation")

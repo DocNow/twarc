@@ -48,9 +48,9 @@ def main():
     db = OEmbeds()
     for line in fileinput.input():
         tweet = json.loads(line)
-        for ent in tweet['entities']['urls']:
-            url = ent.get('unshortened_url') or ent['expanded_url']
-            if 'twitter.com' in url:
+        for ent in tweet["entities"]["urls"]:
+            url = ent.get("unshortened_url") or ent["expanded_url"]
+            if "twitter.com" in url:
                 continue
             meta, exists = db.get(url)
             if not exists:
@@ -60,12 +60,11 @@ def main():
                 except Exception as e:
                     logging.warn("error while looking up %s: %s", url, e)
             if meta:
-                ent['oembed'] = meta
+                ent["oembed"] = meta
         print(json.dumps(tweet))
 
 
 class OEmbeds:
-
     def __init__(self, path="oembeds.db"):
         self.db = sqlite3.connect(path)
         self.db.execute(
