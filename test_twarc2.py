@@ -8,6 +8,7 @@ import logging
 import pathlib
 import datetime
 import threading
+from unittest import TestCase
 
 dotenv.load_dotenv()
 consumer_key = os.environ.get("CONSUMER_KEY")
@@ -405,7 +406,7 @@ def test_flattened():
 
 
 def test_ensure_flattened():
-    resp = next(T.search_recent("twitter"))
+    resp = next(T.search_recent("twitter", max_results=20))
 
     # flatten a response
     flat1 = twarc.expansions.ensure_flattened(resp)
@@ -424,13 +425,37 @@ def test_ensure_flattened():
     assert isinstance(flat3, list)
     assert len(flat3) == 1
 
+    # flatten an object without includes:
+    # List of records, data is a dict:
+    flat4 = twarc.expansions.ensure_flattened([{"data": {"fake": "tweet"}}])
+    assert isinstance(flat4, list)
+    assert len(flat4) == 1
+    # 1 record, data is a dict:
+    flat5 = twarc.expansions.ensure_flattened({"data": {"fake": "tweet"}})
+    assert isinstance(flat5, list)
+    assert len(flat5) == 1
+    # List of records, data is a list:
+    flat6 = twarc.expansions.ensure_flattened([{"data": [{"fake": "tweet"}]}])
+    assert isinstance(flat6, list)
+    assert len(flat6) == 1
+    # 1 record, data is a list:
+    flat7 = twarc.expansions.ensure_flattened({"data": [{"fake": "tweet"}]})
+    assert isinstance(flat7, list)
+    assert len(flat7) == 1
+    TestCase().assertDictEqual(flat4[0], flat5[0])
+    TestCase().assertDictEqual(flat6[0], flat7[0])
+    TestCase().assertDictEqual(flat4[0], flat7[0])
+
+    resp.pop("includes")
+    flat8 = twarc.expansions.ensure_flattened(resp)
+    assert len(flat8) > 1
+    # Flatten worked without includes, wrote empty object:
+    assert "author" in flat8[0]
+    TestCase().assertDictEqual(flat8[0]["author"], {})
+
+    # If there's some other type of data:
     with pytest.raises(ValueError):
-        twarc.expansions.ensure_flattened({"fake": "tweet"})
-    with pytest.raises(ValueError):
-        twarc.expansions.ensure_flattened([{"fake": "tweet"}])
-    with pytest.raises(ValueError):
-        flat1[0].pop("author")
-        twarc.expansions.ensure_flattened(flat1)
+        twarc.expansions.ensure_flattened([[{"data": {"fake": "list_of_lists"}}]])
 
 
 def test_twarc_metadata():

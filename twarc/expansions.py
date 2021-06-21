@@ -7,7 +7,11 @@ ensure_flattened() can be used in tweet processing programs that need to make
 sure that data is flattened.
 """
 
+import logging
+from itertools import chain
 from collections import defaultdict
+
+log = logging.getLogger("twarc")
 
 EXPANSIONS = [
     "author_id",
@@ -197,11 +201,11 @@ def flatten(response):
 
         return payload
 
-    # First expand the included tweets, before processing actual result tweets:
+    # First expand the tweets in "includes", before processing actual result tweets:
     for included_id, included_tweet in extract_includes(response, "tweets").items():
         includes_tweets[included_id] = expand_payload(included_tweet)
 
-    # Now flatten the list of tweets or an individual tweet
+    # Now expand the list of tweets or an individual tweet in "data"
     tweets = []
     if "data" in response:
         data = response["data"]
@@ -234,26 +238,34 @@ def ensure_flattened(data):
     examine included entities like users and tweets without hunting and
     pecking in the response data.
     """
-    if isinstance(data, dict) and "data" in data:
+
+    # If it's a single response from the API, with data and includes, we flatten it:
+    if isinstance(data, dict) and "data" in data and "includes" in data:
         return flatten(data)
 
+    # If it's a single response with data, but without includes:
+    elif isinstance(data, dict) and "data" in data and "includes" not in data:
+        # flatten() will still work, just with {} empty expansions, log a warning.
+        log.warning(f"Unable to expand dictionary without includes: {data}")
+        return flatten(data)
+
+    # If it's a single response and both "includes" and "data" are missing, it is already flattened
+    elif isinstance(data, dict) and "data" not in data and "includes" not in data:
+        return [data]
+
+    # If it's a list of objects (could be list of responses, or tweets, or users):
     elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
-        # if author is present it is already flattened
-        if "author" in data[0]:
+        # Same as above,
+        if "data" in data[0] and "includes" in data[0]:
+            # but flatten each object individually and return a single list
+            return list(chain.from_iterable([flatten(item) for item in data]))
+        elif "data" in data[0] and "includes" not in data[0]:
+            # same as above, log warnings and return a single list
+            log.warning(f"Unable to expand dictionary without includes: {data[0]}")
+            return list(chain.from_iterable([flatten(item) for item in data]))
+        # Return already flattened data as is
+        elif "data" not in data[0] and "includes" not in data[0]:
             return data
-        else:
-            raise ValueError(
-                "unable to flatten list of tweets without original response data: {data}"
-            )
-
-    elif isinstance(data, dict) and "author" in data:
-        # if author is present it is already flattened
-        if "author" in data:
-            return [data]
-        else:
-            raise ValueError(
-                f"unable to flatten tweet dictionary without original response data: {data}"
-            )
-
+    # Unknown format, eg: list of lists, or primitive
     else:
-        raise ValueError(f"cannot flatten unrecognized data: {data}")
+        raise ValueError(f"Cannot flatten unrecognized data: {data}")
