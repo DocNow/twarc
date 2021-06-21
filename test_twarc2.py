@@ -451,7 +451,7 @@ def test_ensure_flattened():
     assert len(flat8) > 1
     # Flatten worked without includes, wrote empty object:
     assert "author" in flat8[0]
-    TestCase().assertDictEqual(flat8[0]['author'], {})
+    TestCase().assertDictEqual(flat8[0]["author"], {})
 
     # If there's some other type of data:
     with pytest.raises(ValueError):
