@@ -424,13 +424,14 @@ def test_ensure_flattened():
     assert isinstance(flat3, list)
     assert len(flat3) == 1
 
+    # If there's "data" but no "includes":
     with pytest.raises(ValueError):
         twarc.expansions.ensure_flattened({"data": {"fake": "tweet"}})
     with pytest.raises(ValueError):
         twarc.expansions.ensure_flattened([{"data": {"fake": "tweet"}}])
     with pytest.raises(ValueError):
-        flat1[0].pop("includes")
-        twarc.expansions.ensure_flattened(flat1)
+        resp.pop("includes")
+        twarc.expansions.ensure_flattened(resp)
 
 
 def test_twarc_metadata():
