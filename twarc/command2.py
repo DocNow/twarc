@@ -321,7 +321,7 @@ def followers(T, user, outfile, limit):
 
 @twarc2.command("following")
 @click.option("--limit", default=0, help="Maximum number of friends to save")
-@click.argument("userd", type=str)
+@click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
