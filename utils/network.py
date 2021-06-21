@@ -38,31 +38,28 @@ usage = "network.py tweets.jsonl graph.html"
 opt_parser = optparse.OptionParser(usage=usage)
 
 opt_parser.add_option(
-    "--retweets",
-    dest="retweets",
-    action="store_true",
-    help="include retweets"
+    "--retweets", dest="retweets", action="store_true", help="include retweets"
 )
 
 opt_parser.add_option(
     "--min_subgraph_size",
     dest="min_subgraph_size",
     type="int",
-    help="remove any subgraphs with a size smaller than this number"
+    help="remove any subgraphs with a size smaller than this number",
 )
 
 opt_parser.add_option(
     "--max_subgraph_size",
     dest="max_subgraph_size",
     type="int",
-    help="remove any subgraphs with a size larger than this number"
+    help="remove any subgraphs with a size larger than this number",
 )
 
 opt_parser.add_option(
     "--users",
     dest="users",
     action="store_true",
-    help="show user relations instead of tweet relations"
+    help="show user relations instead of tweet relations",
 )
 
 
@@ -70,7 +67,7 @@ opt_parser.add_option(
     "--hashtags",
     dest="hashtags",
     action="store_true",
-    help="show hashtag relations instead of tweet relations"
+    help="show hashtag relations instead of tweet relations",
 )
 
 options, args = opt_parser.parse_args()
@@ -93,7 +90,7 @@ def add(from_user, from_id, to_user, to_id, type, created_at=None):
         G.add_node(to_user, screen_name=to_user, start_date=created_at)
 
         if G.has_edge(from_user, to_user):
-            weight = G[from_user][to_user]['weight'] + 1
+            weight = G[from_user][to_user]["weight"] + 1
         else:
             weight = 1
         G.add_edge(from_user, to_user, type=type, weight=weight)
@@ -110,17 +107,17 @@ def add(from_user, from_id, to_user, to_id, type, created_at=None):
 def to_json(g):
     j = {"nodes": [], "links": []}
     for node_id, node_attrs in g.nodes(True):
-        j["nodes"].append({
-            "id": node_id,
-            "type": node_attrs.get("type"),
-            "screen_name": node_attrs.get("screen_name")
-        })
+        j["nodes"].append(
+            {
+                "id": node_id,
+                "type": node_attrs.get("type"),
+                "screen_name": node_attrs.get("screen_name"),
+            }
+        )
     for source, target, attrs in g.edges(data=True):
-        j["links"].append({
-            "source": source,
-            "target": target,
-            "type": attrs.get("type")
-        })
+        j["links"].append(
+            {"source": source, "target": target, "type": attrs.get("type")}
+        )
     return j
 
 
@@ -129,42 +126,54 @@ for line in open(tweets):
         t = json.loads(line)
     except:
         continue
-    from_id = t['id_str']
-    from_user = t['user']['screen_name']
-    from_user_id = t['user']['id_str']
+    from_id = t["id_str"]
+    from_user = t["user"]["screen_name"]
+    from_user_id = t["user"]["id_str"]
     to_user = None
     to_id = None
     # standardize raw created at date to dd/MM/yyyy HH:mm:ss
-    created_at_date = time.strftime('%d/%m/%Y %H:%M:%S', time.strptime(t["created_at"],'%a %b %d %H:%M:%S +0000 %Y'))
+    created_at_date = time.strftime(
+        "%d/%m/%Y %H:%M:%S",
+        time.strptime(t["created_at"], "%a %b %d %H:%M:%S +0000 %Y"),
+    )
 
     if options.users:
-        for u in t['entities'].get('user_mentions', []):
-            add(from_user, from_id, u['screen_name'], None, 'reply', created_at_date)
+        for u in t["entities"].get("user_mentions", []):
+            add(from_user, from_id, u["screen_name"], None, "reply", created_at_date)
 
     elif options.hashtags:
-        hashtags = t['entities'].get('hashtags', [])
-        hashtag_pairs = list(itertools.combinations(hashtags, 2)) # list of all possible hashtag pairs
+        hashtags = t["entities"].get("hashtags", [])
+        hashtag_pairs = list(
+            itertools.combinations(hashtags, 2)
+        )  # list of all possible hashtag pairs
         for u in hashtag_pairs:
             # source hashtag: u[0]['text']
             # target hashtag: u[1]['text']
-            add('#' + u[0]['text'], None, '#' + u[1]['text'], None, 'hashtag', created_at_date)
+            add(
+                "#" + u[0]["text"],
+                None,
+                "#" + u[1]["text"],
+                None,
+                "hashtag",
+                created_at_date,
+            )
 
     else:
-        if t.get('in_reply_to_status_id_str'):
-            to_id = t['in_reply_to_status_id_str']
-            to_user = t['in_reply_to_screen_name']
+        if t.get("in_reply_to_status_id_str"):
+            to_id = t["in_reply_to_status_id_str"]
+            to_user = t["in_reply_to_screen_name"]
             add(from_user, from_id, to_user, to_id, "reply")
 
-        if t.get('quoted_status'):
-            to_id = t['quoted_status']['id_str']
-            to_user = t['quoted_status']['user']['screen_name']
-            to_user_id = t['quoted_status']['user']['id_str']
+        if t.get("quoted_status"):
+            to_id = t["quoted_status"]["id_str"]
+            to_user = t["quoted_status"]["user"]["screen_name"]
+            to_user_id = t["quoted_status"]["user"]["id_str"]
             add(from_user, from_id, to_user, to_id, "quote")
 
-        if options.retweets and t.get('retweeted_status'):
-            to_id = t['retweeted_status']['id_str']
-            to_user = t['retweeted_status']['user']['screen_name']
-            to_user_id = t['retweeted_status']['user']['id_str']
+        if options.retweets and t.get("retweeted_status"):
+            to_id = t["retweeted_status"]["id_str"]
+            to_user = t["retweeted_status"]["user"]["screen_name"]
+            to_user_id = t["retweeted_status"]["user"]["id_str"]
             add(from_user, from_id, to_user, to_id, "retweet")
 
 if options.min_subgraph_size or options.max_subgraph_size:
@@ -190,7 +199,8 @@ elif output.endswith(".json"):
 
 elif output.endswith(".html"):
     graph_data = json.dumps(to_json(G), indent=2)
-    html = """<!DOCTYPE html>
+    html = (
+        """<!DOCTYPE html>
 <meta charset="utf-8">
 <script src="https://platform.twitter.com/widgets.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -359,5 +369,7 @@ function dragended(d) {
 }
 
 </script>
-""" % graph_data
+"""
+        % graph_data
+    )
     open(output, "w").write(html)

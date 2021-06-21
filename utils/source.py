@@ -13,12 +13,13 @@ summary = defaultdict(int)
 for line in fileinput.input():
     tweet = json.loads(line)
 
-    source = tweet['source']
+    source = tweet["source"]
     summary[source] += 1
 
 sumsort = sorted(summary, key=summary.get, reverse=True)
 
-print("""<!doctype html>
+print(
+    """<!doctype html>
 <html>
 
 <head>
@@ -58,11 +59,13 @@ print("""<!doctype html>
   </header>
 
   <table>
-""")
+"""
+)
 
 for source in sumsort:
-    print('<tr><td>{}</td><td>{}</td></tr>'.format(source, summary[source]))
-print("""
+    print("<tr><td>{}</td><td>{}</td></tr>".format(source, summary[source]))
+print(
+    """
 
 
 </table>
@@ -76,6 +79,7 @@ created on the command line with <a href="https://github.com/DocNow/twarc">twarc
 </footer>
 
 </body>
-</html>""")
+</html>"""
+)
 
 # End of file

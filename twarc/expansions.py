@@ -204,7 +204,7 @@ def flatten(response):
     # Now flatten the list of tweets or an individual tweet
     tweets = []
     if "data" in response:
-        data = response['data']
+        data = response["data"]
 
         if isinstance(data, list):
             tweets = expand_payload(response["data"])
@@ -216,7 +216,7 @@ def flatten(response):
             for tweet in tweets:
                 tweet["__twarc"] = response["__twarc"]
     else:
-        raise ValueError(f'missing data stanza in response: {response}')
+        raise ValueError(f"missing data stanza in response: {response}")
 
     return tweets
 
@@ -225,32 +225,35 @@ def ensure_flattened(data):
     """
     Will ensure that the supplied data is "flattened". The input data can be a
     response from the Twitter API, a list of tweet dictionaries, or a single tweet
-    dictionary. It will always return a list of tweet dictionaries. A ValueError 
-    will be thrown if the supplied data is not recognizable or it cannot be 
+    dictionary. It will always return a list of tweet dictionaries. A ValueError
+    will be thrown if the supplied data is not recognizable or it cannot be
     flattened.
 
     ensure_flattened is designed for use in twarc plugins and other tweet
-    processing applications that want to operate on a stream of tweets, and 
+    processing applications that want to operate on a stream of tweets, and
     examine included entities like users and tweets without hunting and
     pecking in the response data.
     """
-    if isinstance(data, dict) and 'data' in data:
+    if isinstance(data, dict) and "data" in data:
         return flatten(data)
 
     elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         # if author is present it is already flattened
-        if 'author' in data[0]:
+        if "author" in data[0]:
             return data
         else:
-            raise ValueError('unable to flatten list of tweets without original response data: {data}')
+            raise ValueError(
+                "unable to flatten list of tweets without original response data: {data}"
+            )
 
-    elif isinstance(data, dict) and 'author' in data:
+    elif isinstance(data, dict) and "author" in data:
         # if author is present it is already flattened
-        if 'author' in data:
+        if "author" in data:
             return [data]
         else:
-            raise ValueError(f'unable to flatten tweet dictionary without original response data: {data}')
+            raise ValueError(
+                f"unable to flatten tweet dictionary without original response data: {data}"
+            )
 
     else:
-        raise ValueError(f'cannot flatten unrecognized data: {data}')
-
+        raise ValueError(f"cannot flatten unrecognized data: {data}")

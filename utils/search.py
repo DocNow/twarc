@@ -27,12 +27,19 @@ if len(sys.argv) == 1:
 
 parser = argparse.ArgumentParser(description="filter tweets by regex")
 
-parser.add_argument('-i', '--ignore', dest='ignore', action='store_true',
-                    help='ignore case')
+parser.add_argument(
+    "-i", "--ignore", dest="ignore", action="store_true", help="ignore case"
+)
 
-parser.add_argument('regex')
+parser.add_argument("regex")
 
-parser.add_argument('files', metavar='FILE', nargs='*', default=['-'], help='files to read, if empty, stdin is used')
+parser.add_argument(
+    "files",
+    metavar="FILE",
+    nargs="*",
+    default=["-"],
+    help="files to read, if empty, stdin is used",
+)
 
 args = parser.parse_args()
 
@@ -49,4 +56,4 @@ for line in fileinput.input(files=args.files):
     tweet = json.loads(line)
     text = json2csv.text(tweet)
     if regex.search(text):
-        print(line, end='')
+        print(line, end="")

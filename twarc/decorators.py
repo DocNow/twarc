@@ -5,11 +5,10 @@ from functools import wraps
 
 from requests import HTTPError
 from requests.packages.urllib3.exceptions import ReadTimeoutError
-from requests.exceptions import ChunkedEncodingError, ReadTimeout, \
-                                ContentDecodingError
+from requests.exceptions import ChunkedEncodingError, ReadTimeout, ContentDecodingError
 
 
-log = logging.getLogger('twarc')
+log = logging.getLogger("twarc")
 
 
 class InvalidAuthType(Exception):
@@ -24,6 +23,7 @@ def rate_limit(f):
     a rate limit error is encountered we will sleep until we can
     issue the API call again.
     """
+
     @wraps(f)
     def new_f(*args, **kwargs):
         errors = 0
@@ -40,14 +40,16 @@ def rate_limit(f):
                 try:
                     resp.raise_for_status()
                 except HTTPError as e:
-                    message = "\nThis is a protected or locked account, or" +\
-                              " the credentials provided are no longer valid."
+                    message = (
+                        "\nThis is a protected or locked account, or"
+                        + " the credentials provided are no longer valid."
+                    )
                     e.args = (e.args[0] + message,) + e.args[1:]
                     log.warning("401 Authentication required for %s", resp.url)
                     raise
             elif resp.status_code == 429:
                 try:
-                    reset = int(resp.headers['x-rate-limit-reset'])
+                    reset = int(resp.headers["x-rate-limit-reset"])
                     now = time.time()
                     seconds = reset - now + 10
                 except KeyError:
@@ -63,14 +65,18 @@ def rate_limit(f):
                     log.warning("too many errors from Twitter, giving up")
                     resp.raise_for_status()
                 seconds = 60 * errors
-                log.warning("%s from Twitter API, sleeping %s",
-                             resp.status_code, seconds)
+                log.warning(
+                    "%s from Twitter API, sleeping %s", resp.status_code, seconds
+                )
                 time.sleep(seconds)
-            elif resp.status_code== 422:
-                log.error("Recieved HTTP 422 response from Twitter API. Are you using the Premium API and forgot to use --sandbox or sandbox parameter?")
+            elif resp.status_code == 422:
+                log.error(
+                    "Recieved HTTP 422 response from Twitter API. Are you using the Premium API and forgot to use --sandbox or sandbox parameter?"
+                )
                 return resp
             else:
                 resp.raise_for_status()
+
     return new_f
 
 
@@ -82,6 +88,7 @@ def catch_conn_reset(f):
     """
     try:
         import OpenSSL
+
         ConnectionError = OpenSSL.SSL.SysCallError
     except:
         ConnectionError = None
@@ -98,6 +105,7 @@ def catch_conn_reset(f):
                 return f(self, *args, **kwargs)
         else:
             return f(self, *args, **kwargs)
+
     return new_f
 
 
@@ -105,6 +113,7 @@ def catch_timeout(f):
     """
     A decorator to handle read timeouts from Twitter.
     """
+
     @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
@@ -113,6 +122,7 @@ def catch_timeout(f):
             log.warning("caught read timeout: %s", e)
             self.connect()
             return f(self, *args, **kwargs)
+
     return new_f
 
 
@@ -121,6 +131,7 @@ def catch_gzip_errors(f):
     A decorator to handle gzip encoding errors which have been known to
     happen during hydration.
     """
+
     @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
@@ -129,6 +140,7 @@ def catch_gzip_errors(f):
             log.warning("caught gzip error: %s", e)
             self.connect()
             return f(self, *args, **kwargs)
+
     return new_f
 
 
@@ -146,27 +158,31 @@ def interruptible_sleep(t, event=None):
     else:
         return not event.wait(t)
 
+
 def filter_protected(f):
     """
     filter_protected will filter out protected tweets and users unless
     explicitly requested not to.
     """
+
     @wraps(f)
     def new_f(self, *args, **kwargs):
         for obj in f(self, *args, **kwargs):
             if self.protected == False:
-                if 'user' in obj and obj['user']['protected']:
+                if "user" in obj and obj["user"]["protected"]:
                     continue
-                elif 'protected' in obj and obj['protected']:
+                elif "protected" in obj and obj["protected"]:
                     continue
             yield obj
 
     return new_f
 
-class cli_api_error():
+
+class cli_api_error:
     """
     A decorator to catch HTTP errors for the command line.
     """
+
     def __init__(self, f):
         self.f = f
         # this is needed for click help docs to work properly
@@ -178,22 +194,21 @@ class cli_api_error():
         except HTTPError as e:
             try:
                 result = e.response.json()
-                if 'errors' in result:
-                    for error in result['errors']:
-                        msg = error.get('message', 'Unknown error')
-                elif 'title' in result:
-                    msg = result['title']
+                if "errors" in result:
+                    for error in result["errors"]:
+                        msg = error.get("message", "Unknown error")
+                elif "title" in result:
+                    msg = result["title"]
                 else:
-                    msg = 'Unknown error'
+                    msg = "Unknown error"
             except ValueError:
-                msg = f'Unable to parse {e.response.status_code} error as JSON: {e.response.text}'
+                msg = f"Unable to parse {e.response.status_code} error as JSON: {e.response.text}"
         except InvalidAuthType as e:
             msg = "This command requires application authentication, try passing --app-auth"
         except ValueError as e:
             msg = str(e)
         click.echo(
-            click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"),
-            err=True
+            click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"), err=True
         )
 
 
@@ -202,6 +217,7 @@ def requires_app_auth(f):
     Ensure that application authentication is set for calls that only work in that mode.
 
     """
+
     @wraps(f)
     def new_f(self, *args, **kwargs):
         if self.auth_type != "application":

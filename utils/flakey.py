@@ -21,8 +21,8 @@ def id2time(tweet_id):
     return dt.replace(microsecond=ms % 1000 * 1000)
 
 
-print('id,created_at')
+print("id,created_at")
 for line in fileinput.input():
     tweet_id = int(line)
-    created_at = id2time(tweet_id).strftime('%Y-%m-%dT%H:%M:%S.%f')[0:-3] + 'Z'
+    created_at = id2time(tweet_id).strftime("%Y-%m-%dT%H:%M:%S.%f")[0:-3] + "Z"
     print("{},{}".format(tweet_id, created_at))
