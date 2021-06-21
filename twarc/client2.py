@@ -86,7 +86,7 @@ class Twarc2:
             self.bearer_token = bearer_token
             self.auth_type = "application"
 
-        elif (consumer_key and consumer_secret):
+        elif consumer_key and consumer_secret:
             if access_token and access_token_secret:
                 self.consumer_key = consumer_key
                 self.consumer_secret = consumer_secret
@@ -110,15 +110,27 @@ class Twarc2:
         self.connect()
 
     def _search(
-        self, url, query, since_id, until_id, start_time, end_time, max_results,
-        granularity=None, sleep_between=0,
+        self,
+        url,
+        query,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        max_results,
+        granularity=None,
+        sleep_between=0,
     ):
+        if granularity:
+            params = {}
+            params["granularity"] = granularity
+        else:
+            params = expansions.EVERYTHING.copy()
 
-        params = expansions.EVERYTHING.copy()
         params["query"] = query
 
         if max_results:
-            params['max_results'] = max_results
+            params["max_results"] = max_results
         if since_id:
             params["since_id"] = since_id
         if until_id:
@@ -127,36 +139,37 @@ class Twarc2:
             params["start_time"] = _ts(start_time)
         if end_time:
             params["end_time"] = _ts(end_time)
-        if granularity:
-            params["granularity"] = granularity
 
         count = 0
         made_call = time.monotonic()
 
         for response in self.get_paginated(url, params=params):
             # can return without 'data' if there are no results
-            if 'data' in response:
-                count += len(response['data'])
+            if "data" in response:
+                count += len(response["data"])
                 yield response
 
             else:
-                log.info(f'Retrieved an empty page of results.')
+                log.info(f"Retrieved an empty page of results.")
 
             # Calculate the amount of time to sleep, accounting for any
             # processing time used by the rest of the application.
             # This is to satisfy the 1 request / 1 second rate limit
             # on the search/all endpoint.
-            time.sleep(
-                max(0, sleep_between - (time.monotonic() - made_call))
-            )
+            time.sleep(max(0, sleep_between - (time.monotonic() - made_call)))
             made_call = time.monotonic()
 
-        log.info(f'No more results for search {query}.')
+        log.info(f"No more results for search {query}.")
 
     def search_recent(
-            self, query, since_id=None, until_id=None, start_time=None,
-            end_time=None, max_results=100
-        ):
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        max_results=100,
+    ):
         """
         Search Twitter for the given query in the last seven days,
         using the `/search/recent` endpoint.
@@ -187,8 +200,13 @@ class Twarc2:
 
     @requires_app_auth
     def search_all(
-        self, query, since_id=None, until_id=None, start_time=None,
-        end_time=None, max_results=500
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        max_results=500,
     ):
         """
         Search Twitter for the given query in the full archive,
@@ -215,22 +233,33 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/search/all"
 
-        # start time defaults to the beginning of Twitter to override the 
+        # start time defaults to the beginning of Twitter to override the
         # default of the last month. Only do this if start_time is not already
         # specified and since_id isn't being used
         if start_time is None and since_id is None:
             start_time = TWITTER_EPOCH
 
         return self._search(
-            url, query, since_id, until_id, start_time, end_time, max_results,
-            sleep_between=1.05
+            url,
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            max_results,
+            sleep_between=1.05,
         )
 
     @requires_app_auth
     def counts_recent(
-            self, query, since_id=None, until_id=None, start_time=None,
-            end_time=None, granularity='hour'
-        ):
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        granularity="hour",
+    ):
         """
         Retrieve counts for the given query in the last seven days,
         using the `/counts/recent` endpoint.
@@ -264,8 +293,13 @@ class Twarc2:
 
     @requires_app_auth
     def counts_all(
-        self, query, since_id=None, until_id=None, start_time=None,
-        end_time=None, granularity='hour'
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        granularity="hour",
     ):
         """
         Retrieve counts for the given query in the full archive,
@@ -295,15 +329,22 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/counts/all"
 
-        # start time defaults to the beginning of Twitter to override the 
+        # start time defaults to the beginning of Twitter to override the
         # default of the last month. Only do this if start_time is not already
         # specified and since_id isn't being used
         if start_time is None and since_id is None:
             start_time = TWITTER_EPOCH
 
         return self._search(
-            url, query, since_id, until_id, start_time, end_time, None,
-            granularity, sleep_between=1.05
+            url,
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            None,
+            granularity,
+            sleep_between=1.05,
         )
 
     def tweet_lookup(self, tweet_ids):
@@ -451,7 +492,10 @@ class Twarc2:
                         # Check for an operational disconnect error in the response
                         if data.get("errors", []):
                             for error in data["errors"]:
-                                if error.get("disconnect_type") == "OperationalDisconnect":
+                                if (
+                                    error.get("disconnect_type")
+                                    == "OperationalDisconnect"
+                                ):
                                     log.info(
                                         "Received operational disconnect message: "
                                         "This stream has fallen too far behind in "
@@ -477,6 +521,7 @@ class Twarc2:
                     if interruptible_sleep(errors * 5, event):
                         log.info("stopping filter")
                         return
+
     @requires_app_auth
     def add_stream_rules(self, rules):
         """
@@ -550,12 +595,12 @@ class Twarc2:
 
             # quit & close the stream if the event is set
             if event and event.is_set():
-                log.info('stopping filter')
+                log.info("stopping filter")
                 resp.close()
                 return
 
-            if line == b'':
-                log.info('keep-alive')
+            if line == b"":
+                log.info("keep-alive")
                 if record_keep_alives:
                     yield "keep-alive"
             else:
@@ -603,17 +648,16 @@ class Twarc2:
         count = 0
         for response in self.get_paginated(url, params=params):
             # can return without 'data' if there are no results
-            if 'data' in response:
-                count += len(response['data'])
+            if "data" in response:
+                count += len(response["data"])
                 yield response
             else:
-                log.info(f'Retrieved an empty page of results for timeline {user_id}')
+                log.info(f"Retrieved an empty page of results for timeline {user_id}")
 
-        log.info(f'No more results for timeline {user_id}.')
+        log.info(f"No more results for timeline {user_id}.")
 
     def timeline(
-        self, user, since_id=None, until_id=None, start_time=None,
-        end_time=None
+        self, user, since_id=None, until_id=None, start_time=None, end_time=None
     ):
         """
         Retrieve up to the 3200 most recent tweets made by the given user.
@@ -632,12 +676,11 @@ class Twarc2:
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
-            user_id, 'tweets', since_id, until_id, start_time, end_time
+            user_id, "tweets", since_id, until_id, start_time, end_time
         )
 
     def mentions(
-        self, user, since_id=None, until_id=None, start_time=None,
-        end_time=None
+        self, user, since_id=None, until_id=None, start_time=None, end_time=None
     ):
         """
         Retrieve up to the 800 most recent tweets mentioning the given user.
@@ -656,7 +699,7 @@ class Twarc2:
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
-            user_id, 'mentions', since_id, until_id, start_time, end_time
+            user_id, "mentions", since_id, until_id, start_time, end_time
         )
 
     def following(self, user):
@@ -766,7 +809,7 @@ class Twarc2:
 
         yield page
 
-        endings = ['mentions', 'tweets', 'following', 'followers']
+        endings = ["mentions", "tweets", "following", "followers"]
 
         # The search endpoints only take a next_token, but the timeline
         # endpoints take a pagination_token instead - this is a bit of a hack,
@@ -818,45 +861,46 @@ class Twarc2:
             self.client.close()
 
         if self.auth_type == "application" and self.bearer_token:
-            log.info('creating HTTP session headers for app auth.')
+            log.info("creating HTTP session headers for app auth.")
             auth = f"Bearer {self.bearer_token}"
-            log.debug('authorization: %s', auth)
+            log.debug("authorization: %s", auth)
             self.client = requests.Session()
             self.client.headers.update({"Authorization": auth})
         elif self.auth_type == "application":
-            log.info('creating app auth client via OAuth2')
-            log.debug('client_id: %s', self.consumer_key)
-            log.debug('client_secret: %s', self.consumer_secret)
+            log.info("creating app auth client via OAuth2")
+            log.debug("client_id: %s", self.consumer_key)
+            log.debug("client_secret: %s", self.consumer_secret)
             client = BackendApplicationClient(client_id=self.consumer_key)
             self.client = OAuth2Session(client=client)
             self.client.fetch_token(
-                token_url='https://api.twitter.com/oauth2/token',
+                token_url="https://api.twitter.com/oauth2/token",
                 client_id=self.consumer_key,
-                client_secret=self.consumer_secret
+                client_secret=self.consumer_secret,
             )
         else:
-            log.info('creating user auth client')
-            log.debug('client_id: %s', self.consumer_key)
-            log.debug('client_secret: %s', self.consumer_secret)
-            log.debug('resource_owner_key: %s', self.access_token)
-            log.debug('resource_owner_secret: %s', self.access_token_secret)
+            log.info("creating user auth client")
+            log.debug("client_id: %s", self.consumer_key)
+            log.debug("client_secret: %s", self.consumer_secret)
+            log.debug("resource_owner_key: %s", self.access_token)
+            log.debug("resource_owner_secret: %s", self.access_token_secret)
             self.client = OAuth1Session(
                 client_key=self.consumer_key,
                 client_secret=self.consumer_secret,
                 resource_owner_key=self.access_token,
-                resource_owner_secret=self.access_token_secret
+                resource_owner_secret=self.access_token_secret,
             )
 
     def _ensure_user_id(self, user):
         user = str(user)
-        if re.match(r'^\d+$', user):
+        if re.match(r"^\d+$", user):
             return user
         else:
             results = next(self.user_lookup([user], usernames=True))
-            if 'data' in results and len(results['data']) > 0:
-                return results['data'][0]['id']
+            if "data" in results and len(results["data"]) > 0:
+                return results["data"][0]["id"]
             else:
                 raise ValueError(f"No such user {user}")
+
 
 def _ts(dt):
     """
@@ -873,7 +917,8 @@ def _ts(dt):
         dt = dt.astimezone(datetime.timezone.utc)
     else:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
-    return dt.isoformat(timespec='seconds')
+    return dt.isoformat(timespec="seconds")
+
 
 def _utcnow():
     """
@@ -882,9 +927,8 @@ def _utcnow():
     Returns:
         datetime: Current timestamp in UTC.
     """
-    return datetime.datetime.now(datetime.timezone.utc).isoformat(
-        timespec='seconds'
-    )
+    return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+
 
 def _append_metadata(result, url):
     """
@@ -899,9 +943,5 @@ def _append_metadata(result, url):
     Returns:
         dict: API Response with append metadata
     """
-    result["__twarc"] = {
-                    "url": url,
-                    "version": version,
-                    "retrieved_at": _utcnow()
-                }
+    result["__twarc"] = {"url": url, "version": version, "retrieved_at": _utcnow()}
     return result
