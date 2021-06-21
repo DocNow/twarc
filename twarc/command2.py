@@ -220,6 +220,11 @@ def get_version():
 @click.option(
     "--max-results", default=0, help="Maximum number of tweets per API response"
 )
+@click.option(
+    "--progress/--no-progress",
+    default=True,
+    help="Show Progress bar. Default: yes",
+)
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -235,7 +240,7 @@ def search(
     limit,
     max_results,
     archive,
-    **kwargs,
+    progress,
 ):
     """
     Search for tweets.
@@ -253,26 +258,28 @@ def search(
             max_results = 100
         search_method = T.search_recent
 
-    pbar = kwargs["progress_bar"]
+    hide_progressbar = (outfile.name == "<stdout>") or (
+        not progress
+    )  # hide bar when piping or if option set
 
     with TimestampProgressBar(
-        outfile, since_id, until_id, start_time, end_time
-    ) as pbar:
+        hide_progressbar, since_id, until_id, start_time, end_time
+    ) as progress:
         for result in search_method(
             query, since_id, until_id, start_time, end_time, max_results
         ):
             _write(result, outfile)
 
-            pbar.update_with_snowflake(
+            progress.update_with_snowflake(
                 result["meta"]["newest_id"], result["meta"]["oldest_id"]
             )
             count += len(result["data"])
 
             if limit != 0 and count >= limit:
-                pbar.desc = f"--limit {limit} reached"
+                # Display message when stopped early
+                progress.desc = f"Set --limit of {limit} reached"
+                progress.early_stop = True
                 break
-        else:
-            pbar.update(pbar.total - pbar.n)
 
 
 @twarc2.command("tweet")
