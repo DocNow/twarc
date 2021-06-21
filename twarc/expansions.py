@@ -8,6 +8,7 @@ sure that data is flattened.
 """
 
 import logging
+from itertools import chain
 from collections import defaultdict
 
 log = logging.getLogger("twarc")
@@ -207,7 +208,12 @@ def flatten(response):
     # Now expand the list of tweets or an individual tweet in "data"
     tweets = []
     if "data" in response:
-        tweets = expand_payload(response["data"])
+        data = response["data"]
+
+        if isinstance(data, list):
+            tweets = expand_payload(response["data"])
+        elif isinstance(data, dict):
+            tweets = [expand_payload(response["data"])]
 
         # Add the __twarc metadata to each tweet if it's a result set
         if "__twarc" in response:
@@ -256,15 +262,15 @@ def ensure_flattened(data):
     elif isinstance(data, dict) and "data" not in data and "includes" not in data:
         return [data]
 
-    # If it's a list of objects (eg: stream):
+    # If it's a list of objects (could be list of responses, or tweets, or users):
     elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         # Same as above, but flatten each object individually
         if "data" in data[0] and "includes" in data[0]:
-            return [flatten(item) for item in data]
+            return list(chain.from_iterable([flatten(item) for item in data]))
         elif "data" in data[0] and "includes" not in data[0]:
             # Log a warning because having databut no includes is still valid:
             log.warning(f"Unable to expand dictionary without includes: {data[0]}")
-            return flatten(data)
+            return list(chain.from_iterable([flatten(item) for item in data]))
         # Already flattened
         elif "data" not in data[0] and "includes" not in data[0]:
             return data
