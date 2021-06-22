@@ -842,10 +842,8 @@ class Twarc2:
 
         def id_exists(user):
             try:
-                return (
-                    next(self.user_lookup([user]))["errors"][0]["title"]
-                    != "Not Found Error"
-                )
+                error_name = next(self.user_lookup([user]))["errors"][0]["title"]
+                return error_name != "Not Found Error"
             except KeyError:
                 return True
 
