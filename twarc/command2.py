@@ -719,8 +719,13 @@ def conversations(T, infile, outfile, archive, limit, conversation_limit):
 @twarc2.command("flatten")
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--progress/--no-progress",
+    default=True,
+    help="Show Progress bar. Default: yes",
+)
 @cli_api_error
-def flatten(infile, outfile):
+def flatten(infile, outfile, progress):
     """
     "Flatten" tweets, or move expansions inline with tweet objects and ensure
     that each line of output is a single tweet.
@@ -735,9 +740,20 @@ def flatten(infile, outfile):
         )
         return
 
-    for line in infile:
-        for tweet in ensure_flattened(json.loads(line)):
-            _write(tweet, outfile, False)
+    disable_progress = (infile.name == "<stdin>" or outfile.name == "<stdout>") or (progress == False)
+    with tqdm(
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+            total=os.stat(infile.name).st_size if not disable_progress else 1,
+            disable=disable_progress,
+        ) as progress:
+        offset = 0
+        for line in infile:
+            offset += len(line)
+            for tweet in ensure_flattened(json.loads(line)):
+                _write(tweet, outfile, False)
+            progress.update(offset - progress.n)
 
 
 @twarc2.command("stream")
