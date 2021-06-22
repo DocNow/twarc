@@ -45,6 +45,7 @@ class TimestampProgressBar(tqdm):
         kwargs["miniters"] = 1
         kwargs["total"] = total
         kwargs["disable"] = disable
+        kwargs["bar_format"] = "{l_bar}{bar}| {total_time} [{elapsed}<{remaining}{postfix}]"
         super().__init__(**kwargs)
 
     def update_with_snowflake(self, newest_id, oldest_id):
@@ -56,10 +57,10 @@ class TimestampProgressBar(tqdm):
 
     @property
     def format_dict(self):
-        # Todo: Better Custom display
+        # Todo: Better Custom display, tweets / requests per second / output file size? 
         d = super(TimestampProgressBar, self).format_dict
         total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
-        d.update(total_time=self.format_interval(total_time) + " in total")
+        d.update(total_time=self.format_interval(total_time) + " elapsed")
         return d
 
     def close(self):
