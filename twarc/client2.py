@@ -838,12 +838,26 @@ class Twarc2:
 
     def _ensure_user_id(self, user):
         user = str(user)
-        if re.match(r"^\d+$", user):
+        is_numeric = re.match(r"^\d+$", user)
+
+        def id_exists(user):
+            user_profile = next(self.user_lookup([user]))
+            try:
+                return all(
+                    error["title"] != "Not Found Error"
+                    for error in user_profile["errors"]
+                )
+            except KeyError:
+                return True
+
+        if len(user) > 15 or (is_numeric and id_exists(user)):
             return user
         else:
             results = next(self.user_lookup([user], usernames=True))
             if "data" in results and len(results["data"]) > 0:
                 return results["data"][0]["id"]
+            elif is_numeric:
+                return user
             else:
                 raise ValueError(f"No such user {user}")
 
