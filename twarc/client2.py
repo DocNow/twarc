@@ -841,11 +841,10 @@ class Twarc2:
         is_numeric = re.match(r"^\d+$", user)
 
         def id_exists(user):
-            user_profile = next(self.user_lookup([user]))
             try:
                 return all(
                     error["title"] != "Not Found Error"
-                    for error in user_profile["errors"]
+                    for error in next(self.user_lookup([user]))["errors"]
                 )
             except KeyError:
                 return True
