@@ -508,6 +508,12 @@ def timelines(
     Fetch the timelines of every user in an input source of tweets. If
     the input is a line oriented text file of user ids or usernames that will
     be used instead.
+
+    The infile can be:
+
+        - A file containing one user id per line (either quoted or unquoted)
+        - A JSONL file containing tweets collected in the Twitter API V2 format
+
     """
     total_count = 0
     seen = set()
@@ -518,12 +524,16 @@ def timelines(
 
         users = []
         try:
-            data = ensure_flattened(json.loads(line))
-            users = set([t["author"]["id"] for t in ensure_flattened(data)])
+            # Handle both quoted user_ids and json tweet data
+            json_data = json.loads(line)
+            try:
+                users = set([t["author"]["id"] for t in ensure_flattened(json_data)])
+            except ValueError:
+                users = set(json_data)
+
         except json.JSONDecodeError:
-            users = set([line])
-        except ValueError:
-            users = set([line])
+            # Can't decode JSON, just pass straight through as a raw user_id
+            users = set(line)
 
         for user in users:
 
