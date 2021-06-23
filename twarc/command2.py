@@ -9,19 +9,16 @@ import twarc
 import click
 import logging
 import pathlib
-import datetime
-import requests
 import configobj
 import threading
 
-from tqdm.auto import tqdm
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 
 from twarc.version import version
 from twarc.handshake import handshake
 from twarc.config import ConfigProvider
-from twarc.decorators import cli_api_error, TimestampProgressBar
+from twarc.decorators import cli_api_error, TimestampProgressBar, FileSizeProgressBar
 from twarc.expansions import ensure_flattened
 from click_config_file import configuration_option
 
@@ -221,9 +218,10 @@ def get_version():
     "--max-results", default=0, help="Maximum number of tweets per API response"
 )
 @click.option(
-    "--progress/--no-progress",
-    default=True,
-    help="Show Progress bar. Default: yes",
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
 )
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
@@ -240,7 +238,7 @@ def search(
     limit,
     max_results,
     archive,
-    progress,
+    hide_progress,
 ):
     """
     Search for tweets.
@@ -258,22 +256,16 @@ def search(
             max_results = 100
         search_method = T.search_recent
 
-    hide_progressbar = (outfile.name == "<stdout>") or (
-        not progress
-    )  # hide bar when piping or if option set
-
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
     with TimestampProgressBar(
-        hide_progressbar, since_id, until_id, start_time, end_time
+        since_id, until_id, start_time, end_time, disable=hide_progress
     ) as progress:
         for result in search_method(
             query, since_id, until_id, start_time, end_time, max_results
         ):
             _write(result, outfile)
-
-            progress.update_with_snowflake(
-                result["meta"]["newest_id"], result["meta"]["oldest_id"]
-            )
             count += len(result["data"])
+            progress.update_with_result(result)
 
             if limit != 0 and count >= limit:
                 # Display message when stopped early
@@ -302,11 +294,17 @@ def tweet(T, tweet_id, outfile, pretty):
 
 @twarc2.command("followers")
 @click.option("--limit", default=0, help="Maximum number of followers to save")
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def followers(T, user, outfile, limit):
+def followers(T, user, outfile, limit, hide_progress):
     """
     Get the followers for a given user.
     """
@@ -321,11 +319,17 @@ def followers(T, user, outfile, limit):
 
 @twarc2.command("following")
 @click.option("--limit", default=0, help="Maximum number of friends to save")
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def following(T, user, outfile, limit):
+def following(T, user, outfile, limit, hide_progress):
     """
     Get the users who are following a given user.
     """
@@ -365,28 +369,52 @@ def sample(T, outfile, limit):
 @twarc2.command("hydrate")
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.pass_obj
 @cli_api_error
-def hydrate(T, infile, outfile):
+def hydrate(T, infile, outfile, hide_progress):
     """
     Hydrate tweet ids.
     """
-    for result in T.tweet_lookup(infile):
-        _write(result, outfile)
+    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+        for result in T.tweet_lookup(infile):
+            _write(result, outfile)
+            progress.update_with_result(result, error_resource_type="tweet")
 
 
 @twarc2.command("users")
-@click.option("--usernames", is_flag=True, default=False)
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
+@click.option("--usernames", is_flag=True, default=False)
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.pass_obj
 @cli_api_error
-def users(T, infile, outfile, usernames):
+def users(T, infile, outfile, usernames, hide_progress):
     """
     Get data for user ids or usernames.
     """
-    for result in T.user_lookup(infile, usernames):
-        _write(result, outfile)
+    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+        for result in T.user_lookup(infile, usernames):
+            _write(result, outfile)
+            if usernames:
+                progress.update_with_result(
+                    result,
+                    field="username",
+                    error_resource_type="user",
+                    error_parameter="usernames",
+                )
+            else:
+                progress.update_with_result(result, error_resource_type="user")
 
 
 @twarc2.command("mentions")
@@ -402,11 +430,19 @@ def users(T, infile, outfile, usernames):
     type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
     help="Match tweets sent before time (ISO 8601/RFC 3339)",
 )
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
+def mentions(
+    T, user_id, outfile, since_id, until_id, start_time, end_time, hide_progress
+):
     """
     Retrieve the most recent tweets mentioning the given user.
     """
@@ -446,6 +482,12 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
     default=False,
     help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
 )
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -462,6 +504,7 @@ def timeline(
     limit,
     exclude_retweets,
     exclude_replies,
+    hide_progress,
 ):
     """
     Retrieve recent tweets for the given user.
@@ -513,6 +556,12 @@ def timeline(
     default=False,
     help="Exclude replies from timeline",
 )
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -525,6 +574,7 @@ def timelines(
     use_search,
     exclude_retweets,
     exclude_replies,
+    hide_progress,
 ):
     """
     Fetch the timelines of every user in an input source of tweets. If
@@ -617,11 +667,17 @@ def _timeline_tweets(
     default=False,
     help="Search the full archive (requires Academic Research track)",
 )
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("tweet_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def conversation(T, tweet_id, archive, outfile):
+def conversation(T, tweet_id, archive, outfile, hide_progress):
     """
     Retrieve a conversation thread using the tweet id.
     """
@@ -647,11 +703,19 @@ def conversation(T, tweet_id, archive, outfile):
     default=False,
     help="Use the Academic Research project track access to the full archive",
 )
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def conversations(T, infile, outfile, archive, limit, conversation_limit):
+def conversations(
+    T, infile, outfile, archive, limit, conversation_limit, hide_progress
+):
     """
     Fetch the full conversation threads that the input tweets are a part of.
     Alternatively the input can be a line oriented file of conversation ids.
@@ -720,12 +784,13 @@ def conversations(T, infile, outfile, archive, limit, conversation_limit):
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.option(
-    "--progress/--no-progress",
-    default=True,
-    help="Show Progress bar. Default: yes",
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
 )
 @cli_api_error
-def flatten(infile, outfile, progress):
+def flatten(infile, outfile, hide_progress):
     """
     "Flatten" tweets, or move expansions inline with tweet objects and ensure
     that each line of output is a single tweet.
@@ -740,20 +805,11 @@ def flatten(infile, outfile, progress):
         )
         return
 
-    disable_progress = (infile.name == "<stdin>" or outfile.name == "<stdout>") or (progress == False)
-    with tqdm(
-            unit="B",
-            unit_scale=True,
-            unit_divisor=1024,
-            total=os.stat(infile.name).st_size if not disable_progress else 1,
-            disable=disable_progress,
-        ) as progress:
-        offset = 0
+    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
         for line in infile:
-            offset += len(line)
             for tweet in ensure_flattened(json.loads(line)):
                 _write(tweet, outfile, False)
-            progress.update(offset - progress.n)
+            progress.update(len(line))
 
 
 @twarc2.command("stream")

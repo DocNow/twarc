@@ -1,12 +1,14 @@
+import os
 import time
 import click
 import logging
+import datetime
 from functools import wraps
+from collections import defaultdict
 
 from requests import HTTPError
 from requests.packages.urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ChunkedEncodingError, ReadTimeout, ContentDecodingError
-import datetime
 from tqdm.auto import tqdm
 
 log = logging.getLogger("twarc")
@@ -18,14 +20,61 @@ class InvalidAuthType(Exception):
     """
 
 
+class FileSizeProgressBar(tqdm):
+    """
+    A file size based progress bar. Counts an input file in bytes.
+    Overrides `disable` parameter if file is a pipe.
+    """
+
+    def __init__(self, infile, **kwargs):
+        disable = False if "disable" not in kwargs else kwargs["disable"]
+        if infile is not None and (infile.name == "<stdin>"):
+            disable = True
+        kwargs["disable"] = disable
+        kwargs["unit"] = "B"
+        kwargs["unit_scale"] = True
+        kwargs["unit_divisor"] = 1024
+        kwargs["miniters"] = 1
+        kwargs["total"] = os.stat(infile.name).st_size if not disable else 1
+        super().__init__(**kwargs)
+
+    def update_with_result(
+        self, result, field="id", error_resource_type=None, error_parameter="ids"
+    ):
+        # try:
+        for item in result["data"]:
+            # Use the length of the id / name and a newline to match original file
+            self.update(len(item[field]) + len("\n"))
+        if error_resource_type and "errors" in result:
+            for error in result["errors"]:
+                # Account for deleted data
+                # Errors have very inconsistent format, missing fields for different types of errors...
+                if (
+                    "resource_type" in error
+                    and error["resource_type"] == error_resource_type
+                ):
+                    if "parameter" in error and error["parameter"] == error_parameter:
+                        self.update(len(error["value"]) + len("\n"))
+                        # todo: hide or show this?
+                        # self.set_description(
+                        #    "Errors encountered, results may be incomplete"
+                        # )
+                    # print(error["value"], error["resource_type"], error["parameter"])
+        # except Exception as e:
+        # log.error(f"Failed to update progress bar: {e}")
+
+
 class TimestampProgressBar(tqdm):
     """
     A Timestamp based progress bar. Counts timestamp ranges in milliseconds.
     This can be used to display a progress bar for tweet ids and time ranges.
     """
 
-    def __init__(self, disable, since_id, until_id, start_time, end_time, **kwargs):
+    def __init__(self, since_id, until_id, start_time, end_time, **kwargs):
         self.early_stop = False
+
+        disable = False if "disable" not in kwargs else kwargs["disable"]
+        kwargs["disable"] = disable
 
         if start_time is None and since_id is None:
             start_time = datetime.datetime.now(
@@ -44,20 +93,26 @@ class TimestampProgressBar(tqdm):
 
         kwargs["miniters"] = 1
         kwargs["total"] = total
-        kwargs["disable"] = disable
-        kwargs["bar_format"] = "{l_bar}{bar}| {total_time} [{elapsed}<{remaining}{postfix}]"
+        kwargs[
+            "bar_format"
+        ] = "{l_bar}{bar}| {total_time} [{elapsed}<{remaining}{postfix}]"
         super().__init__(**kwargs)
 
-    def update_with_snowflake(self, newest_id, oldest_id):
+    def update_with_result(self, result):
         """
         Update progress bar based on snowflake ids.
         """
-        n = _snowflake2millis(int(newest_id)) - _snowflake2millis(int(oldest_id))
-        self.update(n)
+        try:
+            newest_id = result["meta"]["newest_id"]
+            oldest_id = result["meta"]["oldest_id"]
+            n = _snowflake2millis(int(newest_id)) - _snowflake2millis(int(oldest_id))
+            self.update(n)
+        except Exception as e:
+            log.error(f"Failed to update progress bar: {e}")
 
     @property
     def format_dict(self):
-        # Todo: Better Custom display, tweets / requests per second / output file size? 
+        # Todo: Better Custom display, tweets / requests per second / output file size?
         d = super(TimestampProgressBar, self).format_dict
         total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
         d.update(total_time=self.format_interval(total_time) + " elapsed")
