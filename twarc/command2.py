@@ -369,7 +369,7 @@ def followers(T, user, outfile, limit):
 
 @twarc2.command("following")
 @click.option("--limit", default=0, help="Maximum number of friends to save")
-@click.argument("userd", type=str)
+@click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
@@ -578,27 +578,58 @@ def timelines(
     Fetch the timelines of every user in an input source of tweets. If
     the input is a line oriented text file of user ids or usernames that will
     be used instead.
+
+    The infile can be:
+
+        - A file containing one user id per line (either quoted or unquoted)
+        - A JSONL file containing tweets collected in the Twitter API V2 format
+
     """
     total_count = 0
+    line_count = 0
     seen = set()
     for line in infile:
+        line_count += 1
         line = line.strip()
         if line == "":
+            logging.warn("skipping blank line on line %s", line_count)
             continue
 
-        users = []
+        users = None
         try:
-            data = ensure_flattened(json.loads(line))
-            users = set([t["author"]["id"] for t in ensure_flattened(data)])
+            # first try to get user ids from a flattened Twitter response
+            json_data = json.loads(line)
+            try:
+                users = set([t["author"]["id"] for t in ensure_flattened(json_data)])
+            except (KeyError, ValueError):
+                # if it's not tweet JSON but it parsed as a string use that as a user
+                if isinstance(json_data, str) and json_data:
+                    users = set([json_data])
+                else:
+                    logging.warn(
+                        "ignored line %s which didn't contain users", line_count
+                    )
+                    continue
+
         except json.JSONDecodeError:
+            # assume it's a single user
             users = set([line])
-        except ValueError:
-            users = set([line])
+
+        if users is None:
+            click.echo(
+                click.style(
+                    f"unable to find user or users on line {line_count}",
+                    fg="red",
+                ),
+                err=True,
+            )
+            break
 
         for user in users:
 
             # only process a given user once
             if user in seen:
+                logging.info("already processed %s, skipping", user)
                 continue
             seen.add(user)
 
