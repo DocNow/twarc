@@ -288,7 +288,7 @@ def search(
 @click.option(
     "--limit",
     default=0,
-    help="Maximum number of days of results to save (minimum is 30)",
+    help="Maximum number of days of results to save (minimum is 30 days)",
 )
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
@@ -307,14 +307,14 @@ def counts(
     limit,
 ):
     """
-    Search for tweets.
+    Return counts of tweets matching a query.
     """
     count = 0
 
     if archive:
-        count_method = T.count_all
+        count_method = T.counts_all
     else:
-        count_method = T.count_recent
+        count_method = T.counts_recent
 
     for result in count_method(
         query,
