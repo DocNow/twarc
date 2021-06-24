@@ -277,8 +277,6 @@ class Twarc2:
                 Return all tweets after this time (UTC datetime).
             end_time (datetime):
                 Return all tweets before this time (UTC datetime).
-            max_results (int):
-                The maximum number of results per request. Max is 100.
             granularity (str):
                 Count aggregation level: `day`, `hour`, `minute`.
                 Default is `hour`.
@@ -318,8 +316,6 @@ class Twarc2:
                 Return all tweets after this time (UTC datetime).
             end_time (datetime):
                 Return all tweets before this time (UTC datetime).
-            max_results (int):
-                The maximum number of results per request. Max is 500.
             granularity (str):
                 Count aggregation level: `day`, `hour`, `minute`.
                 Default is `hour`.
