@@ -333,7 +333,9 @@ def counts(
         count_method = T.counts_recent
 
     if csv:
-        click.echo(f'start,end,count')
+        click.echo(f'start,end,{granularity}_count')
+
+    total_tweets = 0
 
     for result in count_method(
         query,
@@ -345,7 +347,8 @@ def counts(
     ):
         if text:
             for r in result['data']:
-                click.echo(f'{r["start"]} - {r["end"]}: {r["tweet_count"]}')
+                total_tweets += r['tweet_count']
+                click.echo('{start} - {end}: {tweet_count:,}'.format(**r))
         elif csv:
             for r in result['data']:
                 click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}')
@@ -354,6 +357,14 @@ def counts(
         count += len(result["data"])
         if limit != 0 and count >= limit:
             break
+
+        if text:
+            click.echo(
+                click.style(
+                    '\nTotal Tweets: {:,}\n'.format(total_tweets),
+                    fg='green'
+                )
+            )
 
 
 @twarc2.command("tweet")
