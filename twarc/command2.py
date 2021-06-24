@@ -529,7 +529,14 @@ def timelines(
             try:
                 users = set([t["author"]["id"] for t in ensure_flattened(json_data)])
             except ValueError:
-                users = set(json_data)
+                # If it's not a structure we understand, but it is a nonempty string,
+                # pass it through as a user_id itself. Downstream functions will do
+                # additional validation.
+                if isinstance(json_data, str) and json_data:
+                    users = set([json_data])
+                else:
+                    # Ignore the line if it's JSON but we can't deal with it
+                    continue
 
         except json.JSONDecodeError:
             # Can't decode JSON, just pass straight through as a raw user_id
