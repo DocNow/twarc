@@ -111,6 +111,18 @@ def test_search_recent():
     assert 200 <= found_tweets <= 300
 
 
+def test_counts_recent():
+
+    found_counts = 0
+
+    for response_page in T.counts_recent("twitter is:verified", granularity="day"):
+        counts = response_page["data"]
+        found_counts += len(counts)
+        break
+
+    assert 7 <= found_counts <= 8
+
+
 def test_search_times():
     found = False
     now = datetime.datetime.now(tz=pytz.timezone("Australia/Melbourne"))
