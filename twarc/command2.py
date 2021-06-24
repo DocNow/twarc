@@ -290,6 +290,20 @@ def search(
     default=0,
     help="Maximum number of days of results to save (minimum is 30 days)",
 )
+@click.option(
+    "--text",
+    is_flag=True,
+    default=False,
+    help="Output the counts as human readable text"
+)
+@click.option(
+    "--csv",
+    is_flag=True,
+    default=False,
+    help="Output counts as CSV"
+)
+
+
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -305,6 +319,8 @@ def counts(
     archive,
     granularity,
     limit,
+    text,
+    csv
 ):
     """
     Return counts of tweets matching a query.
@@ -316,6 +332,9 @@ def counts(
     else:
         count_method = T.counts_recent
 
+    if csv:
+        click.echo(f'start,end,count')
+
     for result in count_method(
         query,
         since_id,
@@ -324,7 +343,14 @@ def counts(
         end_time,
         granularity,
     ):
-        _write(result, outfile)
+        if text:
+            for r in result['data']:
+                click.echo(f'{r["start"]} - {r["end"]}: {r["tweet_count"]}')
+        elif csv:
+            for r in result['data']:
+                click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}')
+        else:
+            _write(result, outfile)
         count += len(result["data"])
         if limit != 0 and count >= limit:
             break
