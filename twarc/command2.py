@@ -516,36 +516,50 @@ def timelines(
 
     """
     total_count = 0
+    line_count = 0
     seen = set()
     for line in infile:
+        line_count += 1
         line = line.strip()
         if line == "":
+            logging.warn("skipping blank line on line %s", line_count)
             continue
 
-        users = []
+        users = None
         try:
-            # Handle both quoted user_ids and json tweet data
+            # first try to get user ids from a flattened Twitter response
             json_data = json.loads(line)
             try:
                 users = set([t["author"]["id"] for t in ensure_flattened(json_data)])
-            except ValueError:
-                # If it's not a structure we understand, but it is a nonempty string,
-                # pass it through as a user_id itself. Downstream functions will do
-                # additional validation.
+            except (KeyError, ValueError):
+                # if it's not tweet JSON but it parsed as a string use that as a user
                 if isinstance(json_data, str) and json_data:
                     users = set([json_data])
                 else:
-                    # Ignore the line if it's JSON but we can't deal with it
+                    logging.warn(
+                        "ignored line %s which didn't contain users", line_count
+                    )
                     continue
 
         except json.JSONDecodeError:
-            # Can't decode JSON, just pass straight through as a raw user_id
-            users = set(line)
+            # assume it's a single user
+            users = set([line])
+
+        if users is None:
+            click.echo(
+                click.style(
+                    f"unable to find user or users on line {line_count}",
+                    fg="red",
+                ),
+                err=True,
+            )
+            break
 
         for user in users:
 
             # only process a given user once
             if user in seen:
+                logging.info("already processed %s, skipping", user)
                 continue
             seen.add(user)
 
