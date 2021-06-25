@@ -333,7 +333,7 @@ def counts(
         count_method = T.counts_recent
 
     if csv:
-        click.echo(f'start,end,{granularity}_count')
+        click.echo(f'start,end,{granularity}_count', file=outfile)
 
     total_tweets = 0
 
@@ -348,10 +348,10 @@ def counts(
         if text:
             for r in result['data']:
                 total_tweets += r['tweet_count']
-                click.echo('{start} - {end}: {tweet_count:,}'.format(**r))
+                click.echo('{start} - {end}: {tweet_count:,}'.format(**r), file=outfile)
         elif csv:
             for r in result['data']:
-                click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}')
+                click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile)
         else:
             _write(result, outfile)
         count += len(result["data"])
@@ -363,7 +363,8 @@ def counts(
                 click.style(
                     '\nTotal Tweets: {:,}\n'.format(total_tweets),
                     fg='green'
-                )
+                ),
+                file=outfile
             )
 
 
