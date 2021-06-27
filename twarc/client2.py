@@ -747,7 +747,7 @@ class Twarc2:
             exclude_replies,
         )
 
-    def following(self, user):
+    def following(self, user, user_id=None):
         """
         Retrieve the user profiles of accounts followed by the given user.
 
@@ -759,13 +759,13 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-        user_id = self._ensure_user_id(user)
+        user_id = self._ensure_user_id(user) if not user_id else user_id
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/following"
         return self.get_paginated(url, params=params)
 
-    def followers(self, user):
+    def followers(self, user, user_id=None):
         """
         Retrieve the user profiles of accounts following the given user.
 
@@ -777,7 +777,7 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-        user_id = self._ensure_user_id(user)
+        user_id = self._ensure_user_id(user) if not user_id else user_id
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
