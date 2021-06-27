@@ -111,6 +111,18 @@ def test_search_recent():
     assert 200 <= found_tweets <= 300
 
 
+def test_counts_recent():
+
+    found_counts = 0
+
+    for response_page in T.counts_recent("twitter is:verified", granularity="day"):
+        counts = response_page["data"]
+        found_counts += len(counts)
+        break
+
+    assert 7 <= found_counts <= 8
+
+
 def test_search_times():
     found = False
     now = datetime.datetime.now(tz=pytz.timezone("Australia/Melbourne"))
@@ -456,6 +468,26 @@ def test_ensure_flattened():
     # If there's some other type of data:
     with pytest.raises(ValueError):
         twarc.expansions.ensure_flattened([[{"data": {"fake": "list_of_lists"}}]])
+
+
+def test_ensure_user_id():
+    """
+    Test _ensure_user_id's ability to discriminate correctly between IDs and
+    screen names.
+    """
+    # presumably IDs don't change
+    assert T._ensure_user_id("jack") == "12"
+
+    # should hold for all users, even if the screen name exists
+    assert T._ensure_user_id("12") == "12"
+
+    # this is a screen name but not an ID
+    # would help to find more "stable" example?
+    assert T._ensure_user_id("42069") == "17334495"
+    # should 42069 passed as int return ID or screen name?
+
+    assert T._ensure_user_id("1033441111677788160") == "1033441111677788160"
+    assert T._ensure_user_id(1033441111677788160) == "1033441111677788160"
 
 
 def test_twarc_metadata():

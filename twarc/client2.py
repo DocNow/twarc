@@ -118,13 +118,19 @@ class Twarc2:
         start_time,
         end_time,
         max_results,
+        granularity=None,
         sleep_between=0,
     ):
+        if granularity:
+            params = {}
+            params["granularity"] = granularity
+        else:
+            params = expansions.EVERYTHING.copy()
 
-        params = expansions.EVERYTHING.copy()
-        params["max_results"] = max_results
         params["query"] = query
 
+        if max_results:
+            params["max_results"] = max_results
         if since_id:
             params["since_id"] = since_id
         if until_id:
@@ -241,6 +247,99 @@ class Twarc2:
             start_time,
             end_time,
             max_results,
+            sleep_between=1.05,
+        )
+
+    @requires_app_auth
+    def counts_recent(
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        granularity="hour",
+    ):
+        """
+        Retrieve counts for the given query in the last seven days,
+        using the `/counts/recent` endpoint.
+
+        Calls [GET /2/tweets/counts/recent]()
+
+        Args:
+            query (str):
+                The query string to be passed directly to the Twitter API.
+            since_id (int):
+                Return all tweets since this tweet_id.
+            until_id (int):
+                Return all tweets up to this tweet_id.
+            start_time (datetime):
+                Return all tweets after this time (UTC datetime).
+            end_time (datetime):
+                Return all tweets before this time (UTC datetime).
+            granularity (str):
+                Count aggregation level: `day`, `hour`, `minute`.
+                Default is `hour`.
+
+        Returns:
+            generator[dict]: a generator, dict for each paginated response.
+        """
+        url = "https://api.twitter.com/2/tweets/counts/recent"
+        return self._search(
+            url, query, since_id, until_id, start_time, end_time, None, granularity
+        )
+
+    @requires_app_auth
+    def counts_all(
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        granularity="hour",
+    ):
+        """
+        Retrieve counts for the given query in the full archive,
+        using the `/search/all` endpoint (Requires Academic Access).
+
+        Calls [GET /2/tweets/counts/all]()
+
+        Args:
+            query (str):
+                The query string to be passed directly to the Twitter API.
+            since_id (int):
+                Return all tweets since this tweet_id.
+            until_id (int):
+                Return all tweets up to this tweet_id.
+            start_time (datetime):
+                Return all tweets after this time (UTC datetime).
+            end_time (datetime):
+                Return all tweets before this time (UTC datetime).
+            granularity (str):
+                Count aggregation level: `day`, `hour`, `minute`.
+                Default is `hour`.
+
+        Returns:
+            generator[dict]: a generator, dict for each paginated response.
+        """
+        url = "https://api.twitter.com/2/tweets/counts/all"
+
+        # start time defaults to the beginning of Twitter to override the
+        # default of the last month. Only do this if start_time is not already
+        # specified and since_id isn't being used
+        if start_time is None and since_id is None:
+            start_time = TWITTER_EPOCH
+
+        return self._search(
+            url,
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            None,
+            granularity,
             sleep_between=1.05,
         )
 
@@ -838,12 +937,23 @@ class Twarc2:
 
     def _ensure_user_id(self, user):
         user = str(user)
-        if re.match(r"^\d+$", user):
+        is_numeric = re.match(r"^\d+$", user)
+
+        def id_exists(user):
+            try:
+                error_name = next(self.user_lookup([user]))["errors"][0]["title"]
+                return error_name != "Not Found Error"
+            except KeyError:
+                return True
+
+        if len(user) > 15 or (is_numeric and id_exists(user)):
             return user
         else:
             results = next(self.user_lookup([user], usernames=True))
             if "data" in results and len(results["data"]) > 0:
                 return results["data"][0]["id"]
+            elif is_numeric:
+                return user
             else:
                 raise ValueError(f"No such user {user}")
 

@@ -274,6 +274,114 @@ def search(
                 break
 
 
+@twarc2.command("counts")
+@click.option("--since-id", type=int, help="Count tweets sent after tweet id")
+@click.option("--until-id", type=int, help="Count tweets sent prior to tweet id")
+@click.option(
+    "--start-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Count tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+)
+@click.option(
+    "--end-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Count tweets sent before UTC time (ISO 8601/RFC 3339)",
+)
+@click.option(
+    "--archive",
+    is_flag=True,
+    default=False,
+    help="Count using the full archive (requires Academic Research track)",
+)
+@click.option(
+    "--granularity",
+    default="hour",
+    type=click.Choice(["day", "hour", "minute"], case_sensitive=False),
+    help="Aggregation level for counts. Can be one of: day, hour, minute. Default is hour.",
+)
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of days of results to save (minimum is 30 days)",
+)
+@click.option(
+    "--text",
+    is_flag=True,
+    default=False,
+    help="Output the counts as human readable text"
+)
+@click.option(
+    "--csv",
+    is_flag=True,
+    default=False,
+    help="Output counts as CSV"
+)
+
+
+@click.argument("query", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def counts(
+    T,
+    query,
+    outfile,
+    since_id,
+    until_id,
+    start_time,
+    end_time,
+    archive,
+    granularity,
+    limit,
+    text,
+    csv
+):
+    """
+    Return counts of tweets matching a query.
+    """
+    count = 0
+
+    if archive:
+        count_method = T.counts_all
+    else:
+        count_method = T.counts_recent
+
+    if csv:
+        click.echo(f'start,end,{granularity}_count', file=outfile)
+
+    total_tweets = 0
+
+    for result in count_method(
+        query,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        granularity,
+    ):
+        if text:
+            for r in result['data']:
+                total_tweets += r['tweet_count']
+                click.echo('{start} - {end}: {tweet_count:,}'.format(**r), file=outfile)
+        elif csv:
+            for r in result['data']:
+                click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile)
+        else:
+            _write(result, outfile)
+        count += len(result["data"])
+        if limit != 0 and count >= limit:
+            break
+
+        if text:
+            click.echo(
+                click.style(
+                    '\nTotal Tweets: {:,}\n'.format(total_tweets),
+                    fg='green'
+                ),
+                file=outfile
+            )
+
+
 @twarc2.command("tweet")
 @click.option("--pretty", is_flag=True, default=False, help="Pretty print the JSON")
 @click.argument("tweet_id", type=str)
@@ -580,27 +688,58 @@ def timelines(
     Fetch the timelines of every user in an input source of tweets. If
     the input is a line oriented text file of user ids or usernames that will
     be used instead.
+
+    The infile can be:
+
+        - A file containing one user id per line (either quoted or unquoted)
+        - A JSONL file containing tweets collected in the Twitter API V2 format
+
     """
     total_count = 0
+    line_count = 0
     seen = set()
     for line in infile:
+        line_count += 1
         line = line.strip()
         if line == "":
+            logging.warn("skipping blank line on line %s", line_count)
             continue
 
-        users = []
+        users = None
         try:
-            data = ensure_flattened(json.loads(line))
-            users = set([t["author"]["id"] for t in ensure_flattened(data)])
+            # first try to get user ids from a flattened Twitter response
+            json_data = json.loads(line)
+            try:
+                users = set([t["author"]["id"] for t in ensure_flattened(json_data)])
+            except (KeyError, ValueError):
+                # if it's not tweet JSON but it parsed as a string use that as a user
+                if isinstance(json_data, str) and json_data:
+                    users = set([json_data])
+                else:
+                    logging.warn(
+                        "ignored line %s which didn't contain users", line_count
+                    )
+                    continue
+
         except json.JSONDecodeError:
+            # assume it's a single user
             users = set([line])
-        except ValueError:
-            users = set([line])
+
+        if users is None:
+            click.echo(
+                click.style(
+                    f"unable to find user or users on line {line_count}",
+                    fg="red",
+                ),
+                err=True,
+            )
+            break
 
         for user in users:
 
             # only process a given user once
             if user in seen:
+                logging.info("already processed %s, skipping", user)
                 continue
             seen.add(user)
 
