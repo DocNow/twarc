@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+# NOTE:
+#
+# This script has been ported to the twarc-network plugin for working
+# with data collected with twarc2. Please see
+# https://github.com/docnow/twarc-newtwork for details.
+#
+# ---
+#
 # build a reply, quote, retweet network from a file of tweets and write it
 # out as a gexf, dot, json or  html file. You will need to have networkx
 # installed and pydotplus if you want to use dot. The html presentation
