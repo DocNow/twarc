@@ -12,6 +12,7 @@ import pathlib
 import configobj
 import threading
 
+from tqdm.auto import tqdm
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 
@@ -308,16 +309,9 @@ def search(
     "--text",
     is_flag=True,
     default=False,
-    help="Output the counts as human readable text"
+    help="Output the counts as human readable text",
 )
-@click.option(
-    "--csv",
-    is_flag=True,
-    default=False,
-    help="Output counts as CSV"
-)
-
-
+@click.option("--csv", is_flag=True, default=False, help="Output counts as CSV")
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -334,7 +328,7 @@ def counts(
     granularity,
     limit,
     text,
-    csv
+    csv,
 ):
     """
     Return counts of tweets matching a query.
@@ -347,7 +341,7 @@ def counts(
         count_method = T.counts_recent
 
     if csv:
-        click.echo(f'start,end,{granularity}_count', file=outfile)
+        click.echo(f"start,end,{granularity}_count", file=outfile)
 
     total_tweets = 0
 
@@ -360,11 +354,11 @@ def counts(
         granularity,
     ):
         if text:
-            for r in result['data']:
-                total_tweets += r['tweet_count']
-                click.echo('{start} - {end}: {tweet_count:,}'.format(**r), file=outfile)
+            for r in result["data"]:
+                total_tweets += r["tweet_count"]
+                click.echo("{start} - {end}: {tweet_count:,}".format(**r), file=outfile)
         elif csv:
-            for r in result['data']:
+            for r in result["data"]:
                 click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile)
         else:
             _write(result, outfile)
@@ -374,11 +368,8 @@ def counts(
 
         if text:
             click.echo(
-                click.style(
-                    '\nTotal Tweets: {:,}\n'.format(total_tweets),
-                    fg='green'
-                ),
-                file=outfile
+                click.style("\nTotal Tweets: {:,}\n".format(total_tweets), fg="green"),
+                file=outfile,
             )
 
 
@@ -401,7 +392,11 @@ def tweet(T, tweet_id, outfile, pretty):
 
 
 @twarc2.command("followers")
-@click.option("--limit", default=0, help="Maximum number of followers to save. Increments of 1000.")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of followers to save. Increments of 1000.",
+)
 @click.option(
     "--hide-progress",
     is_flag=True,
@@ -422,7 +417,7 @@ def followers(T, user, outfile, limit, hide_progress):
 
     if not hide_progress:
         target_user = T._ensure_user(user)
-        user_id = target_user['id']
+        user_id = target_user["id"]
         lookup_total = target_user["public_metrics"]["followers_count"]
 
     with tqdm(disable=hide_progress, total=lookup_total) as progress:
@@ -435,7 +430,9 @@ def followers(T, user, outfile, limit, hide_progress):
 
 
 @twarc2.command("following")
-@click.option("--limit", default=0, help="Maximum number of friends to save. Increments of 1000.")
+@click.option(
+    "--limit", default=0, help="Maximum number of friends to save. Increments of 1000."
+)
 @click.option(
     "--hide-progress",
     is_flag=True,
@@ -456,7 +453,7 @@ def following(T, user, outfile, limit, hide_progress):
 
     if not hide_progress:
         target_user = T._ensure_user(user)
-        user_id = target_user['id']
+        user_id = target_user["id"]
         lookup_total = target_user["public_metrics"]["following_count"]
 
     with tqdm(disable=hide_progress, total=lookup_total) as progress:
