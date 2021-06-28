@@ -417,12 +417,21 @@ def followers(T, user, outfile, limit, hide_progress):
     Get the followers for a given user.
     """
     count = 0
+    user_id = None
+    lookup_total = 0
 
-    for result in T.followers(user):
-        _write(result, outfile)
-        count += len(result["data"])
-        if limit != 0 and count >= limit:
-            break
+    if not hide_progress:
+        target_user = T._ensure_user(user)
+        user_id = target_user['id']
+        lookup_total = target_user["public_metrics"]["followers_count"]
+
+    with tqdm(disable=hide_progress, total=lookup_total) as progress:
+        for result in T.followers(user, user_id=user_id):
+            _write(result, outfile)
+            count += len(result["data"])
+            progress.update(len(result["data"]))
+            if limit != 0 and count >= limit:
+                break
 
 
 @twarc2.command("following")
@@ -442,12 +451,21 @@ def following(T, user, outfile, limit, hide_progress):
     Get the users who are following a given user.
     """
     count = 0
+    user_id = None
+    lookup_total = 0
 
-    for result in T.following(user):
-        _write(result, outfile)
-        count += len(result["data"])
-        if limit != 0 and count >= limit:
-            break
+    if not hide_progress:
+        target_user = T._ensure_user(user)
+        user_id = target_user['id']
+        lookup_total = target_user["public_metrics"]["following_count"]
+
+    with tqdm(disable=hide_progress, total=lookup_total) as progress:
+        for result in T.following(user, user_id=user_id):
+            _write(result, outfile)
+            count += len(result["data"])
+            progress.update(len(result["data"]))
+            if limit != 0 and count >= limit:
+                break
 
 
 @twarc2.command("sample")
