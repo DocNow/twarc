@@ -245,9 +245,11 @@ def search(
     Search for tweets.
     """
     count = 0
+    lookup_total = 0
 
     if archive:
         search_method = T.search_all
+        count_method = T.counts_all
 
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
@@ -256,22 +258,38 @@ def search(
         if max_results == 0:
             max_results = 100
         search_method = T.search_recent
+        count_method = T.counts_recent
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
-    with TimestampProgressBar(
-        since_id, until_id, start_time, end_time, disable=hide_progress
-    ) as progress:
+
+    if not hide_progress:
+        try:
+            # Single request just for the total
+            count_lookup = next(
+                count_method(query, since_id, until_id, start_time, end_time, "day")
+            )
+            lookup_total = count_lookup["meta"]["total_tweet_count"]
+        except Exception as e:
+            logging.error("Failed getting counts:", e)
+            click.echo(
+                click.style(
+                    f"Failed to get counts, progress bar will not work, but continuing to search. Check twarc.log for errors.",
+                    fg="red",
+                ),
+                err=True,
+            )
+
+    with tqdm(disable=hide_progress, total=lookup_total) as progress:
         for result in search_method(
             query, since_id, until_id, start_time, end_time, max_results
         ):
             _write(result, outfile)
             count += len(result["data"])
-            progress.update_with_result(result)
+            progress.update(len(result["data"]))
 
             if limit != 0 and count >= limit:
                 # Display message when stopped early
                 progress.desc = f"Set --limit of {limit} reached"
-                progress.early_stop = True
                 break
 
 
