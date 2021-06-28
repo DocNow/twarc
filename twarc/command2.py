@@ -401,7 +401,7 @@ def tweet(T, tweet_id, outfile, pretty):
 
 
 @twarc2.command("followers")
-@click.option("--limit", default=0, help="Maximum number of followers to save")
+@click.option("--limit", default=0, help="Maximum number of followers to save. Increments of 1000.")
 @click.option(
     "--hide-progress",
     is_flag=True,
@@ -426,7 +426,7 @@ def followers(T, user, outfile, limit, hide_progress):
 
 
 @twarc2.command("following")
-@click.option("--limit", default=0, help="Maximum number of friends to save")
+@click.option("--limit", default=0, help="Maximum number of friends to save. Increments of 1000.")
 @click.option(
     "--hide-progress",
     is_flag=True,
