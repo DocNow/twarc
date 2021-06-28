@@ -5,6 +5,7 @@ The command line interfact to the Twitter v2 API.
 import os
 import re
 import json
+from urllib.parse import quote
 import twarc
 import click
 import logging
@@ -195,40 +196,7 @@ def get_version():
     click.echo(f"twarc v{version}")
 
 
-@twarc2.command("search")
-@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
-@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
-@click.option(
-    "--start-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
-)
-@click.option(
-    "--end-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
-)
-@click.option(
-    "--archive",
-    is_flag=True,
-    default=False,
-    help="Search the full archive (requires Academic Research track)",
-)
-@click.option("--limit", default=0, help="Maximum number of tweets to save")
-@click.option(
-    "--max-results", default=0, help="Maximum number of tweets per API response"
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
-@click.argument("query", type=str)
-@click.argument("outfile", type=click.File("w"), default="-")
-@click.pass_obj
-@cli_api_error
-def search(
+def _search(
     T,
     query,
     outfile,
@@ -291,6 +259,70 @@ def search(
                 # Display message when stopped early
                 progress.desc = f"Set --limit of {limit} reached"
                 break
+
+
+@twarc2.command("search")
+@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
+@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
+@click.option(
+    "--start-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+)
+@click.option(
+    "--end-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
+)
+@click.option(
+    "--archive",
+    is_flag=True,
+    default=False,
+    help="Search the full archive (requires Academic Research track)",
+)
+@click.option("--limit", default=0, help="Maximum number of tweets to save")
+@click.option(
+    "--max-results", default=0, help="Maximum number of tweets per API response"
+)
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
+@click.argument("query", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def search(
+    T,
+    query,
+    outfile,
+    since_id,
+    until_id,
+    start_time,
+    end_time,
+    limit,
+    max_results,
+    archive,
+    hide_progress,
+):
+    """
+    Search for tweets.
+    """
+    return _search(
+        T,
+        query,
+        outfile,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        limit,
+        max_results,
+        archive,
+        hide_progress,
+    )
 
 
 @twarc2.command("counts")
@@ -836,11 +868,27 @@ def _timeline_tweets(
 
 
 @twarc2.command("conversation")
+@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
+@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
+@click.option(
+    "--start-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+)
+@click.option(
+    "--end-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
+)
 @click.option(
     "--archive",
     is_flag=True,
     default=False,
     help="Search the full archive (requires Academic Research track)",
+)
+@click.option("--limit", default=0, help="Maximum number of tweets to save")
+@click.option(
+    "--max-results", default=0, help="Maximum number of tweets per API response"
 )
 @click.option(
     "--hide-progress",
@@ -852,17 +900,36 @@ def _timeline_tweets(
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def conversation(T, tweet_id, archive, outfile, hide_progress):
+def conversation(
+    T,
+    tweet_id,
+    outfile,
+    since_id,
+    until_id,
+    start_time,
+    end_time,
+    limit,
+    max_results,
+    archive,
+    hide_progress,
+):
     """
     Retrieve a conversation thread using the tweet id.
     """
     q = f"conversation_id:{tweet_id}"
-    if archive:
-        search = T.search_all(q)
-    else:
-        search = T.search_recent(q)
-    for resp in search:
-        _write(resp, outfile)
+    return _search(
+        T,
+        q,
+        outfile,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        limit,
+        max_results,
+        archive,
+        hide_progress,
+    )
 
 
 @twarc2.command("conversations")
