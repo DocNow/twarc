@@ -22,7 +22,8 @@ class InvalidAuthType(Exception):
 
 class FileSizeProgressBar(tqdm):
     """
-    A file size based progress bar. Counts an input file in bytes.
+    An input file size based progress bar. Counts an input file in bytes.
+    This will also dig into the responses and add up the outputs to match the file size.
     Overrides `disable` parameter if file is a pipe.
     """
 
@@ -41,27 +42,30 @@ class FileSizeProgressBar(tqdm):
     def update_with_result(
         self, result, field="id", error_resource_type=None, error_parameter="ids"
     ):
-        # try:
-        for item in result["data"]:
-            # Use the length of the id / name and a newline to match original file
-            self.update(len(item[field]) + len("\n"))
-        if error_resource_type and "errors" in result:
-            for error in result["errors"]:
-                # Account for deleted data
-                # Errors have very inconsistent format, missing fields for different types of errors...
-                if (
-                    "resource_type" in error
-                    and error["resource_type"] == error_resource_type
-                ):
-                    if "parameter" in error and error["parameter"] == error_parameter:
-                        self.update(len(error["value"]) + len("\n"))
-                        # todo: hide or show this?
-                        # self.set_description(
-                        #    "Errors encountered, results may be incomplete"
-                        # )
-                    # print(error["value"], error["resource_type"], error["parameter"])
-        # except Exception as e:
-        # log.error(f"Failed to update progress bar: {e}")
+        try:
+            for item in result["data"]:
+                # Use the length of the id / name and a newline to match original file
+                self.update(len(item[field]) + len("\n"))
+            if error_resource_type and "errors" in result:
+                for error in result["errors"]:
+                    # Account for deleted data
+                    # Errors have very inconsistent format, missing fields for different types of errors...
+                    if (
+                        "resource_type" in error
+                        and error["resource_type"] == error_resource_type
+                    ):
+                        if (
+                            "parameter" in error
+                            and error["parameter"] == error_parameter
+                        ):
+                            self.update(len(error["value"]) + len("\n"))
+                            # todo: hide or show this?
+                            # self.set_description(
+                            #    "Errors encountered, results may be incomplete"
+                            # )
+                        # print(error["value"], error["resource_type"], error["parameter"])
+        except Exception as e:
+            log.error(f"Failed to update progress bar: {e}")
 
 
 class TimestampProgressBar(tqdm):
