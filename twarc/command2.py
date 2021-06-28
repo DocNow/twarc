@@ -575,7 +575,7 @@ def users(T, infile, outfile, usernames, hide_progress):
     "--hide-progress",
     is_flag=True,
     default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+    help="Hide the Progress bar. Default: show progress",
 )
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
@@ -585,10 +585,13 @@ def mentions(
     T, user_id, outfile, since_id, until_id, start_time, end_time, hide_progress
 ):
     """
-    Retrieve the most recent tweets mentioning the given user.
+    Retrieve max of 800 of the most recent tweets mentioning the given user.
     """
-    for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
-        _write(result, outfile)
+
+    with tqdm(disable=hide_progress, total=800) as progress:
+        for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
+            _write(result, outfile)
+            progress.update(len(result["data"]))
 
 
 @twarc2.command("timeline")
