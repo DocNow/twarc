@@ -79,7 +79,7 @@ class TimestampProgressBar(tqdm):
         if start_time is None and since_id is None:
             start_time = datetime.datetime.now(
                 datetime.timezone.utc
-            ) - datetime.timedelta(seconds=90)
+            ) - datetime.timedelta(days=7)
         if end_time is None and until_id is None:
             end_time = datetime.datetime.now(
                 datetime.timezone.utc
