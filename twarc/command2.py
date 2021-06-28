@@ -401,7 +401,7 @@ def tweet(T, tweet_id, outfile, pretty):
     "--hide-progress",
     is_flag=True,
     default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+    help="Hide the Progress bar. Default: show progress",
 )
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
@@ -437,7 +437,7 @@ def followers(T, user, outfile, limit, hide_progress):
     "--hide-progress",
     is_flag=True,
     default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+    help="Hide the Progress bar. Default: show progress",
 )
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
