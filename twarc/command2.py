@@ -699,12 +699,28 @@ def timeline(
     )
 
     count = 0
-    for result in tweets:
-        _write(result, outfile)
 
-        count += len(result["data"])
-        if limit != 0 and count >= limit:
-            break
+    pbar = tqdm(disable=hide_progress, total=3200)
+    if use_search:
+        pbar = TimestampProgressBar(
+            since_id, until_id, start_time, end_time, disable=hide_progress
+        )
+
+    with pbar as progress:
+        for result in tweets:
+            _write(result, outfile)
+
+            count += len(result["data"])
+            if use_search and isinstance(pbar, TimestampProgressBar):
+                progress.update_with_result(result)
+            else:
+                progress.update(len(result["data"]))
+
+            if limit != 0 and count >= limit:
+                # Display message when stopped early
+                progress.desc = f"Set --limit of {limit} reached"
+                progress.early_stop = True
+                break
 
 
 @twarc2.command("timelines")
@@ -766,74 +782,79 @@ def timelines(
     total_count = 0
     line_count = 0
     seen = set()
-    for line in infile:
-        line_count += 1
-        line = line.strip()
-        if line == "":
-            logging.warn("skipping blank line on line %s", line_count)
-            continue
 
-        users = None
-        try:
-            # first try to get user ids from a flattened Twitter response
-            json_data = json.loads(line)
-            try:
-                users = set([t["author"]["id"] for t in ensure_flattened(json_data)])
-            except (KeyError, ValueError):
-                # if it's not tweet JSON but it parsed as a string use that as a user
-                if isinstance(json_data, str) and json_data:
-                    users = set([json_data])
-                else:
-                    logging.warn(
-                        "ignored line %s which didn't contain users", line_count
-                    )
-                    continue
-
-        except json.JSONDecodeError:
-            # assume it's a single user
-            users = set([line])
-
-        if users is None:
-            click.echo(
-                click.style(
-                    f"unable to find user or users on line {line_count}",
-                    fg="red",
-                ),
-                err=True,
-            )
-            break
-
-        for user in users:
-
-            # only process a given user once
-            if user in seen:
-                logging.info("already processed %s, skipping", user)
+    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+        for line in infile:
+            progress.update(len(line))
+            line_count += 1
+            line = line.strip()
+            if line == "":
+                logging.warn("skipping blank line on line %s", line_count)
                 continue
-            seen.add(user)
 
-            tweets = _timeline_tweets(
-                T,
-                use_search,
-                user,
-                None,
-                None,
-                None,
-                None,
-                exclude_retweets,
-                exclude_replies,
-            )
+            users = None
+            try:
+                # first try to get user ids from a flattened Twitter response
+                json_data = json.loads(line)
+                try:
+                    users = set(
+                        [t["author"]["id"] for t in ensure_flattened(json_data)]
+                    )
+                except (KeyError, ValueError):
+                    # if it's not tweet JSON but it parsed as a string use that as a user
+                    if isinstance(json_data, str) and json_data:
+                        users = set([json_data])
+                    else:
+                        logging.warn(
+                            "ignored line %s which didn't contain users", line_count
+                        )
+                        continue
 
-            timeline_count = 0
-            for response in tweets:
-                _write(response, outfile)
+            except json.JSONDecodeError:
+                # assume it's a single user
+                users = set([line])
 
-                timeline_count += len(response["data"])
-                if timeline_limit != 0 and timeline_count >= timeline_limit:
-                    break
+            if users is None:
+                click.echo(
+                    click.style(
+                        f"unable to find user or users on line {line_count}",
+                        fg="red",
+                    ),
+                    err=True,
+                )
+                break
 
-                total_count += len(response["data"])
-                if limit != 0 and total_count >= limit:
-                    return
+            for user in users:
+
+                # only process a given user once
+                if user in seen:
+                    logging.info("already processed %s, skipping", user)
+                    continue
+                seen.add(user)
+
+                tweets = _timeline_tweets(
+                    T,
+                    use_search,
+                    user,
+                    None,
+                    None,
+                    None,
+                    None,
+                    exclude_retweets,
+                    exclude_replies,
+                )
+
+                timeline_count = 0
+                for response in tweets:
+                    _write(response, outfile)
+
+                    timeline_count += len(response["data"])
+                    if timeline_limit != 0 and timeline_count >= timeline_limit:
+                        break
+
+                    total_count += len(response["data"])
+                    if limit != 0 and total_count >= limit:
+                        return
 
 
 def _timeline_tweets(
@@ -972,54 +993,57 @@ def conversations(
 
     count = 0
     stop = False
-    for line in infile:
-        conv_ids = []
 
-        # stop will get set when the total tweet limit has been met
-        if stop:
-            break
+    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+        for line in infile:
+            progress.update(len(line))
+            conv_ids = []
 
-        # get a specific conversation id
-        line = line.strip()
-        if re.match(r"^\d+$", line):
-            if line in seen:
-                continue
-            conv_ids = [line]
+            # stop will get set when the total tweet limit has been met
+            if stop:
+                break
 
-        # generate all conversation_ids that are referenced in tweets input
-        else:
+            # get a specific conversation id
+            line = line.strip()
+            if re.match(r"^\d+$", line):
+                if line in seen:
+                    continue
+                conv_ids = [line]
 
-            def f():
-                for tweet in ensure_flattened(json.loads(line)):
-                    yield tweet.get("conversation_id")
+            # generate all conversation_ids that are referenced in tweets input
+            else:
 
-            conv_ids = f()
+                def f():
+                    for tweet in ensure_flattened(json.loads(line)):
+                        yield tweet.get("conversation_id")
 
-        # output results while paying attention to the set limits
-        conv_count = 0
+                conv_ids = f()
 
-        for conv_id in conv_ids:
-
-            if conv_id in seen:
-                logging.info(f"already fetched conversation_id {conv_id}")
-            seen.add(conv_id)
-
+            # output results while paying attention to the set limits
             conv_count = 0
 
-            logging.info(f"fetching conversation {conv_id}")
-            for result in search(f"conversation_id:{conv_id}"):
-                _write(result, outfile, False)
+            for conv_id in conv_ids:
 
-                count += len(result["data"])
-                if limit != 0 and count >= limit:
-                    logging.info(f"reached tweet limit of {limit}")
-                    stop = True
-                    break
+                if conv_id in seen:
+                    logging.info(f"already fetched conversation_id {conv_id}")
+                seen.add(conv_id)
 
-                conv_count += len(result["data"])
-                if conversation_limit != 0 and conv_count >= conversation_limit:
-                    logging.info(f"reached conversation limit {conversation_limit}")
-                    break
+                conv_count = 0
+
+                logging.info(f"fetching conversation {conv_id}")
+                for result in search(f"conversation_id:{conv_id}"):
+                    _write(result, outfile, False)
+
+                    count += len(result["data"])
+                    if limit != 0 and count >= limit:
+                        logging.info(f"reached tweet limit of {limit}")
+                        stop = True
+                        break
+
+                    conv_count += len(result["data"])
+                    if conversation_limit != 0 and conv_count >= conversation_limit:
+                        logging.info(f"reached conversation limit {conversation_limit}")
+                        break
 
 
 @twarc2.command("flatten")
