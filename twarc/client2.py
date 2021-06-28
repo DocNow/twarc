@@ -935,18 +935,24 @@ class Twarc2:
                 resource_owner_secret=self.access_token_secret,
             )
 
+    def _id_exists(user):
+        """
+        Returns True if the user id exists
+        """
+        try:
+            error_name = next(self.user_lookup([user]))["errors"][0]["title"]
+            return error_name != "Not Found Error"
+        except KeyError:
+            return True
+
     def _ensure_user_id(self, user):
+        """
+        Always return a valid user id, look up if not numeric.
+        """
         user = str(user)
         is_numeric = re.match(r"^\d+$", user)
 
-        def id_exists(user):
-            try:
-                error_name = next(self.user_lookup([user]))["errors"][0]["title"]
-                return error_name != "Not Found Error"
-            except KeyError:
-                return True
-
-        if len(user) > 15 or (is_numeric and id_exists(user)):
+        if len(user) > 15 or (is_numeric and _id_exists(user)):
             return user
         else:
             results = next(self.user_lookup([user], usernames=True))
@@ -956,6 +962,25 @@ class Twarc2:
                 return user
             else:
                 raise ValueError(f"No such user {user}")
+
+    def _ensure_user(self, user):
+        """
+        Always return a valid user object.
+        """
+        user = str(user)
+        is_numeric = re.match(r"^\d+$", user)
+
+        lookup = []
+        if len(user) > 15 or (is_numeric and _id_exists(user)):
+            lookup = expansions.ensure_flattened(list(self.user_lookup([user])))
+        else:
+            lookup = expansions.ensure_flattened(
+                list(self.user_lookup([user], usernames=True))
+            )
+        if lookup:
+            return lookup[-1]
+        else:
+            raise ValueError(f"No such user {user}")
 
 
 def _ts(dt):
