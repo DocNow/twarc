@@ -294,16 +294,9 @@ def search(
     "--text",
     is_flag=True,
     default=False,
-    help="Output the counts as human readable text"
+    help="Output the counts as human readable text",
 )
-@click.option(
-    "--csv",
-    is_flag=True,
-    default=False,
-    help="Output counts as CSV"
-)
-
-
+@click.option("--csv", is_flag=True, default=False, help="Output counts as CSV")
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -320,7 +313,7 @@ def counts(
     granularity,
     limit,
     text,
-    csv
+    csv,
 ):
     """
     Return counts of tweets matching a query.
@@ -333,7 +326,7 @@ def counts(
         count_method = T.counts_recent
 
     if csv:
-        click.echo(f'start,end,{granularity}_count', file=outfile)
+        click.echo(f"start,end,{granularity}_count", file=outfile)
 
     total_tweets = 0
 
@@ -346,11 +339,11 @@ def counts(
         granularity,
     ):
         if text:
-            for r in result['data']:
-                total_tweets += r['tweet_count']
-                click.echo('{start} - {end}: {tweet_count:,}'.format(**r), file=outfile)
+            for r in result["data"]:
+                total_tweets += r["tweet_count"]
+                click.echo("{start} - {end}: {tweet_count:,}".format(**r), file=outfile)
         elif csv:
-            for r in result['data']:
+            for r in result["data"]:
                 click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile)
         else:
             _write(result, outfile)
@@ -360,11 +353,8 @@ def counts(
 
         if text:
             click.echo(
-                click.style(
-                    '\nTotal Tweets: {:,}\n'.format(total_tweets),
-                    fg='green'
-                ),
-                file=outfile
+                click.style("\nTotal Tweets: {:,}\n".format(total_tweets), fg="green"),
+                file=outfile,
             )
 
 

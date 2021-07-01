@@ -785,6 +785,7 @@ class Twarc2:
 
     @rate_limit
     @catch_conn_reset
+    @catch_chunked_encoding_error
     @catch_timeout
     @catch_gzip_errors
     def get(self, *args, **kwargs):

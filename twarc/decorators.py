@@ -82,9 +82,8 @@ def rate_limit(f):
 
 def catch_conn_reset(f):
     """
-    A decorator to handle connection reset errors even ones from pyOpenSSL
-    until https://github.com/edsu/twarc/issues/72 is resolved
-    It also handles ChunkedEncodingError which has been observed in the wild.
+    A decorator to handle connection reset errors from pyOpenSSL
+    https://github.com/edsu/twarc/issues/72
     """
     try:
         import OpenSSL
@@ -99,11 +98,28 @@ def catch_conn_reset(f):
         if ConnectionError:
             try:
                 return f(self, *args, **kwargs)
-            except (ConnectionError, ChunkedEncodingError) as e:
+            except ConnectionError as e:
                 log.warning("caught connection reset error: %s", e)
                 self.connect()
                 return f(self, *args, **kwargs)
         else:
+            return f(self, *args, **kwargs)
+
+    return new_f
+
+
+def catch_chunked_encoding_error(f):
+    """
+    A decorator to handle catching Chunked Encoding errors.
+    """
+
+    @wraps(f)
+    def new_f(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except ChunkedEncodingError as e:
+            log.warning("caught chunked encoding error: %s", e)
+            self.connect()
             return f(self, *args, **kwargs)
 
     return new_f
