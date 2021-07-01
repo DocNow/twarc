@@ -503,13 +503,18 @@ class Twarc2:
                                     time.sleep(5)
                                     break
 
-            except requests.exceptions.HTTPError as e:
+            except requests.exceptions.RequestException as e:
                 errors += 1
-                log.error("caught http error %s on %s try", e, errors)
+                log.error("caught request error %s on %s try", e, errors)
+
                 if self.http_errors and errors == self.http_errors:
                     log.warning("too many errors")
                     raise e
-                if e.response.status_code == 420:
+
+                if (
+                    isinstance(e, requests.exceptions.HTTPError)
+                    and response.status_code == 420
+                ):
                     if interruptible_sleep(errors * 60, event):
                         log.info("stopping filter")
                         return
