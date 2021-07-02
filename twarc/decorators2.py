@@ -305,3 +305,20 @@ def _date2snowflake(dt):
 
 def _snowflake2date(snowflake_id):
     return _millis2date(_snowflake2millis(snowflake_id))
+
+
+def _time_delta(since_id, until_id, start_time, end_time):
+    if start_time is None and since_id is None:
+        start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
+            days=7
+        )
+    if end_time is None and until_id is None:
+        end_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
+            seconds=30
+        )
+
+    if since_id and until_id:
+        start_time = _millis2date(_snowflake2millis(since_id))
+        end_time = _millis2date(_snowflake2millis(until_id))
+
+    return start_time - end_time
