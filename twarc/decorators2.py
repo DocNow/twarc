@@ -227,7 +227,7 @@ class TimestampProgressBar(tqdm):
     """
 
     def __init__(self, since_id, until_id, start_time, end_time, **kwargs):
-        self.early_stop = False
+        self.early_stop = True
 
         disable = False if "disable" not in kwargs else kwargs["disable"]
         kwargs["disable"] = disable
@@ -263,6 +263,7 @@ class TimestampProgressBar(tqdm):
             oldest_id = result["meta"]["oldest_id"]
             n = _snowflake2millis(int(newest_id)) - _snowflake2millis(int(oldest_id))
             self.update(n)
+            early_stop = False
         except Exception as e:
             log.error(f"Failed to update progress bar: {e}")
 

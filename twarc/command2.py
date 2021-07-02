@@ -293,6 +293,8 @@ def _search(
             if limit != 0 and count >= limit:
                 # Display message when stopped early
                 progress.desc = f"Set --limit of {limit} reached"
+                if isinstance(pbar, TimestampProgressBar):
+                    progress.early_stop = True
                 break
 
 
