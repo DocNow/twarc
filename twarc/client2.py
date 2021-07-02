@@ -475,7 +475,8 @@ class Twarc2:
                     if self.metadata:
                         data = _append_metadata(data, resp.url)
                     yield data
-                    self._check_for_disconnect(data)
+                    if self._check_for_disconnect(data):
+                        break
 
     @requires_app_auth
     def add_stream_rules(self, rules):
@@ -546,26 +547,30 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/search/stream"
         params = expansions.EVERYTHING.copy()
-        resp = self.get(url, params=params, stream=True)
-        for line in resp.iter_lines():
 
-            # quit & close the stream if the event is set
-            if event and event.is_set():
-                log.info("stopping filter")
-                resp.close()
-                return
+        while True:
+            log.info("Connecting to V2 stream")
+            resp = self.get(url, params=params, stream=True)
+            for line in resp.iter_lines():
 
-            if line == b"":
-                log.info("keep-alive")
-                if record_keep_alives:
-                    yield "keep-alive"
-            else:
-                data = json.loads(line.decode())
-                if self.metadata:
-                    data = _append_metadata(data, resp.url)
+                # quit & close the stream if the event is set
+                if event and event.is_set():
+                    log.info("stopping filter")
+                    resp.close()
+                    return
 
-                yield data
-                self._check_for_disconnect(data)
+                if line == b"":
+                    log.info("keep-alive")
+                    if record_keep_alives:
+                        yield "keep-alive"
+                else:
+                    data = json.loads(line.decode())
+                    if self.metadata:
+                        data = _append_metadata(data, resp.url)
+
+                    yield data
+                    if self._check_for_disconnect(data):
+                        break
 
     def _timeline(
         self,
@@ -894,13 +899,15 @@ class Twarc2:
 
     def _check_for_disconnect(self, data):
         """
-        Look for disconnect errors in a response, and reconnect if found.
+        Look for disconnect errors in a response, and reconnect if found. The
+        function returns True if a disconnect was found and False otherwise.
         """
         for error in data.get("errors", []):
             if error.get("disconnect_type") == "OperationalDisconnect":
                 log.info("Received operational disconnect message, reconnecting")
                 self.connect()
-                break
+                return True
+        return False
 
 
 def _ts(dt):
