@@ -245,3 +245,4 @@ def requires_app_auth(f):
             return f(self, *args, **kwargs)
 
     return new_f
+

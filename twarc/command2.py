@@ -25,6 +25,7 @@ from twarc.expansions import ensure_flattened
 from click_config_file import configuration_option
 
 config_provider = ConfigProvider()
+log = logging.getLogger("twarc")
 
 
 @with_plugins(iter_entry_points("twarc.plugins"))
@@ -66,7 +67,7 @@ config_provider = ConfigProvider()
     "higher with user authentication, but not all endpoints are supported.",
     show_default=True,
 )
-@click.option("--log", default="twarc.log")
+@click.option("--log", "-l", "log_file", default="twarc.log")
 @click.option("--verbose", is_flag=True, default=False)
 @click.option(
     "--metadata/--no-metadata",
@@ -85,7 +86,7 @@ def twarc2(
     access_token,
     access_token_secret,
     bearer_token,
-    log,
+    log_file,
     metadata,
     app_auth,
     verbose,
@@ -94,12 +95,12 @@ def twarc2(
     Collect data from the Twitter V2 API.
     """
     logging.basicConfig(
-        filename=log,
+        filename=log_file,
         level=logging.DEBUG if verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
     )
 
-    logging.info("using config %s", config_provider.file_path)
+    log.info("using config %s", config_provider.file_path)
 
     if bearer_token or (consumer_key and consumer_secret):
         if app_auth and (bearer_token or (consumer_key and consumer_secret)):
@@ -152,11 +153,11 @@ def configure(ctx):
     """
 
     config_file = config_provider.file_path
-    logging.info("creating config file: %s", config_file)
+    log.info("creating config file: %s", config_file)
 
     config_dir = pathlib.Path(config_file).parent
     if not config_dir.is_dir():
-        logging.info("creating config directory: %s", config_dir)
+        log.info("creating config directory: %s", config_dir)
         config_dir.mkdir(parents=True)
 
     keys = handshake()
@@ -255,6 +256,10 @@ def search(
         query, since_id, until_id, start_time, end_time, max_results
     ):
         _write(result, outfile)
+        
+        tweet_ids = [t['id'] for t in result.get("data", [])]
+        log.info("archived %s", ','.join(tweet_ids))
+
         count += len(result["data"])
         if limit != 0 and count >= limit:
             break
@@ -436,6 +441,8 @@ def sample(T, outfile, limit):
         if limit != 0 and count >= limit:
             event.set()
         _write(result, outfile)
+        if result:
+            log.info("archived %s", result["data"]["id"])
 
 
 @twarc2.command("hydrate")
@@ -449,6 +456,8 @@ def hydrate(T, infile, outfile):
     """
     for result in T.tweet_lookup(infile):
         _write(result, outfile)
+        tweet_ids = [t["id"] for t in result.get("data", [])]
+        log.info("archived %s", ','.join(tweet_ids))
 
 
 @twarc2.command("users")
@@ -620,7 +629,7 @@ def timelines(
         line_count += 1
         line = line.strip()
         if line == "":
-            logging.warn("skipping blank line on line %s", line_count)
+            log.warn("skipping blank line on line %s", line_count)
             continue
 
         users = None
@@ -634,7 +643,7 @@ def timelines(
                 if isinstance(json_data, str) and json_data:
                     users = set([json_data])
                 else:
-                    logging.warn(
+                    log.warn(
                         "ignored line %s which didn't contain users", line_count
                     )
                     continue
@@ -657,7 +666,7 @@ def timelines(
 
             # only process a given user once
             if user in seen:
-                logging.info("already processed %s, skipping", user)
+                log.info("already processed %s, skipping", user)
                 continue
             seen.add(user)
 
@@ -802,24 +811,24 @@ def conversations(T, infile, outfile, archive, limit, conversation_limit):
         for conv_id in conv_ids:
 
             if conv_id in seen:
-                logging.info(f"already fetched conversation_id {conv_id}")
+                log.info(f"already fetched conversation_id {conv_id}")
             seen.add(conv_id)
 
             conv_count = 0
 
-            logging.info(f"fetching conversation {conv_id}")
+            log.info(f"fetching conversation {conv_id}")
             for result in search(f"conversation_id:{conv_id}"):
                 _write(result, outfile, False)
 
                 count += len(result["data"])
                 if limit != 0 and count >= limit:
-                    logging.info(f"reached tweet limit of {limit}")
+                    log.info(f"reached tweet limit of {limit}")
                     stop = True
                     break
 
                 conv_count += len(result["data"])
                 if conversation_limit != 0 and conv_count >= conversation_limit:
-                    logging.info(f"reached conversation limit {conversation_limit}")
+                    log.info(f"reached conversation limit {conversation_limit}")
                     break
 
 
@@ -867,9 +876,11 @@ def stream(T, outfile, limit):
     for result in T.stream(event=event):
         count += 1
         if limit != 0 and count == limit:
-            logging.info(f"reached limit {limit}")
+            log.info(f"reached limit {limit}")
             event.set()
         _write(result, outfile)
+        if "data" in result:
+            log.info("archived %s", result["data"]["id"])
 
 
 @twarc2.group()
