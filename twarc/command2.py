@@ -5,24 +5,32 @@ The command line interfact to the Twitter v2 API.
 import os
 import re
 import json
-from urllib.parse import quote
 import twarc
 import click
 import logging
 import pathlib
+import datetime
 import configobj
 import threading
 
 from tqdm.auto import tqdm
+from datetime import timezone
+from urllib.parse import quote
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 
 from twarc.version import version
 from twarc.handshake import handshake
 from twarc.config import ConfigProvider
-from twarc.decorators2 import cli_api_error, TimestampProgressBar, FileSizeProgressBar
 from twarc.expansions import ensure_flattened
 from click_config_file import configuration_option
+from twarc.decorators2 import (
+    cli_api_error,
+    TimestampProgressBar,
+    FileSizeProgressBar,
+    _time_delta,
+)
+
 
 config_provider = ConfigProvider()
 log = logging.getLogger("twarc")
@@ -216,6 +224,12 @@ def _search(
     count = 0
     lookup_total = 0
 
+    # Make sure times are always in UTC, click sometimes doesn't add timezone:
+    if start_time is not None and start_time.tzinfo is None:
+        start_time = start_time.replace(tzinfo=timezone.utc)
+    if end_time is not None and end_time.tzinfo is None:
+        end_time = end_time.replace(tzinfo=timezone.utc)
+
     if archive:
         search_method = T.search_all
         count_method = T.counts_all
@@ -223,6 +237,12 @@ def _search(
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
             max_results = 500
+
+        # start time defaults to the beginning of Twitter to override the
+        # default of the last month. Only do this if start_time is not already
+        # specified and since_id isn't being used
+        if start_time is None and since_id is None:
+            start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         if max_results == 0:
             max_results = 100
@@ -230,34 +250,42 @@ def _search(
         count_method = T.counts_recent
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+    short_timespan = abs(_time_delta(since_id, until_id, start_time, end_time).days) < 30
+    pbar = TimestampProgressBar(
+        since_id, until_id, start_time, end_time, disable=hide_progress
+    )
 
-    if not hide_progress:
-
+    if not hide_progress and short_timespan:
         try:
             # Single request just for the total
             count_lookup = next(
                 count_method(query, since_id, until_id, start_time, end_time, "day")
             )
             lookup_total = count_lookup["meta"]["total_tweet_count"]
+            pbar = tqdm(disable=hide_progress, total=lookup_total)
         except Exception as e:
             log.error(f"Failed getting counts: {str(e)}")
             click.echo(
                 click.style(
-                    f"Failed to get counts, progress bar will not work, but continuing to search. Check twarc.log for errors.",
+                    f"💔 Failed to get tweet counts, but continuing to search. Check twarc.log for errors.",
                     fg="red",
                 ),
                 err=True,
             )
 
-    with tqdm(disable=hide_progress, total=lookup_total) as progress:
+    with pbar as progress:
         for result in search_method(
             query, since_id, until_id, start_time, end_time, max_results
         ):
             _write(result, outfile)
-            
+
             tweet_ids = [t["id"] for t in result.get("data", [])]
             log.info("archived %s", ",".join(tweet_ids))
-            progress.update(len(result["data"]))
+
+            if isinstance(pbar, TimestampProgressBar):
+                progress.update_with_result(result)
+            else:
+                progress.update(len(result["data"]))
 
             count += len(result["data"])
             if limit != 0 and count >= limit:
@@ -283,7 +311,7 @@ def _search(
     "--archive",
     is_flag=True,
     default=False,
-    help="Search the full archive (requires Academic Research track)",
+    help="Search the full archive (requires Academic Research track). Defaults to searching the entire twitter archive if --start-time is not specified.",
 )
 @click.option("--limit", default=0, help="Maximum number of tweets to save")
 @click.option(
