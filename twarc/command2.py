@@ -232,6 +232,7 @@ def _search(
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
 
     if not hide_progress:
+
         try:
             # Single request just for the total
             count_lookup = next(
@@ -239,7 +240,7 @@ def _search(
             )
             lookup_total = count_lookup["meta"]["total_tweet_count"]
         except Exception as e:
-            log.error("Failed getting counts:", e)
+            log.error(f"Failed getting counts: {str(e)}")
             click.echo(
                 click.style(
                     f"Failed to get counts, progress bar will not work, but continuing to search. Check twarc.log for errors.",
