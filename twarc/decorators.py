@@ -1,20 +1,11 @@
 import time
-import click
 import logging
-from functools import wraps
 
 from requests import HTTPError
 from requests.packages.urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ChunkedEncodingError, ReadTimeout, ContentDecodingError
 
-
 log = logging.getLogger("twarc")
-
-
-class InvalidAuthType(Exception):
-    """
-    Raised when the endpoint called is not supported by the current auth type.
-    """
 
 
 def rate_limit(f):
@@ -24,12 +15,11 @@ def rate_limit(f):
     issue the API call again.
     """
 
-    @wraps(f)
     def new_f(*args, **kwargs):
         errors = 0
         while True:
             resp = f(*args, **kwargs)
-            if resp.status_code in [200, 201]:
+            if resp.status_code == 200:
                 errors = 0
                 return resp
             elif resp.status_code == 401:
@@ -69,11 +59,6 @@ def rate_limit(f):
                     "%s from Twitter API, sleeping %s", resp.status_code, seconds
                 )
                 time.sleep(seconds)
-            elif resp.status_code == 422:
-                log.error(
-                    "Recieved HTTP 422 response from Twitter API. Are you using the Premium API and forgot to use --sandbox or sandbox parameter?"
-                )
-                return resp
             else:
                 resp.raise_for_status()
 
@@ -82,8 +67,9 @@ def rate_limit(f):
 
 def catch_conn_reset(f):
     """
-    A decorator to handle connection reset errors from pyOpenSSL
-    https://github.com/edsu/twarc/issues/72
+    A decorator to handle connection reset errors even ones from pyOpenSSL
+    until https://github.com/edsu/twarc/issues/72 is resolved
+    It also handles ChunkedEncodingError which has been observed in the wild.
     """
     try:
         import OpenSSL
@@ -92,34 +78,16 @@ def catch_conn_reset(f):
     except:
         ConnectionError = None
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         # Only handle if pyOpenSSL is installed.
         if ConnectionError:
             try:
                 return f(self, *args, **kwargs)
-            except ConnectionError as e:
+            except (ConnectionError, ChunkedEncodingError) as e:
                 log.warning("caught connection reset error: %s", e)
                 self.connect()
                 return f(self, *args, **kwargs)
         else:
-            return f(self, *args, **kwargs)
-
-    return new_f
-
-
-def catch_chunked_encoding_error(f):
-    """
-    A decorator to handle catching Chunked Encoding errors.
-    """
-
-    @wraps(f)
-    def new_f(self, *args, **kwargs):
-        try:
-            return f(self, *args, **kwargs)
-        except ChunkedEncodingError as e:
-            log.warning("caught chunked encoding error: %s", e)
-            self.connect()
             return f(self, *args, **kwargs)
 
     return new_f
@@ -130,7 +98,6 @@ def catch_timeout(f):
     A decorator to handle read timeouts from Twitter.
     """
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
@@ -148,7 +115,6 @@ def catch_gzip_errors(f):
     happen during hydration.
     """
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
@@ -181,7 +147,6 @@ def filter_protected(f):
     explicitly requested not to.
     """
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         for obj in f(self, *args, **kwargs):
             if self.protected == False:
@@ -192,57 +157,3 @@ def filter_protected(f):
             yield obj
 
     return new_f
-
-
-class cli_api_error:
-    """
-    A decorator to catch HTTP errors for the command line.
-    """
-
-    def __init__(self, f):
-        self.f = f
-        # this is needed for click help docs to work properly
-        self.__doc__ = f.__doc__
-
-    def __call__(self, *args, **kwargs):
-        try:
-            return self.f(*args, **kwargs)
-        except HTTPError as e:
-            try:
-                result = e.response.json()
-                if "errors" in result:
-                    for error in result["errors"]:
-                        msg = error.get("message", "Unknown error")
-                elif "title" in result:
-                    msg = result["title"]
-                else:
-                    msg = "Unknown error"
-            except ValueError:
-                msg = f"Unable to parse {e.response.status_code} error as JSON: {e.response.text}"
-        except InvalidAuthType as e:
-            msg = "This command requires application authentication, try passing --app-auth"
-        except ValueError as e:
-            msg = str(e)
-        click.echo(
-            click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"), err=True
-        )
-
-
-def requires_app_auth(f):
-    """
-    Ensure that application authentication is set for calls that only work in that mode.
-
-    """
-
-    @wraps(f)
-    def new_f(self, *args, **kwargs):
-        if self.auth_type != "application":
-            raise InvalidAuthType(
-                "This endpoint only works with application authentication"
-            )
-
-        else:
-            return f(self, *args, **kwargs)
-
-    return new_f
-

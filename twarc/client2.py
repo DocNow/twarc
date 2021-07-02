@@ -14,12 +14,10 @@ import requests
 import datetime
 
 from oauthlib.oauth2 import BackendApplicationClient
-from requests.exceptions import ConnectionError
-from requests.packages.urllib3.exceptions import ProtocolError
 from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from twarc import expansions
-from twarc.decorators import *
+from twarc.decorators2 import *
 from twarc.version import version
 
 
@@ -432,7 +430,7 @@ class Twarc2:
         if batch:
             yield (lookup_batch(batch))
 
-    @catch_chunked_encoding_error
+    @catch_request_exceptions
     @requires_app_auth
     def sample(self, event=None, record_keepalive=False):
         """
@@ -479,7 +477,6 @@ class Twarc2:
                     yield data
                     self._check_for_disconnect(data)
 
-
     @requires_app_auth
     def add_stream_rules(self, rules):
         """
@@ -525,7 +522,7 @@ class Twarc2:
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.post(url, {"delete": {"ids": rule_ids}}).json()
 
-    @catch_chunked_encoding_error
+    @catch_request_exceptions
     @requires_app_auth
     def stream(self, event=None, record_keep_alives=False):
         """
@@ -747,11 +744,8 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
         return self.get_paginated(url, params=params)
 
+    @catch_request_exceptions
     @rate_limit
-    @catch_conn_reset
-    @catch_chunked_encoding_error
-    @catch_timeout
-    @catch_gzip_errors
     def get(self, *args, **kwargs):
         """
         Make a GET request to a specified URL.
@@ -763,36 +757,11 @@ class Twarc2:
         Returns:
             requests.Response: Response from Twitter API.
         """
-
-        # Pass allow 404 to not retry on 404
-        allow_404 = kwargs.pop("allow_404", False)
-        connection_error_count = kwargs.pop("connection_error_count", 0)
-        try:
-            log.info("getting %s %s", args, kwargs)
-            r = self.last_response = self.client.get(
-                *args, timeout=(3.05, 31), **kwargs
-            )
-            # this has been noticed, believe it or not
-            # https://github.com/edsu/twarc/issues/75
-            if r.status_code == 404 and not allow_404:
-                log.warning("404 from Twitter API! trying again")
-                time.sleep(1)
-                r = self.get(*args, **kwargs)
-            return r
-        except (ssl.SSLError, ConnectionError, ProtocolError) as e:
-            connection_error_count += 1
-            log.error("caught connection error %s on %s try", e, connection_error_count)
-            if (
-                self.connection_errors
-                and connection_error_count == self.connection_errors
-            ):
-                log.error("received too many connection errors")
-                raise e
-            else:
-                self.connect()
-                kwargs["connection_error_count"] = connection_error_count
-                kwargs["allow_404"] = allow_404
-                return self.get(*args, **kwargs)
+        if not self.client:
+            self.connect()
+        log.info("getting %s %s", args, kwargs)
+        r = self.last_response = self.client.get(*args, timeout=(3.05, 31), **kwargs)
+        return r
 
     def get_paginated(self, *args, **kwargs):
         """
@@ -843,6 +812,7 @@ class Twarc2:
 
             yield page
 
+    @catch_request_exceptions
     @rate_limit
     def post(self, url, json_data):
         """
@@ -922,7 +892,6 @@ class Twarc2:
             else:
                 raise ValueError(f"No such user {user}")
 
-    
     def _check_for_disconnect(self, data):
         """
         Look for disconnect errors in a response, and reconnect if found.
@@ -977,4 +946,3 @@ def _append_metadata(result, url):
     """
     result["__twarc"] = {"url": url, "version": version, "retrieved_at": _utcnow()}
     return result
-

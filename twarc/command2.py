@@ -20,7 +20,7 @@ from pkg_resources import iter_entry_points
 from twarc.version import version
 from twarc.handshake import handshake
 from twarc.config import ConfigProvider
-from twarc.decorators import cli_api_error
+from twarc.decorators2 import cli_api_error
 from twarc.expansions import ensure_flattened
 from click_config_file import configuration_option
 
@@ -256,9 +256,9 @@ def search(
         query, since_id, until_id, start_time, end_time, max_results
     ):
         _write(result, outfile)
-        
-        tweet_ids = [t['id'] for t in result.get("data", [])]
-        log.info("archived %s", ','.join(tweet_ids))
+
+        tweet_ids = [t["id"] for t in result.get("data", [])]
+        log.info("archived %s", ",".join(tweet_ids))
 
         count += len(result["data"])
         if limit != 0 and count >= limit:
@@ -457,7 +457,7 @@ def hydrate(T, infile, outfile):
     for result in T.tweet_lookup(infile):
         _write(result, outfile)
         tweet_ids = [t["id"] for t in result.get("data", [])]
-        log.info("archived %s", ','.join(tweet_ids))
+        log.info("archived %s", ",".join(tweet_ids))
 
 
 @twarc2.command("users")
@@ -643,9 +643,7 @@ def timelines(
                 if isinstance(json_data, str) and json_data:
                     users = set([json_data])
                 else:
-                    log.warn(
-                        "ignored line %s which didn't contain users", line_count
-                    )
+                    log.warn("ignored line %s which didn't contain users", line_count)
                     continue
 
         except json.JSONDecodeError:

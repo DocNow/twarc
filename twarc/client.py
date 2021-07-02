@@ -815,7 +815,6 @@ class Twarc(object):
 
     @rate_limit
     @catch_conn_reset
-    @catch_chunked_encoding_error
     @catch_timeout
     @catch_gzip_errors
     def get(self, *args, **kwargs):
@@ -861,7 +860,6 @@ class Twarc(object):
 
     @rate_limit
     @catch_conn_reset
-    @catch_chunked_encoding_error
     @catch_timeout
     @catch_gzip_errors
     def post(self, *args, **kwargs):
