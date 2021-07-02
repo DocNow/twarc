@@ -17,8 +17,9 @@ import sys
 import json
 import fileinput
 
+limitbreaker = '{"limit":{"track":'
 limit_breaker = '{"limit": {"track":'
 
 for line in fileinput.input():
-    if limit_breaker not in line:
+    if limitbreaker not in line and limit_breaker not in line:
         print(json.dumps(line))

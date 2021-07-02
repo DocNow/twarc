@@ -14,12 +14,10 @@ import requests
 import datetime
 
 from oauthlib.oauth2 import BackendApplicationClient
-from requests.exceptions import ConnectionError
-from requests.packages.urllib3.exceptions import ProtocolError
 from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from twarc import expansions
-from twarc.decorators import *
+from twarc.decorators2 import *
 from twarc.version import version
 
 
@@ -41,7 +39,6 @@ class Twarc2:
         access_token_secret=None,
         bearer_token=None,
         connection_errors=0,
-        http_errors=0,
         metadata=True,
     ):
         """
@@ -71,14 +68,11 @@ class Twarc2:
                 Bearer Token, can be generated from API keys.
             connection_errors (int):
                 Number of retries for GETs
-            http_errors (int):
-                Number of retries for sample stream.
             metadata (bool):
                 Append `__twarc` metadata to results.
         """
         self.api_version = "2"
         self.connection_errors = connection_errors
-        self.http_errors = http_errors
         self.metadata = metadata
         self.bearer_token = None
 
@@ -144,7 +138,7 @@ class Twarc2:
         made_call = time.monotonic()
 
         for response in self.get_paginated(url, params=params):
-            # can return without 'data' if there are no results
+            # can't return without 'data' if there are no results
             if "data" in response:
                 count += len(response["data"])
                 yield response
@@ -436,6 +430,7 @@ class Twarc2:
         if batch:
             yield (lookup_batch(batch))
 
+    @catch_request_exceptions
     @requires_app_auth
     def sample(self, event=None, record_keepalive=False):
         """
@@ -458,65 +453,29 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
-        errors = 0
-
         while True:
-            try:
-                log.info("Connecting to V2 sample stream")
-                resp = self.get(url, params=expansions.EVERYTHING.copy(), stream=True)
-                errors = 0
-                for line in resp.iter_lines(chunk_size=512):
+            log.info("Connecting to V2 sample stream")
+            resp = self.get(url, params=expansions.EVERYTHING.copy(), stream=True)
+            for line in resp.iter_lines(chunk_size=512):
 
-                    # quit & close the stream if the event is set
-                    if event and event.is_set():
-                        log.info("stopping sample")
-                        resp.close()
-                        return
+                # quit & close the stream if the event is set
+                if event and event.is_set():
+                    log.info("stopping sample")
+                    resp.close()
+                    return
 
-                    # return the JSON data w/ optional keep-alive
-                    if not line:
-                        log.info("keep-alive")
-                        if record_keepalive:
-                            yield "keep-alive"
-                        continue
-                    else:
-                        data = json.loads(line.decode())
-                        if self.metadata:
-                            data = _append_metadata(data, resp.url)
-                        yield data
-
-                        # Check for an operational disconnect error in the response
-                        if data.get("errors", []):
-                            for error in data["errors"]:
-                                if (
-                                    error.get("disconnect_type")
-                                    == "OperationalDisconnect"
-                                ):
-                                    log.info(
-                                        "Received operational disconnect message: "
-                                        "This stream has fallen too far behind in "
-                                        "processing tweets. Some data may have been "
-                                        "lost."
-                                    )
-                                    # Sleep briefly, then break this get call and
-                                    # attempt to reconnect.
-                                    time.sleep(5)
-                                    break
-
-            except requests.exceptions.HTTPError as e:
-                errors += 1
-                log.error("caught http error %s on %s try", e, errors)
-                if self.http_errors and errors == self.http_errors:
-                    log.warning("too many errors")
-                    raise e
-                if e.response.status_code == 420:
-                    if interruptible_sleep(errors * 60, event):
-                        log.info("stopping filter")
-                        return
+                # return the JSON data w/ optional keep-alive
+                if not line:
+                    log.info("keep-alive")
+                    if record_keepalive:
+                        yield "keep-alive"
+                    continue
                 else:
-                    if interruptible_sleep(errors * 5, event):
-                        log.info("stopping filter")
-                        return
+                    data = json.loads(line.decode())
+                    if self.metadata:
+                        data = _append_metadata(data, resp.url)
+                    yield data
+                    self._check_for_disconnect(data)
 
     @requires_app_auth
     def add_stream_rules(self, rules):
@@ -563,6 +522,7 @@ class Twarc2:
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.post(url, {"delete": {"ids": rule_ids}}).json()
 
+    @catch_request_exceptions
     @requires_app_auth
     def stream(self, event=None, record_keep_alives=False):
         """
@@ -605,6 +565,7 @@ class Twarc2:
                     data = _append_metadata(data, resp.url)
 
                 yield data
+                self._check_for_disconnect(data)
 
     def _timeline(
         self,
@@ -783,10 +744,8 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
         return self.get_paginated(url, params=params)
 
+    @catch_request_exceptions
     @rate_limit
-    @catch_conn_reset
-    @catch_timeout
-    @catch_gzip_errors
     def get(self, *args, **kwargs):
         """
         Make a GET request to a specified URL.
@@ -798,36 +757,11 @@ class Twarc2:
         Returns:
             requests.Response: Response from Twitter API.
         """
-
-        # Pass allow 404 to not retry on 404
-        allow_404 = kwargs.pop("allow_404", False)
-        connection_error_count = kwargs.pop("connection_error_count", 0)
-        try:
-            log.info("getting %s %s", args, kwargs)
-            r = self.last_response = self.client.get(
-                *args, timeout=(3.05, 31), **kwargs
-            )
-            # this has been noticed, believe it or not
-            # https://github.com/edsu/twarc/issues/75
-            if r.status_code == 404 and not allow_404:
-                log.warning("404 from Twitter API! trying again")
-                time.sleep(1)
-                r = self.get(*args, **kwargs)
-            return r
-        except (ssl.SSLError, ConnectionError, ProtocolError) as e:
-            connection_error_count += 1
-            log.error("caught connection error %s on %s try", e, connection_error_count)
-            if (
-                self.connection_errors
-                and connection_error_count == self.connection_errors
-            ):
-                log.error("received too many connection errors")
-                raise e
-            else:
-                self.connect()
-                kwargs["connection_error_count"] = connection_error_count
-                kwargs["allow_404"] = allow_404
-                return self.get(*args, **kwargs)
+        if not self.client:
+            self.connect()
+        log.info("getting %s %s", args, kwargs)
+        r = self.last_response = self.client.get(*args, timeout=(3.05, 31), **kwargs)
+        return r
 
     def get_paginated(self, *args, **kwargs):
         """
@@ -878,6 +812,7 @@ class Twarc2:
 
             yield page
 
+    @catch_request_exceptions
     @rate_limit
     def post(self, url, json_data):
         """
@@ -981,6 +916,16 @@ class Twarc2:
             return lookup[-1]
         else:
             raise ValueError(f"No such user {user}")
+
+    def _check_for_disconnect(self, data):
+        """
+        Look for disconnect errors in a response, and reconnect if found.
+        """
+        for error in data.get("errors", []):
+            if error.get("disconnect_type") == "OperationalDisconnect":
+                log.info("Received operational disconnect message, reconnecting")
+                self.connect()
+                break
 
 
 def _ts(dt):
