@@ -6,6 +6,7 @@ import logging
 import requests
 
 import datetime
+import humanize
 from tqdm.auto import tqdm
 from functools import wraps
 from collections import defaultdict
@@ -228,6 +229,7 @@ class TimestampProgressBar(tqdm):
 
     def __init__(self, since_id, until_id, start_time, end_time, **kwargs):
         self.early_stop = True
+        self.tweet_count = 0
 
         disable = False if "disable" not in kwargs else kwargs["disable"]
         kwargs["disable"] = disable
@@ -251,7 +253,7 @@ class TimestampProgressBar(tqdm):
         kwargs["total"] = total
         kwargs[
             "bar_format"
-        ] = "{l_bar}{bar}| {total_time} [{elapsed}<{remaining}{postfix}]"
+        ] = "{l_bar}{bar}| Processed {n_time}/{total_time} [{elapsed}<{remaining}, {tweet_count} tweets total {postfix}]"
         super().__init__(**kwargs)
 
     def update_with_result(self, result):
@@ -263,16 +265,23 @@ class TimestampProgressBar(tqdm):
             oldest_id = result["meta"]["oldest_id"]
             n = _snowflake2millis(int(newest_id)) - _snowflake2millis(int(oldest_id))
             self.update(n)
-            early_stop = False
+            self.tweet_count += len(result["data"])
+            self.early_stop = False
         except Exception as e:
             log.error(f"Failed to update progress bar: {e}")
 
     @property
     def format_dict(self):
-        # Todo: Better Custom display, tweets / requests per second / output file size?
-        d = super(TimestampProgressBar, self).format_dict
-        total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
-        d.update(total_time=self.format_interval(total_time) + " elapsed")
+        d = super(TimestampProgressBar, self).format_dict  # original format dict
+        tweets_per_second = int(self.tweet_count / d["elapsed"] if d["elapsed"] else 0)
+        n_time = humanize.naturaldelta(datetime.timedelta(seconds=int(d["n"]) // 1000))
+        total_time = humanize.naturaldelta(
+            datetime.timedelta(seconds=int(d["total"]) // 1000)
+        )
+        d.update(n_time=n_time)
+        d.update(total_time=total_time)
+        d.update(tweet_count=self.tweet_count)
+        d.update(tweets_per_second=tweets_per_second)
         return d
 
     def close(self):
