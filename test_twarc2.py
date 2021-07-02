@@ -198,7 +198,10 @@ def test_tweet_lookup():
 # maybe this will go away since it used to work fine.
 
 
-@pytest.mark.skipif(os.environ.get("GITHUB_ACTIONS") != None)
+@pytest.mark.skipif(
+    os.environ.get("GITHUB_ACTIONS") != None,
+    reason="stream() seems to throw a 400 error under GitHub Actions?!",
+)
 def test_stream():
     # remove any active stream rules
     rules = T.get_stream_rules()
