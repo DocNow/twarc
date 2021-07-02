@@ -250,7 +250,9 @@ def _search(
         count_method = T.counts_recent
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
-    short_timespan = abs(_time_delta(since_id, until_id, start_time, end_time).days) < 30
+    short_timespan = (
+        abs(_time_delta(since_id, until_id, start_time, end_time).days) < 30
+    )
     pbar = TimestampProgressBar(
         since_id, until_id, start_time, end_time, disable=hide_progress
     )
