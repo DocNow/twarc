@@ -633,6 +633,12 @@ def mentions(
         for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
             _write(result, outfile)
             progress.update(len(result["data"]))
+        else:
+            if progress.n > 800:
+                progress.desc = f"API limit reached with {progress.n} tweets"
+                progress.n = 800
+            else:
+                progress.desc = f"Set limit reached with {progress.n} tweets"
 
 
 @twarc2.command("timeline")
