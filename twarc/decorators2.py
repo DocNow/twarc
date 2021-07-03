@@ -189,6 +189,9 @@ class FileSizeProgressBar(tqdm):
         kwargs["unit_scale"] = True
         kwargs["unit_divisor"] = 1024
         kwargs["miniters"] = 1
+        kwargs[
+            "bar_format"
+        ] = "{l_bar}{bar}| Processed {n_fmt}/{total_fmt} of input file [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
         kwargs["total"] = os.stat(infile.name).st_size if not disable else 1
         super().__init__(**kwargs)
 
