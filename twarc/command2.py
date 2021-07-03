@@ -561,7 +561,7 @@ def hydrate(T, infile, outfile, hide_progress):
     """
     Hydrate tweet ids.
     """
-    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         for result in T.tweet_lookup(infile):
             _write(result, outfile)
             tweet_ids = [t["id"] for t in result.get("data", [])]
@@ -585,7 +585,7 @@ def users(T, infile, outfile, usernames, hide_progress):
     """
     Get data for user ids or usernames.
     """
-    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         for result in T.user_lookup(infile, usernames):
             _write(result, outfile)
             if usernames:
@@ -696,7 +696,7 @@ def timeline(
     """
 
     count = 0
-    user = T._ensure_user(user_id) # It's possible to skip this to optimize more
+    user = T._ensure_user(user_id)  # It's possible to skip this to optimize more
 
     if use_search or (start_time or end_time) or (since_id or until_id):
         pbar = TimestampProgressBar
@@ -826,7 +826,7 @@ def timelines(
     line_count = 0
     seen = set()
 
-    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         for line in infile:
             progress.update(len(line))
             line_count += 1
@@ -1037,7 +1037,7 @@ def conversations(
     count = 0
     stop = False
 
-    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         for line in infile:
             progress.update(len(line))
             conv_ids = []
@@ -1114,7 +1114,7 @@ def flatten(infile, outfile, hide_progress):
         )
         return
 
-    with FileSizeProgressBar(infile, disable=hide_progress) as progress:
+    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         for line in infile:
             for tweet in ensure_flattened(json.loads(line)):
                 _write(tweet, outfile, False)

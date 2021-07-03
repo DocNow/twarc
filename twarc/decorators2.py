@@ -178,9 +178,11 @@ class FileSizeProgressBar(tqdm):
     Overrides `disable` parameter if file is a pipe.
     """
 
-    def __init__(self, infile, **kwargs):
+    def __init__(self, infile, outfile, **kwargs):
         disable = False if "disable" not in kwargs else kwargs["disable"]
         if infile is not None and (infile.name == "<stdin>"):
+            disable = True
+        if outfile is not None and (outfile.name == "<stdout>"):
             disable = True
         kwargs["disable"] = disable
         kwargs["unit"] = "B"
@@ -242,8 +244,10 @@ class TimestampProgressBar(tqdm):
             ) - datetime.timedelta(seconds=30)
 
         if since_id and not until_id:
-            until_id = _millis2snowflake(_date2millis(datetime.datetime.now(datetime.timezone.utc)))
-        
+            until_id = _millis2snowflake(
+                _date2millis(datetime.datetime.now(datetime.timezone.utc))
+            )
+
         if until_id and not since_id:
             since_id = 1
 
