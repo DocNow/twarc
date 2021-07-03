@@ -470,6 +470,9 @@ def followers(T, user, outfile, limit, hide_progress):
     user_id = None
     lookup_total = 0
 
+    if outfile is not None and (outfile.name == "<stdout>"):
+        hide_progress = True
+
     if not hide_progress:
         target_user = T._ensure_user(user)
         user_id = target_user["id"]
@@ -481,6 +484,7 @@ def followers(T, user, outfile, limit, hide_progress):
             count += len(result["data"])
             progress.update(len(result["data"]))
             if limit != 0 and count >= limit:
+                progress.desc = f"Set --limit of {limit} reached"
                 break
 
 
@@ -506,6 +510,9 @@ def following(T, user, outfile, limit, hide_progress):
     user_id = None
     lookup_total = 0
 
+    if outfile is not None and (outfile.name == "<stdout>"):
+        hide_progress = True
+
     if not hide_progress:
         target_user = T._ensure_user(user)
         user_id = target_user["id"]
@@ -517,6 +524,7 @@ def following(T, user, outfile, limit, hide_progress):
             count += len(result["data"])
             progress.update(len(result["data"]))
             if limit != 0 and count >= limit:
+                progress.desc = f"Set --limit of {limit} reached"
                 break
 
 
