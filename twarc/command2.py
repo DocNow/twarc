@@ -2,7 +2,6 @@
 The command line interfact to the Twitter v2 API.
 """
 
-import os
 import re
 import json
 import twarc
@@ -15,7 +14,6 @@ import threading
 
 from tqdm.auto import tqdm
 from datetime import timezone
-from urllib.parse import quote
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 

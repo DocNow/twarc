@@ -1,7 +1,6 @@
 import os
 import time
 import click
-import types
 import logging
 import requests
 
@@ -9,7 +8,6 @@ import datetime
 import humanize
 from tqdm.auto import tqdm
 from functools import wraps
-from collections import defaultdict
 
 
 log = logging.getLogger("twarc")

@@ -5,7 +5,6 @@ Support for the Twitter v2 API.
 """
 
 import re
-import ssl
 import json
 import time
 import logging
