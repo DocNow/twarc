@@ -861,7 +861,7 @@ class Twarc2:
                 resource_owner_secret=self.access_token_secret,
             )
 
-    def _id_exists(user):
+    def _id_exists(self, user):
         """
         Returns True if the user id exists
         """
