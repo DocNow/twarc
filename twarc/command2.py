@@ -711,8 +711,12 @@ def timeline(
     count = 0
 
     pbar = tqdm
-    pbar_params = {"disable": hide_progress, "total": 3200}
+    user = T._ensure_user(user_id)
+    pbar_params = {"disable": hide_progress, "total": user["public_metrics"]["tweet_count"]}
+
     if use_search:
+        if start_time is None and since_id is None:
+            start_time = datetime.datetime.strptime(user["created_at"], '%Y-%m-%dT%H:%M:%S.%fZ')
         pbar = TimestampProgressBar
         pbar_params = {
             "since_id": since_id,
@@ -723,12 +727,11 @@ def timeline(
         }
 
     with pbar(**pbar_params) as progress:
-        
         for result in tweets:
             _write(result, outfile)
 
             count += len(result["data"])
-            if use_search and isinstance(pbar, TimestampProgressBar):
+            if use_search and isinstance(progress, TimestampProgressBar):
                 progress.update_with_result(result)
             else:
                 progress.update(len(result["data"]))
@@ -738,7 +741,7 @@ def timeline(
                 progress.desc = f"Set --limit of {limit} reached"
                 break
         else:
-            if isinstance(pbar, TimestampProgressBar):
+            if isinstance(progress, TimestampProgressBar):
                 progress.early_stop = False
 
 
