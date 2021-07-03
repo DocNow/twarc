@@ -306,28 +306,3 @@ def _snowflake2millis(snowflake_id):
 
 def _millis2snowflake(ms):
     return (int(ms) - 1288834974657) << 22
-
-
-def _date2snowflake(dt):
-    return _millis2snowflake(_date2millis(dt))
-
-
-def _snowflake2date(snowflake_id):
-    return _millis2date(_snowflake2millis(snowflake_id))
-
-
-def _time_delta(since_id, until_id, start_time, end_time):
-    if start_time is None and since_id is None:
-        start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-            days=7
-        )
-    if end_time is None and until_id is None:
-        end_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-            seconds=30
-        )
-
-    if since_id and until_id:
-        start_time = _millis2date(_snowflake2millis(since_id))
-        end_time = _millis2date(_snowflake2millis(until_id))
-
-    return start_time - end_time

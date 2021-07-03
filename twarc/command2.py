@@ -28,7 +28,6 @@ from twarc.decorators2 import (
     cli_api_error,
     TimestampProgressBar,
     FileSizeProgressBar,
-    _time_delta,
 )
 
 
