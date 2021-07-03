@@ -26,6 +26,8 @@ from twarc.decorators2 import (
     cli_api_error,
     TimestampProgressBar,
     FileSizeProgressBar,
+    _millis2snowflake,
+    _date2millis,
 )
 
 
@@ -694,26 +696,41 @@ def timeline(
     """
 
     count = 0
+    user = T._ensure_user(user_id) # It's possible to skip this to optimize more
 
-    pbar = tqdm
-    user = T._ensure_user(user_id)
-    pbar_params = {
-        "disable": hide_progress,
-        "total": user["public_metrics"]["tweet_count"],
-    }
+    if use_search or (start_time or end_time) or (since_id or until_id):
+        pbar = TimestampProgressBar
 
-    if use_search:
-        if start_time is None and since_id is None:
+        # Infer start time as the user created time if not using ids
+        if start_time is None and (since_id is None and until_id is None):
             start_time = datetime.datetime.strptime(
                 user["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
             )
-        pbar = TimestampProgressBar
+        # Infer since_id as user created time if using ids
+        if start_time is None and since_id is None:
+            infer_id = _millis2snowflake(
+                _date2millis(
+                    datetime.datetime.strptime(
+                        user["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                    )
+                )
+            )
+            # Snowflake epoch is 1288834974657 so if older, just set it to "1"
+            since_id = infer_id if infer_id > 0 else 1
+
         pbar_params = {
             "since_id": since_id,
             "until_id": until_id,
             "start_time": start_time,
             "end_time": end_time,
             "disable": hide_progress,
+        }
+
+    else:
+        pbar = tqdm
+        pbar_params = {
+            "disable": hide_progress,
+            "total": user["public_metrics"]["tweet_count"],
         }
 
     tweets = _timeline_tweets(
@@ -733,7 +750,7 @@ def timeline(
             _write(result, outfile)
 
             count += len(result["data"])
-            if use_search and isinstance(progress, TimestampProgressBar):
+            if isinstance(progress, TimestampProgressBar):
                 progress.update_with_result(result)
             else:
                 progress.update(len(result["data"]))
@@ -745,6 +762,8 @@ def timeline(
         else:
             if isinstance(progress, TimestampProgressBar):
                 progress.early_stop = False
+            if not use_search and user["public_metrics"]["tweet_count"] > 3200:
+                progress.desc = f"API limit of 3200 reached"
 
 
 @twarc2.command("timelines")

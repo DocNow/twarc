@@ -232,14 +232,20 @@ class TimestampProgressBar(tqdm):
         disable = False if "disable" not in kwargs else kwargs["disable"]
         kwargs["disable"] = disable
 
-        if start_time is None and since_id is None:
+        if start_time is None and (since_id is None and until_id is None):
             start_time = datetime.datetime.now(
                 datetime.timezone.utc
             ) - datetime.timedelta(days=7)
-        if end_time is None and until_id is None:
+        if end_time is None and (since_id is None and until_id is None):
             end_time = datetime.datetime.now(
                 datetime.timezone.utc
             ) - datetime.timedelta(seconds=30)
+
+        if since_id and not until_id:
+            until_id = _millis2snowflake(_date2millis(datetime.datetime.now(datetime.timezone.utc)))
+        
+        if until_id and not since_id:
+            since_id = 1
 
         total = (
             _snowflake2millis(until_id) - _snowflake2millis(since_id)
