@@ -878,7 +878,7 @@ class Twarc2:
         user = str(user)
         is_numeric = re.match(r"^\d+$", user)
 
-        if len(user) > 15 or (is_numeric and _id_exists(user)):
+        if len(user) > 15 or (is_numeric and self._id_exists(user)):
             return user
         else:
             results = next(self.user_lookup([user], usernames=True))
@@ -897,7 +897,7 @@ class Twarc2:
         is_numeric = re.match(r"^\d+$", user)
 
         lookup = []
-        if len(user) > 15 or (is_numeric and _id_exists(user)):
+        if len(user) > 15 or (is_numeric and self._id_exists(user)):
             lookup = expansions.ensure_flattened(list(self.user_lookup([user])))
         else:
             lookup = expansions.ensure_flattened(

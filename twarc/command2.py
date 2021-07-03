@@ -222,7 +222,6 @@ def _search(
     Search for tweets.
     """
     count = 0
-    lookup_total = 0
 
     # Make sure times are always in UTC, click sometimes doesn't add timezone:
     if start_time is not None and start_time.tzinfo is None:
@@ -232,7 +231,6 @@ def _search(
 
     if archive:
         search_method = T.search_all
-        count_method = T.counts_all
 
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
@@ -247,55 +245,26 @@ def _search(
         if max_results == 0:
             max_results = 100
         search_method = T.search_recent
-        count_method = T.counts_recent
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
-    short_timespan = (
-        abs(_time_delta(since_id, until_id, start_time, end_time).days) < 30
-    )
-    pbar = TimestampProgressBar(
+
+    with TimestampProgressBar(
         since_id, until_id, start_time, end_time, disable=hide_progress
-    )
-
-    if not hide_progress and short_timespan:
-        try:
-            # Single request just for the total
-            count_lookup = next(
-                count_method(query, since_id, until_id, start_time, end_time, "day")
-            )
-            lookup_total = count_lookup["meta"]["total_tweet_count"]
-            pbar = tqdm(disable=hide_progress, total=lookup_total)
-        except Exception as e:
-            log.error(f"Failed getting counts: {str(e)}")
-            click.echo(
-                click.style(
-                    f"💔 Failed to get tweet counts, but continuing to search. Check twarc.log for errors.",
-                    fg="red",
-                ),
-                err=True,
-            )
-
-    with pbar as progress:
+    ) as progress:
         for result in search_method(
             query, since_id, until_id, start_time, end_time, max_results
         ):
             _write(result, outfile)
-
             tweet_ids = [t["id"] for t in result.get("data", [])]
             log.info("archived %s", ",".join(tweet_ids))
-
-            if isinstance(pbar, TimestampProgressBar):
-                progress.update_with_result(result)
-            else:
-                progress.update(len(result["data"]))
-
+            progress.update_with_result(result)
             count += len(result["data"])
             if limit != 0 and count >= limit:
                 # Display message when stopped early
                 progress.desc = f"Set --limit of {limit} reached"
-                if isinstance(pbar, TimestampProgressBar):
-                    progress.early_stop = True
                 break
+        else:
+            progress.early_stop = False
 
 
 @twarc2.command("search")
@@ -741,13 +710,20 @@ def timeline(
 
     count = 0
 
-    pbar = tqdm(disable=hide_progress, total=3200)
+    pbar = tqdm
+    pbar_params = {"disable": hide_progress, "total": 3200}
     if use_search:
-        pbar = TimestampProgressBar(
-            since_id, until_id, start_time, end_time, disable=hide_progress
-        )
+        pbar = TimestampProgressBar
+        pbar_params = {
+            "since_id": since_id,
+            "until_id": until_id,
+            "start_time": start_time,
+            "end_time": end_time,
+            "disable": hide_progress,
+        }
 
-    with pbar as progress:
+    with pbar(**pbar_params) as progress:
+        
         for result in tweets:
             _write(result, outfile)
 
@@ -760,8 +736,10 @@ def timeline(
             if limit != 0 and count >= limit:
                 # Display message when stopped early
                 progress.desc = f"Set --limit of {limit} reached"
-                progress.early_stop = True
                 break
+        else:
+            if isinstance(pbar, TimestampProgressBar):
+                progress.early_stop = False
 
 
 @twarc2.command("timelines")

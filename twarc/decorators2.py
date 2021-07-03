@@ -266,7 +266,6 @@ class TimestampProgressBar(tqdm):
             n = _snowflake2millis(int(newest_id)) - _snowflake2millis(int(oldest_id))
             self.update(n)
             self.tweet_count += len(result["data"])
-            self.early_stop = False
         except Exception as e:
             log.error(f"Failed to update progress bar: {e}")
 
