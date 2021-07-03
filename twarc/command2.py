@@ -246,7 +246,7 @@ def search(
 
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
-            max_results = 500
+            max_results = 100, # temp fix for #504
     else:
         if max_results == 0:
             max_results = 100
