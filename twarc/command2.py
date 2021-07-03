@@ -696,18 +696,6 @@ def timeline(
     Retrieve recent tweets for the given user.
     """
 
-    tweets = _timeline_tweets(
-        T,
-        use_search,
-        user_id,
-        since_id,
-        until_id,
-        start_time,
-        end_time,
-        exclude_retweets,
-        exclude_replies,
-    )
-
     count = 0
 
     pbar = tqdm
@@ -725,6 +713,18 @@ def timeline(
             "end_time": end_time,
             "disable": hide_progress,
         }
+
+    tweets = _timeline_tweets(
+        T,
+        use_search,
+        user_id,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        exclude_retweets,
+        exclude_replies,
+    )
 
     with pbar(**pbar_params) as progress:
         for result in tweets:
@@ -896,7 +896,7 @@ def _timeline_tweets(
             q += " -is:retweet"
         if exclude_replies and "-is:reply" not in q:
             q += " -is:reply"
-        tweets = T.search_all(q, since_id, until_id, start_time, end_time)
+        tweets = T.search_all(q, since_id, until_id, start_time, end_time, 100)
     else:
         tweets = T.timeline(
             user_id,
