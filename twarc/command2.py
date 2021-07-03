@@ -700,11 +700,16 @@ def timeline(
 
     pbar = tqdm
     user = T._ensure_user(user_id)
-    pbar_params = {"disable": hide_progress, "total": user["public_metrics"]["tweet_count"]}
+    pbar_params = {
+        "disable": hide_progress,
+        "total": user["public_metrics"]["tweet_count"],
+    }
 
     if use_search:
         if start_time is None and since_id is None:
-            start_time = datetime.datetime.strptime(user["created_at"], '%Y-%m-%dT%H:%M:%S.%fZ')
+            start_time = datetime.datetime.strptime(
+                user["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
         pbar = TimestampProgressBar
         pbar_params = {
             "since_id": since_id,
