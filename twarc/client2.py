@@ -198,7 +198,7 @@ class Twarc2:
         until_id=None,
         start_time=None,
         end_time=None,
-        max_results=100, # temp fix for #504
+        max_results=100,  # temp fix for #504
     ):
         """
         Search Twitter for the given query in the full archive,
