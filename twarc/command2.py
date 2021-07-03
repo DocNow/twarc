@@ -236,7 +236,7 @@ def _search(
 
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
-            max_results = 500
+            max_results = 100, # temp fix for #504
 
         # start time defaults to the beginning of Twitter to override the
         # default of the last month. Only do this if start_time is not already
