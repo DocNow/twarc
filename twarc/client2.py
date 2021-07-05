@@ -5,7 +5,6 @@ Support for the Twitter v2 API.
 """
 
 import re
-import ssl
 import json
 import time
 import logging
@@ -22,8 +21,6 @@ from twarc.version import version
 
 
 log = logging.getLogger("twarc")
-
-TWITTER_EPOCH = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
 
 
 class Twarc2:
@@ -227,12 +224,6 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/search/all"
 
-        # start time defaults to the beginning of Twitter to override the
-        # default of the last month. Only do this if start_time is not already
-        # specified and since_id isn't being used
-        if start_time is None and since_id is None:
-            start_time = TWITTER_EPOCH
-
         return self._search(
             url,
             query,
@@ -318,12 +309,6 @@ class Twarc2:
             generator[dict]: a generator, dict for each paginated response.
         """
         url = "https://api.twitter.com/2/tweets/counts/all"
-
-        # start time defaults to the beginning of Twitter to override the
-        # default of the last month. Only do this if start_time is not already
-        # specified and since_id isn't being used
-        if start_time is None and since_id is None:
-            start_time = TWITTER_EPOCH
 
         return self._search(
             url,
@@ -713,7 +698,7 @@ class Twarc2:
             exclude_replies,
         )
 
-    def following(self, user):
+    def following(self, user, user_id=None):
         """
         Retrieve the user profiles of accounts followed by the given user.
 
@@ -725,13 +710,13 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-        user_id = self._ensure_user_id(user)
+        user_id = self._ensure_user_id(user) if not user_id else user_id
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/following"
         return self.get_paginated(url, params=params)
 
-    def followers(self, user):
+    def followers(self, user, user_id=None):
         """
         Retrieve the user profiles of accounts following the given user.
 
@@ -743,7 +728,7 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-        user_id = self._ensure_user_id(user)
+        user_id = self._ensure_user_id(user) if not user_id else user_id
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
@@ -875,18 +860,24 @@ class Twarc2:
                 resource_owner_secret=self.access_token_secret,
             )
 
+    def _id_exists(self, user):
+        """
+        Returns True if the user id exists
+        """
+        try:
+            error_name = next(self.user_lookup([user]))["errors"][0]["title"]
+            return error_name != "Not Found Error"
+        except KeyError:
+            return True
+
     def _ensure_user_id(self, user):
+        """
+        Always return a valid user id, look up if not numeric.
+        """
         user = str(user)
         is_numeric = re.match(r"^\d+$", user)
 
-        def id_exists(user):
-            try:
-                error_name = next(self.user_lookup([user]))["errors"][0]["title"]
-                return error_name != "Not Found Error"
-            except KeyError:
-                return True
-
-        if len(user) > 15 or (is_numeric and id_exists(user)):
+        if len(user) > 15 or (is_numeric and self._id_exists(user)):
             return user
         else:
             results = next(self.user_lookup([user], usernames=True))
@@ -896,6 +887,25 @@ class Twarc2:
                 return user
             else:
                 raise ValueError(f"No such user {user}")
+
+    def _ensure_user(self, user):
+        """
+        Always return a valid user object.
+        """
+        user = str(user)
+        is_numeric = re.match(r"^\d+$", user)
+
+        lookup = []
+        if len(user) > 15 or (is_numeric and self._id_exists(user)):
+            lookup = expansions.ensure_flattened(list(self.user_lookup([user])))
+        else:
+            lookup = expansions.ensure_flattened(
+                list(self.user_lookup([user], usernames=True))
+            )
+        if lookup:
+            return lookup[-1]
+        else:
+            raise ValueError(f"No such user {user}")
 
     def _check_for_disconnect(self, data):
         """
