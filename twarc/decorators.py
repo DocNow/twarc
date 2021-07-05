@@ -49,6 +49,31 @@ def rate_limit(f):
                     seconds = 10
                 log.warning("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
+            # Special case for Academic all archive search instability
+            # If we hit a 503 for that specific endpoint, we sleep for a shorter amount
+            # of time, and reduce the number of tweets per request.
+            elif (resp.status_code == 503) & (
+                resp.url.startswith("https://api.twitter.com/2/tweets/search/all")
+            ):
+                errors += 1
+                if errors > 30:
+                    log.warning("too many errors from Twitter, giving up")
+                    resp.raise_for_status()
+                # Shorter wait time than other endpoints for this specific case. Also
+                # on the first error, only wait for the single second required by the
+                # 1 request/s rate limit
+                seconds = max(1, 15 * (errors - 1))
+
+                # Backoff the number of results retrieved for this request.
+                old_page_size = kwargs["params"]["max_results"]
+                kwargs["params"]["max_results"] = max(50, old_page_size // 2)
+                log.warning(
+                    "%s from Twitter search/all API, sleeping %s and backing off to %s tweets/page",
+                    resp.status_code,
+                    seconds,
+                    kwargs["params"]["max_results"],
+                )
+                time.sleep(seconds)
             elif resp.status_code >= 500:
                 errors += 1
                 if errors > 30:
