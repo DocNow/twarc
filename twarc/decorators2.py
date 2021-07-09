@@ -58,6 +58,9 @@ def catch_request_exceptions(f, tries=30):
     A decorator to handle all request exceptions. This decorator will catch
     *any* request level error, reconnect and try again. It does not handle
     HTTP protocol level errors (404, 500) etc.
+
+    It will try up to tries times consecutively before giving up. A successful
+    call to f will result in the try counter being reset to 0.
     """
 
     # pyOpenSSL has been known to throw these connection errors that need to be
@@ -80,7 +83,7 @@ def catch_request_exceptions(f, tries=30):
                 return resp
             except (requests.exceptions.RequestException, ConnectionError) as e:
 
-                # don't catch any HTTP erorrs since those are handled separately
+                # don't catch any HTTP errors since those are handled separately
                 if isinstance(e, requests.exceptions.HTTPError):
                     raise e
 

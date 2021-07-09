@@ -438,30 +438,8 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
-        while catch_request_exceptions(lambda: True):
-            log.info("Connecting to V2 sample stream")
-            resp = self.get(url, params=expansions.EVERYTHING.copy(), stream=True)
-            for line in resp.iter_lines(chunk_size=512):
-
-                # quit & close the stream if the event is set
-                if event and event.is_set():
-                    log.info("stopping sample")
-                    resp.close()
-                    return
-
-                # return the JSON data w/ optional keep-alive
-                if not line:
-                    log.info("keep-alive")
-                    if record_keepalive:
-                        yield "keep-alive"
-                    continue
-                else:
-                    data = json.loads(line.decode())
-                    if self.metadata:
-                        data = _append_metadata(data, resp.url)
-                    yield data
-                    if self._check_for_disconnect(data):
-                        break
+        params = expansions.EVERYTHING.copy()
+        yield from self._stream(url, params, event, record_keepalive)
 
     @requires_app_auth
     def add_stream_rules(self, rules):
@@ -510,7 +488,7 @@ class Twarc2:
 
     @catch_request_exceptions
     @requires_app_auth
-    def stream(self, event=None, record_keep_alives=False):
+    def stream(self, event=None, record_keepalive=False):
         """
         Returns a stream of tweets matching the defined rules.
 
@@ -532,31 +510,46 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/search/stream"
         params = expansions.EVERYTHING.copy()
+        yield from self._stream(url, params, event, record_keepalive)
 
-        while catch_request_exceptions(lambda: True):
-            log.info("Connecting to V2 stream")
+    @catch_request_exceptions
+    def _stream(self, url, params, event, record_keepalive):
+        """
+        A generator that handles streaming data from a response and catches and
+        logs any request exceptions, and then restarts the stream.
+
+        Args:
+            url (str): the streaming endpoint URL
+            params (dict): any query paramters to use with the url
+            event (threading.Event): Manages a flag to stop the process.
+            record_keepalive (bool): whether to output keep-alive events.
+        Returns:
+            generator[dict]: A generator of tweet dicts.
+        """
+        while True:
+            log.info(f"connecting to stream {url}")
             resp = self.get(url, params=params, stream=True)
             for line in resp.iter_lines():
 
                 # quit & close the stream if the event is set
                 if event and event.is_set():
-                    log.info("stopping filter")
+                    log.info("stopping response stream")
                     resp.close()
                     return
 
-                if line == b"":
+                # return the JSON data w/ optional keep-alive
+                if not line:
                     log.info("keep-alive")
-                    if record_keep_alives:
+                    if record_keepalive:
                         yield "keep-alive"
+                    continue
                 else:
                     data = json.loads(line.decode())
                     if self.metadata:
                         data = _append_metadata(data, resp.url)
-
                     yield data
                     if self._check_for_disconnect(data):
                         break
-
 
     def _timeline(
         self,
