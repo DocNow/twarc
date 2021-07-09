@@ -438,7 +438,7 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
-        while True:
+        while catch_request_exceptions(lambda: True):
             log.info("Connecting to V2 sample stream")
             resp = self.get(url, params=expansions.EVERYTHING.copy(), stream=True)
             for line in resp.iter_lines(chunk_size=512):
@@ -533,7 +533,7 @@ class Twarc2:
         url = "https://api.twitter.com/2/tweets/search/stream"
         params = expansions.EVERYTHING.copy()
 
-        while True:
+        while catch_request_exceptions(lambda: True):
             log.info("Connecting to V2 stream")
             resp = self.get(url, params=params, stream=True)
             for line in resp.iter_lines():
@@ -556,6 +556,7 @@ class Twarc2:
                     yield data
                     if self._check_for_disconnect(data):
                         break
+
 
     def _timeline(
         self,
