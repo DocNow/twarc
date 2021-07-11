@@ -514,7 +514,7 @@ class Twarc2:
     def _stream(self, url, params, event, record_keepalive, tries=30):
         """
         A generator that handles streaming data from a response and catches and
-        logs any request exceptions, sleeps (exponential backoff) and restarts 
+        logs any request exceptions, sleeps (exponential backoff) and restarts
         the stream.
 
         Args:
