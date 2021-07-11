@@ -486,7 +486,6 @@ class Twarc2:
         url = "https://api.twitter.com/2/tweets/search/stream/rules"
         return self.post(url, {"delete": {"ids": rule_ids}}).json()
 
-    @catch_request_exceptions
     @requires_app_auth
     def stream(self, event=None, record_keepalive=False):
         """
@@ -512,44 +511,60 @@ class Twarc2:
         params = expansions.EVERYTHING.copy()
         yield from self._stream(url, params, event, record_keepalive)
 
-    @catch_request_exceptions
-    def _stream(self, url, params, event, record_keepalive):
+    def _stream(self, url, params, event, record_keepalive, tries=30):
         """
         A generator that handles streaming data from a response and catches and
-        logs any request exceptions, and then restarts the stream.
+        logs any request exceptions, sleeps (exponential backoff) and restarts 
+        the stream.
 
         Args:
             url (str): the streaming endpoint URL
             params (dict): any query paramters to use with the url
             event (threading.Event): Manages a flag to stop the process.
             record_keepalive (bool): whether to output keep-alive events.
+            tries (int): the number of times to retry connecting after an error
         Returns:
             generator[dict]: A generator of tweet dicts.
         """
+        errors = 0
         while True:
             log.info(f"connecting to stream {url}")
             resp = self.get(url, params=params, stream=True)
-            for line in resp.iter_lines():
 
-                # quit & close the stream if the event is set
-                if event and event.is_set():
-                    log.info("stopping response stream")
-                    resp.close()
+            try:
+                for line in resp.iter_lines():
+                    errors = 0
+
+                    # quit & close the stream if the event is set
+                    if event and event.is_set():
+                        log.info("stopping response stream")
+                        resp.close()
+                        return
+
+                    # return the JSON data w/ optional keep-alive
+                    if not line:
+                        log.info("keep-alive")
+                        if record_keepalive:
+                            yield "keep-alive"
+                        continue
+                    else:
+                        data = json.loads(line.decode())
+                        if self.metadata:
+                            data = _append_metadata(data, resp.url)
+                        yield data
+                        if self._check_for_disconnect(data):
+                            break
+
+            except requests.exceptions.RequestException as e:
+                log.warn("caught exception during streaming: %s", e)
+                errors += 1
+                if errors > tries:
+                    log.error(f"too many consecutive errors ({tries}). stopping")
                     return
-
-                # return the JSON data w/ optional keep-alive
-                if not line:
-                    log.info("keep-alive")
-                    if record_keepalive:
-                        yield "keep-alive"
-                    continue
                 else:
-                    data = json.loads(line.decode())
-                    if self.metadata:
-                        data = _append_metadata(data, resp.url)
-                    yield data
-                    if self._check_for_disconnect(data):
-                        break
+                    secs = errors ** 2
+                    log.info("sleeping %s seconds before reconnecting", secs)
+                    time.sleep(secs)
 
     def _timeline(
         self,
