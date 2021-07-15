@@ -1,20 +1,11 @@
 import time
-import click
 import logging
-from functools import wraps
 
 from requests import HTTPError
 from requests.packages.urllib3.exceptions import ReadTimeoutError
 from requests.exceptions import ChunkedEncodingError, ReadTimeout, ContentDecodingError
 
-
 log = logging.getLogger("twarc")
-
-
-class InvalidAuthType(Exception):
-    """
-    Raised when the endpoint called is not supported by the current auth type.
-    """
 
 
 def rate_limit(f):
@@ -24,12 +15,11 @@ def rate_limit(f):
     issue the API call again.
     """
 
-    @wraps(f)
     def new_f(*args, **kwargs):
         errors = 0
         while True:
             resp = f(*args, **kwargs)
-            if resp.status_code in [200, 201]:
+            if resp.status_code == 200:
                 errors = 0
                 return resp
             elif resp.status_code == 401:
@@ -59,6 +49,31 @@ def rate_limit(f):
                     seconds = 10
                 log.warning("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
+            # Special case for Academic all archive search instability
+            # If we hit a 503 for that specific endpoint, we sleep for a shorter amount
+            # of time, and reduce the number of tweets per request.
+            elif (resp.status_code == 503) & (
+                resp.url.startswith("https://api.twitter.com/2/tweets/search/all")
+            ):
+                errors += 1
+                if errors > 30:
+                    log.warning("too many errors from Twitter, giving up")
+                    resp.raise_for_status()
+                # Shorter wait time than other endpoints for this specific case. Also
+                # on the first error, only wait for the single second required by the
+                # 1 request/s rate limit
+                seconds = max(1, 15 * (errors - 1))
+
+                # Backoff the number of results retrieved for this request.
+                old_page_size = kwargs["params"]["max_results"]
+                kwargs["params"]["max_results"] = max(50, old_page_size // 2)
+                log.warning(
+                    "%s from Twitter search/all API, sleeping %s and backing off to %s tweets/page",
+                    resp.status_code,
+                    seconds,
+                    kwargs["params"]["max_results"],
+                )
+                time.sleep(seconds)
             elif resp.status_code >= 500:
                 errors += 1
                 if errors > 30:
@@ -69,11 +84,6 @@ def rate_limit(f):
                     "%s from Twitter API, sleeping %s", resp.status_code, seconds
                 )
                 time.sleep(seconds)
-            elif resp.status_code == 422:
-                log.error(
-                    "Recieved HTTP 422 response from Twitter API. Are you using the Premium API and forgot to use --sandbox or sandbox parameter?"
-                )
-                return resp
             else:
                 resp.raise_for_status()
 
@@ -93,7 +103,6 @@ def catch_conn_reset(f):
     except:
         ConnectionError = None
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         # Only handle if pyOpenSSL is installed.
         if ConnectionError:
@@ -114,7 +123,6 @@ def catch_timeout(f):
     A decorator to handle read timeouts from Twitter.
     """
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
@@ -132,7 +140,6 @@ def catch_gzip_errors(f):
     happen during hydration.
     """
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
@@ -165,7 +172,6 @@ def filter_protected(f):
     explicitly requested not to.
     """
 
-    @wraps(f)
     def new_f(self, *args, **kwargs):
         for obj in f(self, *args, **kwargs):
             if self.protected == False:
@@ -174,58 +180,5 @@ def filter_protected(f):
                 elif "protected" in obj and obj["protected"]:
                     continue
             yield obj
-
-    return new_f
-
-
-class cli_api_error:
-    """
-    A decorator to catch HTTP errors for the command line.
-    """
-
-    def __init__(self, f):
-        self.f = f
-        # this is needed for click help docs to work properly
-        self.__doc__ = f.__doc__
-
-    def __call__(self, *args, **kwargs):
-        try:
-            return self.f(*args, **kwargs)
-        except HTTPError as e:
-            try:
-                result = e.response.json()
-                if "errors" in result:
-                    for error in result["errors"]:
-                        msg = error.get("message", "Unknown error")
-                elif "title" in result:
-                    msg = result["title"]
-                else:
-                    msg = "Unknown error"
-            except ValueError:
-                msg = f"Unable to parse {e.response.status_code} error as JSON: {e.response.text}"
-        except InvalidAuthType as e:
-            msg = "This command requires application authentication, try passing --app-auth"
-        except ValueError as e:
-            msg = str(e)
-        click.echo(
-            click.style("⚡ ", fg="yellow") + click.style(msg, fg="red"), err=True
-        )
-
-
-def requires_app_auth(f):
-    """
-    Ensure that application authentication is set for calls that only work in that mode.
-
-    """
-
-    @wraps(f)
-    def new_f(self, *args, **kwargs):
-        if self.auth_type != "application":
-            raise InvalidAuthType(
-                "This endpoint only works with application authentication"
-            )
-
-        else:
-            return f(self, *args, **kwargs)
 
     return new_f

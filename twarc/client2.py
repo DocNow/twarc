@@ -5,7 +5,6 @@ Support for the Twitter v2 API.
 """
 
 import re
-import ssl
 import json
 import time
 import logging
@@ -14,18 +13,14 @@ import requests
 import datetime
 
 from oauthlib.oauth2 import BackendApplicationClient
-from requests.exceptions import ConnectionError
-from requests.packages.urllib3.exceptions import ProtocolError
 from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from twarc import expansions
-from twarc.decorators import *
+from twarc.decorators2 import *
 from twarc.version import version
 
 
 log = logging.getLogger("twarc")
-
-TWITTER_EPOCH = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
 
 
 class Twarc2:
@@ -41,7 +36,6 @@ class Twarc2:
         access_token_secret=None,
         bearer_token=None,
         connection_errors=0,
-        http_errors=0,
         metadata=True,
     ):
         """
@@ -71,14 +65,11 @@ class Twarc2:
                 Bearer Token, can be generated from API keys.
             connection_errors (int):
                 Number of retries for GETs
-            http_errors (int):
-                Number of retries for sample stream.
             metadata (bool):
                 Append `__twarc` metadata to results.
         """
         self.api_version = "2"
         self.connection_errors = connection_errors
-        self.http_errors = http_errors
         self.metadata = metadata
         self.bearer_token = None
 
@@ -118,13 +109,19 @@ class Twarc2:
         start_time,
         end_time,
         max_results,
+        granularity=None,
         sleep_between=0,
     ):
+        if granularity:
+            params = {}
+            params["granularity"] = granularity
+        else:
+            params = expansions.EVERYTHING.copy()
 
-        params = expansions.EVERYTHING.copy()
-        params["max_results"] = max_results
         params["query"] = query
 
+        if max_results:
+            params["max_results"] = max_results
         if since_id:
             params["since_id"] = since_id
         if until_id:
@@ -138,7 +135,7 @@ class Twarc2:
         made_call = time.monotonic()
 
         for response in self.get_paginated(url, params=params):
-            # can return without 'data' if there are no results
+            # can't return without 'data' if there are no results
             if "data" in response:
                 count += len(response["data"])
                 yield response
@@ -200,7 +197,7 @@ class Twarc2:
         until_id=None,
         start_time=None,
         end_time=None,
-        max_results=500,
+        max_results=100,  # temp fix for #504
     ):
         """
         Search Twitter for the given query in the full archive,
@@ -227,12 +224,6 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/search/all"
 
-        # start time defaults to the beginning of Twitter to override the
-        # default of the last month. Only do this if start_time is not already
-        # specified and since_id isn't being used
-        if start_time is None and since_id is None:
-            start_time = TWITTER_EPOCH
-
         return self._search(
             url,
             query,
@@ -241,6 +232,93 @@ class Twarc2:
             start_time,
             end_time,
             max_results,
+            sleep_between=1.05,
+        )
+
+    @requires_app_auth
+    def counts_recent(
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        granularity="hour",
+    ):
+        """
+        Retrieve counts for the given query in the last seven days,
+        using the `/counts/recent` endpoint.
+
+        Calls [GET /2/tweets/counts/recent]()
+
+        Args:
+            query (str):
+                The query string to be passed directly to the Twitter API.
+            since_id (int):
+                Return all tweets since this tweet_id.
+            until_id (int):
+                Return all tweets up to this tweet_id.
+            start_time (datetime):
+                Return all tweets after this time (UTC datetime).
+            end_time (datetime):
+                Return all tweets before this time (UTC datetime).
+            granularity (str):
+                Count aggregation level: `day`, `hour`, `minute`.
+                Default is `hour`.
+
+        Returns:
+            generator[dict]: a generator, dict for each paginated response.
+        """
+        url = "https://api.twitter.com/2/tweets/counts/recent"
+        return self._search(
+            url, query, since_id, until_id, start_time, end_time, None, granularity
+        )
+
+    @requires_app_auth
+    def counts_all(
+        self,
+        query,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        granularity="hour",
+    ):
+        """
+        Retrieve counts for the given query in the full archive,
+        using the `/search/all` endpoint (Requires Academic Access).
+
+        Calls [GET /2/tweets/counts/all]()
+
+        Args:
+            query (str):
+                The query string to be passed directly to the Twitter API.
+            since_id (int):
+                Return all tweets since this tweet_id.
+            until_id (int):
+                Return all tweets up to this tweet_id.
+            start_time (datetime):
+                Return all tweets after this time (UTC datetime).
+            end_time (datetime):
+                Return all tweets before this time (UTC datetime).
+            granularity (str):
+                Count aggregation level: `day`, `hour`, `minute`.
+                Default is `hour`.
+
+        Returns:
+            generator[dict]: a generator, dict for each paginated response.
+        """
+        url = "https://api.twitter.com/2/tweets/counts/all"
+
+        return self._search(
+            url,
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            None,
+            granularity,
             sleep_between=1.05,
         )
 
@@ -337,6 +415,7 @@ class Twarc2:
         if batch:
             yield (lookup_batch(batch))
 
+    @catch_request_exceptions
     @requires_app_auth
     def sample(self, event=None, record_keepalive=False):
         """
@@ -359,65 +438,8 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
-        errors = 0
-
-        while True:
-            try:
-                log.info("Connecting to V2 sample stream")
-                resp = self.get(url, params=expansions.EVERYTHING.copy(), stream=True)
-                errors = 0
-                for line in resp.iter_lines(chunk_size=512):
-
-                    # quit & close the stream if the event is set
-                    if event and event.is_set():
-                        log.info("stopping sample")
-                        resp.close()
-                        return
-
-                    # return the JSON data w/ optional keep-alive
-                    if not line:
-                        log.info("keep-alive")
-                        if record_keepalive:
-                            yield "keep-alive"
-                        continue
-                    else:
-                        data = json.loads(line.decode())
-                        if self.metadata:
-                            data = _append_metadata(data, resp.url)
-                        yield data
-
-                        # Check for an operational disconnect error in the response
-                        if data.get("errors", []):
-                            for error in data["errors"]:
-                                if (
-                                    error.get("disconnect_type")
-                                    == "OperationalDisconnect"
-                                ):
-                                    log.info(
-                                        "Received operational disconnect message: "
-                                        "This stream has fallen too far behind in "
-                                        "processing tweets. Some data may have been "
-                                        "lost."
-                                    )
-                                    # Sleep briefly, then break this get call and
-                                    # attempt to reconnect.
-                                    time.sleep(5)
-                                    break
-
-            except requests.exceptions.HTTPError as e:
-                errors += 1
-                log.error("caught http error %s on %s try", e, errors)
-                if self.http_errors and errors == self.http_errors:
-                    log.warning("too many errors")
-                    raise e
-                if e.response.status_code == 420:
-                    if interruptible_sleep(errors * 60, event):
-                        log.info("stopping filter")
-                        return
-                else:
-                    if interruptible_sleep(errors * 5, event):
-                        log.info("stopping filter")
-                        return
+        params = expansions.EVERYTHING.copy()
+        yield from self._stream(url, params, event, record_keepalive)
 
     @requires_app_auth
     def add_stream_rules(self, rules):
@@ -465,7 +487,7 @@ class Twarc2:
         return self.post(url, {"delete": {"ids": rule_ids}}).json()
 
     @requires_app_auth
-    def stream(self, event=None, record_keep_alives=False):
+    def stream(self, event=None, record_keepalive=False):
         """
         Returns a stream of tweets matching the defined rules.
 
@@ -487,25 +509,62 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/search/stream"
         params = expansions.EVERYTHING.copy()
-        resp = self.get(url, params=params, stream=True)
-        for line in resp.iter_lines():
+        yield from self._stream(url, params, event, record_keepalive)
 
-            # quit & close the stream if the event is set
-            if event and event.is_set():
-                log.info("stopping filter")
-                resp.close()
-                return
+    def _stream(self, url, params, event, record_keepalive, tries=30):
+        """
+        A generator that handles streaming data from a response and catches and
+        logs any request exceptions, sleeps (exponential backoff) and restarts
+        the stream.
 
-            if line == b"":
-                log.info("keep-alive")
-                if record_keep_alives:
-                    yield "keep-alive"
-            else:
-                data = json.loads(line.decode())
-                if self.metadata:
-                    data = _append_metadata(data, resp.url)
+        Args:
+            url (str): the streaming endpoint URL
+            params (dict): any query paramters to use with the url
+            event (threading.Event): Manages a flag to stop the process.
+            record_keepalive (bool): whether to output keep-alive events.
+            tries (int): the number of times to retry connecting after an error
+        Returns:
+            generator[dict]: A generator of tweet dicts.
+        """
+        errors = 0
+        while True:
+            log.info(f"connecting to stream {url}")
+            resp = self.get(url, params=params, stream=True)
 
-                yield data
+            try:
+                for line in resp.iter_lines():
+                    errors = 0
+
+                    # quit & close the stream if the event is set
+                    if event and event.is_set():
+                        log.info("stopping response stream")
+                        resp.close()
+                        return
+
+                    # return the JSON data w/ optional keep-alive
+                    if not line:
+                        log.info("keep-alive")
+                        if record_keepalive:
+                            yield "keep-alive"
+                        continue
+                    else:
+                        data = json.loads(line.decode())
+                        if self.metadata:
+                            data = _append_metadata(data, resp.url)
+                        yield data
+                        if self._check_for_disconnect(data):
+                            break
+
+            except requests.exceptions.RequestException as e:
+                log.warn("caught exception during streaming: %s", e)
+                errors += 1
+                if errors > tries:
+                    log.error(f"too many consecutive errors ({tries}). stopping")
+                    return
+                else:
+                    secs = errors ** 2
+                    log.info("sleeping %s seconds before reconnecting", secs)
+                    time.sleep(secs)
 
     def _timeline(
         self,
@@ -648,7 +707,7 @@ class Twarc2:
             exclude_replies,
         )
 
-    def following(self, user):
+    def following(self, user, user_id=None):
         """
         Retrieve the user profiles of accounts followed by the given user.
 
@@ -660,13 +719,13 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-        user_id = self._ensure_user_id(user)
+        user_id = self._ensure_user_id(user) if not user_id else user_id
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/following"
         return self.get_paginated(url, params=params)
 
-    def followers(self, user):
+    def followers(self, user, user_id=None):
         """
         Retrieve the user profiles of accounts following the given user.
 
@@ -678,16 +737,14 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-        user_id = self._ensure_user_id(user)
+        user_id = self._ensure_user_id(user) if not user_id else user_id
         params = expansions.USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
         return self.get_paginated(url, params=params)
 
+    @catch_request_exceptions
     @rate_limit
-    @catch_conn_reset
-    @catch_timeout
-    @catch_gzip_errors
     def get(self, *args, **kwargs):
         """
         Make a GET request to a specified URL.
@@ -699,36 +756,11 @@ class Twarc2:
         Returns:
             requests.Response: Response from Twitter API.
         """
-
-        # Pass allow 404 to not retry on 404
-        allow_404 = kwargs.pop("allow_404", False)
-        connection_error_count = kwargs.pop("connection_error_count", 0)
-        try:
-            log.info("getting %s %s", args, kwargs)
-            r = self.last_response = self.client.get(
-                *args, timeout=(3.05, 31), **kwargs
-            )
-            # this has been noticed, believe it or not
-            # https://github.com/edsu/twarc/issues/75
-            if r.status_code == 404 and not allow_404:
-                log.warning("404 from Twitter API! trying again")
-                time.sleep(1)
-                r = self.get(*args, **kwargs)
-            return r
-        except (ssl.SSLError, ConnectionError, ProtocolError) as e:
-            connection_error_count += 1
-            log.error("caught connection error %s on %s try", e, connection_error_count)
-            if (
-                self.connection_errors
-                and connection_error_count == self.connection_errors
-            ):
-                log.error("received too many connection errors")
-                raise e
-            else:
-                self.connect()
-                kwargs["connection_error_count"] = connection_error_count
-                kwargs["allow_404"] = allow_404
-                return self.get(*args, **kwargs)
+        if not self.client:
+            self.connect()
+        log.info("getting %s %s", args, kwargs)
+        r = self.last_response = self.client.get(*args, timeout=(3.05, 31), **kwargs)
+        return r
 
     def get_paginated(self, *args, **kwargs):
         """
@@ -779,6 +811,7 @@ class Twarc2:
 
             yield page
 
+    @catch_request_exceptions
     @rate_limit
     def post(self, url, json_data):
         """
@@ -836,12 +869,11 @@ class Twarc2:
                 resource_owner_secret=self.access_token_secret,
             )
 
-
     @requires_app_auth
     def compliance_job_list(self, start_time, end_time, status):
         """
         Returns list of compliance jobs. Calls
-        
+
         Calls [GET /2/tweets/compliance/jobs](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-tweet/api-reference/get-tweets-compliance-jobs)
 
         Args:
@@ -858,25 +890,76 @@ class Twarc2:
             params["end_time"] = end_time
         if status:
             params["status"] = status
-        result = self.client.get("https://api.twitter.com/2/tweets/compliance/jobs", params=params).json()
+        result = self.client.get(
+            "https://api.twitter.com/2/tweets/compliance/jobs", params=params
+        ).json()
         if "data" in result:
             return result["data"]
         elif "error" in result:
-            raise ValueError(f"{result['error']['message']} Your app is most likely not in the alpha test for this feature. It is not yet available to you.")
+            raise ValueError(
+                f"{result['error']['message']} Your app is most likely not in the alpha test for this feature. It is not yet available to you."
+            )
         else:
             raise ValueError(f"Unknown response from twitter: {result}")
 
+    def _id_exists(self, user):
+        """
+        Returns True if the user id exists
+        """
+        try:
+            error_name = next(self.user_lookup([user]))["errors"][0]["title"]
+            return error_name != "Not Found Error"
+        except KeyError:
+            return True
 
     def _ensure_user_id(self, user):
+        """
+        Always return a valid user id, look up if not numeric.
+        """
         user = str(user)
-        if re.match(r"^\d+$", user):
+        is_numeric = re.match(r"^\d+$", user)
+
+        if len(user) > 15 or (is_numeric and self._id_exists(user)):
             return user
         else:
             results = next(self.user_lookup([user], usernames=True))
             if "data" in results and len(results["data"]) > 0:
                 return results["data"][0]["id"]
+            elif is_numeric:
+                return user
             else:
                 raise ValueError(f"No such user {user}")
+
+    def _ensure_user(self, user):
+        """
+        Always return a valid user object.
+        """
+        user = str(user)
+        is_numeric = re.match(r"^\d+$", user)
+
+        lookup = []
+        if len(user) > 15 or (is_numeric and self._id_exists(user)):
+            lookup = expansions.ensure_flattened(list(self.user_lookup([user])))
+        else:
+            lookup = expansions.ensure_flattened(
+                list(self.user_lookup([user], usernames=True))
+            )
+        if lookup:
+            return lookup[-1]
+        else:
+            raise ValueError(f"No such user {user}")
+
+    def _check_for_disconnect(self, data):
+        """
+        Look for disconnect errors in a response, and reconnect if found. The
+        function returns True if a disconnect was found and False otherwise.
+        """
+        for error in data.get("errors", []):
+            if error.get("disconnect_type") == "OperationalDisconnect":
+                log.info("Received operational disconnect message, reconnecting")
+                self.connect()
+                return True
+        return False
 
 
 def _ts(dt):
