@@ -4,11 +4,14 @@ The command line interfact to the Twitter v2 API.
 
 import re
 import json
+import time
 import twarc
 import click
 import logging
 import pathlib
 import datetime
+import humanize
+import requests
 import configobj
 import threading
 
@@ -1323,37 +1326,72 @@ def delete_all(T):
 @click.pass_obj
 def compliance_job(T):
     """
-    Create, retrieve and list batch Tweet compliance jobs. This feature is in alpha and not widely available.
+    Create, retrieve and list batch Tweet compliance jobs. This feature is in private alpha and not widely available yet.
     """
     pass
 
-@compliance_job.command('list')
-@click.option('--start-time', default=None,
-    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
-    help='The oldest UTC timestamp from which jobs will be provided by job creation time. (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
-@click.option('--end-time', default=None,
-    type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
-    help='The newest, most recent UTC timestamp from which jobs will be provided by job creation time. (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04')
-@click.option('--status', default='all', 
-    type=click.Choice(['all', 'in_progress', 'failed', 'complete', 'expired'], case_sensitive=False),
-    help="Allows to filter by job status. Only one of 'all', 'in_progress', 'failed', 'complete', 'expired' filter can be specified. Default: 'all'")
+
+@compliance_job.command("list")
+@click.option(
+    "--start-time",
+    default=None,
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="The oldest UTC timestamp from which jobs will be provided by job creation time. (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+)
+@click.option(
+    "--end-time",
+    default=None,
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="The newest, most recent UTC timestamp from which jobs will be provided by job creation time. (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+)
+@click.option(
+    "--status",
+    default="all",
+    type=click.Choice(
+        ["all", "in_progress", "failed", "complete", "expired"], case_sensitive=False
+    ),
+    help="Allows to filter by job status. Only one of 'all', 'in_progress', 'failed', 'complete', 'expired' filter can be specified. Default: 'all'",
+)
+@click.option(
+    "--verbose",
+    is_flag=True,
+    default=False,
+    help="Show all URLs",
+)
+@click.option(
+    "--json",
+    is_flag=True,
+    default=False,
+    help="Return the raw json content from the API.",
+)
 @click.pass_obj
 @cli_api_error
-def compliance_job_list(T, start_time, end_time, status):
+def compliance_job_list(T, start_time, end_time, status, verbose, json):
     """
     Returns a list of recent compliance jobs for Tweets.
     """
-    status = None if (status == 'all') else status # hack for broken API
-    result = T.compliance_job_list(start_time, end_time, status)   
-    if len(result) == 0:
-        click.echo(click.style(f"🙃  There are no compliance jobs.", fg='red'), err=True)
+    status = None if (status == "all") else status  # hack for broken API
+    result = T.compliance_job_list(start_time, end_time, status)
+
+    if json:
+        print(result)
+        return
+
+    if "data" not in result or len(result["data"]) == 0:
+        click.echo(
+            click.style(
+                f"There are no compliance jobs. Add them with twarc2 compliance-job create",
+                fg="red",
+                bold=True,
+            ),
+            err=True,
+        )
     else:
-        for job in result:
-            print(job) #todo: pretty print
+        for job in result["data"]:
+            _print_compliance_job(job, verbose)
 
 
-
-@compliance_job.command('create')
+@compliance_job.command("create")
 @click.pass_obj
 @cli_api_error
 def compliance_job_create(T):
@@ -1363,15 +1401,202 @@ def compliance_job_create(T):
     pass
 
 
-@compliance_job.command('get')
-@click.argument('job')
+@compliance_job.command("get")
+@click.argument("job")
+@click.option(
+    "--verbose",
+    is_flag=True,
+    default=False,
+    help="Show all URLs",
+)
+@click.option(
+    "--json",
+    is_flag=True,
+    default=False,
+    help="Return the raw json content from the API.",
+)
 @click.pass_obj
 @cli_api_error
-def compliance_job_get(T, job):
+def compliance_job_get(T, job, verbose, json):
     """
     Returns status and download information about the job with the specified ID.
     """
+    if json:
+        result = T.compliance_job_get(job)
+        print(result)
+        return
+
+    job = _get_job(T, job)
+    if job is None:
+        return
+
+    _print_compliance_job(job, verbose)
+
+    # Ask to download if complete
+    if job["status"] == "complete":
+        continue_download = input(
+            f"This job is complete, download it now into the current folder? [y or n]?"
+        )
+        if continue_download.lower() != "y":
+            _download_job(job)
+
+
+
+@compliance_job.command("download")
+@click.argument("job")
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--wait",
+    is_flag=True,
+    default=False,
+    help="Wait for the job to finish and download the results.",
+)
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
+@click.pass_obj
+@cli_api_error
+def compliance_job_download(T, job, outfile, wait, hide_progress):
+    """
+    Download the compliance job with the specified ID.
+    """
+
+    job = _get_job(T, job)
+    if job is None:
+        return
+
+    if job["status"] == "complete":
+        _download_job(job, outfile, hide_progress)
+    else:
+        if not wait:
+            click.echo(
+                click.style(
+                    f"Job {job['id']} is '{job['status']}'. Use 'twarc2 compliance-job get {job['id']}' to get the status. Or run this command again with --wait optionto wait for the job to complete.",
+                    fg="red",
+                    bold=True,
+                ),
+                err=True,
+            )
+        else:
+            _wait_for_job(job)
+            time.sleep(1)
+            _download_job(job, outfile, hide_progress)
+
+
+def _get_job(T, job):
+    """
+    Retrieve a job from the API by ID
+    """
+    result = T.compliance_job_get(job)
+    if "data" not in result and "job" not in result["data"]:
+        click.echo(
+            click.style(
+                f"Job {job} could not be found. List jobs with twarc2 compliance-job list",
+                fg="red",
+                bold=True,
+            ),
+            err=True,
+        )
+        return None
+    return result["data"]["job"]
+
+
+def _upload_job(job, infile, hide_progress=False):
+    """
+    Upload a file to the batch compliance job
+    """
+    url = job["upload_url"]
+
+
+def _wait_for_job(job, hide_progress=False):
+    """
+    Wait for the compliance job to complete
+    """
     pass
+
+
+def _download_job(job, outfile=None, hide_progress=False):
+    """
+    Download the compliance job.
+    """
+
+    url = job["download_url"]
+    job_name = job["name"] if "name" in job else "job"
+    if outfile is None:
+        outfile = f"{job_name}_compliance_{job['id']}.json"
+
+    response = requests.get(url, stream=True)
+    with tqdm.wrapattr(
+        open(outfile, "wb"),
+        "write",
+        disable=hide_progress,
+        unit="B",
+        unit_scale=True,
+        unit_divisor=1024,
+        miniters=1,
+        desc=outfile,
+        total=int(response.headers.get("content-length", 0)),
+    ) as fout:
+        for chunk in response.iter_content(chunk_size=4096):
+            fout.write(chunk)
+
+
+def _print_compliance_job(job, verbose):
+    job_colour = (
+        "red" if job["status"] == "expired" or job["status"] == "failed" else "green"
+    )
+    time_now = datetime.datetime.now(datetime.timezone.utc)
+
+    upload_exp = time_now - datetime.datetime.strptime(
+        job["upload_expires_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+    ).replace(tzinfo=datetime.timezone.utc)
+
+    download_exp = time_now - datetime.datetime.strptime(
+        job["download_expires_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+    ).replace(tzinfo=datetime.timezone.utc)
+
+    completion = ""
+    if "estimated_completion" in job:
+        est_completion = time_now - datetime.datetime.strptime(
+            job["estimated_completion"], "%Y-%m-%dT%H:%M:%S.%fZ"
+        ).replace(tzinfo=datetime.timezone.utc)
+        completion = f" estimated completion in {humanize.naturaltime(est_completion)}"
+
+    failure = ""
+    if "error" in job:
+        failure = job["error"]
+
+    job_name = job["name"] if "name" in job else "Job"
+    click.echo(
+        click.style(
+            f"{job_name} ID: {job['id']} STATUS: {job['status']} {completion}{failure}",
+            fg=job_colour,
+            bold=True,
+        ),
+        err=True,
+    )
+    if verbose:
+        upload_url = (
+            job["download_url"] if upload_exp.total_seconds() < 0 else "Expired"
+        )
+        click.echo(
+            click.style(
+                f"Upload Expiry: {humanize.naturaltime(upload_exp)} URL: {upload_url}"
+            ),
+            err=True,
+        )
+        download_url = (
+            job["download_url"] if download_exp.total_seconds() < 0 else "Expired"
+        )
+        click.echo(
+            click.style(
+                f"Download Expiry: {humanize.naturaltime(download_exp)} URL: {download_url}"
+            ),
+            err=True,
+        )
 
 
 def _rule_str(rule):
