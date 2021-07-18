@@ -872,7 +872,7 @@ class Twarc2:
     @requires_app_auth
     def compliance_job_list(self, start_time, end_time, status):
         """
-        Returns list of compliance jobs. Calls
+        Returns list of compliance jobs.
 
         Calls [GET /2/tweets/compliance/jobs](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-tweet/api-reference/get-tweets-compliance-jobs)
 
@@ -894,7 +894,32 @@ class Twarc2:
             "https://api.twitter.com/2/tweets/compliance/jobs", params=params
         ).json()
         if "data" in result:
-            return result["data"]
+            return result
+        elif "error" in result:
+            raise ValueError(
+                f"{result['error']['message']} Your app is most likely not in the alpha test for this feature. It is not yet available to you."
+            )
+        else:
+            raise ValueError(f"Unknown response from twitter: {result}")
+
+    @requires_app_auth
+    def compliance_job_get(self, job_id):
+        """
+        Returns a compliance job. 
+        
+        Calls [GET /2/tweets/compliance/jobs/{job_id}](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-tweet/api-reference/get-tweets-compliance-jobs-id)
+
+        Args:
+            job_id (int): The ID of the compliance job.
+
+        Returns:
+            dict: A compliance job.
+        """
+        result = self.client.get(
+            "https://api.twitter.com/2/tweets/compliance/jobs/{}".format(job_id)
+        ).json()
+        if "data" in result:
+            return result
         elif "error" in result:
             raise ValueError(
                 f"{result['error']['message']} Your app is most likely not in the alpha test for this feature. It is not yet available to you."
