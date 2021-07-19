@@ -286,12 +286,6 @@ class TimestampProgressBar(tqdm):
         except Exception as e:
             log.error(f"Failed to update progress bar: {e}")
 
-    def update_to(self, timestamp):
-        """
-        Update progress bar to a specific timestamp.
-        """
-        self.update(timestamp - self.n)
-
     @property
     def format_dict(self):
         d = super(TimestampProgressBar, self).format_dict  # original format dict

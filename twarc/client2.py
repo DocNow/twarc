@@ -905,8 +905,8 @@ class Twarc2:
     @requires_app_auth
     def compliance_job_get(self, job_id):
         """
-        Returns a compliance job. 
-        
+        Returns a compliance job.
+
         Calls [GET /2/tweets/compliance/jobs/{job_id}](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-tweet/api-reference/get-tweets-compliance-jobs-id)
 
         Args:
@@ -921,9 +921,7 @@ class Twarc2:
         if result.status_code == 200:
             result = result.json()
         else:
-            raise ValueError(
-                f"Error from API, response: {result.status_code}"
-            )
+            raise ValueError(f"Error from API, response: {result.status_code}")
         if "data" in result:
             return result
         elif "error" in result:

@@ -1685,9 +1685,7 @@ def _print_compliance_job(job, verbose=False):
         err=True,
     )
     if verbose:
-        upload_url = (
-            job["upload_url"] if upload_exp.total_seconds() < 0 else "Expired"
-        )
+        upload_url = job["upload_url"] if upload_exp.total_seconds() < 0 else "Expired"
         click.echo(
             click.style(
                 f"Upload Expiry: {humanize.naturaltime(upload_exp)} URL: {upload_url}"
