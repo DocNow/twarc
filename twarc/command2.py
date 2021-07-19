@@ -1359,22 +1359,22 @@ def compliance_job(T):
     help="Show all URLs",
 )
 @click.option(
-    "--json",
+    "--json-output",
     is_flag=True,
     default=False,
     help="Return the raw json content from the API.",
 )
 @click.pass_obj
 @cli_api_error
-def compliance_job_list(T, start_time, end_time, status, verbose, json):
+def compliance_job_list(T, start_time, end_time, status, verbose, json_output):
     """
     Returns a list of recent compliance jobs for Tweets.
     """
     status = None if (status == "all") else status  # hack for broken API
     result = T.compliance_job_list(start_time, end_time, status)
 
-    if json:
-        print(result)
+    if json_output:
+        click.echo(json.dumps(result))
         return
 
     if "data" not in result or len(result["data"]) == 0:
@@ -1410,20 +1410,20 @@ def compliance_job_create(T):
     help="Show all URLs",
 )
 @click.option(
-    "--json",
+    "--json-output",
     is_flag=True,
     default=False,
     help="Return the raw json content from the API.",
 )
 @click.pass_obj
 @cli_api_error
-def compliance_job_get(T, job, verbose, json):
+def compliance_job_get(T, job, verbose, json_output):
     """
     Returns status and download information about the job with the specified ID.
     """
-    if json:
+    if json_output:
         result = T.compliance_job_get(job)
-        print(result)
+        click.echo(json.dumps(result))
         return
 
     job = _get_job(T, job)
