@@ -1485,8 +1485,8 @@ def compliance_job_download(T, job, outfile, wait, hide_progress):
         if not wait:
             click.echo(
                 click.style(
-                    f"Job {job['id']} is '{job['status']}'. Use 'twarc2 compliance-job get {job['id']}' to get the status. Or run this command again with --wait optionto wait for the job to complete.",
-                    fg="red",
+                    f"Job {job['id']} is '{job['status']}'. Use:\n twarc2 compliance-job get {job['id']}\nto get the status. Or run:\n twarc2 compliance-job download --wait {job['id']}\nto wait for the job to complete.",
+                    fg="yellow",
                     bold=True,
                 ),
                 err=True,
