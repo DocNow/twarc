@@ -1441,7 +1441,6 @@ def compliance_job_get(T, job, verbose, json):
             _download_job(job)
 
 
-
 @compliance_job.command("download")
 @click.argument("job")
 @click.argument("outfile", type=click.File("w"), default="-")
@@ -1464,12 +1463,24 @@ def compliance_job_download(T, job, outfile, wait, hide_progress):
     Download the compliance job with the specified ID.
     """
 
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+
     job = _get_job(T, job)
     if job is None:
         return
 
     if job["status"] == "complete":
         _download_job(job, outfile, hide_progress)
+    elif job["status"] == "expired" or job["status"] == "failed":
+        click.echo(
+            click.style(
+                f"Job {job['id']} is '{job['status']}'. Retry submitting the job with 'twarc2 compliance-job create' command",
+                fg="red",
+                bold=True,
+            ),
+            err=True,
+        )
+        return
     else:
         if not wait:
             click.echo(
@@ -1481,9 +1492,8 @@ def compliance_job_download(T, job, outfile, wait, hide_progress):
                 err=True,
             )
         else:
-            _wait_for_job(job)
-            time.sleep(1)
-            _download_job(job, outfile, hide_progress)
+            if _wait_for_job(T, job):
+                _download_job(job, outfile, hide_progress)
 
 
 def _get_job(T, job):
@@ -1504,18 +1514,114 @@ def _get_job(T, job):
     return result["data"]["job"]
 
 
+def _wait_for_job(T, job, hide_progress=False):
+    """
+    Wait for the compliance job to complete
+    """
+
+    if (
+        job is not None
+        and "status" in job
+        and (job["status"] == "failed" or job["status"] == "expired")
+    ):
+        click.echo(
+            click.style(
+                f"Stopped waiting for job... Job status is {job['status']}",
+                fg="red",
+                bold=True,
+            )
+        )
+        return False
+
+    click.echo(
+        click.style(
+            f"Waiting for job {job['id']} to complete. Press Ctrl+C to cancel.",
+            fg="yellow",
+            bold=True,
+        ),
+        err=True,
+    )
+    while True:
+        try:
+            start_time = datetime.datetime.now(datetime.timezone.utc)
+
+            est_completion = (
+                datetime.datetime.strptime(
+                    job["estimated_completion"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                ).replace(tzinfo=datetime.timezone.utc)
+                if "estimated_completion" in job
+                else start_time
+            )
+
+            seconds_wait = int((est_completion - start_time).total_seconds())
+            if seconds_wait <= 0:
+                click.echo(
+                    click.style(
+                        f"Estimated completion time unknown or already past, waiting 1 minute instead.",
+                        fg="yellow",
+                        bold=True,
+                    ),
+                    err=True,
+                )
+                seconds_wait = 60
+                est_completion = datetime.datetime.now(
+                    datetime.timezone.utc
+                ) + datetime.timedelta(seconds=60)
+
+            with TimestampProgressBar(
+                since_id=None,
+                until_id=None,
+                start_time=start_time,
+                end_time=est_completion,
+                disable=hide_progress,
+                bar_format="{l_bar}{bar}| Waiting {n_time}/{total_time}",
+            ) as pbar:
+                for i in range(seconds_wait * 10):
+                    pbar.update(100)
+                    time.sleep(0.1)
+
+            job = _get_job(T, job["id"])
+            if job is not None and "status" in job:
+                if job["status"] == "complete":
+                    return True
+                elif job["status"] == "in_progress" or job["status"] == "created":
+                    continue
+                else:
+                    click.echo(
+                        click.style(
+                            f"Stopped waiting for job... Job status is {job['status']}",
+                            fg="red",
+                            bold=True,
+                        )
+                    )
+                    return False
+            else:
+                click.echo(
+                    click.style(
+                        f"Stopped waiting for job... Failed to retrieve job from API.",
+                        fg="red",
+                        bold=True,
+                    ),
+                    err=True,
+                )
+                return False
+
+        except KeyboardInterrupt:
+            click.echo(
+                click.style(
+                    "Stopped waiting for job... Run the command again to continue waiting.",
+                    fg="yellow",
+                    bold=True,
+                )
+            )
+            return False
+
+
 def _upload_job(job, infile, hide_progress=False):
     """
     Upload a file to the batch compliance job
     """
     url = job["upload_url"]
-
-
-def _wait_for_job(job, hide_progress=False):
-    """
-    Wait for the compliance job to complete
-    """
-    pass
 
 
 def _download_job(job, outfile=None, hide_progress=False):
@@ -1544,10 +1650,11 @@ def _download_job(job, outfile=None, hide_progress=False):
             fout.write(chunk)
 
 
-def _print_compliance_job(job, verbose):
-    job_colour = (
-        "red" if job["status"] == "expired" or job["status"] == "failed" else "green"
-    )
+def _print_compliance_job(job, verbose=False):
+    job_colour = "green"
+    if job["status"] == "expired" or job["status"] == "failed":
+        job_colour = "red"
+
     time_now = datetime.datetime.now(datetime.timezone.utc)
 
     upload_exp = time_now - datetime.datetime.strptime(
