@@ -917,7 +917,13 @@ class Twarc2:
         """
         result = self.client.get(
             "https://api.twitter.com/2/tweets/compliance/jobs/{}".format(job_id)
-        ).json()
+        )
+        if result.status_code == 200:
+            result = result.json()
+        else:
+            raise ValueError(
+                f"Error from API, response: {result.status_code}"
+            )
         if "data" in result:
             return result
         elif "error" in result:
