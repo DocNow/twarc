@@ -1552,7 +1552,6 @@ def _wait_for_job(T, job, hide_progress=False):
                 if "estimated_completion" in job
                 else start_time
             )
-
             seconds_wait = int((est_completion - start_time).total_seconds())
             if seconds_wait <= 0:
                 click.echo(
@@ -1687,7 +1686,7 @@ def _print_compliance_job(job, verbose=False):
     )
     if verbose:
         upload_url = (
-            job["download_url"] if upload_exp.total_seconds() < 0 else "Expired"
+            job["upload_url"] if upload_exp.total_seconds() < 0 else "Expired"
         )
         click.echo(
             click.style(
