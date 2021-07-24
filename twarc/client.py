@@ -359,7 +359,7 @@ class Twarc(object):
             return resp.json()
 
         for id in ids:
-            lookup_ids.append(id.strip())
+            lookup_ids.append(str(id).strip())
             if len(lookup_ids) == 100:
                 for u in do_lookup():
                     yield u
