@@ -270,6 +270,27 @@ class TimestampProgressBar(tqdm):
         ] = "{l_bar}{bar}| Processed {n_time}/{total_time} [{elapsed}<{remaining}, {tweet_count} tweets total {postfix}]"
         super().__init__(**kwargs)
 
+    def update_with_dates(self, start_span, end_span):
+        """
+        Update the progress bar with a start and end time span.
+        """
+        try:
+            if isinstance(start_span, str):
+                start_span = datetime.datetime.strptime(
+                        start_span, "%Y-%m-%dT%H:%M:%S.%fZ"
+                    )
+            if isinstance(end_span, str):
+                end_span = datetime.datetime.strptime(
+                        end_span, "%Y-%m-%dT%H:%M:%S.%fZ"
+                    )
+            n = _date2millis(end_span) - _date2millis(start_span)
+            if self.n + n > self.total:
+                self.n = self.total
+            else:
+                self.update(n)
+        except Exception as e:
+            log.error(f"Failed to update progress bar: {e}")
+
     def update_with_result(self, result):
         """
         Update progress bar based on snowflake ids.
