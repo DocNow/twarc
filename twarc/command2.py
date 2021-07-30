@@ -444,10 +444,12 @@ def counts(
                     )
             else:
                 _write(result, outfile)
-            
+
             # Progress and limits:
             if len(result["data"]) > 0:
-                progress.update_with_dates(result["data"][0]["start"], result["data"][-1]["end"])
+                progress.update_with_dates(
+                    result["data"][0]["start"], result["data"][-1]["end"]
+                )
                 progress.tweet_count += result["meta"]["total_tweet_count"]
             count += len(result["data"])
 
@@ -895,11 +897,9 @@ def timelines(
                     users = set([line])
 
                 # otherwise try to flatten the data and get the user ids
-                else: 
+                else:
                     try:
-                        users = set(
-                            [t["author"]["id"] for t in ensure_flattened(data)]
-                        )
+                        users = set([t["author"]["id"] for t in ensure_flattened(data)])
                     except (KeyError, ValueError):
                         log.warn(
                             "ignored line %s which didn't contain users", line_count
@@ -929,11 +929,9 @@ def timelines(
 
                 # ignore what don't appear to be a username or user id since
                 # they can cause the Twitter API to throw a 400 error
-                if not re.match(r'^((\w{1,15})|(\d+))$', user):
+                if not re.match(r"^((\w{1,15})|(\d+))$", user):
                     log.warn(
-                        'invalid username or user id "%s" on line %s',
-                        line,
-                        line_count
+                        'invalid username or user id "%s" on line %s', line, line_count
                     )
                     continue
 
@@ -1353,6 +1351,7 @@ def _error_str(errors):
             parts.append(s)
 
     return click.style("\n".join(parts), fg="red")
+
 
 def _write(results, outfile, pretty=False):
     indent = 2 if pretty else None

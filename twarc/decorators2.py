@@ -277,12 +277,10 @@ class TimestampProgressBar(tqdm):
         try:
             if isinstance(start_span, str):
                 start_span = datetime.datetime.strptime(
-                        start_span, "%Y-%m-%dT%H:%M:%S.%fZ"
-                    )
+                    start_span, "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
             if isinstance(end_span, str):
-                end_span = datetime.datetime.strptime(
-                        end_span, "%Y-%m-%dT%H:%M:%S.%fZ"
-                    )
+                end_span = datetime.datetime.strptime(end_span, "%Y-%m-%dT%H:%M:%S.%fZ")
             n = _date2millis(end_span) - _date2millis(start_span)
             if self.n + n > self.total:
                 self.n = self.total
