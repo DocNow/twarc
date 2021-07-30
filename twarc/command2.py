@@ -367,6 +367,12 @@ def search(
     help="Output the counts as human readable text",
 )
 @click.option("--csv", is_flag=True, default=False, help="Output counts as CSV")
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -384,11 +390,18 @@ def counts(
     limit,
     text,
     csv,
+    hide_progress,
 ):
     """
     Return counts of tweets matching a query.
     """
     count = 0
+
+    # Make sure times are always in UTC, click sometimes doesn't add timezone:
+    if start_time is not None and start_time.tzinfo is None:
+        start_time = start_time.replace(tzinfo=timezone.utc)
+    if end_time is not None and end_time.tzinfo is None:
+        end_time = end_time.replace(tzinfo=timezone.utc)
 
     if archive:
         count_method = T.counts_all
@@ -403,34 +416,52 @@ def counts(
     if csv:
         click.echo(f"start,end,{granularity}_count", file=outfile)
 
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
     total_tweets = 0
 
-    for result in count_method(
-        query,
-        since_id,
-        until_id,
-        start_time,
-        end_time,
-        granularity,
-    ):
-        if text:
-            for r in result["data"]:
-                total_tweets += r["tweet_count"]
-                click.echo("{start} - {end}: {tweet_count:,}".format(**r), file=outfile)
-        elif csv:
-            for r in result["data"]:
-                click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile)
-        else:
-            _write(result, outfile)
-        count += len(result["data"])
-        if limit != 0 and count >= limit:
-            break
+    with TimestampProgressBar(
+        since_id, until_id, start_time, end_time, disable=hide_progress
+    ) as progress:
+        for result in count_method(
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            granularity,
+        ):
+            # Count outputs:
+            if text:
+                for r in result["data"]:
+                    total_tweets += r["tweet_count"]
+                    click.echo(
+                        "{start} - {end}: {tweet_count:,}".format(**r), file=outfile
+                    )
+            elif csv:
+                for r in result["data"]:
+                    click.echo(
+                        f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile
+                    )
+            else:
+                _write(result, outfile)
+            
+            # Progress and limits:
+            if len(result["data"]) > 0:
+                progress.update_with_dates(result["data"][0]["start"], result["data"][-1]["end"])
+                progress.tweet_count += result["meta"]["total_tweet_count"]
+            count += len(result["data"])
 
-        if text:
-            click.echo(
-                click.style("\nTotal Tweets: {:,}\n".format(total_tweets), fg="green"),
-                file=outfile,
-            )
+            if limit != 0 and count >= limit:
+                break
+            if text:
+                click.echo(
+                    click.style(
+                        "\nTotal Tweets: {:,}\n".format(total_tweets), fg="green"
+                    ),
+                    file=outfile,
+                )
+        else:
+            progress.early_stop = False
 
 
 @twarc2.command("tweet")
