@@ -10,7 +10,6 @@ import time
 import logging
 import datetime
 import requests
-import datetime
 
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth1Session, OAuth2Session

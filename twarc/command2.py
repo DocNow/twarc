@@ -887,24 +887,27 @@ def timelines(
 
             users = None
             try:
-                # first try to get user ids from a flattened Twitter response
-                json_data = json.loads(line)
-                try:
-                    users = set(
-                        [t["author"]["id"] for t in ensure_flattened(json_data)]
-                    )
-                except (KeyError, ValueError):
-                    # if it's not tweet JSON but it parsed as a string use that as a user
-                    if isinstance(json_data, str) and json_data:
-                        users = set([json_data])
-                    else:
+                # assume this the line contains some tweet json
+                data = json.loads(line)
+
+                # if it parsed as a string or int assume it's a username
+                if isinstance(data, str) or isinstance(data, int):
+                    users = set([line])
+
+                # otherwise try to flatten the data and get the user ids
+                else: 
+                    try:
+                        users = set(
+                            [t["author"]["id"] for t in ensure_flattened(data)]
+                        )
+                    except (KeyError, ValueError):
                         log.warn(
                             "ignored line %s which didn't contain users", line_count
                         )
                         continue
 
             except json.JSONDecodeError:
-                # assume it's a single user
+                # maybe it's a single user?
                 users = set([line])
 
             if users is None:
@@ -923,6 +926,17 @@ def timelines(
                 if user in seen:
                     log.info("already processed %s, skipping", user)
                     continue
+
+                # ignore what don't appear to be a username or user id since
+                # they can cause the Twitter API to throw a 400 error
+                if not re.match(r'^((\w{1,15})|(\d+))$', user):
+                    log.warn(
+                        'invalid username or user id "%s" on line %s',
+                        line,
+                        line_count
+                    )
+                    continue
+
                 seen.add(user)
 
                 tweets = _timeline_tweets(
@@ -1339,7 +1353,6 @@ def _error_str(errors):
             parts.append(s)
 
     return click.style("\n".join(parts), fg="red")
-
 
 def _write(results, outfile, pretty=False):
     indent = 2 if pretty else None
