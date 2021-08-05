@@ -615,6 +615,52 @@ def hydrate(T, infile, outfile, hide_progress):
             progress.update_with_result(result, error_resource_type="tweet")
 
 
+@twarc2.command("dehydrate")
+@click.argument("infile", type=click.File("r"), default="-")
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
+@cli_api_error
+def dehydrate(infile, outfile, hide_progress):
+    """
+    Extract IDs from a dataset.
+    """
+    if infile.name == outfile.name:
+        click.echo(
+            click.style(
+                f"💔 Cannot extract files in-place, specify a different output file!",
+                fg="red",
+            ),
+            err=True,
+        )
+        return
+
+    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+        count = 0
+        for line in infile:
+            count += 1
+            progress.update(len(line))
+
+            # ignore empty lines
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                for tweet in ensure_flattened(json.loads(line)):
+                    click.echo(tweet["id"], file=outfile)
+            except ValueError as e:
+                click.echo(f"Unexpected JSON data on line {count}", err=True)
+                break
+            except json.decoder.JSONDecodeError as e:
+                click.echo(f"Invalid JSON on line {count}", err=True)
+                break
+
+
 @twarc2.command("users")
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
