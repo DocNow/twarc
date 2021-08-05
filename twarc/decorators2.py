@@ -202,9 +202,10 @@ class FileSizeProgressBar(tqdm):
         self, result, field="id", error_resource_type=None, error_parameter="ids"
     ):
         try:
-            for item in result["data"]:
-                # Use the length of the id / name and a newline to match original file
-                self.update(len(item[field]) + len("\n"))
+            if "data" in result:
+                for item in result["data"]:
+                    # Use the length of the id / name and a newline to match original file
+                    self.update(len(item[field]) + len("\n"))
             if error_resource_type and "errors" in result:
                 for error in result["errors"]:
                     # Account for deleted data
