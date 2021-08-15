@@ -222,12 +222,16 @@ def test_stream():
     # make sure they are there
     rules = T.get_stream_rules()
     assert len(rules["data"]) == 2
+
+    # these properties should be set
     assert rules["data"][0]["id"]
-    assert rules["data"][0]["value"] == "hey"
     assert rules["data"][0]["tag"] == "twarc-test"
     assert rules["data"][1]["id"]
-    assert rules["data"][1]["value"] == "joe"
     assert rules["data"][1]["tag"] == "twarc-test"
+
+    # the order of the values is not guaranteed
+    assert "hey" in [r["value"] for r in rules["data"]]
+    assert "joe" in [r["value"] for r in rules["data"]]
 
     # collect some data
     event = threading.Event()
@@ -384,9 +388,12 @@ def test_flattened():
             if "attachments" in tweet:
                 if "media_keys" in tweet["attachments"]:
                     assert "media" in tweet["attachments"]
+                    assert tweet["attachments"]["media"]
+                    assert tweet["attachments"]["media"][0]["width"]
                     found_attachments_media = True
                 if "poll_ids" in tweet["attachments"]:
                     assert "poll" in tweet["attachments"]
+                    assert tweet["attachments"]["poll"]
                     found_attachments_polls = True
 
             if "geo" in tweet:
