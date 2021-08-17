@@ -234,6 +234,12 @@ def _search(
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
             max_results = 100  # temp fix for #504
+
+        # start time defaults to the beginning of Twitter to override the
+        # default of the last month. Only do this if start_time is not already
+        # specified and since_id and until_id aren't being used
+        if start_time is None and since_id is None and until_id is None:
+            start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         if max_results == 0:
             max_results = 100
