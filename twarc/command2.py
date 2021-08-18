@@ -407,8 +407,8 @@ def counts(
         count_method = T.counts_all
         # start time defaults to the beginning of Twitter to override the
         # default of the last month. Only do this if start_time is not already
-        # specified and since_id isn't being used
-        if start_time is None and since_id is None:
+        # specified and since_id/until_id aren't being used
+        if start_time is None and since_id is None and until_id is None:
             start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         count_method = T.counts_recent
