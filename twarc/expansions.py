@@ -65,6 +65,7 @@ TWEET_FIELDS = [
 ]
 
 MEDIA_FIELDS = [
+    "alt_text",
     "duration_ms",
     "height",
     "media_key",

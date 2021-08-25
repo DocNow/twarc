@@ -240,8 +240,8 @@ def _search(
 
         # start time defaults to the beginning of Twitter to override the
         # default of the last month. Only do this if start_time is not already
-        # specified and since_id isn't being used
-        if start_time is None and since_id is None:
+        # specified and since_id and until_id aren't being used
+        if start_time is None and since_id is None and until_id is None:
             start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         if max_results == 0:
@@ -370,6 +370,12 @@ def search(
     help="Output the counts as human readable text",
 )
 @click.option("--csv", is_flag=True, default=False, help="Output counts as CSV")
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -387,48 +393,80 @@ def counts(
     limit,
     text,
     csv,
+    hide_progress,
 ):
     """
     Return counts of tweets matching a query.
     """
     count = 0
 
+    # Make sure times are always in UTC, click sometimes doesn't add timezone:
+    if start_time is not None and start_time.tzinfo is None:
+        start_time = start_time.replace(tzinfo=timezone.utc)
+    if end_time is not None and end_time.tzinfo is None:
+        end_time = end_time.replace(tzinfo=timezone.utc)
+
     if archive:
         count_method = T.counts_all
+        # start time defaults to the beginning of Twitter to override the
+        # default of the last month. Only do this if start_time is not already
+        # specified and since_id/until_id aren't being used
+        if start_time is None and since_id is None and until_id is None:
+            start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         count_method = T.counts_recent
 
     if csv:
         click.echo(f"start,end,{granularity}_count", file=outfile)
 
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
     total_tweets = 0
 
-    for result in count_method(
-        query,
-        since_id,
-        until_id,
-        start_time,
-        end_time,
-        granularity,
-    ):
-        if text:
-            for r in result["data"]:
-                total_tweets += r["tweet_count"]
-                click.echo("{start} - {end}: {tweet_count:,}".format(**r), file=outfile)
-        elif csv:
-            for r in result["data"]:
-                click.echo(f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile)
-        else:
-            _write(result, outfile)
-        count += len(result["data"])
-        if limit != 0 and count >= limit:
-            break
+    with TimestampProgressBar(
+        since_id, until_id, start_time, end_time, disable=hide_progress
+    ) as progress:
+        for result in count_method(
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            granularity,
+        ):
+            # Count outputs:
+            if text:
+                for r in result["data"]:
+                    total_tweets += r["tweet_count"]
+                    click.echo(
+                        "{start} - {end}: {tweet_count:,}".format(**r), file=outfile
+                    )
+            elif csv:
+                for r in result["data"]:
+                    click.echo(
+                        f'{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile
+                    )
+            else:
+                _write(result, outfile)
 
-        if text:
-            click.echo(
-                click.style("\nTotal Tweets: {:,}\n".format(total_tweets), fg="green"),
-                file=outfile,
-            )
+            # Progress and limits:
+            if len(result["data"]) > 0:
+                progress.update_with_dates(
+                    result["data"][0]["start"], result["data"][-1]["end"]
+                )
+                progress.tweet_count += result["meta"]["total_tweet_count"]
+            count += len(result["data"])
+
+            if limit != 0 and count >= limit:
+                break
+            if text:
+                click.echo(
+                    click.style(
+                        "\nTotal Tweets: {:,}\n".format(total_tweets), fg="green"
+                    ),
+                    file=outfile,
+                )
+        else:
+            progress.early_stop = False
 
 
 @twarc2.command("tweet")
@@ -578,6 +616,52 @@ def hydrate(T, infile, outfile, hide_progress):
             tweet_ids = [t["id"] for t in result.get("data", [])]
             log.info("archived %s", ",".join(tweet_ids))
             progress.update_with_result(result, error_resource_type="tweet")
+
+
+@twarc2.command("dehydrate")
+@click.argument("infile", type=click.File("r"), default="-")
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress, unless using pipes.",
+)
+@cli_api_error
+def dehydrate(infile, outfile, hide_progress):
+    """
+    Extract IDs from a dataset.
+    """
+    if infile.name == outfile.name:
+        click.echo(
+            click.style(
+                f"💔 Cannot extract files in-place, specify a different output file!",
+                fg="red",
+            ),
+            err=True,
+        )
+        return
+
+    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+        count = 0
+        for line in infile:
+            count += 1
+            progress.update(len(line))
+
+            # ignore empty lines
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                for tweet in ensure_flattened(json.loads(line)):
+                    click.echo(tweet["id"], file=outfile)
+            except ValueError as e:
+                click.echo(f"Unexpected JSON data on line {count}", err=True)
+                break
+            except json.decoder.JSONDecodeError as e:
+                click.echo(f"Invalid JSON on line {count}", err=True)
+                break
 
 
 @twarc2.command("users")
@@ -854,24 +938,25 @@ def timelines(
 
             users = None
             try:
-                # first try to get user ids from a flattened Twitter response
-                json_data = json.loads(line)
-                try:
-                    users = set(
-                        [t["author"]["id"] for t in ensure_flattened(json_data)]
-                    )
-                except (KeyError, ValueError):
-                    # if it's not tweet JSON but it parsed as a string use that as a user
-                    if isinstance(json_data, str) and json_data:
-                        users = set([json_data])
-                    else:
+                # assume this the line contains some tweet json
+                data = json.loads(line)
+
+                # if it parsed as a string or int assume it's a username
+                if isinstance(data, str) or isinstance(data, int):
+                    users = set([line])
+
+                # otherwise try to flatten the data and get the user ids
+                else:
+                    try:
+                        users = set([t["author"]["id"] for t in ensure_flattened(data)])
+                    except (KeyError, ValueError):
                         log.warn(
                             "ignored line %s which didn't contain users", line_count
                         )
                         continue
 
             except json.JSONDecodeError:
-                # assume it's a single user
+                # maybe it's a single user?
                 users = set([line])
 
             if users is None:
@@ -890,6 +975,15 @@ def timelines(
                 if user in seen:
                     log.info("already processed %s, skipping", user)
                     continue
+
+                # ignore what don't appear to be a username or user id since
+                # they can cause the Twitter API to throw a 400 error
+                if not re.match(r"^((\w{1,15})|(\d+))$", user):
+                    log.warn(
+                        'invalid username or user id "%s" on line %s', line, line_count
+                    )
+                    continue
+
                 seen.add(user)
 
                 tweets = _timeline_tweets(

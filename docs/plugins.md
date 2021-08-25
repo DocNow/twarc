@@ -18,6 +18,7 @@ add it to this list):
 * [twarc-csv](https://pypi.org/project/twarc-csv/): export tweets to CSV
 * [twarc-network](https://pypi.org/project/twarc-network): visualize your tweets as a network graph
 * [twarc-timeline-archive](https://pypi.org/project/twarc-timeline-archive): routinely download tweet timelines for a list of users
+* [twarc-hashtags](https://pypi.org/project/twarc-hashtags): create a report of hashtags that are used in collected tweet data
 
 ## Writing a Plugin
 

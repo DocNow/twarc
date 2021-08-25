@@ -10,7 +10,6 @@ import time
 import logging
 import datetime
 import requests
-import datetime
 
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth1Session, OAuth2Session
@@ -213,7 +212,8 @@ class Twarc2:
             until_id (int):
                 Return all tweets up to this tweet_id.
             start_time (datetime):
-                Return all tweets after this time (UTC datetime).
+                Return all tweets after this time (UTC datetime). If none of start_time, since_id, or until_id
+                are specified, this defaults to 2006-3-21 to search the entire history of Twitter.
             end_time (datetime):
                 Return all tweets before this time (UTC datetime).
             max_results (int):
@@ -223,6 +223,12 @@ class Twarc2:
             generator[dict]: a generator, dict for each paginated response.
         """
         url = "https://api.twitter.com/2/tweets/search/all"
+
+        # start time defaults to the beginning of Twitter to override the
+        # default of the last month. Only do this if start_time is not already
+        # specified and since_id and until_id aren't being used
+        if start_time is None and since_id is None and until_id is None:
+            start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
 
         return self._search(
             url,
