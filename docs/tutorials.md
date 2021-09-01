@@ -14,6 +14,12 @@ Great beginner guide that also goes through command line and Python setup. Uses 
 
 Twitter have released a 101 guide on using the Academic Access endpoints. It uses `twarc2` as a library as opposed to command line, and gives code examples in R too.
 
+## Twitter Data Collection & Analysis
+
+<https://melaniewalsh.github.io/Intro-Cultural-Analytics/04-Data-Collection/12-Twitter-Data.html>
+
+Lesson from Introduction to Cultural Analytics & Python
+
 ## Getting Data from Twitter: A twarc tutorial
 
 <https://github.com/alblaine/twarc-tutorial>
