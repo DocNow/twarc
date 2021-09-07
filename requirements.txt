@@ -1,7 +1,7 @@
+click
+click-config-file
+click-plugins
+humanize
 python-dateutil
 requests_oauthlib
 tqdm
-humanize
-click
-click-plugins
-click-config-file

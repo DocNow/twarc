@@ -1,9 +1,4 @@
-requests_oauthlib
-click
-click-plugins
-click-config-file
-pytest
 mkdocs
+mkdocs-click
 mkdocs-material
 mkdocstrings
-mkdocs-click
