@@ -1,4 +1,7 @@
-mkdocs
-mkdocs-click
-mkdocs-material
-mkdocstrings
+click
+click-config-file
+click-plugins
+humanize
+python-dateutil
+requests_oauthlib
+tqdm
