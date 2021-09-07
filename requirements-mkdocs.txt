@@ -2,6 +2,10 @@ click
 click-config-file
 click-plugins
 humanize
+mkdocs
+mkdocs-click
+mkdocs-material
+mkdocstrings
 python-dateutil
 requests_oauthlib
 tqdm
