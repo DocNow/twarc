@@ -31,9 +31,7 @@ def rate_limit(f, tries=30):
             elif resp.status_code == 429:
                 reset = int(resp.headers["x-rate-limit-reset"])
                 now = time.time()
-                seconds = reset - now + 10
-                if seconds < 1:
-                    seconds = 10
+                seconds = min(901, max(10, (reset - now + 10)))
                 log.warning("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
             elif resp.status_code >= 500:
