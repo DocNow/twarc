@@ -532,6 +532,17 @@ def test_twarc_metadata():
     T.metadata = True
 
 
+def test_docs_requirements():
+    """
+    Make sure that the mkdocs requirements has everything that is in the
+    twarc requirements so the readthedocs build doesn't fail.
+    """
+    twarc_reqs = set(open("requirements.txt").read().split())
+    mkdocs_reqs = set(open("requirements-mkdocs.txt").read().split())
+
+    assert twarc_reqs.issubset(mkdocs_reqs)
+
+
 def pick_id(id, objects):
     """pick an object out of a list of objects using its id"""
     return list(filter(lambda o: o["id"] == id, objects))

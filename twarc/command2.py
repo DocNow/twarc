@@ -545,7 +545,7 @@ def followers(T, user, outfile, limit, hide_progress):
 @cli_api_error
 def following(T, user, outfile, limit, hide_progress):
     """
-    Get the users who are following a given user.
+    Get the users that a given user is following.
     """
     count = 0
     user_id = None

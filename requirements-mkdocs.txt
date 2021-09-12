@@ -1,9 +1,11 @@
-requests_oauthlib
 click
-click-plugins
 click-config-file
-pytest
+click-plugins
+humanize
 mkdocs
+mkdocs-click
 mkdocs-material
 mkdocstrings
-mkdocs-click
+python-dateutil
+requests_oauthlib
+tqdm
