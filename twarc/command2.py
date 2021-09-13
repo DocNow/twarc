@@ -1236,13 +1236,19 @@ def flatten(infile, outfile, hide_progress):
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.option(
+    "--id-type",
+    default="tweets",
+    type=click.Choice(["tweets", "users"], case_sensitive=False),
+    help="IDs to extract - either 'tweets' or 'users'.",
+)
+@click.option(
     "--hide-progress",
     is_flag=True,
     default=False,
     help="Hide the Progress bar. Default: show progress, unless using pipes.",
 )
 @cli_api_error
-def dehydrate(infile, outfile, hide_progress):
+def dehydrate(infile, outfile, id_type, hide_progress):
     """
     Extract IDs from a dataset.
     """
@@ -1269,7 +1275,13 @@ def dehydrate(infile, outfile, hide_progress):
 
             try:
                 for tweet in ensure_flattened(json.loads(line)):
-                    click.echo(tweet["id"], file=outfile)
+                    if id_type == "tweets":
+                        click.echo(tweet["id"], file=outfile)
+                    elif id_type == "users":
+                        click.echo(tweet["author_id"], file=outfile)
+            except KeyError as e:
+                click.echo(f"No {id_type} ID found in JSON data on line {count}", err=True)
+                break
             except ValueError as e:
                 click.echo(f"Unexpected JSON data on line {count}", err=True)
                 break
