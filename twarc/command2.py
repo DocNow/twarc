@@ -1453,7 +1453,7 @@ def compliance_job_list(T, job_type, status, verbose, json_output):
 
     if len(results) == 0:
         job_type_message = "tweet or user" if job_type is None else job_type
-        status_message = f" with Status \"{status}\"" if status else ""
+        status_message = f' with Status "{status}"' if status else ""
         click.echo(
             click.style(
                 f"🙃 There are no {job_type_message} compliance jobs{status_message}. To create a new job, see:\n twarc2 compliance-job create --help",
