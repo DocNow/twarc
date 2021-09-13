@@ -1438,7 +1438,7 @@ def compliance_job_list(T, job_type, status, verbose, json_output):
     """
 
     if job_type:
-        job_result = T.compliance_job_list(job_type, status)
+        job_result = T.compliance_job_list(job_type.lower(), status)
         results = job_result["data"] if "data" in job_result else []
     else:
         tweets_result = T.compliance_job_list("tweets", status)
@@ -1447,21 +1447,23 @@ def compliance_job_list(T, job_type, status, verbose, json_output):
         users_jobs = users_result["data"] if "data" in users_result else []
         results = tweets_jobs + users_jobs
 
-        if json_output:
-            click.echo(json.dumps(results))
-            return
+    if json_output:
+        click.echo(json.dumps(results))
+        return
 
-        if len(results) == 0:
-            click.echo(
-                click.style(
-                    f"🙃 There are no compliance jobs. Add them with twarc2 compliance-job create",
-                    fg="red",
-                ),
-                err=True,
-            )
-        else:
-            for job in results:
-                _print_compliance_job(job, verbose)
+    if len(results) == 0:
+        job_type_message = "tweet or user" if job_type is None else job_type
+        status_message = f" with Status \"{status}\"" if status else ""
+        click.echo(
+            click.style(
+                f"🙃 There are no {job_type_message} compliance jobs{status_message}. To create a new job, see:\n twarc2 compliance-job create --help",
+                fg="red",
+            ),
+            err=True,
+        )
+    else:
+        for job in results:
+            _print_compliance_job(job, verbose)
 
 
 @compliance_job.command("get")
