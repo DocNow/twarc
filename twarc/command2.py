@@ -2,6 +2,7 @@
 The command line interfact to the Twitter v2 API.
 """
 
+import os
 import re
 import json
 import time
@@ -16,6 +17,8 @@ import configobj
 import threading
 
 from tqdm.auto import tqdm
+from tqdm.utils import CallbackIOWrapper
+
 from datetime import timezone
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
@@ -1253,64 +1256,6 @@ def flatten(infile, outfile, hide_progress):
             progress.update(len(line))
 
 
-@twarc2.command("dehydrate")
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
-@click.option(
-    "--id-type",
-    default="tweets",
-    type=click.Choice(["tweets", "users"], case_sensitive=False),
-    help="IDs to extract - either 'tweets' or 'users'.",
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
-@cli_api_error
-def dehydrate(infile, outfile, id_type, hide_progress):
-    """
-    Extract IDs from a dataset.
-    """
-    if infile.name == outfile.name:
-        click.echo(
-            click.style(
-                f"💔 Cannot extract files in-place, specify a different output file!",
-                fg="red",
-            ),
-            err=True,
-        )
-        return
-
-    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
-        count = 0
-        for line in infile:
-            count += 1
-            progress.update(len(line))
-
-            # ignore empty lines
-            line = line.strip()
-            if not line:
-                continue
-
-            try:
-                for tweet in ensure_flattened(json.loads(line)):
-                    if id_type == "tweets":
-                        click.echo(tweet["id"], file=outfile)
-                    elif id_type == "users":
-                        click.echo(tweet["author_id"], file=outfile)
-            except KeyError as e:
-                click.echo(f"No {id_type} ID found in JSON data on line {count}", err=True)
-                break
-            except ValueError as e:
-                click.echo(f"Unexpected JSON data on line {count}", err=True)
-                break
-            except json.decoder.JSONDecodeError as e:
-                click.echo(f"Invalid JSON on line {count}", err=True)
-                break
-
-
 @twarc2.command("stream")
 @click.option("--limit", default=0, help="Maximum number of tweets to return")
 @click.argument("outfile", type=click.File("a+"), default="-")
@@ -1494,12 +1439,12 @@ def compliance_job_list(T, job_type, status, verbose, json_output):
 
     if job_type:
         job_result = T.compliance_job_list(job_type, status)
-        results = job_result['data'] if 'data' in job_result else []
+        results = job_result["data"] if "data" in job_result else []
     else:
         tweets_result = T.compliance_job_list("tweets", status)
         users_result = T.compliance_job_list("users", status)
-        tweets_jobs = tweets_result['data'] if 'data' in tweets_result else []
-        users_jobs = users_result['data'] if 'data' in users_result else []
+        tweets_jobs = tweets_result["data"] if "data" in tweets_result else []
+        users_jobs = users_result["data"] if "data" in users_result else []
         results = tweets_jobs + users_jobs
 
         if json_output:
@@ -1560,7 +1505,7 @@ def compliance_job_get(T, job, verbose, json_output):
 
 
 @compliance_job.command("create")
-@click.argument("infile", type=click.File("r"), required=True, default="-")
+@click.argument("infile", type=click.Path(), required=True)
 @click.argument("outfile", type=click.Path(), required=False, default=None)
 @click.option(
     "--job-type",
@@ -1568,6 +1513,7 @@ def compliance_job_get(T, job, verbose, json_output):
     type=click.Choice(["tweets", "users"], case_sensitive=False),
     help="Job type - either 'tweets' or 'users'.",
 )
+@click.option("--job-name", type=str, help="A name or tag to help identify the job.")
 @click.option(
     "--wait",
     is_flag=True,
@@ -1582,11 +1528,56 @@ def compliance_job_get(T, job, verbose, json_output):
 )
 @click.pass_obj
 @cli_api_error
-def compliance_job_create(T, infile, outfile, job_type, wait, hide_progress):
+def compliance_job_create(T, infile, outfile, job_type, job_name, wait, hide_progress):
     """
     Create a new compliance job and upload tweet IDs.
     """
-    pass
+
+    # Check for file contents:
+    with open(infile) as f:
+        try:
+            int(f.readline())
+        except:
+            click.echo(
+                click.style(
+                    f"🙃 The file {infile} does not contain a list of IDs. Use:",
+                    fg="red",
+                ),
+                err=True,
+            )
+            click.echo(
+                click.style(
+                    f" twarc2 dehydrate --id-type {job_type} {infile} output_ids.txt",
+                ),
+                err=True,
+            )
+            click.echo(
+                click.style(
+                    f"to create a file with {job_type} IDs.",
+                    fg="red",
+                ),
+                err=True,
+            )
+            return
+
+    # Create a job (not resumable right now):
+    _job = T.compliance_job_create(job_type, job_name)["data"]
+
+    # Upload the file
+    with open(infile, "rb") as f:
+        with tqdm(
+            total=os.stat(infile).st_size, unit="B", unit_scale=True, unit_divisor=1024
+        ) as pbar:
+            wrapped_file = CallbackIOWrapper(pbar.update, f, "read")
+            requests.put(
+                _job["upload_url"],
+                data=wrapped_file,
+                headers={"Content-Type": "text/plain"},
+            )
+
+    if wait:
+        if _wait_for_job(T, _job):
+            _download_job(_job, outfile, hide_progress)
 
 
 @compliance_job.command("download")
@@ -1714,26 +1705,25 @@ def _wait_for_job(T, job, hide_progress=False):
             ),
             err=True,
         )
-        seconds_wait = 10
+        seconds_wait = 60
         est_completion = datetime.datetime.now(
             datetime.timezone.utc
-        ) + datetime.timedelta(seconds=10)
+        ) + datetime.timedelta(seconds=60)
 
     with TimestampProgressBar(
-                since_id=None,
-                until_id=None,
-                start_time=start_time,
-                end_time=est_completion,
-                disable=hide_progress,
-                bar_format="{l_bar}{bar}| Waiting {n_time}/{total_time}{postfix}",
-            ) as pbar:
+        since_id=None,
+        until_id=None,
+        start_time=start_time,
+        end_time=est_completion,
+        disable=hide_progress,
+        bar_format="{l_bar}{bar}| Waiting {n_time}/{total_time}{postfix}",
+    ) as pbar:
 
         while True:
             try:
                 pbar.refresh()
                 pbar.reset()
-                pbar.set_postfix_str(f"Job Status: {job['status']}")
-                #pbar.set_description(f"Job {job['status']}")
+                # pbar.set_description(f"Job {job['status']}")
                 for i in range(seconds_wait * 10):
                     pbar.update(100)
                     time.sleep(0.1)
@@ -1741,6 +1731,8 @@ def _wait_for_job(T, job, hide_progress=False):
                 job = _get_job(T, job["id"])
 
                 if job is not None and "status" in job:
+                    pbar.set_postfix_str(f"Job Status: {job['status']}")
+
                     if job["status"] == "complete":
                         return True
                     elif job["status"] == "in_progress" or job["status"] == "created":
@@ -1765,8 +1757,6 @@ def _wait_for_job(T, job, hide_progress=False):
                     )
                     return False
 
-                
-
             except KeyboardInterrupt:
                 click.echo(
                     click.style(
@@ -1776,13 +1766,6 @@ def _wait_for_job(T, job, hide_progress=False):
                     )
                 )
                 return False
-
-
-def _upload_job(job, infile, hide_progress=False):
-    """
-    Upload a file to the batch compliance job
-    """
-    url = job["upload_url"]
 
 
 def _download_job(job, outfile=None, hide_progress=False):
@@ -1797,7 +1780,8 @@ def _download_job(job, outfile=None, hide_progress=False):
     response = requests.get(url, stream=True)
 
     with open(outfile, "wb") as fout:
-        with tqdm(disable=hide_progress,
+        with tqdm(
+            disable=hide_progress,
             unit="B",
             unit_scale=True,
             unit_divisor=1024,
@@ -1844,15 +1828,11 @@ def _print_compliance_job(job, verbose=False):
     )
     if verbose:
         click.echo(
-            click.style(
-                f"Created at: {job['created_at']}"
-            ),
+            click.style(f"Created at: {job['created_at']}"),
             err=True,
         )
         click.echo(
-            click.style(
-                f"Resumable: {job['resumable']}"
-            ),
+            click.style(f"Resumable: {job['resumable']}"),
             err=True,
         )
         upload_url = job["upload_url"] if upload_exp.total_seconds() < 0 else "Expired"
