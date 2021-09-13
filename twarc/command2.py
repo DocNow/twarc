@@ -622,15 +622,21 @@ def hydrate(T, infile, outfile, hide_progress):
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.option(
+    "--id-type",
+    default="tweets",
+    type=click.Choice(["tweets", "users"], case_sensitive=False),
+    help="IDs to extract - either 'tweets' or 'users'.",
+)
+@click.option(
     "--hide-progress",
     is_flag=True,
     default=False,
     help="Hide the Progress bar. Default: show progress, unless using pipes.",
 )
 @cli_api_error
-def dehydrate(infile, outfile, hide_progress):
+def dehydrate(infile, outfile, id_type, hide_progress):
     """
-    Extract IDs from a dataset.
+    Extract tweet or user IDs from a dataset.
     """
     if infile.name == outfile.name:
         click.echo(
@@ -644,6 +650,7 @@ def dehydrate(infile, outfile, hide_progress):
 
     with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         count = 0
+        unique_ids = set()
         for line in infile:
             count += 1
             progress.update(len(line))
@@ -655,13 +662,27 @@ def dehydrate(infile, outfile, hide_progress):
 
             try:
                 for tweet in ensure_flattened(json.loads(line)):
-                    click.echo(tweet["id"], file=outfile)
+                    if id_type == "tweets":
+                        click.echo(tweet["id"], file=outfile)
+                        unique_ids.add(tweet["id"])
+                    elif id_type == "users":
+                        click.echo(tweet["author_id"], file=outfile)
+                        unique_ids.add(tweet["author_id"])
+            except KeyError as e:
+                click.echo(
+                    f"No {id_type} ID found in JSON data on line {count}", err=True
+                )
+                break
             except ValueError as e:
                 click.echo(f"Unexpected JSON data on line {count}", err=True)
                 break
             except json.decoder.JSONDecodeError as e:
                 click.echo(f"Invalid JSON on line {count}", err=True)
                 break
+    click.echo(
+        f"ℹ️  Parsed {len(unique_ids)} {id_type} IDs from {count} lines in {infile.name} file.",
+        err=True,
+    )
 
 
 @twarc2.command("users")
