@@ -946,7 +946,7 @@ class Twarc2:
             payload["name"] = job_name
 
         result = self.client.post(
-            "https://api.twitter.com/2/tweets/compliance/jobs", json=payload
+            "https://api.twitter.com/2/compliance/jobs", json=payload
         )
 
         if result.status_code == 200:
@@ -957,7 +957,6 @@ class Twarc2:
             return result
         else:
             raise ValueError(f"Unknown response from twitter: {result}")
-
 
     def _id_exists(self, user):
         """
