@@ -2,6 +2,7 @@
 The command line interfact to the Twitter v2 API.
 """
 
+from itertools import filterfalse
 import os
 import re
 import json
@@ -1398,17 +1399,17 @@ def delete_all(T):
 @click.pass_obj
 def compliance_job(T):
     """
-    Create, retrieve and list batch Tweet compliance jobs.
+    Create, retrieve and list batch compliance jobs for Tweets and Users.
     """
     pass
 
 
 @compliance_job.command("list")
-@click.option(
-    "--job-type",
+@click.argument(
+    "job_type",
+    required=False,
     default=None,
     type=click.Choice(["tweets", "users"], case_sensitive=False),
-    help="Filter by job type - either 'tweets' or 'users'. Returns both types if not set.",
 )
 @click.option(
     "--status",
@@ -1422,7 +1423,7 @@ def compliance_job(T):
     "--verbose",
     is_flag=True,
     default=False,
-    help="Show all URLs",
+    help="Show all URLs and metadata.",
 )
 @click.option(
     "--json-output",
@@ -1472,7 +1473,7 @@ def compliance_job_list(T, job_type, status, verbose, json_output):
     "--verbose",
     is_flag=True,
     default=False,
-    help="Show all URLs",
+    help="Show all URLs and metadata.",
 )
 @click.option(
     "--json-output",
@@ -1507,20 +1508,18 @@ def compliance_job_get(T, job, verbose, json_output):
 
 
 @compliance_job.command("create")
-@click.argument("infile", type=click.Path(), required=True)
-@click.argument("outfile", type=click.Path(), required=False, default=None)
-@click.option(
-    "--job-type",
+@click.argument(
+    "job_type",
     required=True,
     type=click.Choice(["tweets", "users"], case_sensitive=False),
-    help="Job type - either 'tweets' or 'users'.",
 )
+@click.argument("infile", type=click.Path(), required=True)
+@click.argument("outfile", type=click.Path(), required=False, default=None)
 @click.option("--job-name", type=str, help="A name or tag to help identify the job.")
 @click.option(
-    "--wait",
-    is_flag=True,
-    default=False,
-    help="Wait for the job to finish and download the results.",
+    "--wait/--no-wait",
+    default=True,
+    help="Wait for the job to finish and download the results. Wait by default.",
 )
 @click.option(
     "--hide-progress",
@@ -1530,7 +1529,7 @@ def compliance_job_get(T, job, verbose, json_output):
 )
 @click.pass_obj
 @cli_api_error
-def compliance_job_create(T, infile, outfile, job_type, job_name, wait, hide_progress):
+def compliance_job_create(T, job_type, infile, outfile, job_name, wait, hide_progress):
     """
     Create a new compliance job and upload tweet IDs.
     """
@@ -1565,6 +1564,15 @@ def compliance_job_create(T, infile, outfile, job_type, job_name, wait, hide_pro
     # Create a job (not resumable right now):
     _job = T.compliance_job_create(job_type, job_name)["data"]
 
+    click.echo(
+        click.style(
+            f"Created a new {job_type} job {_job['id']}. Uploading {infile}.",
+            fg="yellow",
+            bold=True,
+        ),
+        err=True,
+    )
+
     # Upload the file
     with open(infile, "rb") as f:
         with tqdm(
@@ -1586,10 +1594,9 @@ def compliance_job_create(T, infile, outfile, job_type, job_name, wait, hide_pro
 @click.argument("job")
 @click.argument("outfile", type=click.Path(), required=False, default=None)
 @click.option(
-    "--wait",
-    is_flag=True,
-    default=False,
-    help="Wait for the job to finish and download the results.",
+    "--wait/--no-wait",
+    default=True,
+    help="Wait for the job to finish and download the results. Wait by default.",
 )
 @click.option(
     "--hide-progress",
@@ -1608,7 +1615,7 @@ def compliance_job_download(T, job, outfile, wait, hide_progress):
     if _job is None:
         click.echo(
             click.style(
-                f"Job {job['id']} is '{job['status']}'. Retry submitting the job with 'twarc2 compliance-job create' command",
+                f"Job {job} not found. List valid job IDs with 'twarc2 compliance-job list' or Retry submitting the job with 'twarc2 compliance-job create'",
                 fg="red",
                 bold=True,
             ),
@@ -1621,7 +1628,7 @@ def compliance_job_download(T, job, outfile, wait, hide_progress):
     elif _job["status"] == "expired" or _job["status"] == "failed":
         click.echo(
             click.style(
-                f"Job {_job['id']} is '{_job['status']}'. Retry submitting the job with 'twarc2 compliance-job create' command",
+                f"Job {_job['id']} is '{_job['status']}'. Retry submitting the job with 'twarc2 compliance-job create'",
                 fg="red",
                 bold=True,
             ),
@@ -1632,7 +1639,7 @@ def compliance_job_download(T, job, outfile, wait, hide_progress):
         if not wait:
             click.echo(
                 click.style(
-                    f"Job {_job['id']} is '{_job['status']}'. Use:\n twarc2 compliance-job get {_job['id']}\nto get the status. Or run:\n twarc2 compliance-job download --wait {_job['id']}\nto wait for the job to complete.",
+                    f"Job {_job['id']} is '{_job['status']}'. Use:\n twarc2 compliance-job get {_job['id']}\nto get the status. Or run:\n twarc2 compliance-job download {_job['id']}\nto wait for the job to complete.",
                     fg="yellow",
                     bold=True,
                 ),
@@ -1651,7 +1658,7 @@ def _get_job(T, job):
     if "data" not in result:
         click.echo(
             click.style(
-                f"Job {job} could not be found. List valid job IDs with twarc2 compliance-job list",
+                f"Job {job} could not be found. List valid job IDs with 'twarc2 compliance-job list'",
                 fg="red",
                 bold=True,
             ),
@@ -1725,7 +1732,6 @@ def _wait_for_job(T, job, hide_progress=False):
             try:
                 pbar.refresh()
                 pbar.reset()
-                # pbar.set_description(f"Job {job['status']}")
                 for i in range(seconds_wait * 10):
                     pbar.update(100)
                     time.sleep(0.1)
@@ -1733,7 +1739,12 @@ def _wait_for_job(T, job, hide_progress=False):
                 job = _get_job(T, job["id"])
 
                 if job is not None and "status" in job:
-                    pbar.set_postfix_str(f"Job Status: {job['status']}")
+                    total_wait = humanize.naturaldelta(
+                        datetime.datetime.now(datetime.timezone.utc) - start_time
+                    )
+                    pbar.set_postfix_str(
+                        f"Job Status: {job['status']}. Waited for: {total_wait}"
+                    )
 
                     if job["status"] == "complete":
                         return True
@@ -1774,6 +1785,15 @@ def _download_job(job, outfile=None, hide_progress=False):
     """
     Download the compliance job.
     """
+
+    click.echo(
+        click.style(
+            f"Job {job['id']} is '{job['status']}'. Downloading Results...",
+            fg="yellow",
+            bold=True,
+        ),
+        err=True,
+    )
 
     url = job["download_url"]
     if outfile is None:
