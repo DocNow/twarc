@@ -46,8 +46,17 @@ def rate_limit(f, tries=30):
                     # system clock could be wrong.
                     log.warning(
                         "Detected overlong sleep interval - is your system clock accurate? "
-                        "An accurate system time is needed to calculate how long to sleep for."
+                        "An accurate system time is needed to calculate how long to sleep for, "
+                        "and data collection might be slowed."
                     )
+                elif target_sleep_seconds < 0:
+                    # If we need to sleep for negative time something weird might be up.
+                    log.warning(
+                        "Detected negative sleep interval - is your system clock accurate? "
+                        "If your system time is running fast, rate limiting may not be "
+                        "effective."
+                    )
+
 
                 log.warning("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
