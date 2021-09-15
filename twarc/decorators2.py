@@ -57,7 +57,6 @@ def rate_limit(f, tries=30):
                         "effective."
                     )
 
-
                 log.warning("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
             elif resp.status_code >= 500:
