@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Unfortunately the "expanded_url" as supplied by Twitter aren't fully
@@ -14,15 +14,14 @@ that is running:
 
 """
 
-
 import re
 import json
 import time
-import urllib.request, urllib.parse, urllib.error
 import logging
 import argparse
 import fileinput
 import multiprocessing
+import urllib.request, urllib.parse, urllib.error
 
 # number of urls to look up in parallel
 POOL_SIZE = 10
@@ -32,15 +31,18 @@ wait = 15
 
 logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
+def unshrtn_obj(obj):
+    """Pass in an object and have all the object returned with additional 
+    unshortened_url keys
+    """
+    if type(obj) == list:
+        return list(map(unshrtn_obj, obj))
+    elif type(obj) != dict:
+        return obj
 
-def unshorten_url(url):
-    if url is None:
-        return None
-
-    # TODO: Worth providing some way for the user to specify specific hostnames they want to expand,
-    # instead of assuming that all hostnames need expanding?
-    if re.match(r"^https?://twitter.com/", url):
-        return url
+    url = obj.get("expanded_url") or obj.get("url")
+    if not url or re.match(r"^https?://(api.)?twitter.com/", url):
+        return {k: unshrtn_obj(v) for k, v in obj.items()}
 
     u = "{}/?{}".format(
         unshrtn_url, urllib.parse.urlencode({"url": url.encode("utf8")})
@@ -60,33 +62,16 @@ def unshorten_url(url):
             )
             time.sleep(wait)
 
-    for key in ["canonical", "long"]:
-        if key in resp:
-            return resp[key]
-
-    return None
-
+    return {**obj, "unshortened_url": resp["long"]}
 
 def rewrite_line(line):
     try:
-        tweet = json.loads(line)
+        data = json.loads(line)
+        return json.dumps(unshrtn_obj(data))
     except Exception as e:
         # garbage in, garbage out
         logging.error(e)
         return line
-
-    for url_dict in tweet["entities"]["urls"]:
-        if "expanded_url" in url_dict:
-            url = url_dict["expanded_url"]
-        else:
-            url = url_dict["url"]
-
-        url_dict["unshortened_url"] = unshorten_url(url)
-
-    tweet["user"]["unshortened_url"] = unshorten_url(tweet["user"]["url"])
-
-    return json.dumps(tweet)
-
 
 def main():
     global unshrtn_url, retries, wait
@@ -130,7 +115,6 @@ def main():
     ):
         if line != "\n":
             print(line)
-
 
 if __name__ == "__main__":
     main()
