@@ -484,7 +484,7 @@ class Twarc2:
         Calls [POST /2/tweets/search/stream/rules](https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/api-reference/post-tweets-search-stream-rules)
 
         Args:
-            rules (list[int]): A list of rule ids to delete.
+            rule_ids (list[int]): A list of rule ids to delete.
 
         Returns:
             dict: JSON Response from Twitter API.

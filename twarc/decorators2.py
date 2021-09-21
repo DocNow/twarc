@@ -31,9 +31,32 @@ def rate_limit(f, tries=30):
             elif resp.status_code == 429:
                 reset = int(resp.headers["x-rate-limit-reset"])
                 now = time.time()
-                seconds = reset - now + 10
-                if seconds < 1:
-                    seconds = 10
+
+                # The time to sleep depends on having an accurate system time,
+                # so check to see if there's something really bad happening
+                # to warn the user.
+                target_sleep_seconds = reset - now
+
+                # Never sleep longer than 15 minutes, as that is the basis for
+                # all of the read time based rate limits in the Twitter API
+                seconds = min(901, max(10, (target_sleep_seconds + 10)))
+
+                if target_sleep_seconds >= 900:
+                    # If we need to sleep for more than a rate limit period, the
+                    # system clock could be wrong.
+                    log.warning(
+                        "Detected overlong sleep interval - is your system clock accurate? "
+                        "An accurate system time is needed to calculate how long to sleep for, "
+                        "and data collection might be slowed."
+                    )
+                elif target_sleep_seconds < 0:
+                    # If we need to sleep for negative time something weird might be up.
+                    log.warning(
+                        "Detected negative sleep interval - is your system clock accurate? "
+                        "If your system time is running fast, rate limiting may not be "
+                        "effective."
+                    )
+
                 log.warning("rate limit exceeded: sleeping %s secs", seconds)
                 time.sleep(seconds)
             elif resp.status_code >= 500:
