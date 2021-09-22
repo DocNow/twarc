@@ -197,6 +197,71 @@ class InvalidAuthType(Exception):
     """
 
 
+class FileLineProgressBar(tqdm):
+    """
+    A progress bar based on input file line count. Counts an input file by lines.
+    This tries to read the entire file and count newlines in a robust way.
+    """
+
+    def __init__(self, infile, outfile, **kwargs):
+        disable = False if "disable" not in kwargs else kwargs["disable"]
+        if infile is not None and (infile.name == "<stdin>"):
+            disable = True
+        if outfile is not None and (outfile.name == "<stdout>"):
+            disable = True
+        kwargs["disable"] = disable
+        kwargs["miniters"] = 1
+        kwargs[
+            "bar_format"
+        ] = "{l_bar}{bar}| Processed {n_fmt}/{total_fmt} lines of input file [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
+
+        def blocks(files, size=65536):
+            while True:
+                b = files.read(size)
+                if not b:
+                    break
+                yield b
+
+        total_lines = 0
+        with open("file", "r", encoding="utf-8", errors="ignore") as f:
+            total_lines = sum(bl.count("\n") for bl in blocks(f))
+
+        kwargs["total"] = total_lines if not disable else 1
+        super().__init__(**kwargs)
+
+    def update_with_result(
+        self, result, field="id", error_resource_type=None, error_parameter="ids"
+    ):
+        """
+        Update the progress bar appropriately, with a full API response. For convenience,
+        otherwise use twdm's own update() method.
+        """
+        try:
+            if "data" in result:
+                for item in result["data"]:
+                    self.update()
+            if error_resource_type and "errors" in result:
+                for error in result["errors"]:
+                    # Account for deleted data
+                    # Errors have very inconsistent format, missing fields for different types of errors...
+                    if (
+                        "resource_type" in error
+                        and error["resource_type"] == error_resource_type
+                    ):
+                        if (
+                            "parameter" in error
+                            and error["parameter"] == error_parameter
+                        ):
+                            self.update()
+                            # todo: hide or show this?
+                            # self.set_description(
+                            #    "Errors encountered, results may be incomplete"
+                            # )
+                        # print(error["value"], error["resource_type"], error["parameter"])
+        except Exception as e:
+            log.error(f"Failed to update progress bar: {e}")
+
+
 class FileSizeProgressBar(tqdm):
     """
     An input file size based progress bar. Counts an input file in bytes.
@@ -224,6 +289,10 @@ class FileSizeProgressBar(tqdm):
     def update_with_result(
         self, result, field="id", error_resource_type=None, error_parameter="ids"
     ):
+        """
+        Update the progress bar appropriately, with a full API response. For convenience,
+        otherwise use twdm's own update() method.
+        """
         try:
             if "data" in result:
                 for item in result["data"]:
@@ -318,7 +387,7 @@ class TimestampProgressBar(tqdm):
 
     def update_with_result(self, result):
         """
-        Update progress bar based on snowflake ids.
+        Update progress bar based on snowflake ids from an API response.
         """
         try:
             newest_id = result["meta"]["newest_id"]
