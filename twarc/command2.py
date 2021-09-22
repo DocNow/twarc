@@ -1077,6 +1077,15 @@ def _timeline_tweets(
     "outfile will be a CSV containing the counts for all of the queries in the input file.",
 )
 @click.option(
+    "--combine-queries",
+    is_flag=True,
+    default=False,
+    help="""Merge consecutive queries into a single OR query.
+    For example, if the three rows in your file are: banana, apple, pear
+    then a single query ((banana) OR (apple) OR (pear)) will be issued.
+    """,
+)
+@click.option(
     "--granularity",
     default="day",
     type=click.Choice(["day", "hour", "minute"], case_sensitive=False),
@@ -1097,6 +1106,7 @@ def searches(
     archive,
     counts_only,
     granularity,
+    combine_queries,
     hide_progress,
 ):
     """
@@ -1124,6 +1134,9 @@ def searches(
     if end_time is not None and end_time.tzinfo is None:
         end_time = end_time.replace(tzinfo=timezone.utc)
 
+    # Standard API max query length
+    max_query_length = 512
+
     # TODO: this duplicates existing logic in _search, but _search is too
     # specific to be reused here.
     if archive:
@@ -1132,6 +1145,9 @@ def searches(
         # specified and since_id and until_id aren't being used
         if start_time is None and since_id is None and until_id is None:
             start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
+
+        # Academic track let's you use longer queries
+        max_query_length = 1024
 
     if counts_only:
         api_method = T.counts_all if archive else T.counts_recent
@@ -1160,11 +1176,21 @@ def searches(
     # TODO: Needs an inputlines progress bar instead, as the queries are variable
     # size.
     with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+
+        merged_query = ""
+
         for query in infile:
-            log.info(f'Beginning search for "{query}"')
             query = query.strip()
+
+            progress.update(len(query))
+            line_count += 1
+
             if query == "":
                 log.warn("skipping blank line on line %s", line_count)
+                continue
+
+            if len(query) >= max_query_length:
+                log.warn(f"skipping too long query {query} on line {line_count}")
                 continue
 
             if query in seen:
@@ -1174,14 +1200,36 @@ def searches(
             seen.add(query)
             retrieved = 0
 
-            response = api_method(query, *api_data)
+            if combine_queries and merged_query:
+                extended_query = f"{merged_query} OR ({query})"
+                # We've exceeded the limit, so now we can issue
+                # the merged query.
+                if len(extended_query) >= max_query_length:
+                    issue_query = merged_query
+                    merged_query = f"({query})"
+                else:
+                    # We haven't exceed the length yet, so accept the addon
+                    merged_query = extended_query
+                    continue
+
+            elif combine_queries:
+                merged_query = f"({query})"
+                continue
+
+            else:
+                # This is the normal case - we are not doing any combination.
+                issue_query = query
+
+            log.info(f'Beginning search for "{issue_query}"')
+
+            response = api_method(issue_query, *api_data)
 
             for result in response:
 
                 if counts_only:
                     for r in result["data"]:
                         click.echo(
-                            f'{query},{r["start"]},{r["end"]},{r["tweet_count"]}',
+                            f'{issue_query},{r["start"]},{r["end"]},{r["tweet_count"]}',
                             file=outfile,
                         )
 
@@ -1194,8 +1242,30 @@ def searches(
                     if limit and (retrieved >= limit):
                         break
 
-            progress.update(len(query))
-            line_count += 1
+        # Make sure to process the final batch of queries if using the combined strategy
+        if combine_queries and (
+            merged_query == extended_query or merged_query == f"({query})"
+        ):
+            log.info(f'Beginning search for "{merged_query}"')
+            response = api_method(merged_query, *api_data)
+
+            for result in response:
+
+                if counts_only:
+                    for r in result["data"]:
+                        click.echo(
+                            f'{merged_query},{r["start"]},{r["end"]},{r["tweet_count"]}',
+                            file=outfile,
+                        )
+
+                else:
+                    # Apply the limit if not counting
+                    _write(result, outfile)
+
+                    retrieved += len(result["data"])
+
+                    if limit and (retrieved >= limit):
+                        break
 
 
 @twarc2.command("conversation")
