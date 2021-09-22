@@ -1,6 +1,8 @@
 # twarc
 
-[![Build Status](https://github.com/docnow/twarc/workflows/tests/badge.svg)](https://github.com/DocNow/twarc/actions/workflows/main.yml)
+
+
+[![DOI](https://zenodo.org/badge/7605723.svg)](https://zenodo.org/badge/latestdoi/7605723) [![Build Status](https://github.com/docnow/twarc/workflows/tests/badge.svg)](https://github.com/DocNow/twarc/actions/workflows/main.yml)
 
 Collect data at the command line from the Twitter API (v1.1 and v2).
 
