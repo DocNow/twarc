@@ -1059,7 +1059,9 @@ def _timeline_tweets(
     help="Search the full archive (requires Academic Research track). Defaults to searching the entire twitter archive if --start-time is not specified.",
 )
 @click.option(
-    "--limit", default=0, help="Maximum number of tweets to save *per search*, ignored if --counts-only is specified."
+    "--limit",
+    default=0,
+    help="Maximum number of tweets to save *per search*, ignored if --counts-only is specified.",
 )
 @click.option(
     "--hide-progress",
@@ -1159,7 +1161,7 @@ def searches(
     # size.
     with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         for query in infile:
-            log.info(f"Beginning search for \"{query}\"")
+            log.info(f'Beginning search for "{query}"')
             query = query.strip()
             if query == "":
                 log.warn("skipping blank line on line %s", line_count)
@@ -1179,7 +1181,8 @@ def searches(
                 if counts_only:
                     for r in result["data"]:
                         click.echo(
-                            f'{query},{r["start"]},{r["end"]},{r["tweet_count"]}', file=outfile
+                            f'{query},{r["start"]},{r["end"]},{r["tweet_count"]}',
+                            file=outfile,
                         )
 
                 else:
@@ -1193,6 +1196,7 @@ def searches(
 
             progress.update(len(query))
             line_count += 1
+
 
 @twarc2.command("conversation")
 @click.option("--since-id", type=int, help="Match tweets sent after tweet id")
