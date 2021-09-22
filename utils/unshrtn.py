@@ -31,8 +31,9 @@ wait = 15
 
 logging.basicConfig(filename="unshorten.log", level=logging.INFO)
 
+
 def unshrtn_obj(obj):
-    """Pass in an object and have all the object returned with additional 
+    """Pass in an object and have all the object returned with additional
     unshortened_url keys
     """
     if type(obj) == list:
@@ -64,6 +65,7 @@ def unshrtn_obj(obj):
 
     return {**obj, "unshortened_url": resp["long"]}
 
+
 def rewrite_line(line):
     try:
         data = json.loads(line)
@@ -72,6 +74,7 @@ def rewrite_line(line):
         # garbage in, garbage out
         logging.error(e)
         return line
+
 
 def main():
     global unshrtn_url, retries, wait
@@ -115,6 +118,7 @@ def main():
     ):
         if line != "\n":
             print(line)
+
 
 if __name__ == "__main__":
     main()
