@@ -289,9 +289,12 @@ class TimestampProgressBar(tqdm):
 
         kwargs["miniters"] = 1
         kwargs["total"] = total
-        kwargs[
-            "bar_format"
-        ] = "{l_bar}{bar}| Processed {n_time}/{total_time} [{elapsed}<{remaining}, {tweet_count} tweets total {postfix}]"
+        tweets_timeline_format = "{l_bar}{bar}| Processed {n_time}/{total_time} [{elapsed}<{remaining}, {tweet_count} tweets total {postfix}]"
+        kwargs["bar_format"] = (
+            tweets_timeline_format
+            if "bar_format" not in kwargs
+            else kwargs["bar_format"]
+        )
         super().__init__(**kwargs)
 
     def update_with_dates(self, start_span, end_span):

@@ -2,17 +2,24 @@
 The command line interfact to the Twitter v2 API.
 """
 
+from itertools import filterfalse
+import os
 import re
 import json
+import time
 import twarc
 import click
 import logging
 import pathlib
 import datetime
+import humanize
+import requests
 import configobj
 import threading
 
 from tqdm.auto import tqdm
+from tqdm.utils import CallbackIOWrapper
+
 from datetime import timezone
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
@@ -619,15 +626,21 @@ def hydrate(T, infile, outfile, hide_progress):
 @click.argument("infile", type=click.File("r"), default="-")
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.option(
+    "--id-type",
+    default="tweets",
+    type=click.Choice(["tweets", "users"], case_sensitive=False),
+    help="IDs to extract - either 'tweets' or 'users'.",
+)
+@click.option(
     "--hide-progress",
     is_flag=True,
     default=False,
     help="Hide the Progress bar. Default: show progress, unless using pipes.",
 )
 @cli_api_error
-def dehydrate(infile, outfile, hide_progress):
+def dehydrate(infile, outfile, id_type, hide_progress):
     """
-    Extract IDs from a dataset.
+    Extract tweet or user IDs from a dataset.
     """
     if infile.name == outfile.name:
         click.echo(
@@ -641,6 +654,7 @@ def dehydrate(infile, outfile, hide_progress):
 
     with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
         count = 0
+        unique_ids = set()
         for line in infile:
             count += 1
             progress.update(len(line))
@@ -652,13 +666,27 @@ def dehydrate(infile, outfile, hide_progress):
 
             try:
                 for tweet in ensure_flattened(json.loads(line)):
-                    click.echo(tweet["id"], file=outfile)
+                    if id_type == "tweets":
+                        click.echo(tweet["id"], file=outfile)
+                        unique_ids.add(tweet["id"])
+                    elif id_type == "users":
+                        click.echo(tweet["author_id"], file=outfile)
+                        unique_ids.add(tweet["author_id"])
+            except KeyError as e:
+                click.echo(
+                    f"No {id_type} ID found in JSON data on line {count}", err=True
+                )
+                break
             except ValueError as e:
                 click.echo(f"Unexpected JSON data on line {count}", err=True)
                 break
             except json.decoder.JSONDecodeError as e:
                 click.echo(f"Invalid JSON on line {count}", err=True)
                 break
+    click.echo(
+        f"ℹ️  Parsed {len(unique_ids)} {id_type} IDs from {count} lines in {infile.name} file.",
+        err=True,
+    )
 
 
 @twarc2.command("users")
@@ -1365,6 +1393,486 @@ def delete_all(T):
         rule_ids = [r["id"] for r in result["data"]]
         results = T.delete_stream_rule_ids(rule_ids)
         click.echo(f"🗑  Deleted {len(rule_ids)} rules.")
+
+
+@twarc2.group()
+@click.pass_obj
+def compliance_job(T):
+    """
+    Create, retrieve and list batch compliance jobs for Tweets and Users.
+    """
+    pass
+
+
+@compliance_job.command("list")
+@click.argument(
+    "job_type",
+    required=False,
+    default=None,
+    type=click.Choice(["tweets", "users"], case_sensitive=False),
+)
+@click.option(
+    "--status",
+    default=None,
+    type=click.Choice(
+        ["created", "in_progress", "complete", "failed"], case_sensitive=False
+    ),
+    help="Filter by job status. Only one of 'created', 'in_progress', 'complete', 'failed' can be specified. If not set, returns all.",
+)
+@click.option(
+    "--verbose",
+    is_flag=True,
+    default=False,
+    help="Show all URLs and metadata.",
+)
+@click.option(
+    "--json-output",
+    is_flag=True,
+    default=False,
+    help="Return the raw json content from the API.",
+)
+@click.pass_obj
+@cli_api_error
+def compliance_job_list(T, job_type, status, verbose, json_output):
+    """
+    Returns a list of compliance jobs by job type and status.
+    """
+
+    if job_type:
+        job_result = T.compliance_job_list(job_type.lower(), status)
+        results = job_result["data"] if "data" in job_result else []
+    else:
+        tweets_result = T.compliance_job_list("tweets", status)
+        users_result = T.compliance_job_list("users", status)
+        tweets_jobs = tweets_result["data"] if "data" in tweets_result else []
+        users_jobs = users_result["data"] if "data" in users_result else []
+        results = tweets_jobs + users_jobs
+
+    if json_output:
+        click.echo(json.dumps(results))
+        return
+
+    if len(results) == 0:
+        job_type_message = "tweet or user" if job_type is None else job_type
+        status_message = f' with Status "{status}"' if status else ""
+        click.echo(
+            click.style(
+                f"🙃 There are no {job_type_message} compliance jobs{status_message}. To create a new job, see:\n twarc2 compliance-job create --help",
+                fg="red",
+            ),
+            err=True,
+        )
+    else:
+        for job in results:
+            _print_compliance_job(job, verbose)
+
+
+@compliance_job.command("get")
+@click.argument("job")
+@click.option(
+    "--verbose",
+    is_flag=True,
+    default=False,
+    help="Show all URLs and metadata.",
+)
+@click.option(
+    "--json-output",
+    is_flag=True,
+    default=False,
+    help="Return the raw json content from the API.",
+)
+@click.pass_obj
+@cli_api_error
+def compliance_job_get(T, job, verbose, json_output):
+    """
+    Returns status and download information about the job ID.
+    """
+    if json_output:
+        result = T.compliance_job_get(job)
+        click.echo(json.dumps(result))
+        return
+
+    job = _get_job(T, job)
+    if job is None:
+        return
+
+    _print_compliance_job(job, verbose)
+
+    # Ask to download if complete
+    if job["status"] == "complete":
+        continue_download = input(
+            f"This job is complete, download it now into the current folder? [y or n]? "
+        )
+        if continue_download.lower()[0] == "y":
+            _download_job(job)
+
+
+@compliance_job.command("create")
+@click.argument(
+    "job_type",
+    required=True,
+    type=click.Choice(["tweets", "users"], case_sensitive=False),
+)
+@click.argument("infile", type=click.Path(), required=True)
+@click.argument("outfile", type=click.Path(), required=False, default=None)
+@click.option("--job-name", type=str, help="A name or tag to help identify the job.")
+@click.option(
+    "--wait/--no-wait",
+    default=True,
+    help="Wait for the job to finish and download the results. Wait by default.",
+)
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress.",
+)
+@click.pass_obj
+@cli_api_error
+def compliance_job_create(T, job_type, infile, outfile, job_name, wait, hide_progress):
+    """
+    Create a new compliance job and upload tweet IDs.
+    """
+
+    # Check for file contents:
+    with open(infile) as f:
+        try:
+            int(f.readline())
+        except:
+            click.echo(
+                click.style(
+                    f"🙃 The file {infile} does not contain a list of IDs. Use:",
+                    fg="red",
+                ),
+                err=True,
+            )
+            click.echo(
+                click.style(
+                    f" twarc2 dehydrate --id-type {job_type} {infile} output_ids.txt",
+                ),
+                err=True,
+            )
+            click.echo(
+                click.style(
+                    f"to create a file with {job_type} IDs.",
+                    fg="red",
+                ),
+                err=True,
+            )
+            return
+
+    # Create a job (not resumable right now):
+    _job = T.compliance_job_create(job_type, job_name)["data"]
+
+    click.echo(
+        click.style(
+            f"Created a new {job_type} job {_job['id']}. Uploading {infile}.",
+            fg="yellow",
+            bold=True,
+        ),
+        err=True,
+    )
+
+    # Upload the file
+    with open(infile, "rb") as f:
+        with tqdm(
+            total=os.stat(infile).st_size, unit="B", unit_scale=True, unit_divisor=1024
+        ) as pbar:
+            wrapped_file = CallbackIOWrapper(pbar.update, f, "read")
+            requests.put(
+                _job["upload_url"],
+                data=wrapped_file,
+                headers={"Content-Type": "text/plain"},
+            )
+
+    if wait:
+        if _wait_for_job(T, _job):
+            _download_job(_job, outfile, hide_progress)
+
+
+@compliance_job.command("download")
+@click.argument("job")
+@click.argument("outfile", type=click.Path(), required=False, default=None)
+@click.option(
+    "--wait/--no-wait",
+    default=True,
+    help="Wait for the job to finish and download the results. Wait by default.",
+)
+@click.option(
+    "--hide-progress",
+    is_flag=True,
+    default=False,
+    help="Hide the Progress bar. Default: show progress.",
+)
+@click.pass_obj
+@cli_api_error
+def compliance_job_download(T, job, outfile, wait, hide_progress):
+    """
+    Download the compliance job with the specified ID.
+    """
+
+    _job = _get_job(T, job)
+    if _job is None:
+        click.echo(
+            click.style(
+                f"Job {job} not found. List valid job IDs with 'twarc2 compliance-job list' or Retry submitting the job with 'twarc2 compliance-job create'",
+                fg="red",
+                bold=True,
+            ),
+            err=True,
+        )
+        return
+
+    if _job["status"] == "complete":
+        _download_job(_job, outfile, hide_progress)
+    elif _job["status"] == "expired" or _job["status"] == "failed":
+        click.echo(
+            click.style(
+                f"Job {_job['id']} is '{_job['status']}'. Retry submitting the job with 'twarc2 compliance-job create'",
+                fg="red",
+                bold=True,
+            ),
+            err=True,
+        )
+        return
+    else:
+        if not wait:
+            click.echo(
+                click.style(
+                    f"Job {_job['id']} is '{_job['status']}'. Use:\n twarc2 compliance-job get {_job['id']}\nto get the status. Or run:\n twarc2 compliance-job download {_job['id']}\nto wait for the job to complete.",
+                    fg="yellow",
+                    bold=True,
+                ),
+                err=True,
+            )
+        else:
+            if _wait_for_job(T, _job):
+                _download_job(_job, outfile, hide_progress)
+
+
+def _get_job(T, job):
+    """
+    Retrieve a job from the API by ID
+    """
+    result = T.compliance_job_get(job)
+    if "data" not in result:
+        click.echo(
+            click.style(
+                f"Job {job} could not be found. List valid job IDs with 'twarc2 compliance-job list'",
+                fg="red",
+                bold=True,
+            ),
+            err=True,
+        )
+        return None
+    return result["data"]
+
+
+def _wait_for_job(T, job, hide_progress=False):
+    """
+    Wait for the compliance job to complete
+    """
+
+    if (
+        job is not None
+        and "status" in job
+        and (job["status"] == "failed" or job["status"] == "expired")
+    ):
+        click.echo(
+            click.style(
+                f"Stopped waiting for job... Job status is {job['status']}",
+                fg="red",
+                bold=True,
+            )
+        )
+        return False
+
+    click.echo(
+        click.style(
+            f"Waiting for job {job['id']} to complete. Press Ctrl+C to cancel.",
+            fg="yellow",
+            bold=True,
+        ),
+        err=True,
+    )
+
+    start_time = datetime.datetime.now(datetime.timezone.utc)
+    est_completion = (
+        datetime.datetime.strptime(
+            job["estimated_completion"], "%Y-%m-%dT%H:%M:%S.%fZ"
+        ).replace(tzinfo=datetime.timezone.utc)
+        if "estimated_completion" in job
+        else start_time
+    )
+    seconds_wait = int((est_completion - start_time).total_seconds())
+    if seconds_wait <= 0:
+        click.echo(
+            click.style(
+                f"Estimated completion time unknown, waiting 1 minute instead.",
+                fg="yellow",
+                bold=True,
+            ),
+            err=True,
+        )
+        seconds_wait = 60
+        est_completion = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(seconds=60)
+
+    with TimestampProgressBar(
+        since_id=None,
+        until_id=None,
+        start_time=start_time,
+        end_time=est_completion,
+        disable=hide_progress,
+        bar_format="{l_bar}{bar}| Waiting {n_time}/{total_time}{postfix}",
+    ) as pbar:
+
+        while True:
+            try:
+                pbar.refresh()
+                pbar.reset()
+                for i in range(seconds_wait * 10):
+                    pbar.update(100)
+                    time.sleep(0.1)
+
+                job = _get_job(T, job["id"])
+
+                if job is not None and "status" in job:
+                    total_wait = humanize.naturaldelta(
+                        datetime.datetime.now(datetime.timezone.utc) - start_time
+                    )
+                    pbar.set_postfix_str(
+                        f"Job Status: {job['status']}. Waited for: {total_wait}"
+                    )
+
+                    if job["status"] == "complete":
+                        return True
+                    elif job["status"] == "in_progress" or job["status"] == "created":
+                        continue
+                    else:
+                        click.echo(
+                            click.style(
+                                f"Stopped waiting for job... Job status is {job['status']}",
+                                fg="red",
+                                bold=True,
+                            )
+                        )
+                        return False
+                else:
+                    click.echo(
+                        click.style(
+                            f"Stopped waiting for job... Failed to retrieve job from API.",
+                            fg="red",
+                            bold=True,
+                        ),
+                        err=True,
+                    )
+                    return False
+
+            except KeyboardInterrupt:
+                click.echo(
+                    click.style(
+                        "Stopped waiting for job... Run the command again to continue waiting.",
+                        fg="yellow",
+                        bold=True,
+                    )
+                )
+                return False
+
+
+def _download_job(job, outfile=None, hide_progress=False):
+    """
+    Download the compliance job.
+    """
+
+    click.echo(
+        click.style(
+            f"Job {job['id']} is '{job['status']}'. Downloading Results...",
+            fg="yellow",
+            bold=True,
+        ),
+        err=True,
+    )
+
+    url = job["download_url"]
+    if outfile is None:
+        outfile = f"{job['type']}_compliance_{job['id']}.json"
+
+    response = requests.get(url, stream=True)
+
+    with open(outfile, "wb") as fout:
+        with tqdm(
+            disable=hide_progress,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+            miniters=1,
+            total=int(response.headers.get("content-length", 0)),
+        ) as pbar:
+            pbar.set_postfix_str(outfile)
+            for chunk in response.iter_content(chunk_size=4096):
+                fout.write(chunk)
+                pbar.update(len(chunk))
+
+
+def _print_compliance_job(job, verbose=False):
+    job_colour = "yellow"
+
+    if job["status"] == "expired" or job["status"] == "failed":
+        job_colour = "red"
+
+    if job["status"] == "complete":
+        job_colour = "green"
+
+    time_now = datetime.datetime.now(datetime.timezone.utc)
+
+    upload_exp = time_now - datetime.datetime.strptime(
+        job["upload_expires_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+    ).replace(tzinfo=datetime.timezone.utc)
+
+    download_exp = time_now - datetime.datetime.strptime(
+        job["download_expires_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+    ).replace(tzinfo=datetime.timezone.utc)
+
+    failure = ""
+    if "error" in job:
+        failure = job["error"]
+
+    job_name = job["name"] if "name" in job else "Job"
+    click.echo(
+        click.style(
+            f"📃 Type: \"{job['type']}\" ID: \"{job['id']}\" Name: \"{job_name}\" Status: \"{job['status']}\" {failure}",
+            fg=job_colour,
+            bold=True,
+        ),
+        err=True,
+    )
+    if verbose:
+        click.echo(
+            click.style(f"Created at: {job['created_at']}"),
+            err=True,
+        )
+        click.echo(
+            click.style(f"Resumable: {job['resumable']}"),
+            err=True,
+        )
+        upload_url = job["upload_url"] if upload_exp.total_seconds() < 0 else "Expired"
+        click.echo(
+            click.style(
+                f"Upload Expiry: {humanize.naturaltime(upload_exp)} URL: {upload_url}"
+            ),
+            err=True,
+        )
+        download_url = (
+            job["download_url"] if download_exp.total_seconds() < 0 else "Expired"
+        )
+        click.echo(
+            click.style(
+                f"Download Expiry: {humanize.naturaltime(download_exp)} URL: {download_url}"
+            ),
+            err=True,
+        )
 
 
 def _rule_str(rule):
