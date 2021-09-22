@@ -7,7 +7,7 @@ expanded one hop past t.co.
 unshrtn.py will attempt to completely unshorten URLs and add them as the
 "unshortened_url" key to each url, and emit the tweet as JSON again on stdout.
 
-This script starts 10 seaprate processes which talk to an instance of unshrtn
+This script starts 10 separate processes which talk to an instance of unshrtn
 that is running:
 
     http://github.com/edsu/unshrtn
