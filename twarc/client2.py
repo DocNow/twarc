@@ -875,6 +875,89 @@ class Twarc2:
                 resource_owner_secret=self.access_token_secret,
             )
 
+    @requires_app_auth
+    def compliance_job_list(self, job_type, status):
+        """
+        Returns list of compliance jobs.
+
+        Calls [GET /2/compliance/jobs](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/get-compliance-jobs)
+
+        Args:
+            job_type (str): Filter by job type - either tweets or users.
+            status (str): Filter by job status. Only one of 'created', 'in_progress', 'complete', 'failed' can be specified. If not set, returns all.
+
+        Returns:
+            list[dict]: A list of jobs.
+        """
+        params = {}
+        if job_type:
+            params["type"] = job_type
+        if status:
+            params["status"] = status
+        result = self.client.get(
+            "https://api.twitter.com/2/compliance/jobs", params=params
+        ).json()
+        if "data" in result or not result:
+            return result
+        else:
+            raise ValueError(f"Unknown response from twitter: {result}")
+
+    @requires_app_auth
+    def compliance_job_get(self, job_id):
+        """
+        Returns a compliance job.
+
+        Calls [GET /2/compliance/jobs/{job_id}](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/get-compliance-jobs-id)
+
+        Args:
+            job_id (int): The ID of the compliance job.
+
+        Returns:
+            dict: A compliance job.
+        """
+        result = self.client.get(
+            "https://api.twitter.com/2/compliance/jobs/{}".format(job_id)
+        )
+        if result.status_code == 200:
+            result = result.json()
+        else:
+            raise ValueError(f"Error from API, response: {result.status_code}")
+        if "data" in result:
+            return result
+        else:
+            raise ValueError(f"Unknown response from twitter: {result}")
+
+    @requires_app_auth
+    def compliance_job_create(self, job_type, job_name, resumable=False):
+        """
+        Creates a new compliace job.
+
+        Calls [POST /2/compliance/jobs](https://developer.twitter.com/en/docs/twitter-api/compliance/batch-compliance/api-reference/post-compliance-jobs)
+
+        Args:
+            job_type (str): The type of job to create. Either 'tweets' or 'users'.
+            job_name (str): Optional name for the job.
+            resumable (bool): Whether or not the job upload is resumable.
+        """
+        payload = {}
+        payload["type"] = job_type
+        payload["resumable"] = resumable
+        if job_name:
+            payload["name"] = job_name
+
+        result = self.client.post(
+            "https://api.twitter.com/2/compliance/jobs", json=payload
+        )
+
+        if result.status_code == 200:
+            result = result.json()
+        else:
+            raise ValueError(f"Error from API, response: {result.status_code}")
+        if "data" in result:
+            return result
+        else:
+            raise ValueError(f"Unknown response from twitter: {result}")
+
     def _id_exists(self, user):
         """
         Returns True if the user id exists
