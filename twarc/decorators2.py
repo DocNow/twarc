@@ -226,16 +226,8 @@ class FileLineProgressBar(tqdm):
                 err=True,
             )
 
-        def blocks(files, size=65536):
-            while True:
-                b = files.read(size)
-                if not b:
-                    break
-                yield b
-
-        total_lines = 0
         with open(infile.name, "r", encoding="utf-8", errors="ignore") as f:
-            total_lines = sum(bl.count("\n") for bl in blocks(f))
+            total_lines = sum(1 for _ in f)
 
         kwargs["total"] = total_lines if not disable else 1
         super().__init__(**kwargs)
