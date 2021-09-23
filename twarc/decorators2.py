@@ -175,7 +175,6 @@ class cli_api_error:
 def requires_app_auth(f):
     """
     Ensure that application authentication is set for calls that only work in that mode.
-
     """
 
     @wraps(f)
@@ -237,8 +236,9 @@ class FileLineProgressBar(tqdm):
     ):
         """
         Update the progress bar appropriately, with a full API response. For convenience,
-        otherwise use twdm's own update() method.
+        and drop in compatibility with FileSizeProgressBar otherwise use tqdm's update().
         """
+
         try:
             if "data" in result:
                 for item in result["data"]:
