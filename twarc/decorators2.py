@@ -215,11 +215,11 @@ class FileLineProgressBar(tqdm):
             "bar_format"
         ] = "{l_bar}{bar}| Processed {n_fmt}/{total_fmt} lines of input file [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
 
-        # Warn for large (> 100 MB) input files:
-        if (os.stat(infile.name).st_size / (1024 * 1024)) > 100:
+        # Warn for large (> 1 GB) input files:
+        if (os.stat(infile.name).st_size / (1024 * 1024 * 1024)) > 1:
             click.echo(
                 click.style(
-                    f"Warning: Input File Size is {os.stat(infile.name).st_size / (1024*1024):.2f} MB, it may take a while to process. CTRL+C to stop.",
+                    f"Input File Size is {os.stat(infile.name).st_size / (1024*1024):.2f} MB, it may take a while to process. CTRL+C to stop.",
                     fg="yellow",
                     bold=True,
                 ),
