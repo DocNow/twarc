@@ -1,5 +1,4 @@
 # twarc Project
-=====
 
 twarc is a command line tool and Python library for archiving Twitter JSON data. It works with the older v1.1 API and the newer v2 API and Academic Access.
 
