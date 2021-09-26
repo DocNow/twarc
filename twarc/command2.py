@@ -33,6 +33,7 @@ from twarc.decorators2 import (
     cli_api_error,
     TimestampProgressBar,
     FileSizeProgressBar,
+    FileLineProgressBar,
     _millis2snowflake,
     _date2millis,
 )
@@ -614,7 +615,7 @@ def hydrate(T, infile, outfile, hide_progress):
     """
     Hydrate tweet ids.
     """
-    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+    with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
         for result in T.tweet_lookup(infile):
             _write(result, outfile)
             tweet_ids = [t["id"] for t in result.get("data", [])]
@@ -705,7 +706,7 @@ def users(T, infile, outfile, usernames, hide_progress):
     """
     Get data for user ids or usernames.
     """
-    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+    with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
         for result in T.user_lookup(infile, usernames):
             _write(result, outfile)
             if usernames:
@@ -952,9 +953,9 @@ def timelines(
     line_count = 0
     seen = set()
 
-    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+    with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
         for line in infile:
-            progress.update(len(line))
+            progress.update()
             line_count += 1
             line = line.strip()
             if line == "":
@@ -1402,9 +1403,9 @@ def conversations(
     count = 0
     stop = False
 
-    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+    with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
         for line in infile:
-            progress.update(len(line))
+            progress.update()
             conv_ids = []
 
             # stop will get set when the total tweet limit has been met
