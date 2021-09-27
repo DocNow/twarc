@@ -1153,7 +1153,6 @@ def searches(
     expected, and to avoid consuming quota unnecessarily.
 
     """
-    total_count = 0
     line_count = 0
     seen = set()
 
@@ -1204,14 +1203,14 @@ def searches(
 
     # TODO: Needs an inputlines progress bar instead, as the queries are variable
     # size.
-    with FileSizeProgressBar(infile, outfile, disable=hide_progress) as progress:
+    with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
 
         merged_query = ""
 
         for query in infile:
             query = query.strip()
 
-            progress.update(len(query))
+            progress.update(1)
             line_count += 1
 
             if query == "":
