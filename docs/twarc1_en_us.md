@@ -1,4 +1,4 @@
-twarc
+twarc1
 =====
 
 ***For information about working with the Twitter V2 API please see the [twarc2](https://twarc-project.readthedocs.io/en/latest/twarc2/) page.***

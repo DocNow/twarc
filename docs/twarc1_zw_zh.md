@@ -1,4 +1,4 @@
-twarc
+twarc1
 =====
 
 twarc 是一个用来处理并存档推特 JSON 数据的命令行工具和 Python 包。

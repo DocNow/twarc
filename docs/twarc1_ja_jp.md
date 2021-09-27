@@ -1,4 +1,4 @@
-twarc
+twarc1
 =====
 
 twarcは、TwitterのJSONデータをアーカイブするためのコマンドラインツールおよびPythonライブラリーのプログラムです。

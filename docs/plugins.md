@@ -13,12 +13,13 @@ published separately from twarc on [PyPI] and are installed with [pip]. Here is
 a list of some known plugins (if you write one please [let us know] so we can
 add it to this list):
 
-* [twarc-ids](https://pypi.org/project/twarc-ids/): extract tweet ids from tweets
-* [twarc-videos](https://pypi.org/project/twarc-videos): extract videos from tweets
-* [twarc-csv](https://pypi.org/project/twarc-csv/): export tweets to CSV
-* [twarc-network](https://pypi.org/project/twarc-network): visualize your tweets as a network graph
+* [twarc-ids](https://pypi.org/project/twarc-ids/): a simple example of printing the ids for tweets to use as a reference for creating plugins
+* [twarc-csv](https://pypi.org/project/twarc-csv/): export tweets to CSV, which is probably the first thing a researcher will want to do
+* [twarc-videos](https://pypi.org/project/twarc-videos): extract videos from tweets 
+* [twarc-network](https://pypi.org/project/twarc-network): visualize tweets and users as a network graph
 * [twarc-timeline-archive](https://pypi.org/project/twarc-timeline-archive): routinely download tweet timelines for a list of users
 * [twarc-hashtags](https://pypi.org/project/twarc-hashtags): create a report of hashtags that are used in collected tweet data
+* Write your own, and [let us know] so we can add it here!
 
 ## Writing a Plugin
 

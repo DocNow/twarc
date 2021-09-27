@@ -14,16 +14,16 @@ theme:
 
 nav: 
   - Home: README.md
-  - twarc: 
-    - twarc (en): twarc_en_us.md
-    - twarc (es): twarc_es_mx.md
-    - twarc (ja): twarc_ja_jp.md
-    - twarc (pt): twarc_pt_br.md
-    - twarc (sv): twarc_sv_se.md
-    - twarc (sw): twarc_sw_ke.md
-    - twarc (zw): twarc_zw_zh.md
   - twarc2: 
     - twarc2 (en): twarc2_en_us.md
+  - twarc1: 
+    - twarc1 (en): twarc1_en_us.md
+    - twarc1 (es): twarc1_es_mx.md
+    - twarc1 (ja): twarc1_ja_jp.md
+    - twarc1 (pt): twarc1_pt_br.md
+    - twarc1 (sv): twarc1_sv_se.md
+    - twarc1 (sw): twarc1_sw_ke.md
+    - twarc1 (zw): twarc1_zw_zh.md
   - Plugins: plugins.md
   - Tutorials: tutorials.md
   - Twitter Developer Access: twitter-developer-access.md 

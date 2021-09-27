@@ -1,4 +1,4 @@
-twarc
+twarc1
 =====
 
 twarc é uma ferramenta de linha de comando e usa a biblioteca Python para arquivamento de dados do Twitter com JSON.
