@@ -39,6 +39,10 @@ jobs:
         BEARER_TOKEN: ${{ secrets.bearer_token }}
       run: python setup.py test
 
+    - name: Ensure packages can be built
+      run: |
+        python setup.py sdist bdist_wheel
+
     - name: Publish to PyPI
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@release/v1
