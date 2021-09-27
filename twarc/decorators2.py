@@ -175,7 +175,6 @@ class cli_api_error:
 def requires_app_auth(f):
     """
     Ensure that application authentication is set for calls that only work in that mode.
-
     """
 
     @wraps(f)
@@ -195,6 +194,75 @@ class InvalidAuthType(Exception):
     """
     Raised when the endpoint called is not supported by the current auth type.
     """
+
+
+class FileLineProgressBar(tqdm):
+    """
+    A progress bar based on input file line count. Counts an input file by lines.
+    This tries to read the entire file and count newlines in a robust way.
+    """
+
+    def __init__(self, infile, outfile, **kwargs):
+        disable = False if "disable" not in kwargs else kwargs["disable"]
+        if infile is not None and (infile.name == "<stdin>"):
+            disable = True
+        if outfile is not None and (outfile.name == "<stdout>"):
+            disable = True
+        kwargs["disable"] = disable
+        kwargs["miniters"] = 1
+        kwargs[
+            "bar_format"
+        ] = "{l_bar}{bar}| Processed {n_fmt}/{total_fmt} lines of input file [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
+
+        # Warn for large (> 1 GB) input files:
+        if (os.stat(infile.name).st_size / (1024 * 1024 * 1024)) > 1:
+            click.echo(
+                click.style(
+                    f"Input File Size is {os.stat(infile.name).st_size / (1024*1024):.2f} MB, it may take a while to process. CTRL+C to stop.",
+                    fg="yellow",
+                    bold=True,
+                ),
+                err=True,
+            )
+
+        with open(infile.name, "r", encoding="utf-8", errors="ignore") as f:
+            total_lines = sum(1 for _ in f)
+
+        kwargs["total"] = total_lines if not disable else 1
+        super().__init__(**kwargs)
+
+    def update_with_result(
+        self, result, field="id", error_resource_type=None, error_parameter="ids"
+    ):
+        """
+        Update the progress bar appropriately, with a full API response. For convenience,
+        and drop in compatibility with FileSizeProgressBar otherwise use tqdm's update().
+        """
+
+        try:
+            if "data" in result:
+                for item in result["data"]:
+                    self.update()
+            if error_resource_type and "errors" in result:
+                for error in result["errors"]:
+                    # Account for deleted data
+                    # Errors have very inconsistent format, missing fields for different types of errors...
+                    if (
+                        "resource_type" in error
+                        and error["resource_type"] == error_resource_type
+                    ):
+                        if (
+                            "parameter" in error
+                            and error["parameter"] == error_parameter
+                        ):
+                            self.update()
+                            # todo: hide or show this?
+                            # self.set_description(
+                            #    "Errors encountered, results may be incomplete"
+                            # )
+                        # print(error["value"], error["resource_type"], error["parameter"])
+        except Exception as e:
+            log.error(f"Failed to update progress bar: {e}")
 
 
 class FileSizeProgressBar(tqdm):
@@ -224,6 +292,10 @@ class FileSizeProgressBar(tqdm):
     def update_with_result(
         self, result, field="id", error_resource_type=None, error_parameter="ids"
     ):
+        """
+        Update the progress bar appropriately, with a full API response. For convenience,
+        otherwise use twdm's own update() method.
+        """
         try:
             if "data" in result:
                 for item in result["data"]:
@@ -318,7 +390,7 @@ class TimestampProgressBar(tqdm):
 
     def update_with_result(self, result):
         """
-        Update progress bar based on snowflake ids.
+        Update progress bar based on snowflake ids from an API response.
         """
         try:
             newest_id = result["meta"]["newest_id"]
