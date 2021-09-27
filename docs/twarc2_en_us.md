@@ -33,7 +33,7 @@ in hand you are ready to start using twarc.
 2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc:
 
 ```
-    pip install --upgrade twarc
+pip install --upgrade twarc
 ```
 
 ### Homebrew (macOS only)
@@ -41,7 +41,7 @@ in hand you are ready to start using twarc.
 For macOS users, you can also install `twarc` via [Homebrew](https://brew.sh/):
 
 ```bash
-$ brew install twarc
+brew install twarc
 ```
 
 ### Windows
