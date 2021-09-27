@@ -114,7 +114,7 @@ make readily apparent.
 
 ### Limit
 
-Because there is a 500,000 tweet limit (5 million for Academic Research Track)
+Because there is a 500,000 tweet limit (5, or sometimes 10 million for Academic Research Track)
 you may want to limit the number of tweets you retrieve by using `--limit`:
 
     twarc2 search --limit 5000 blacklivesmatter tweets.jsonl
@@ -156,7 +156,7 @@ When you want to stop you use `ctrl-c`. This only stops the stream but doesn't d
 
 ## Sample
 
-Use the `sample` command to listen to Twitter's [tweets/sample/stream](https://developer.twitter.com/en/docs/twitter-api/tweets/sampled-stream/api-reference/get-tweets-sample-stream) API for a "random" sample of recent public statuses.
+Use the `sample` command to listen to Twitter's [tweets/sample/stream](https://developer.twitter.com/en/docs/twitter-api/tweets/sampled-stream/api-reference/get-tweets-sample-stream) API for a "random" sample of recent public statuses. The sampling is based on the millisecond part of the tweet timestamp.
 
     twarc2 sample sample.jsonl
 
