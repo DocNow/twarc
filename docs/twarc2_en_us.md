@@ -149,13 +149,13 @@ When you want to stop you use `ctrl-c`. This only stops the stream but doesn't d
 
     twarc2 stream-rules delete blacklivesmatter
 
-### Sample
+## Sample
 
 Use the `sample` command to listen to Twitter's [tweets/sample/stream](https://developer.twitter.com/en/docs/twitter-api/tweets/sampled-stream/api-reference/get-tweets-sample-stream) API for a "random" sample of recent public statuses.
 
     twarc2 sample sample.jsonl
 
-### Users
+## Users
 
 If you have a file of user ids you can fetch the user metadata for them with
 the `users` command:
@@ -166,13 +166,13 @@ If the file contains usernames instead of user ids you can use the `--usernames`
 
     twarc2 users --usernames users.txt users.jsonl
 
-### Followers
+## Followers
 
 You can fetch the followers of an account using the `followers` command:
 
     twarc2 followers deray users.jsonl
 
-### Following
+## Following
 
 To get the users that a user is following you can use `following`:
 
@@ -181,13 +181,13 @@ To get the users that a user is following you can use `following`:
 The result will include exactly one user id per line. The response order is
 reverse chronological, or most recent followers first.
 
-### Timeline
+## Timeline
 
 The `timeline` command will use Twitter's [user timeline API](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets) to collect the most recent tweets posted by the user indicated by screen_name.
 
     twarc2 timeline deray tweets.jsonl
 
-### Conversation
+## Conversation
 
 You can retrieve a conversation thread using the tweet ID at the head of the
 conversation:
