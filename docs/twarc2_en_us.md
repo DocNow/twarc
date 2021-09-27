@@ -23,9 +23,14 @@ project which was funded by the [Mellon Foundation](https://mellon.org/).
 
 ## Install
 
-Before using twarc you will need to register an application at
-[apps.twitter.com](http://apps.twitter.com). Once you've created your
-application, note down the consumer key, consumer secret and then click to
+Before using twarc you will need to create an application and attach it to an
+project on your [Twitter Developer Portal](https://developer.twitter.com/en/portal/projects-and-apps). A ["Project"](https://developer.twitter.com/en/docs/projects/overview) is like a container for an "Application" with a specific purpose.
+
+If you have Academic Access you should see an "Academic Research" Project,
+if not, you should see only "Standard" Project. Academic Access is a separate endpoint, see [here](twitter-developer-access.md) for notes on this.
+
+Once you've created your application, note down the Bearer token, and or the consumer key, consumer secret,
+which may also be called API Key and API Secret and then optionally click to
 generate an access token and access token secret. With these four variables
 in hand you are ready to start using twarc.
 
