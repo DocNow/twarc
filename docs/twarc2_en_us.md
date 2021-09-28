@@ -211,6 +211,14 @@ twarc's `hydrate` command will read a file of tweet identifiers and write out th
 API endpoint:
 
     twarc2 hydrate ids.txt tweets.jsonl
+    
+The input file, `ids.txt` is expected to be a file that contains a tweet identifier on each line, without quotes or a header:
+
+```
+919505987303886849
+919505982882844672
+919505982602039297
+```
 
 Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) discourage people from making large amounts of raw Twitter data available on the Web.  The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available.  You can then use Twitter's API to *hydrate* the data, or to retrieve the full JSON for each identifier. This is particularly important for [verification](https://en.wikipedia.org/wiki/Reproducibility) of social media research.
 
