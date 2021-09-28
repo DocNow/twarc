@@ -349,32 +349,32 @@ def command_line_expansions_options(f):
     f = click.option(
         "--expansions",
         default=",".join(EXPANSIONS),
-        help="Request a specific set of expansions. Default is all available.",
+        help="Comma separated list of expansions to retrieve. Default is all available.",
     )(f)
     f = click.option(
         "--tweet-fields",
         default=",".join(TWEET_FIELDS),
-        help="Retrieve specified tweet fields. Default is all available.",
+        help="Comma separated list of tweet fields to retrieve. Default is all available.",
     )(f)
     f = click.option(
         "--user-fields",
         default=",".join(USER_FIELDS),
-        help="Retrieve specified user fields. Default is all available.",
+        help="Comma separated list of user fields to retrieve. Default is all available.",
     )(f)
     f = click.option(
         "--media-fields",
         default=",".join(MEDIA_FIELDS),
-        help="Retrieve specified media fields. Default is all available.",
+        help="Comma separated list of media fields to retrieve. Default is all available.",
     )(f)
     f = click.option(
         "--poll-fields",
         default=",".join(POLL_FIELDS),
-        help="Retrieve specified poll fields. Default is all available.",
+        help="Comma separated list of poll fields to retrieve. Default is all available.",
     )(f)
     f = click.option(
         "--place-fields",
         default=",".join(PLACE_FIELDS),
-        help="Retrieve specified place fields. Default is all available.",
+        help="Comma separated list of place fields to retrieve. Default is all available.",
     )(f)
     return f
 
@@ -382,6 +382,7 @@ def command_line_expansions_options(f):
 @twarc2.command("search")
 @command_line_search_options
 @command_line_search_archive_options
+@command_line_expansions_options
 @command_line_progressbar_option
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
