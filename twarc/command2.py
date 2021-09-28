@@ -392,14 +392,7 @@ def search(
     T,
     query,
     outfile,
-    since_id,
-    until_id,
-    start_time,
-    end_time,
-    limit,
-    max_results,
-    archive,
-    hide_progress,
+    **kwargs,
 ):
     """
     Search for tweets.
@@ -408,14 +401,14 @@ def search(
         T,
         query,
         outfile,
-        since_id,
-        until_id,
-        start_time,
-        end_time,
-        limit,
-        max_results,
-        archive,
-        hide_progress,
+        kwargs["since_id"],
+        kwargs["until_id"],
+        kwargs["start_time"],
+        kwargs["end_time"],
+        kwargs["limit"],
+        kwargs["max_results"],
+        kwargs["archive"],
+        kwargs["hide_progress"],
     )
 
 
