@@ -27,7 +27,15 @@ from pkg_resources import iter_entry_points
 from twarc.version import version
 from twarc.handshake import handshake
 from twarc.config import ConfigProvider
-from twarc.expansions import ensure_flattened
+from twarc.expansions import (
+    ensure_flattened,
+    EXPANSIONS,
+    TWEET_FIELDS,
+    USER_FIELDS,
+    MEDIA_FIELDS,
+    POLL_FIELDS,
+    PLACE_FIELDS,
+)
 from click_config_file import configuration_option
 from twarc.decorators2 import (
     cli_api_error,
@@ -330,6 +338,43 @@ def command_line_search_archive_options(f):
     f = click.option("--limit", default=0, help="Maximum number of tweets to save")(f)
     f = click.option(
         "--max-results", default=0, help="Maximum number of tweets per API response"
+    )(f)
+    return f
+
+
+def command_line_expansions_options(f):
+    """
+    Decorator for specifying custom fields and expansions
+    """
+    f = click.option(
+        "--expansions",
+        default=",".join(EXPANSIONS),
+        help="Request a specific set of expansions. Default is all available.",
+    )(f)
+    f = click.option(
+        "--tweet-fields",
+        default=",".join(TWEET_FIELDS),
+        help="Retrieve specified tweet fields. Default is all available.",
+    )(f)
+    f = click.option(
+        "--user-fields",
+        default=",".join(USER_FIELDS),
+        help="Retrieve specified user fields. Default is all available.",
+    )(f)
+    f = click.option(
+        "--media-fields",
+        default=",".join(MEDIA_FIELDS),
+        help="Retrieve specified media fields. Default is all available.",
+    )(f)
+    f = click.option(
+        "--poll-fields",
+        default=",".join(POLL_FIELDS),
+        help="Retrieve specified poll fields. Default is all available.",
+    )(f)
+    f = click.option(
+        "--place-fields",
+        default=",".join(PLACE_FIELDS),
+        help="Retrieve specified place fields. Default is all available.",
     )(f)
     return f
 
