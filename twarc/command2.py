@@ -226,7 +226,7 @@ def _search(
     hide_progress,
 ):
     """
-    Search for tweets.
+    Common function to Search for tweets.
     """
     count = 0
 
@@ -274,35 +274,70 @@ def _search(
             progress.early_stop = False
 
 
+def command_line_input_output_file_arguments(f):
+    """
+    Decorator for specifying input and output file arguments in a command
+    """
+    f = click.argument("infile", type=click.File("r"), default="-")(f)
+    f = click.argument("outfile", type=click.File("w"), default="-")(f)
+    return f
+
+
+def command_line_progressbar_option(f):
+    """
+    Decorator for specifying a progress bar option.
+    """
+    f = click.option(
+        "--hide-progress",
+        is_flag=True,
+        default=False,
+        help="Hide the Progress bar. Default: show progress, unless using pipes.",
+    )(f)
+    return f
+
+
+def command_line_search_options(f):
+    """
+    Decorator for specifying time range search API parameters.
+    """
+    f = click.option("--since-id", type=int, help="Match tweets sent after tweet id")(f)
+    f = click.option(
+        "--until-id", type=int, help="Match tweets sent prior to tweet id"
+    )(f)
+    f = click.option(
+        "--start-time",
+        type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+        help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+    )(f)
+    f = click.option(
+        "--end-time",
+        type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+        help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
+    )(f)
+    return f
+
+
+def command_line_search_archive_options(f):
+    """
+    Decorator for specifying additional search API parameters.
+    """
+    f = click.option(
+        "--archive",
+        is_flag=True,
+        default=False,
+        help="Use the full archive (requires Academic Research track)",
+    )(f)
+    f = click.option("--limit", default=0, help="Maximum number of tweets to save")(f)
+    f = click.option(
+        "--max-results", default=0, help="Maximum number of tweets per API response"
+    )(f)
+    return f
+
+
 @twarc2.command("search")
-@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
-@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
-@click.option(
-    "--start-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
-)
-@click.option(
-    "--end-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
-)
-@click.option(
-    "--archive",
-    is_flag=True,
-    default=False,
-    help="Search the full archive (requires Academic Research track). Defaults to searching the entire twitter archive if --start-time is not specified.",
-)
-@click.option("--limit", default=0, help="Maximum number of tweets to save")
-@click.option(
-    "--max-results", default=0, help="Maximum number of tweets per API response"
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_search_options
+@command_line_search_archive_options
+@command_line_progressbar_option
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -339,24 +374,7 @@ def search(
 
 
 @twarc2.command("counts")
-@click.option("--since-id", type=int, help="Count tweets sent after tweet id")
-@click.option("--until-id", type=int, help="Count tweets sent prior to tweet id")
-@click.option(
-    "--start-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Count tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
-)
-@click.option(
-    "--end-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Count tweets sent before UTC time (ISO 8601/RFC 3339)",
-)
-@click.option(
-    "--archive",
-    is_flag=True,
-    default=False,
-    help="Count using the full archive (requires Academic Research track)",
-)
+@command_line_search_options
 @click.option(
     "--granularity",
     default="hour",
@@ -375,12 +393,7 @@ def search(
     help="Output the counts as human readable text",
 )
 @click.option("--csv", is_flag=True, default=False, help="Output counts as CSV")
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_progressbar_option
 @click.argument("query", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -498,12 +511,7 @@ def tweet(T, tweet_id, outfile, pretty):
     default=0,
     help="Maximum number of followers to save. Increments of 1000.",
 )
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress",
-)
+@command_line_progressbar_option
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -538,12 +546,7 @@ def followers(T, user, outfile, limit, hide_progress):
 @click.option(
     "--limit", default=0, help="Maximum number of friends to save. Increments of 1000."
 )
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress",
-)
+@command_line_progressbar_option
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -601,14 +604,8 @@ def sample(T, outfile, limit):
 
 
 @twarc2.command("hydrate")
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_input_output_file_arguments
+@command_line_progressbar_option
 @click.pass_obj
 @cli_api_error
 def hydrate(T, infile, outfile, hide_progress):
@@ -624,20 +621,14 @@ def hydrate(T, infile, outfile, hide_progress):
 
 
 @twarc2.command("dehydrate")
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
 @click.option(
     "--id-type",
     default="tweets",
     type=click.Choice(["tweets", "users"], case_sensitive=False),
     help="IDs to extract - either 'tweets' or 'users'.",
 )
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_progressbar_option
+@command_line_input_output_file_arguments
 @cli_api_error
 def dehydrate(infile, outfile, id_type, hide_progress):
     """
@@ -691,15 +682,9 @@ def dehydrate(infile, outfile, id_type, hide_progress):
 
 
 @twarc2.command("users")
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
 @click.option("--usernames", is_flag=True, default=False)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_progressbar_option
+@command_line_input_output_file_arguments
 @click.pass_obj
 @cli_api_error
 def users(T, infile, outfile, usernames, hide_progress):
@@ -721,24 +706,8 @@ def users(T, infile, outfile, usernames, hide_progress):
 
 
 @twarc2.command("mentions")
-@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
-@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
-@click.option(
-    "--start-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
-)
-@click.option(
-    "--end-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets sent before time (ISO 8601/RFC 3339)",
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress",
-)
+@command_line_search_options
+@command_line_progressbar_option
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -762,44 +731,36 @@ def mentions(
                 progress.desc = f"Set limit reached with {progress.n} tweets"
 
 
+def command_line_timelines_options(f):
+    """
+    Decorator for common timelines command line options
+    """
+    f = click.option(
+        "--use-search",
+        is_flag=True,
+        default=False,
+        help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
+    )(f)
+    f = click.option(
+        "--exclude-retweets",
+        is_flag=True,
+        default=False,
+        help="Exclude retweets from timeline",
+    )(f)
+    f = click.option(
+        "--exclude-replies",
+        is_flag=True,
+        default=False,
+        help="Exclude replies from timeline",
+    )(f)
+    return f
+
+
 @twarc2.command("timeline")
+@command_line_search_options
+@command_line_timelines_options
+@command_line_progressbar_option
 @click.option("--limit", default=0, help="Maximum number of tweets to return")
-@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
-@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
-@click.option(
-    "--exclude-retweets",
-    is_flag=True,
-    default=False,
-    help="Exclude retweets from timeline",
-)
-@click.option(
-    "--exclude-replies",
-    is_flag=True,
-    default=False,
-    help="Exclude replies from timeline",
-)
-@click.option(
-    "--start-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
-)
-@click.option(
-    "--end-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets sent before time (ISO 8601/RFC 3339)",
-)
-@click.option(
-    "--use-search",
-    is_flag=True,
-    default=False,
-    help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -900,32 +861,9 @@ def timeline(
     default=0,
     help="Maximum number of tweets to return per-timeline",
 )
-@click.option(
-    "--use-search",
-    is_flag=True,
-    default=False,
-    help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
-)
-@click.option(
-    "--exclude-retweets",
-    is_flag=True,
-    default=False,
-    help="Exclude retweets from timeline",
-)
-@click.option(
-    "--exclude-replies",
-    is_flag=True,
-    default=False,
-    help="Exclude replies from timeline",
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
+@command_line_timelines_options
+@command_line_progressbar_option
+@command_line_input_output_file_arguments
 @click.pass_obj
 def timelines(
     T,
@@ -1069,35 +1007,8 @@ def _timeline_tweets(
 
 
 @twarc2.command("searches")
-@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
-@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
-@click.option(
-    "--start-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
-)
-@click.option(
-    "--end-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
-)
-@click.option(
-    "--archive",
-    is_flag=True,
-    default=False,
-    help="Search the full archive (requires Academic Research track). Defaults to searching the entire twitter archive if --start-time is not specified.",
-)
-@click.option(
-    "--limit",
-    default=0,
-    help="Maximum number of tweets to save *per search*, ignored if --counts-only is specified.",
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_search_options
+@command_line_search_archive_options
 @click.option(
     "--counts-only",
     is_flag=True,
@@ -1120,14 +1031,15 @@ def _timeline_tweets(
     type=click.Choice(["day", "hour", "minute"], case_sensitive=False),
     help="Aggregation level for counts (only used when --count-only is used). Can be one of: day, hour, minute. Default is day.",
 )
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
+@command_line_progressbar_option
+@command_line_input_output_file_arguments
 @click.pass_obj
 def searches(
     T,
     infile,
     outfile,
     limit,
+    max_results,
     since_id,
     until_id,
     start_time,
@@ -1197,6 +1109,7 @@ def searches(
             until_id,
             start_time,
             end_time,
+            max_results,
         )
 
     # TODO: Validate the queries are all valid length before beginning and report errors
@@ -1297,34 +1210,9 @@ def searches(
 
 
 @twarc2.command("conversation")
-@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
-@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
-@click.option(
-    "--start-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
-)
-@click.option(
-    "--end-time",
-    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-    help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
-)
-@click.option(
-    "--archive",
-    is_flag=True,
-    default=False,
-    help="Search the full archive (requires Academic Research track)",
-)
-@click.option("--limit", default=0, help="Maximum number of tweets to save")
-@click.option(
-    "--max-results", default=0, help="Maximum number of tweets per API response"
-)
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_search_options
+@command_line_search_archive_options
+@command_line_progressbar_option
 @click.argument("tweet_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -1374,14 +1262,8 @@ def conversation(
     default=False,
     help="Use the Academic Research project track access to the full archive",
 )
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
+@command_line_progressbar_option
+@command_line_input_output_file_arguments
 @click.pass_obj
 @cli_api_error
 def conversations(
@@ -1455,14 +1337,8 @@ def conversations(
 
 
 @twarc2.command("flatten")
-@click.argument("infile", type=click.File("r"), default="-")
-@click.argument("outfile", type=click.File("w"), default="-")
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress, unless using pipes.",
-)
+@command_line_progressbar_option
+@command_line_input_output_file_arguments
 @cli_api_error
 def flatten(infile, outfile, hide_progress):
     """
@@ -1624,6 +1500,25 @@ def delete_all(T):
         click.echo(f"🗑  Deleted {len(rule_ids)} rules.")
 
 
+def command_line_verbose_options(f):
+    """
+    Decorator for specifying verbose and json output
+    """
+    f = click.option(
+        "--verbose",
+        is_flag=True,
+        default=False,
+        help="Show all URLs and metadata.",
+    )(f)
+    f = click.option(
+        "--json-output",
+        is_flag=True,
+        default=False,
+        help="Return the raw json content from the API.",
+    )(f)
+    return f
+
+
 @twarc2.group()
 @click.pass_obj
 def compliance_job(T):
@@ -1648,18 +1543,7 @@ def compliance_job(T):
     ),
     help="Filter by job status. Only one of 'created', 'in_progress', 'complete', 'failed' can be specified. If not set, returns all.",
 )
-@click.option(
-    "--verbose",
-    is_flag=True,
-    default=False,
-    help="Show all URLs and metadata.",
-)
-@click.option(
-    "--json-output",
-    is_flag=True,
-    default=False,
-    help="Return the raw json content from the API.",
-)
+@command_line_verbose_options
 @click.pass_obj
 @cli_api_error
 def compliance_job_list(T, job_type, status, verbose, json_output):
@@ -1698,18 +1582,7 @@ def compliance_job_list(T, job_type, status, verbose, json_output):
 
 @compliance_job.command("get")
 @click.argument("job")
-@click.option(
-    "--verbose",
-    is_flag=True,
-    default=False,
-    help="Show all URLs and metadata.",
-)
-@click.option(
-    "--json-output",
-    is_flag=True,
-    default=False,
-    help="Return the raw json content from the API.",
-)
+@command_line_verbose_options
 @click.pass_obj
 @cli_api_error
 def compliance_job_get(T, job, verbose, json_output):
@@ -1750,12 +1623,7 @@ def compliance_job_get(T, job, verbose, json_output):
     default=True,
     help="Wait for the job to finish and download the results. Wait by default.",
 )
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress.",
-)
+@command_line_progressbar_option
 @click.pass_obj
 @cli_api_error
 def compliance_job_create(T, job_type, infile, outfile, job_name, wait, hide_progress):
@@ -1827,12 +1695,7 @@ def compliance_job_create(T, job_type, infile, outfile, job_name, wait, hide_pro
     default=True,
     help="Wait for the job to finish and download the results. Wait by default.",
 )
-@click.option(
-    "--hide-progress",
-    is_flag=True,
-    default=False,
-    help="Hide the Progress bar. Default: show progress.",
-)
+@command_line_progressbar_option
 @click.pass_obj
 @cli_api_error
 def compliance_job_download(T, job, outfile, wait, hide_progress):
