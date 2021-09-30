@@ -36,6 +36,7 @@ from twarc.expansions import (
     POLL_FIELDS,
     PLACE_FIELDS,
 )
+from click import command, option, Option, UsageError
 from click_config_file import configuration_option
 from twarc.decorators2 import (
     cli_api_error,
@@ -247,18 +248,12 @@ def _search(
     if archive:
         search_method = T.search_all
 
-        # default number of tweets per response 500 when not set otherwise
-        if max_results == 0:
-            max_results = 100  # temp fix for #504
-
         # start time defaults to the beginning of Twitter to override the
         # default of the last month. Only do this if start_time is not already
         # specified and since_id and until_id aren't being used
         if start_time is None and since_id is None and until_id is None:
             start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
-        if max_results == 0:
-            max_results = 100
         search_method = T.search_recent
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
@@ -280,6 +275,35 @@ def _search(
                 break
         else:
             progress.early_stop = False
+
+
+class MutuallyExclusiveOption(Option):
+    """
+    Custom click class to make some options mutually exclusive
+    via https://gist.github.com/jacobtolar/fb80d5552a9a9dfc32b12a829fa21c0c
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.mutually_exclusive = set(kwargs.pop("mutually_exclusive", []))
+        help = kwargs.get("help", "")
+        if self.mutually_exclusive:
+            ex_str = ", ".join(self.mutually_exclusive)
+            kwargs["help"] = help + (
+                " NOTE: This argument is mutually exclusive with "
+                " arguments: [" + ex_str + "]."
+            )
+        super(MutuallyExclusiveOption, self).__init__(*args, **kwargs)
+
+    def handle_parse_result(self, ctx, opts, args):
+        if self.mutually_exclusive.intersection(opts) and self.name in opts:
+            raise UsageError(
+                "Incorrect usage: `{}` is mutually exclusive with "
+                "arguments `{}` use either one or the other.".format(
+                    self.name, ", ".join(self.mutually_exclusive)
+                )
+            )
+
+        return super(MutuallyExclusiveOption, self).handle_parse_result(ctx, opts, args)
 
 
 def command_line_input_output_file_arguments(f):
@@ -315,14 +339,35 @@ def command_line_search_options(f):
     f = click.option(
         "--start-time",
         type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-        help="Match tweets created after UTC time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+        help='Match tweets created after UTC time (ISO 8601/RFC 3339), \n e.g.  --start-time "2021-01-01T12:31:04"',
     )(f)
     f = click.option(
         "--end-time",
         type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-        help="Match tweets sent before UTC time (ISO 8601/RFC 3339)",
+        help='Match tweets sent before UTC time (ISO 8601/RFC 3339), \n e.g.  --end-time "2021-01-01T12:31:04"',
     )(f)
     return f
+
+
+def validate_max_results(context, parameter, value):
+    """
+    Validate and set appropriate max_results parameter.
+    """
+    if value:
+        if "archive" not in context.params and value > 100:
+            raise click.BadParameter(
+                "--max-results cannot be greater than 100 when using Standard Access. Specify --archive if you have Academic Access."
+            )
+        if value < 10 or value > 500:
+            raise click.BadParameter("--max-results must be between 10 and 500")
+        else:
+            return value
+    elif "archive" in context.params and (
+        "no_context_annotations" in context.params or "minimal_fields" in context.params
+    ):
+        return 500
+    else:
+        return 100
 
 
 def command_line_search_archive_options(f):
@@ -337,9 +382,27 @@ def command_line_search_archive_options(f):
     )(f)
     f = click.option("--limit", default=0, help="Maximum number of tweets to save")(f)
     f = click.option(
-        "--max-results", default=0, help="Maximum number of tweets per API response"
+        "--max-results",
+        default=100,
+        help="Maximum number of tweets per API response",
+        callback=validate_max_results,
     )(f)
     return f
+
+
+def validate_expansions(context, parameter, value):
+    """
+    Validate passed comma separated values for expansions etc.
+    """
+    values = [v.strip() for v in value.split(",")]
+    defaults = [v.strip() for v in parameter.default.split(",")]
+    for v in values:
+        if v not in defaults:
+            raise click.BadOptionUsage(
+                parameter.name,
+                f'"{v}" is not a valid entry for --{parameter.name}. Must be a comma separated string, like --{parameter.name} "{parameter.default}"',
+            )
+    return ",".join(values)
 
 
 def command_line_expansions_options(f):
@@ -349,39 +412,92 @@ def command_line_expansions_options(f):
     f = click.option(
         "--expansions",
         default=",".join(EXPANSIONS),
+        type=click.STRING,
         help="Comma separated list of expansions to retrieve. Default is all available.",
+        callback=validate_expansions,
     )(f)
     f = click.option(
         "--tweet-fields",
         default=",".join(TWEET_FIELDS),
+        type=click.STRING,
         help="Comma separated list of tweet fields to retrieve. Default is all available.",
+        callback=validate_expansions,
     )(f)
     f = click.option(
         "--user-fields",
         default=",".join(USER_FIELDS),
+        type=click.STRING,
         help="Comma separated list of user fields to retrieve. Default is all available.",
+        callback=validate_expansions,
     )(f)
     f = click.option(
         "--media-fields",
         default=",".join(MEDIA_FIELDS),
+        type=click.STRING,
         help="Comma separated list of media fields to retrieve. Default is all available.",
+        callback=validate_expansions,
     )(f)
     f = click.option(
         "--poll-fields",
         default=",".join(POLL_FIELDS),
+        type=click.STRING,
         help="Comma separated list of poll fields to retrieve. Default is all available.",
+        callback=validate_expansions,
     )(f)
     f = click.option(
         "--place-fields",
         default=",".join(PLACE_FIELDS),
+        type=click.STRING,
         help="Comma separated list of place fields to retrieve. Default is all available.",
+        callback=validate_expansions,
     )(f)
+    return f
+
+
+def command_line_expansions_shortcuts(f):
+    """
+    Decorator for specifying common fields and expansions presets
+    """
+    f = click.option(
+        "--no-context-annotations",
+        cls=MutuallyExclusiveOption,
+        mutually_exclusive=[
+            "--minimal-fields",
+            "--expansions",
+            "--tweet-fields",
+            "--user-fields",
+            "--media-fields",
+            "--poll-fields",
+            "--place-fields",
+        ],
+        is_flag=True,
+        default=False,
+        help="By default twarc gets all available data. This leaves out context annotations (Twitter API limits --max-results to 100 if these are requested). Setting this makes --max-results 500 the default.",
+    )(f)
+    f = click.option(
+        "--minimal-fields",
+        cls=MutuallyExclusiveOption,
+        mutually_exclusive=[
+            "--no-context-annotations",
+            "--expansions",
+            "--tweet-fields",
+            "--user-fields",
+            "--media-fields",
+            "--poll-fields",
+            "--place-fields",
+        ],
+        is_flag=True,
+        default=False,
+        help="By default twarc gets all available data. This option requests the minimal retrievable amount of data - only IDs and object references are retrieved. Setting this makes --max-results 500 the default.",
+    )(f)
+
     return f
 
 
 @twarc2.command("search")
 @command_line_search_options
 @command_line_search_archive_options
+@command_line_expansions_shortcuts
 @command_line_expansions_options
 @command_line_progressbar_option
 @click.argument("query", type=str)
@@ -397,6 +513,9 @@ def search(
     """
     Search for tweets.
     """
+
+    print(kwargs)
+
     return _search(
         T,
         query,
