@@ -149,7 +149,7 @@ def twarc2(
             click.echo("You can configure twarc2 using the `twarc2 configure` command.")
     else:
         click.echo()
-        click.echo("👋  Hi I don't see a configuration file yet, so lets make one.")
+        click.echo("👋  Hi I don't see a configuration file yet, so let's make one.")
         click.echo()
         click.echo("Please follow these steps:")
         click.echo()
