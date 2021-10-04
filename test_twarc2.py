@@ -30,13 +30,13 @@ T = twarc.Twarc2(
 )
 
 
-def atest_version():
+def test_version():
     import setup
 
     assert setup.version == twarc.version
 
 
-def atest_auth_types_interaction():
+def test_auth_types_interaction():
     """
     Test the various options for configuration work as expected.
     """
@@ -77,7 +77,7 @@ def atest_auth_types_interaction():
         tw.sample()
 
 
-def atest_sample():
+def test_sample():
     # event to tell the filter stream to close
     event = threading.Event()
 
@@ -95,7 +95,7 @@ def atest_sample():
     assert count == 11
 
 
-def atest_search_recent():
+def test_search_recent():
 
     found_tweets = 0
     pages = 0
@@ -111,7 +111,7 @@ def atest_search_recent():
     assert 200 <= found_tweets <= 300
 
 
-def atest_counts_recent():
+def test_counts_recent():
 
     found_counts = 0
 
@@ -123,7 +123,7 @@ def atest_counts_recent():
     assert 7 <= found_counts <= 8
 
 
-def atest_search_times():
+def test_search_times():
     found = False
     now = datetime.datetime.now(tz=pytz.timezone("Australia/Melbourne"))
     # twitter api doesn't resolve microseconds so strip them for comparison
@@ -144,7 +144,7 @@ def atest_search_times():
     assert found
 
 
-def atest_user_ids_lookup():
+def test_user_ids_lookup():
     users_found = 0
     users_not_found = 0
 
@@ -164,7 +164,7 @@ def atest_user_ids_lookup():
     assert users_found + users_not_found == 999
 
 
-def atest_usernames_lookup():
+def test_usernames_lookup():
     users_found = 0
     usernames = ["jack", "barackobama", "rihanna"]
     for response in T.user_lookup(usernames, usernames=True):
@@ -173,7 +173,7 @@ def atest_usernames_lookup():
     assert users_found == 3
 
 
-def atest_tweet_lookup():
+def test_tweet_lookup():
 
     tweets_found = 0
     tweets_not_found = 0
@@ -202,7 +202,7 @@ def atest_tweet_lookup():
     os.environ.get("GITHUB_ACTIONS") != None,
     reason="stream() seems to throw a 400 error under GitHub Actions?!",
 )
-def atest_stream():
+def test_stream():
     # remove any active stream rules
     rules = T.get_stream_rules()
     if "data" in rules and len(rules["data"]) > 0:
@@ -255,7 +255,7 @@ def atest_stream():
     assert "data" not in rules
 
 
-def atest_timeline():
+def test_timeline():
     """
     Test the user timeline endpoints.
 
@@ -276,7 +276,7 @@ def atest_timeline():
     assert found >= 200
 
 
-def atest_timeline_username():
+def test_timeline_username():
     """
     Test the user timeline endpoints with username.
 
@@ -297,12 +297,12 @@ def atest_timeline_username():
     assert found >= 200
 
 
-def atest_missing_timeline():
+def test_missing_timeline():
     results = T.timeline(1033441111677788160)
     assert len(list(results)) == 0
 
 
-def atest_follows():
+def test_follows():
     """
     Test followers and and following.
 
@@ -324,7 +324,7 @@ def atest_follows():
     assert found >= 1000
 
 
-def atest_follows_username():
+def test_follows_username():
     """
     Test followers and and following by username.
 
@@ -346,7 +346,7 @@ def atest_follows_username():
     assert found >= 1000
 
 
-def atest_flattened():
+def test_flattened():
     """
     This test uses the search API to test response flattening. It will look
     at each tweet to find evidence that all the expansions have worked. Once it
@@ -432,7 +432,7 @@ def atest_flattened():
     assert found_referenced_tweets, "found referenced tweets"
 
 
-def atest_ensure_flattened():
+def test_ensure_flattened():
     resp = next(T.search_recent("twitter", max_results=20))
 
     # flatten a response
@@ -485,7 +485,7 @@ def atest_ensure_flattened():
         twarc.expansions.ensure_flattened([[{"data": {"fake": "list_of_lists"}}]])
 
 
-def atest_ensure_user_id():
+def test_ensure_user_id():
     """
     Test _ensure_user_id's ability to discriminate correctly between IDs and
     screen names.
@@ -505,7 +505,7 @@ def atest_ensure_user_id():
     assert T._ensure_user_id(1033441111677788160) == "1033441111677788160"
 
 
-def atest_twarc_metadata():
+def test_twarc_metadata():
 
     # With metadata (default)
     event = threading.Event()
@@ -532,7 +532,7 @@ def atest_twarc_metadata():
     T.metadata = True
 
 
-def atest_docs_requirements():
+def test_docs_requirements():
     """
     Make sure that the mkdocs requirements has everything that is in the
     twarc requirements so the readthedocs build doesn't fail.
