@@ -1486,6 +1486,63 @@ def flatten(infile, outfile, hide_progress):
             progress.update(len(line))
 
 
+@twarc2.command("places")
+@click.option(
+    "--type",
+    "search_type",
+    type=click.Choice(["name", "geo", "ip"]),
+    default="name",
+    help="How to search for places (defaults to name)",
+)
+@click.option(
+    "--granularity",
+    type=click.Choice(["neighborhood", "city", "admin", "country"]),
+    default="neighborhood",
+    help="What type of places to search for (defaults to neighborhood)",
+)
+@click.option("--max-results", type=int, help="Maximum results to return")
+@click.option("--json", is_flag=True, help="Output raw JSON response")
+@click.argument("value")
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def places(T, value, outfile, search_type, granularity, max_results, json):
+    """
+    Search for places by place name, geo coordinates or ip address.
+    """
+    params = {"granularity": granularity}
+
+    if search_type == "name":
+        params["query"] = value
+    elif search_type == "ip":
+        params["ip"] = value
+    elif search_type == "geo":
+        try:
+            lat, lon = list(map(float, value.split(",")))
+            params = {"lat": lat, "lon": lon}
+        except:
+            click.echo("--geo must be lat,lon", err=True)
+
+    if max_results:
+        params["max_results"] = max_results
+
+    result = T.geo(**params)
+
+    if "errors" in result:
+        click.echo(_error_str(result["errors"]), err=True)
+    elif json:
+        _write(result, outfile)
+    else:
+        for place in result["result"]["places"]:
+            if granularity == "country":
+                line = "{0} [id={1}]".format(place["country"], place["id"])
+            else:
+                line = "{0}, {1} [id={2}]".format(
+                    place["full_name"], place["country"], place["id"]
+                )
+            click.echo(line)
+
+
 @twarc2.command("stream")
 @click.option("--limit", default=0, help="Maximum number of tweets to return")
 @click.argument("outfile", type=click.File("a+"), default="-")
