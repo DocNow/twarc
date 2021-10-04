@@ -1490,15 +1490,15 @@ def flatten(infile, outfile, hide_progress):
 @click.option(
     "--type",
     "search_type",
-    type=click.Choice(["geo", "name", "ip"]),
+    type=click.Choice(["name", "geo", "ip"]),
     default="name",
-    help="How to search for places",
+    help="How to search for places (defaults to name)",
 )
 @click.option(
     "--granularity",
     type=click.Choice(["neighborhood", "city", "admin", "country"]),
     default="neighborhood",
-    help="What type of places to search for",
+    help="What type of places to search for (defaults to neighborhood)",
 )
 @click.option("--max-results", type=int, help="Maximum results to return")
 @click.option("--json", is_flag=True, help="Output raw JSON response")
