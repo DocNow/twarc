@@ -222,6 +222,34 @@ The input file, `ids.txt` is expected to be a file that contains a tweet identif
 
 Twitter API's [Terms of Service](https://dev.twitter.com/overview/terms/policy#6._Be_a_Good_Partner_to_Twitter) discourage people from making large amounts of raw Twitter data available on the Web.  The data can be used for research and archived for local use, but not shared with the world. Twitter does allow files of tweet identifiers to be shared, which can be useful when you would like to make a dataset of tweets available.  You can then use Twitter's API to *hydrate* the data, or to retrieve the full JSON for each identifier. This is particularly important for [verification](https://en.wikipedia.org/wiki/Reproducibility) of social media research.
 
+## Places
+
+The search and stream APIs allow you to search by places. But in order to use
+them you need to know the identifier for a specific place. twarc's
+`places` command will let you search by the place name, geo coordinates, or ip
+address. For example: 
+
+    twarc2 places Ferguson                 
+
+Which will output something like:
+
+```shell
+$ twarc2 places Ferguson                 
+Ferguson, MO, United States [id=0a62ce0f6aa37536]
+Ruisseau-Ferguson, Québec, Canada [id=25283a1f59449e8f]
+Ferguson, Victoria, Australia [id=2538e66b7e5c082c]
+Ferguson Road Initiative, Dallas, United States [id=368aad647311292a]
+Ferguson, Western Australia, Australia [id=45f20c78d803ad84]
+Ferguson, PA, United States [id=00c92e14361c9674]
+Ferguson, KY, United States [id=0190ea5612aaae32]
+```
+
+You can then use one of the ids in a search:
+
+    twarc2 search "place:0a62ce0f6aa37536" tweets.jsonl
+
+You can also search by geo-coordinates (lat,lon) and IP address. If you would prefer to see the full JSON response with the bounding boxes use the `--json` option.
+
 # Command Line Usage
 
 Below is what you see when you run `twarc2 --help`.

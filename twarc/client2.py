@@ -958,6 +958,61 @@ class Twarc2:
         else:
             raise ValueError(f"Unknown response from twitter: {result}")
 
+    def geo(
+        self,
+        lat=None,
+        lon=None,
+        query=None,
+        ip=None,
+        granularity="neighborhood",
+        max_results=None,
+    ):
+        """
+        Gets geographic places that can be useful in queries. This is a v1.1
+        endpoint but is useful in querying the v2 API.
+
+        Calls [1.1/geo/search.json](https://api.twitter.com/1.1/geo/search.json)
+
+        Args:
+            lat (float): latitude to search around
+            lon (float): longitude to search around
+            query (str): text to match in the place name
+            ip (str): use the ip address to locate places
+            granularity (str) : neighborhood, city, admin, country
+            max_results (int): maximum results to return
+        """
+
+        params = {}
+        if lat and lon:
+            params["lat"] = lat
+            params["long"] = lon
+        elif query:
+            params["query"] = query
+        elif ip:
+            params["ip"] = ip
+        else:
+            raise ValueError("geo() needs either lat/lon, query or ip)")
+
+        if granularity not in ["neighborhood", "city", "admin", "country"]:
+            raise ValueError(
+                "{granularity} is not valid value for granularity, please use neighborhood, city, admin or country"
+            )
+        params["granularity"] = granularity
+
+        if max_results and type(max_results) != int:
+            raise ValueError("max_results must be an int")
+        params["max_results"] = max_results
+
+        url = "https://api.twitter.com/1.1/geo/search.json"
+
+        result = self.get(url, params=params)
+        if result.status_code == 200:
+            result = result.json()
+        else:
+            raise ValueError(f"Error from API, response: {result.status_code}")
+
+        return result
+
     def _id_exists(self, user):
         """
         Returns True if the user id exists
