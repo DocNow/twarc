@@ -9,5 +9,5 @@ Steps in a release:
 3. Create a new tag, matching the version number in `twarc/version.py`, with a v prefix (ie. vMAJOR.MINOR.PATCH)
 4. Write release notes.
 5. Publish the release.
-6. Make sure the GitHub action completes succesfully.
+6. Make sure the GitHub action completes successfully.
 7. Double check that the new version correctly installs from PyPI: `pip install --upgrade twarc` should install the new version created above.
