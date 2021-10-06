@@ -907,6 +907,18 @@ def timeline(
     help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
 )
 @click.option(
+    "--start-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Match tweets created after time (ISO 8601/RFC 3339), e.g.  2021-01-01T12:31:04",
+)
+@click.option(
+    "--end-time",
+    type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+    help="Match tweets sent before time (ISO 8601/RFC 3339)",
+)
+@click.option("--since-id", type=int, help="Match tweets sent after tweet id")
+@click.option("--until-id", type=int, help="Match tweets sent prior to tweet id")
+@click.option(
     "--exclude-retweets",
     is_flag=True,
     default=False,
@@ -931,6 +943,10 @@ def timelines(
     T,
     infile,
     outfile,
+    since_id,
+    until_id,
+    start_time,
+    end_time,
     limit,
     timeline_limit,
     use_search,
@@ -1016,10 +1032,10 @@ def timelines(
                     T,
                     use_search,
                     user,
-                    None,
-                    None,
-                    None,
-                    None,
+                    since_id,
+                    until_id,
+                    start_time,
+                    end_time,
                     exclude_retweets,
                     exclude_replies,
                 )
