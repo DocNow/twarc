@@ -543,6 +543,10 @@ def test_docs_requirements():
     assert twarc_reqs.issubset(mkdocs_reqs)
 
 
+def test_geo():
+    print(T.geo(query="Silver Spring"))
+
+
 def pick_id(id, objects):
     """pick an object out of a list of objects using its id"""
     return list(filter(lambda o: o["id"] == id, objects))

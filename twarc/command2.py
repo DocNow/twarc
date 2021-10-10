@@ -158,7 +158,7 @@ def twarc2(
             click.echo("You can configure twarc2 using the `twarc2 configure` command.")
     else:
         click.echo()
-        click.echo("👋  Hi I don't see a configuration file yet, so lets make one.")
+        click.echo("👋  Hi I don't see a configuration file yet, so let's make one.")
         click.echo()
         click.echo("Please follow these steps:")
         click.echo()
@@ -779,7 +779,8 @@ def sample(T, outfile, limit):
         click.style(
             f"Started a random sample stream, writing to {outfile.name}\nCTRL+C to stop...",
             fg="green",
-        )
+        ),
+        err=True,
     )
     for result in T.sample(event=event):
         count += 1
@@ -1051,11 +1052,16 @@ def timeline(
 @command_line_timelines_options
 @command_line_progressbar_option
 @command_line_input_output_file_arguments
+# todo: expansions 
 @click.pass_obj
 def timelines(
     T,
     infile,
     outfile,
+    since_id,
+    until_id,
+    start_time,
+    end_time,
     limit,
     timeline_limit,
     use_search,
@@ -1141,10 +1147,10 @@ def timelines(
                     T,
                     use_search,
                     user,
-                    None,
-                    None,
-                    None,
-                    None,
+                    since_id,
+                    until_id,
+                    start_time,
+                    end_time,
                     exclude_retweets,
                     exclude_replies,
                 )
@@ -1537,6 +1543,63 @@ def flatten(infile, outfile, hide_progress):
             progress.update(len(line))
 
 
+@twarc2.command("places")
+@click.option(
+    "--type",
+    "search_type",
+    type=click.Choice(["name", "geo", "ip"]),
+    default="name",
+    help="How to search for places (defaults to name)",
+)
+@click.option(
+    "--granularity",
+    type=click.Choice(["neighborhood", "city", "admin", "country"]),
+    default="neighborhood",
+    help="What type of places to search for (defaults to neighborhood)",
+)
+@click.option("--max-results", type=int, help="Maximum results to return")
+@click.option("--json", is_flag=True, help="Output raw JSON response")
+@click.argument("value")
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def places(T, value, outfile, search_type, granularity, max_results, json):
+    """
+    Search for places by place name, geo coordinates or ip address.
+    """
+    params = {"granularity": granularity}
+
+    if search_type == "name":
+        params["query"] = value
+    elif search_type == "ip":
+        params["ip"] = value
+    elif search_type == "geo":
+        try:
+            lat, lon = list(map(float, value.split(",")))
+            params = {"lat": lat, "lon": lon}
+        except:
+            click.echo("--geo must be lat,lon", err=True)
+
+    if max_results:
+        params["max_results"] = max_results
+
+    result = T.geo(**params)
+
+    if "errors" in result:
+        click.echo(_error_str(result["errors"]), err=True)
+    elif json:
+        _write(result, outfile)
+    else:
+        for place in result["result"]["places"]:
+            if granularity == "country":
+                line = "{0} [id={1}]".format(place["country"], place["id"])
+            else:
+                line = "{0}, {1} [id={2}]".format(
+                    place["full_name"], place["country"], place["id"]
+                )
+            click.echo(line)
+
+
 @twarc2.command("stream")
 @click.option("--limit", default=0, help="Maximum number of tweets to return")
 @click.argument("outfile", type=click.File("a+"), default="-")
@@ -1574,16 +1637,17 @@ def stream_rules(T):
 
 
 @stream_rules.command("list")
+@click.option("--display-ids", is_flag=True, help="display the rule ids")
 @click.pass_obj
 @cli_api_error
-def list_stream_rules(T):
+def list_stream_rules(T, display_ids):
     """
     List all the active stream rules.
     """
-    _print_stream_rules(T)
+    _print_stream_rules(T, display_ids)
 
 
-def _print_stream_rules(T):
+def _print_stream_rules(T, display_ids=False):
     """
     Output all the active stream rules
     """
@@ -1602,6 +1666,9 @@ def _print_stream_rules(T):
             s = rule["value"]
             if "tag" in rule:
                 s += f" (tag: {rule['tag']})"
+            if display_ids:
+                s += f" (id: {rule['id']})"
+
             click.echo(click.style(f"☑  {s}"), err=True)
             count += 1
 
