@@ -458,6 +458,14 @@ def command_line_expansions_options(f):
     return f
 
 
+def apply_expansions_shortcuts(context, parameter, value):
+    context.params["expansions"] = "author_id"
+    context.params["tweet_fields"] = None
+    context.params["user_fields"] = None
+    context.params["media_fields"] = None
+    return value
+
+
 def command_line_expansions_shortcuts(f):
     """
     Decorator for specifying common fields and expansions presets
