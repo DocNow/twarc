@@ -233,6 +233,13 @@ def _search(
     max_results,
     archive,
     hide_progress,
+    expansions,
+    tweet_fields,
+    user_fields,
+    media_fields,
+    poll_fields,
+    place_fields,
+    **kwargs,
 ):
     """
     Common function to Search for tweets.
@@ -256,13 +263,38 @@ def _search(
     else:
         search_method = T.search_recent
 
+    # Override fields and expansions
+    if "minimal_fields" in kwargs and kwargs["minimal_fields"]:
+        expansions = "author_id,in_reply_to_user_id,referenced_tweets.id,referenced_tweets.id.author_id,attachments.poll_ids,attachments.media_keys,geo.place_id"
+        tweet_fields = (
+            "author_id,conversation_id,id,in_reply_to_user_id,referenced_tweets"
+        )
+        user_fields = "id,pinned_tweet_id,username"
+        media_fields = "media_key"
+        poll_fields = "id"
+        place_fields = "id"
+
+    if "no_context_annotations" in kwargs and kwargs["no_context_annotations"]:
+        tweet_fields = "attachments,author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,public_metrics,text,possibly_sensitive,referenced_tweets,reply_settings,source,withheld"
+
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
 
     with TimestampProgressBar(
         since_id, until_id, start_time, end_time, disable=hide_progress
     ) as progress:
         for result in search_method(
-            query, since_id, until_id, start_time, end_time, max_results
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            max_results,
+            expansions,
+            tweet_fields,
+            user_fields,
+            media_fields,
+            poll_fields,
+            place_fields,
         ):
             _write(result, outfile)
             tweet_ids = [t["id"] for t in result.get("data", [])]
@@ -403,7 +435,7 @@ def validate_expansions(context, parameter, value):
         for v in values:
             if v not in valid:
                 raise click.BadOptionUsage(
-                parameter.name,
+                    parameter.name,
                     f'"{v}" is not a valid entry for --{parameter.name}. Must be a comma separated string, like --{parameter.name} "{parameter.default}"',
                 )
         return ",".join(values)
@@ -458,14 +490,6 @@ def command_line_expansions_options(f):
     return f
 
 
-def apply_expansions_shortcuts(context, parameter, value):
-    context.params["expansions"] = "author_id"
-    context.params["tweet_fields"] = None
-    context.params["user_fields"] = None
-    context.params["media_fields"] = None
-    return value
-
-
 def command_line_expansions_shortcuts(f):
     """
     Decorator for specifying common fields and expansions presets
@@ -485,9 +509,7 @@ def command_line_expansions_shortcuts(f):
         is_flag=True,
         default=False,
         is_eager=True,
-        expose_value=False,
         help="By default twarc gets all available data. This leaves out context annotations (Twitter API limits --max-results to 100 if these are requested). Setting this makes --max-results 500 the default.",
-        callback=apply_expansions_shortcuts,
     )(f)
     f = click.option(
         "--minimal-fields",
@@ -504,9 +526,7 @@ def command_line_expansions_shortcuts(f):
         is_flag=True,
         default=False,
         is_eager=True,
-        expose_value=False,
         help="By default twarc gets all available data. This option requests the minimal retrievable amount of data - only IDs and object references are retrieved. Setting this makes --max-results 500 the default.",
-        callback=apply_expansions_shortcuts,
     )(f)
 
     return f
@@ -532,20 +552,11 @@ def search(
     Search for tweets.
     """
 
-    print(kwargs)
-
     return _search(
         T,
         query,
         outfile,
-        kwargs["since_id"],
-        kwargs["until_id"],
-        kwargs["start_time"],
-        kwargs["end_time"],
-        kwargs["limit"],
-        kwargs["max_results"],
-        kwargs["archive"],
-        kwargs["hide_progress"],
+        **kwargs,
     )
 
 
@@ -1388,6 +1399,8 @@ def searches(
 @twarc2.command("conversation")
 @command_line_search_options
 @command_line_search_archive_options
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @command_line_progressbar_option
 @click.argument("tweet_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
@@ -1397,14 +1410,7 @@ def conversation(
     T,
     tweet_id,
     outfile,
-    since_id,
-    until_id,
-    start_time,
-    end_time,
-    limit,
-    max_results,
-    archive,
-    hide_progress,
+    **kwargs,
 ):
     """
     Retrieve a conversation thread using the tweet id.
@@ -1414,14 +1420,7 @@ def conversation(
         T,
         q,
         outfile,
-        since_id,
-        until_id,
-        start_time,
-        end_time,
-        limit,
-        max_results,
-        archive,
-        hide_progress,
+        **kwargs,
     )
 
 
