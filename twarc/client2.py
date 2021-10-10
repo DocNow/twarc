@@ -118,14 +118,37 @@ class Twarc2:
         start_time,
         end_time,
         max_results,
+        expansions,
+        tweet_fields,
+        user_fields,
+        media_fields,
+        poll_fields,
+        place_fields,
         granularity=None,
         sleep_between=0,
+        **kwargs,
     ):
+        params = {}
         if granularity:
-            params = {}
+            # Do not specify anything else when calling counts endpoint
             params["granularity"] = granularity
         else:
-            params = expansions.EVERYTHING.copy()
+            params["expansions"] = expansions if expansions else ",".join(EXPANSIONS)
+            params["tweet.fields"] = (
+                tweet_fields if tweet_fields else ",".join(TWEET_FIELDS)
+            )
+            params["user.fields"] = (
+                user_fields if user_fields else ",".join(USER_FIELDS)
+            )
+            params["media.fields"] = (
+                media_fields if media_fields else ",".join(MEDIA_FIELDS)
+            )
+            params["poll.fields"] = (
+                poll_fields if poll_fields else ",".join(POLL_FIELDS)
+            )
+            params["place.fields"] = (
+                place_fields if place_fields else ",".join(PLACE_FIELDS)
+            )
 
         params["query"] = query
 
@@ -169,6 +192,12 @@ class Twarc2:
         start_time=None,
         end_time=None,
         max_results=100,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
     ):
         """
         Search Twitter for the given query in the last seven days,
@@ -195,7 +224,19 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/search/recent"
         return self._search(
-            url, query, since_id, until_id, start_time, end_time, max_results
+            url,
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            max_results,
+            expansions,
+            tweet_fields,
+            user_fields,
+            media_fields,
+            poll_fields,
+            place_fields,
         )
 
     @requires_app_auth
@@ -207,6 +248,12 @@ class Twarc2:
         start_time=None,
         end_time=None,
         max_results=100,  # temp fix for #504
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
     ):
         """
         Search Twitter for the given query in the full archive,
@@ -248,6 +295,12 @@ class Twarc2:
             start_time,
             end_time,
             max_results,
+            expansions,
+            tweet_fields,
+            user_fields,
+            media_fields,
+            poll_fields,
+            place_fields,
             sleep_between=1.05,
         )
 
@@ -287,7 +340,20 @@ class Twarc2:
         """
         url = "https://api.twitter.com/2/tweets/counts/recent"
         return self._search(
-            url, query, since_id, until_id, start_time, end_time, None, granularity
+            url,
+            query,
+            since_id,
+            until_id,
+            start_time,
+            end_time,
+            max_results=None,
+            expansions=None,
+            tweet_fields=None,
+            user_fields=None,
+            media_fields=None,
+            poll_fields=None,
+            place_fields=None,
+            granularity=granularity,
         )
 
     @requires_app_auth
@@ -333,8 +399,14 @@ class Twarc2:
             until_id,
             start_time,
             end_time,
-            None,
-            granularity,
+            max_results=None,
+            expansions=None,
+            tweet_fields=None,
+            user_fields=None,
+            media_fields=None,
+            poll_fields=None,
+            place_fields=None,
+            granularity=granularity,
             sleep_between=1.05,
         )
 
