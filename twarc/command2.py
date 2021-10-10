@@ -397,15 +397,16 @@ def validate_expansions(context, parameter, value):
     """
     Validate passed comma separated values for expansions etc.
     """
-    values = [v.strip() for v in value.split(",")]
-    defaults = [v.strip() for v in parameter.default.split(",")]
-    for v in values:
-        if v not in defaults:
-            raise click.BadOptionUsage(
+    if value:
+        values = [v.strip() for v in value.split(",")]
+        valid = [v.strip() for v in parameter.default.split(",")]
+        for v in values:
+            if v not in valid:
+                raise click.BadOptionUsage(
                 parameter.name,
-                f'"{v}" is not a valid entry for --{parameter.name}. Must be a comma separated string, like --{parameter.name} "{parameter.default}"',
-            )
-    return ",".join(values)
+                    f'"{v}" is not a valid entry for --{parameter.name}. Must be a comma separated string, like --{parameter.name} "{parameter.default}"',
+                )
+        return ",".join(values)
 
 
 def command_line_expansions_options(f):
