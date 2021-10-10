@@ -589,6 +589,7 @@ def sample(T, outfile, limit):
         click.style(
             f"Started a random sample stream, writing to {outfile.name}\nCTRL+C to stop...",
             fg="green",
+            err=True
         )
     )
     for result in T.sample(event=event):
@@ -1580,16 +1581,17 @@ def stream_rules(T):
 
 
 @stream_rules.command("list")
+@click.option("--display-ids", is_flag=True, help="display the rule ids")
 @click.pass_obj
 @cli_api_error
-def list_stream_rules(T):
+def list_stream_rules(T, display_ids):
     """
     List all the active stream rules.
     """
-    _print_stream_rules(T)
+    _print_stream_rules(T, display_ids)
 
 
-def _print_stream_rules(T):
+def _print_stream_rules(T, display_ids=False):
     """
     Output all the active stream rules
     """
@@ -1608,6 +1610,9 @@ def _print_stream_rules(T):
             s = rule["value"]
             if "tag" in rule:
                 s += f" (tag: {rule['tag']})"
+            if display_ids:
+                s += f" (id: {rule['id']})"
+
             click.echo(click.style(f"☑  {s}"), err=True)
             count += 1
 
