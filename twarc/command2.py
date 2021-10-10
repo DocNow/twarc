@@ -287,20 +287,23 @@ class MutuallyExclusiveOption(Option):
         self.mutually_exclusive = set(kwargs.pop("mutually_exclusive", []))
         help = kwargs.get("help", "")
         if self.mutually_exclusive:
-            ex_str = ", ".join(self.mutually_exclusive)
+            ex_str = ", ".join(
+                self.parse_name(name) for name in self.mutually_exclusive
+            )
             kwargs["help"] = help + (
                 " NOTE: This argument is mutually exclusive with "
                 " arguments: [" + ex_str + "]."
             )
         super(MutuallyExclusiveOption, self).__init__(*args, **kwargs)
 
+    def parse_name(self, name):
+        return f'--{name.replace("_","-")}'
+
     def handle_parse_result(self, ctx, opts, args):
         if self.mutually_exclusive.intersection(opts) and self.name in opts:
             raise UsageError(
-                "Incorrect usage: `{}` is mutually exclusive with "
-                "arguments `{}` use either one or the other.".format(
-                    self.name, ", ".join(self.mutually_exclusive)
-                )
+                f"Incorrect usage: {self.parse_name(self.name)} is mutually exclusive with "
+                f"arguments `{', '.join(self.parse_name(name) for name in self.mutually_exclusive)} use either one or the other."
             )
 
         return super(MutuallyExclusiveOption, self).handle_parse_result(ctx, opts, args)
