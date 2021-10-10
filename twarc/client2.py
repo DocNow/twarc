@@ -126,7 +126,6 @@ class Twarc2:
         place_fields,
         granularity=None,
         sleep_between=0,
-        **kwargs,
     ):
         params = {}
         if granularity:
