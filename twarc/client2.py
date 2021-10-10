@@ -14,7 +14,17 @@ import requests
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth1Session, OAuth2Session
 
-from twarc import expansions
+from twarc.expansions import (
+    EXPANSIONS,
+    TWEET_FIELDS,
+    USER_FIELDS,
+    MEDIA_FIELDS,
+    POLL_FIELDS,
+    PLACE_FIELDS,
+    EVERYTHING,
+    USER_EVERYTHING,
+    ensure_flattened
+)
 from twarc.decorators2 import *
 from twarc.version import version
 
@@ -349,7 +359,7 @@ class Twarc2:
 
             url = "https://api.twitter.com/2/tweets"
 
-            params = expansions.EVERYTHING.copy()
+            params = EVERYTHING.copy()
             params["ids"] = ",".join(tweet_id)
 
             resp = self.get(url, params=params)
@@ -397,7 +407,7 @@ class Twarc2:
             url = "https://api.twitter.com/2/users"
 
         def lookup_batch(users):
-            params = expansions.USER_EVERYTHING.copy()
+            params = USER_EVERYTHING.copy()
             if usernames:
                 params["usernames"] = ",".join(users)
             else:
@@ -444,7 +454,7 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
-        params = expansions.EVERYTHING.copy()
+        params = EVERYTHING.copy()
         yield from self._stream(url, params, event, record_keepalive)
 
     @requires_app_auth
@@ -514,7 +524,7 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/search/stream"
-        params = expansions.EVERYTHING.copy()
+        params = EVERYTHING.copy()
         yield from self._stream(url, params, event, record_keepalive)
 
     def _stream(self, url, params, event, record_keepalive, tries=30):
@@ -727,7 +737,7 @@ class Twarc2:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user) if not user_id else user_id
-        params = expansions.USER_EVERYTHING.copy()
+        params = USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/following"
         return self.get_paginated(url, params=params)
@@ -745,7 +755,7 @@ class Twarc2:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user) if not user_id else user_id
-        params = expansions.USER_EVERYTHING.copy()
+        params = USER_EVERYTHING.copy()
         params["max_results"] = 1000
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
         return self.get_paginated(url, params=params)
@@ -996,9 +1006,9 @@ class Twarc2:
 
         lookup = []
         if len(user) > 15 or (is_numeric and self._id_exists(user)):
-            lookup = expansions.ensure_flattened(list(self.user_lookup([user])))
+            lookup = ensure_flattened(list(self.user_lookup([user])))
         else:
-            lookup = expansions.ensure_flattened(
+            lookup = ensure_flattened(
                 list(self.user_lookup([user], usernames=True))
             )
         if lookup:
