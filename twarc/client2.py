@@ -582,6 +582,7 @@ class Twarc2:
         end_time,
         exclude_retweets,
         exclude_replies,
+        max_results=None,
     ):
         """
         Helper function for user and mention timelines
@@ -604,8 +605,8 @@ class Twarc2:
 
         url = f"https://api.twitter.com/2/users/{user_id}/{timeline_type}"
 
-        params = expansions.EVERYTHING.copy()
-        params["max_results"] = 100
+        params = EVERYTHING.copy()
+        params["max_results"] = max_results if max_results else 100
 
         excludes = []
         if exclude_retweets:
