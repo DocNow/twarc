@@ -589,8 +589,8 @@ def sample(T, outfile, limit):
         click.style(
             f"Started a random sample stream, writing to {outfile.name}\nCTRL+C to stop...",
             fg="green",
-            err=True
-        )
+        ),
+        err=True
     )
     for result in T.sample(event=event):
         count += 1
