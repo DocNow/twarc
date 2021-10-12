@@ -133,6 +133,34 @@ leave off the `--start-time`:
 
     twarc2 search --end-time 2014-07-24 '"eric garner"' tweets.jsonl 
 
+## Searches
+
+Searches works like the [search](#search) command, but instead of taking a single query, it reads from a file containing many queries. You can use the same limit and time options just like a single search command, but it will be applied to every query.
+
+The input file for this command needs to be a plain text file, with one line for each query you want to run, for example you might have a file called `animals.txt` with the following lines:
+
+    cat
+    dog
+    mouse OR mice
+
+Note that each line will be passed through directly to the Twitter API - if you have quoted strings, they will be treated as a phrase search by the Twitter API, which might not be what you intended.
+
+If you run the following `searches` command, `animals.json` will contain at least 100 tweets for each query in the input file:
+
+    twarc2 searches --limit 100 animals.txt animals.json
+
+You can use the `--archive` and `--start-time` flags just like a regular search command too, in this case to search the full archive of all tweets for the first day of 2020:
+
+    twarc2 searches --archive --start-time 2020-01-01 --end-time 2020-01-02 animals.txt animals.json
+
+You can also use the `--counts-only` flag to check volumes first. This produces a csv file in the same format as the [counts](#counts) command with the `--csv` flag, with the addition of a column containing the query for that row.
+
+    twarc2 searches --counts-only animals.txt animals_counts.csv
+
+One more thing - if you have a lot searches you want to run, you might want to consider using the `--combine-queries` flag. This combines consecutive queries into the file into a single longer query, meaning you issue fewer API calls and potentially collect fewer duplicate tweets that match more than one query. Using this on the `animals.txt` file as input will combine the three queries into the single longer query `(cat) OR (dog) OR (mouse OR mice)`, and only issue one logical query.
+
+    twarc2 searches --combine-queries animals.txt animals_combined.json
+
 ## Stream
 
 The `stream` command will use Twitter's API
