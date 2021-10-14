@@ -1019,9 +1019,6 @@ class Twarc2:
         params = self._prepare_params(
             tweet_fields=tweet_fields,
             user_fields=user_fields,
-            media_fields=media_fields,
-            poll_fields=poll_fields,
-            place_fields=place_fields,
             max_results=max_results,
             pagination_token=pagination_token,
         )
