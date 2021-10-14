@@ -239,7 +239,6 @@ def _search(
     media_fields,
     poll_fields,
     place_fields,
-    **kwargs,
 ):
     """
     Common function to Search for tweets.
@@ -263,38 +262,24 @@ def _search(
     else:
         search_method = T.search_recent
 
-    # Override fields and expansions
-    if "minimal_fields" in kwargs and kwargs["minimal_fields"]:
-        expansions = "author_id,in_reply_to_user_id,referenced_tweets.id,referenced_tweets.id.author_id,attachments.poll_ids,attachments.media_keys,geo.place_id"
-        tweet_fields = (
-            "author_id,conversation_id,id,in_reply_to_user_id,referenced_tweets"
-        )
-        user_fields = "id,pinned_tweet_id,username"
-        media_fields = "media_key"
-        poll_fields = "id"
-        place_fields = "id"
-
-    if "no_context_annotations" in kwargs and kwargs["no_context_annotations"]:
-        tweet_fields = "attachments,author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,public_metrics,text,possibly_sensitive,referenced_tweets,reply_settings,source,withheld"
-
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
 
     with TimestampProgressBar(
         since_id, until_id, start_time, end_time, disable=hide_progress
     ) as progress:
         for result in search_method(
-            query,
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            max_results,
-            expansions,
-            tweet_fields,
-            user_fields,
-            media_fields,
-            poll_fields,
-            place_fields,
+            query=query,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
         ):
             _write(result, outfile)
             tweet_ids = [t["id"] for t in result.get("data", [])]
@@ -345,8 +330,8 @@ def command_line_input_output_file_arguments(f):
     """
     Decorator for specifying input and output file arguments in a command
     """
-    f = click.argument("infile", type=click.File("r"), default="-")(f)
     f = click.argument("outfile", type=click.File("w"), default="-")(f)
+    f = click.argument("infile", type=click.File("r"), default="-")(f)
     return f
 
 
@@ -367,24 +352,49 @@ def command_line_search_options(f):
     """
     Decorator for specifying time range search API parameters.
     """
-    f = click.option("--since-id", type=int, help="Match tweets sent after tweet id")(f)
     f = click.option(
         "--until-id", type=int, help="Match tweets sent prior to tweet id"
+    )(f)
+    f = click.option("--since-id", type=int, help="Match tweets sent after tweet id")(f)
+    f = click.option(
+        "--end-time",
+        type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
+        help='Match tweets sent before UTC time (ISO 8601/RFC 3339), \n e.g.  --end-time "2021-01-01T12:31:04"',
     )(f)
     f = click.option(
         "--start-time",
         type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
         help='Match tweets created after UTC time (ISO 8601/RFC 3339), \n e.g.  --start-time "2021-01-01T12:31:04"',
     )(f)
+    return f
+
+
+def command_line_timelines_options(f):
+    """
+    Decorator for common timelines command line options
+    """
     f = click.option(
-        "--end-time",
-        type=click.DateTime(formats=("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S")),
-        help='Match tweets sent before UTC time (ISO 8601/RFC 3339), \n e.g.  --end-time "2021-01-01T12:31:04"',
+        "--exclude-replies",
+        is_flag=True,
+        default=False,
+        help="Exclude replies from timeline",
+    )(f)
+    f = click.option(
+        "--exclude-retweets",
+        is_flag=True,
+        default=False,
+        help="Exclude retweets from timeline",
+    )(f)
+    f = click.option(
+        "--use-search",
+        is_flag=True,
+        default=False,
+        help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
     )(f)
     return f
 
 
-def validate_max_results(context, parameter, value):
+def _validate_max_results(context, parameter, value):
     """
     Validate and set appropriate max_results parameter.
     """
@@ -409,34 +419,35 @@ def command_line_search_archive_options(f):
     """
     Decorator for specifying additional search API parameters.
     """
-    f = click.option(
-        "--archive",
-        is_flag=True,
-        default=False,
-        help="Use the full archive (requires Academic Research track)",
-    )(f)
     f = click.option("--limit", default=0, help="Maximum number of tweets to save")(f)
     f = click.option(
         "--max-results",
         default=100,
         help="Maximum number of tweets per API response",
-        callback=validate_max_results,
+        callback=_validate_max_results,
+    )(f)
+    f = click.option(
+        "--archive",
+        is_flag=True,
+        default=False,
+        is_eager=True,
+        help="Use the full archive (requires Academic Research track)",
     )(f)
     return f
 
 
-def validate_expansions(context, parameter, value):
+def _validate_expansions(context, parameter, value):
     """
-    Validate passed comma separated values for expansions etc.
+    Validate passed comma separated values for expansions.
     """
     if value:
-        values = [v.strip() for v in value.split(",")]
-        valid = [v.strip() for v in parameter.default.split(",")]
+        values = value.split(",")
+        valid = parameter.default.split(",")
         for v in values:
             if v not in valid:
                 raise click.BadOptionUsage(
                     parameter.name,
-                    f'"{v}" is not a valid entry for --{parameter.name}. Must be a comma separated string, like --{parameter.name} "{parameter.default}"',
+                    f'"{v}" is not a valid entry for --{parameter.name}. Must be a comma separated string, without spaces, like this:\n--{parameter.name} "{parameter.default}"',
                 )
         return ",".join(values)
 
@@ -446,46 +457,46 @@ def command_line_expansions_options(f):
     Decorator for specifying custom fields and expansions
     """
     f = click.option(
-        "--expansions",
-        default=",".join(EXPANSIONS),
-        type=click.STRING,
-        help="Comma separated list of expansions to retrieve. Default is all available.",
-        callback=validate_expansions,
-    )(f)
-    f = click.option(
-        "--tweet-fields",
-        default=",".join(TWEET_FIELDS),
-        type=click.STRING,
-        help="Comma separated list of tweet fields to retrieve. Default is all available.",
-        callback=validate_expansions,
-    )(f)
-    f = click.option(
-        "--user-fields",
-        default=",".join(USER_FIELDS),
-        type=click.STRING,
-        help="Comma separated list of user fields to retrieve. Default is all available.",
-        callback=validate_expansions,
-    )(f)
-    f = click.option(
-        "--media-fields",
-        default=",".join(MEDIA_FIELDS),
-        type=click.STRING,
-        help="Comma separated list of media fields to retrieve. Default is all available.",
-        callback=validate_expansions,
-    )(f)
-    f = click.option(
         "--poll-fields",
         default=",".join(POLL_FIELDS),
         type=click.STRING,
         help="Comma separated list of poll fields to retrieve. Default is all available.",
-        callback=validate_expansions,
+        callback=_validate_expansions,
     )(f)
     f = click.option(
         "--place-fields",
         default=",".join(PLACE_FIELDS),
         type=click.STRING,
         help="Comma separated list of place fields to retrieve. Default is all available.",
-        callback=validate_expansions,
+        callback=_validate_expansions,
+    )(f)
+    f = click.option(
+        "--media-fields",
+        default=",".join(MEDIA_FIELDS),
+        type=click.STRING,
+        help="Comma separated list of media fields to retrieve. Default is all available.",
+        callback=_validate_expansions,
+    )(f)
+    f = click.option(
+        "--user-fields",
+        default=",".join(USER_FIELDS),
+        type=click.STRING,
+        help="Comma separated list of user fields to retrieve. Default is all available.",
+        callback=_validate_expansions,
+    )(f)
+    f = click.option(
+        "--tweet-fields",
+        default=",".join(TWEET_FIELDS),
+        type=click.STRING,
+        help="Comma separated list of tweet fields to retrieve. Default is all available.",
+        callback=_validate_expansions,
+    )(f)
+    f = click.option(
+        "--expansions",
+        default=",".join(EXPANSIONS),
+        type=click.STRING,
+        help="Comma separated list of expansions to retrieve. Default is all available.",
+        callback=_validate_expansions,
     )(f)
     return f
 
@@ -494,23 +505,6 @@ def command_line_expansions_shortcuts(f):
     """
     Decorator for specifying common fields and expansions presets
     """
-    f = click.option(
-        "--no-context-annotations",
-        cls=MutuallyExclusiveOption,
-        mutually_exclusive=[
-            "minimal_fields",
-            "expansions",
-            "tweet_fields",
-            "user_fields",
-            "media_fields",
-            "poll_fields",
-            "place_fields",
-        ],
-        is_flag=True,
-        default=False,
-        is_eager=True,
-        help="By default twarc gets all available data. This leaves out context annotations (Twitter API limits --max-results to 100 if these are requested). Setting this makes --max-results 500 the default.",
-    )(f)
     f = click.option(
         "--minimal-fields",
         cls=MutuallyExclusiveOption,
@@ -522,13 +516,72 @@ def command_line_expansions_shortcuts(f):
             "media_fields",
             "poll_fields",
             "place_fields",
+            "counts_only",
         ],
         is_flag=True,
         default=False,
         is_eager=True,
         help="By default twarc gets all available data. This option requests the minimal retrievable amount of data - only IDs and object references are retrieved. Setting this makes --max-results 500 the default.",
     )(f)
+    f = click.option(
+        "--no-context-annotations",
+        cls=MutuallyExclusiveOption,
+        mutually_exclusive=[
+            "minimal_fields",
+            "expansions",
+            "tweet_fields",
+            "user_fields",
+            "media_fields",
+            "poll_fields",
+            "place_fields",
+            "counts_only",
+        ],
+        is_flag=True,
+        default=False,
+        is_eager=True,
+        help="By default twarc gets all available data. This leaves out context annotations (Twitter API limits --max-results to 100 if these are requested). Setting this makes --max-results 500 the default.",
+    )(f)
+    return f
 
+
+def _process_expansions_shortcuts(kwargs):
+    # Override fields and expansions
+    if kwargs.pop("minimal_fields", None):
+        kwargs[
+            "expansions"
+        ] = "author_id,in_reply_to_user_id,referenced_tweets.id,referenced_tweets.id.author_id,attachments.poll_ids,attachments.media_keys,geo.place_id"
+        kwargs[
+            "tweet_fields"
+        ] = "author_id,conversation_id,id,in_reply_to_user_id,referenced_tweets"
+        kwargs["user_fields"] = "id,pinned_tweet_id,username"
+        kwargs["media_fields"] = "media_key"
+        kwargs["poll_fields"] = "id"
+        kwargs["place_fields"] = "id"
+
+    if kwargs.pop("no_context_annotations", None):
+        kwargs[
+            "tweet_fields"
+        ] = "attachments,author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,public_metrics,text,possibly_sensitive,referenced_tweets,reply_settings,source,withheld"
+
+    return kwargs
+
+
+def command_line_verbose_options(f):
+    """
+    Decorator for specifying verbose and json output
+    """
+    f = click.option(
+        "--verbose",
+        is_flag=True,
+        default=False,
+        help="Show all URLs and metadata.",
+    )(f)
+    f = click.option(
+        "--json-output",
+        is_flag=True,
+        default=False,
+        help="Return the raw json content from the API.",
+    )(f)
     return f
 
 
@@ -552,6 +605,8 @@ def search(
     Search for tweets.
     """
 
+    kwargs = _process_expansions_shortcuts(kwargs)
+
     return _search(
         T,
         query,
@@ -562,6 +617,12 @@ def search(
 
 @twarc2.command("counts")
 @command_line_search_options
+@click.option(
+    "--archive",
+    is_flag=True,
+    default=False,
+    help="Count using the full archive (requires Academic Research track)",
+)
 @click.option(
     "--granularity",
     default="hour",
@@ -777,14 +838,19 @@ def following(T, user, outfile, limit, max_results, hide_progress):
 
 
 @twarc2.command("sample")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @click.option("--limit", default=0, help="Maximum number of tweets to save")
 @click.argument("outfile", type=click.File("a+"), default="-")
 @click.pass_obj
 @cli_api_error
-def sample(T, outfile, limit):
+def sample(T, outfile, limit, **kwargs):
     """
     Fetch tweets from the sample stream.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
     count = 0
     event = threading.Event()
     click.echo(
@@ -794,7 +860,7 @@ def sample(T, outfile, limit):
         ),
         err=True,
     )
-    for result in T.sample(event=event):
+    for result in T.sample(event=event, **kwargs):
         count += 1
         if limit != 0 and count >= limit:
             event.set()
@@ -804,16 +870,21 @@ def sample(T, outfile, limit):
 
 
 @twarc2.command("hydrate")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @command_line_input_output_file_arguments
 @command_line_progressbar_option
 @click.pass_obj
 @cli_api_error
-def hydrate(T, infile, outfile, hide_progress):
+def hydrate(T, infile, outfile, hide_progress, **kwargs):
     """
     Hydrate tweet ids.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
     with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
-        for result in T.tweet_lookup(infile):
+        for result in T.tweet_lookup(infile, **kwargs):
             _write(result, outfile)
             tweet_ids = [t["id"] for t in result.get("data", [])]
             log.info("archived %s", ",".join(tweet_ids))
@@ -882,17 +953,26 @@ def dehydrate(infile, outfile, id_type, hide_progress):
 
 
 @twarc2.command("users")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @click.option("--usernames", is_flag=True, default=False)
 @command_line_progressbar_option
 @command_line_input_output_file_arguments
 @click.pass_obj
 @cli_api_error
-def users(T, infile, outfile, usernames, hide_progress):
+def users(T, infile, outfile, usernames, hide_progress, **kwargs):
     """
     Get data for user ids or usernames.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
     with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
-        for result in T.user_lookup(infile, usernames):
+        for result in T.user_lookup(infile, usernames, **kwargs):
             _write(result, outfile)
             if usernames:
                 progress.update_with_result(
@@ -907,20 +987,22 @@ def users(T, infile, outfile, usernames, hide_progress):
 
 @twarc2.command("mentions")
 @command_line_search_options
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @command_line_progressbar_option
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def mentions(
-    T, user_id, outfile, since_id, until_id, start_time, end_time, hide_progress
-):
+def mentions(T, user_id, outfile, hide_progress, **kwargs):
     """
     Retrieve max of 800 of the most recent tweets mentioning the given user.
     """
 
+    kwargs = _process_expansions_shortcuts(kwargs)
+
     with tqdm(disable=hide_progress, total=800) as progress:
-        for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
+        for result in T.mentions(user_id, **kwargs):
             _write(result, outfile)
             progress.update(len(result["data"]))
         else:
@@ -931,34 +1013,11 @@ def mentions(
                 progress.desc = f"Set limit reached with {progress.n} tweets"
 
 
-def command_line_timelines_options(f):
-    """
-    Decorator for common timelines command line options
-    """
-    f = click.option(
-        "--use-search",
-        is_flag=True,
-        default=False,
-        help="Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.",
-    )(f)
-    f = click.option(
-        "--exclude-retweets",
-        is_flag=True,
-        default=False,
-        help="Exclude retweets from timeline",
-    )(f)
-    f = click.option(
-        "--exclude-replies",
-        is_flag=True,
-        default=False,
-        help="Exclude replies from timeline",
-    )(f)
-    return f
-
-
 @twarc2.command("timeline")
 @command_line_search_options
 @command_line_timelines_options
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @command_line_progressbar_option
 @click.option("--limit", default=0, help="Maximum number of tweets to return")
 @click.argument("user_id", type=str)
@@ -978,10 +1037,13 @@ def timeline(
     exclude_retweets,
     exclude_replies,
     hide_progress,
+    **kwargs,
 ):
     """
     Retrieve recent tweets for the given user.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
 
     count = 0
     user = T._ensure_user(user_id)  # It's possible to skip this to optimize more
@@ -1023,14 +1085,15 @@ def timeline(
 
     tweets = _timeline_tweets(
         T,
-        use_search,
-        user_id,
-        since_id,
-        until_id,
-        start_time,
-        end_time,
-        exclude_retweets,
-        exclude_replies,
+        use_search=use_search,
+        user_id=user_id,
+        since_id=since_id,
+        until_id=until_id,
+        start_time=start_time,
+        end_time=end_time,
+        exclude_retweets=exclude_retweets,
+        exclude_replies=exclude_replies,
+        **kwargs,
     )
 
     with pbar(**pbar_params) as progress:
@@ -1061,25 +1124,22 @@ def timeline(
     default=0,
     help="Maximum number of tweets to return per-timeline",
 )
+@command_line_search_options
 @command_line_timelines_options
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @command_line_progressbar_option
 @command_line_input_output_file_arguments
-# todo: expansions 
 @click.pass_obj
 def timelines(
     T,
     infile,
     outfile,
-    since_id,
-    until_id,
-    start_time,
-    end_time,
     limit,
     timeline_limit,
     use_search,
-    exclude_retweets,
-    exclude_replies,
     hide_progress,
+    **kwargs,
 ):
     """
     Fetch the timelines of every user in an input source of tweets. If
@@ -1095,6 +1155,7 @@ def timelines(
     total_count = 0
     line_count = 0
     seen = set()
+    kwargs = _process_expansions_shortcuts(kwargs)
 
     with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
         for line in infile:
@@ -1157,14 +1218,9 @@ def timelines(
 
                 tweets = _timeline_tweets(
                     T,
-                    use_search,
-                    user,
-                    since_id,
-                    until_id,
-                    start_time,
-                    end_time,
-                    exclude_retweets,
-                    exclude_replies,
+                    use_search=use_search,
+                    user_id=user,
+                    **kwargs,
                 )
 
                 timeline_count = 0
@@ -1190,6 +1246,7 @@ def _timeline_tweets(
     end_time,
     exclude_retweets,
     exclude_replies,
+    **kwargs,
 ):
     if use_search:
         q = f"from:{user_id}"
@@ -1197,16 +1254,24 @@ def _timeline_tweets(
             q += " -is:retweet"
         if exclude_replies and "-is:reply" not in q:
             q += " -is:reply"
-        tweets = T.search_all(q, since_id, until_id, start_time, end_time, 100)
+        tweets = T.search_all(
+            query=q,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            **kwargs,
+        )
     else:
         tweets = T.timeline(
-            user_id,
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            exclude_retweets,
-            exclude_replies,
+            user=user_id,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            exclude_retweets=exclude_retweets,
+            exclude_replies=exclude_replies,
+            **kwargs,
         )
     return tweets
 
@@ -1236,6 +1301,8 @@ def _timeline_tweets(
     type=click.Choice(["day", "hour", "minute"], case_sensitive=False),
     help="Aggregation level for counts (only used when --count-only is used). Can be one of: day, hour, minute. Default is day.",
 )
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @command_line_progressbar_option
 @command_line_input_output_file_arguments
 @click.pass_obj
@@ -1254,6 +1321,7 @@ def searches(
     granularity,
     combine_queries,
     hide_progress,
+    **kwargs,
 ):
     """
     Execute each search in the input file, one at a time.
@@ -1272,6 +1340,7 @@ def searches(
     """
     line_count = 0
     seen = set()
+    kwargs = _process_expansions_shortcuts(kwargs)
 
     # Make sure times are always in UTC, click sometimes doesn't add timezone:
     if start_time is not None and start_time.tzinfo is None:
@@ -1296,26 +1365,38 @@ def searches(
 
     if counts_only:
         api_method = T.counts_all if archive else T.counts_recent
-        api_data = (
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            granularity,
-        )
+        kwargs.pop("expansions", None)
+        kwargs.pop("tweet_fields", None)
+        kwargs.pop("user_fields", None)
+        kwargs.pop("media_fields", None)
+        kwargs.pop("poll_fields", None)
+        kwargs.pop("place_fields", None)
+        kwargs = {
+            **kwargs,
+            **{
+                "since_id": since_id,
+                "until_id": until_id,
+                "start_time": start_time,
+                "end_time": end_time,
+                "granularity": granularity,
+            },
+        }
 
         # Write the header for the CSV output
         click.echo(f"query,start,end,{granularity}_count", file=outfile)
 
     else:
         api_method = T.search_all if archive else T.search_recent
-        api_data = (
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            max_results,
-        )
+        kwargs = {
+            **kwargs,
+            **{
+                "since_id": since_id,
+                "until_id": until_id,
+                "start_time": start_time,
+                "end_time": end_time,
+                "max_results": max_results,
+            },
+        }
 
     # TODO: Validate the queries are all valid length before beginning and report errors
 
@@ -1368,7 +1449,7 @@ def searches(
 
             log.info(f'Beginning search for "{issue_query}"')
 
-            response = api_method(issue_query, *api_data)
+            response = api_method(issue_query, **kwargs)
 
             for result in response:
 
@@ -1393,7 +1474,7 @@ def searches(
             merged_query == extended_query or merged_query == f"({query})"
         ):
             log.info(f'Beginning search for "{merged_query}"')
-            response = api_method(merged_query, *api_data)
+            response = api_method(merged_query, **kwargs)
 
             for result in response:
 
@@ -1433,6 +1514,9 @@ def conversation(
     """
     Retrieve a conversation thread using the tweet id.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
     q = f"conversation_id:{tweet_id}"
     return _search(
         T,
@@ -1443,29 +1527,28 @@ def conversation(
 
 
 @twarc2.command("conversations")
-@click.option("--limit", default=0, help="Maximum number of tweets to return")
 @click.option(
     "--conversation-limit",
     default=0,
     help="Maximum number of tweets to return per-conversation",
 )
-@click.option(
-    "--archive",
-    is_flag=True,
-    default=False,
-    help="Use the Academic Research project track access to the full archive",
-)
+@command_line_search_options
+@command_line_search_archive_options
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @command_line_progressbar_option
 @command_line_input_output_file_arguments
 @click.pass_obj
 @cli_api_error
 def conversations(
-    T, infile, outfile, archive, limit, conversation_limit, hide_progress
+    T, infile, outfile, archive, limit, conversation_limit, hide_progress, **kwargs
 ):
     """
     Fetch the full conversation threads that the input tweets are a part of.
     Alternatively the input can be a line oriented file of conversation ids.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
 
     # keep track of converstation ids that have been fetched so that they
     # aren't fetched twice
@@ -1514,7 +1597,7 @@ def conversations(
                 conv_count = 0
 
                 log.info(f"fetching conversation {conv_id}")
-                for result in search(f"conversation_id:{conv_id}"):
+                for result in search(f"conversation_id:{conv_id}", **kwargs):
                     _write(result, outfile, False)
 
                     count += len(result["data"])
@@ -1614,13 +1697,17 @@ def places(T, value, outfile, search_type, granularity, max_results, json):
 
 @twarc2.command("stream")
 @click.option("--limit", default=0, help="Maximum number of tweets to return")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @click.argument("outfile", type=click.File("a+"), default="-")
 @click.pass_obj
 @cli_api_error
-def stream(T, outfile, limit):
+def stream(T, outfile, limit, **kwargs):
     """
     Fetch tweets from the live stream.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
     event = threading.Event()
     count = 0
     click.echo(click.style(f"Started a stream with rules:", fg="green"), err=True)
@@ -1629,7 +1716,7 @@ def stream(T, outfile, limit):
         click.style(f"Writing to {outfile.name}\nCTRL+C to stop...", fg="green"),
         err=True,
     )
-    for result in T.stream(event=event):
+    for result in T.stream(event=event, **kwargs):
         count += 1
         if limit != 0 and count == limit:
             log.info(f"reached limit {limit}")
@@ -1752,25 +1839,6 @@ def delete_all(T):
         rule_ids = [r["id"] for r in result["data"]]
         results = T.delete_stream_rule_ids(rule_ids)
         click.echo(f"🗑  Deleted {len(rule_ids)} rules.")
-
-
-def command_line_verbose_options(f):
-    """
-    Decorator for specifying verbose and json output
-    """
-    f = click.option(
-        "--verbose",
-        is_flag=True,
-        default=False,
-        help="Show all URLs and metadata.",
-    )(f)
-    f = click.option(
-        "--json-output",
-        is_flag=True,
-        default=False,
-        help="Return the raw json content from the API.",
-    )(f)
-    return f
 
 
 @twarc2.group()
