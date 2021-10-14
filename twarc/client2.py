@@ -21,9 +21,7 @@ from twarc.expansions import (
     MEDIA_FIELDS,
     POLL_FIELDS,
     PLACE_FIELDS,
-    EVERYTHING,
-    USER_EVERYTHING,
-    ensure_flattened
+    ensure_flattened,
 )
 from twarc.decorators2 import *
 from twarc.version import version
@@ -109,6 +107,68 @@ class Twarc2:
 
         self.connect()
 
+    def _prepare_params(self, **kwargs):
+        """
+        Prepare URL parameters and defaults for fields and expansions and others
+        """
+        params = {}
+
+        # Defaults for fields and expansions
+        if "expansions" in kwargs:
+            params["expansions"] = (
+                kwargs.pop("expansions")
+                if kwargs["expansions"]
+                else ",".join(EXPANSIONS)
+            )
+
+        if "tweet_fields" in kwargs:
+            params["tweet.fields"] = (
+                kwargs.pop("tweet_fields")
+                if kwargs["tweet_fields"]
+                else ",".join(TWEET_FIELDS)
+            )
+
+        if "user_fields" in kwargs:
+            params["user.fields"] = (
+                kwargs.pop("user_fields")
+                if kwargs["user_fields"]
+                else ",".join(USER_FIELDS)
+            )
+
+        if "media_fields" in kwargs:
+            params["media.fields"] = (
+                kwargs.pop("media_fields")
+                if kwargs["media_fields"]
+                else ",".join(MEDIA_FIELDS)
+            )
+
+        if "poll_fields" in kwargs:
+            params["poll.fields"] = (
+                kwargs.pop("poll_fields")
+                if kwargs["poll_fields"]
+                else ",".join(POLL_FIELDS)
+            )
+
+        if "place_fields" in kwargs:
+            params["place.fields"] = (
+                kwargs.pop("place_fields")
+                if kwargs["place_fields"]
+                else ",".join(PLACE_FIELDS)
+            )
+
+        # Format start_time and end_time
+        if "start_time" in kwargs and kwargs["start_time"]:
+            params["start_time"] = _ts(kwargs.pop("start_time"))
+
+        if "end_time" in kwargs and kwargs["end_time"]:
+            params["end_time"] = _ts(kwargs.pop("end_time"))
+
+        # Any other parameters passed as is,
+        # these include backfill_minutes, next_token, pagination_token
+        params = {**params, **{k: v for k, v in kwargs.items() if v is not None}}
+
+        return params
+
     def _search(
         self,
         url,
@@ -124,43 +184,37 @@ class Twarc2:
         media_fields,
         poll_fields,
         place_fields,
+        next_token=None,
         granularity=None,
         sleep_between=0,
     ):
-        params = {}
+        """
+        Common function for search, counts endpoints.
+        """
+
+        params = self._prepare_params(
+            query=query,
+            max_results=max_results,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            next_token=next_token,
+        )
+
         if granularity:
             # Do not specify anything else when calling counts endpoint
             params["granularity"] = granularity
         else:
-            params["expansions"] = expansions if expansions else ",".join(EXPANSIONS)
-            params["tweet.fields"] = (
-                tweet_fields if tweet_fields else ",".join(TWEET_FIELDS)
+            params = self._prepare_params(
+                **params,
+                expansions=expansions,
+                tweet_fields=tweet_fields,
+                user_fields=user_fields,
+                media_fields=media_fields,
+                poll_fields=poll_fields,
+                place_fields=place_fields,
             )
-            params["user.fields"] = (
-                user_fields if user_fields else ",".join(USER_FIELDS)
-            )
-            params["media.fields"] = (
-                media_fields if media_fields else ",".join(MEDIA_FIELDS)
-            )
-            params["poll.fields"] = (
-                poll_fields if poll_fields else ",".join(POLL_FIELDS)
-            )
-            params["place.fields"] = (
-                place_fields if place_fields else ",".join(PLACE_FIELDS)
-            )
-
-        params["query"] = query
-
-        if max_results:
-            params["max_results"] = max_results
-        if since_id:
-            params["since_id"] = since_id
-        if until_id:
-            params["until_id"] = until_id
-        if start_time:
-            params["start_time"] = _ts(start_time)
-        if end_time:
-            params["end_time"] = _ts(end_time)
 
         count = 0
         made_call = time.monotonic()
@@ -197,6 +251,7 @@ class Twarc2:
         media_fields=None,
         poll_fields=None,
         place_fields=None,
+        next_token=None,
     ):
         """
         Search Twitter for the given query in the last seven days,
@@ -221,21 +276,21 @@ class Twarc2:
         Returns:
             generator[dict]: a generator, dict for each paginated response.
         """
-        url = "https://api.twitter.com/2/tweets/search/recent"
         return self._search(
-            url,
-            query,
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            max_results,
-            expansions,
-            tweet_fields,
-            user_fields,
-            media_fields,
-            poll_fields,
-            place_fields,
+            url="https://api.twitter.com/2/tweets/search/recent",
+            query=query,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            next_token=next_token,
         )
 
     @requires_app_auth
@@ -253,6 +308,7 @@ class Twarc2:
         media_fields=None,
         poll_fields=None,
         place_fields=None,
+        next_token=None,
     ):
         """
         Search Twitter for the given query in the full archive,
@@ -278,7 +334,6 @@ class Twarc2:
         Returns:
             generator[dict]: a generator, dict for each paginated response.
         """
-        url = "https://api.twitter.com/2/tweets/search/all"
 
         # start time defaults to the beginning of Twitter to override the
         # default of the last month. Only do this if start_time is not already
@@ -287,19 +342,20 @@ class Twarc2:
             start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
 
         return self._search(
-            url,
-            query,
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            max_results,
-            expansions,
-            tweet_fields,
-            user_fields,
-            media_fields,
-            poll_fields,
-            place_fields,
+            url="https://api.twitter.com/2/tweets/search/all",
+            query=query,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            next_token=next_token,
             sleep_between=1.05,
         )
 
@@ -317,7 +373,7 @@ class Twarc2:
         Retrieve counts for the given query in the last seven days,
         using the `/counts/recent` endpoint.
 
-        Calls [GET /2/tweets/counts/recent]()
+        Calls [GET /2/tweets/counts/recent](https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-recent)
 
         Args:
             query (str):
@@ -337,14 +393,13 @@ class Twarc2:
         Returns:
             generator[dict]: a generator, dict for each paginated response.
         """
-        url = "https://api.twitter.com/2/tweets/counts/recent"
         return self._search(
-            url,
-            query,
-            since_id,
-            until_id,
-            start_time,
-            end_time,
+            url="https://api.twitter.com/2/tweets/counts/recent",
+            query=query,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
             max_results=None,
             expansions=None,
             tweet_fields=None,
@@ -364,12 +419,13 @@ class Twarc2:
         start_time=None,
         end_time=None,
         granularity="hour",
+        next_token=None,
     ):
         """
         Retrieve counts for the given query in the full archive,
         using the `/search/all` endpoint (Requires Academic Access).
 
-        Calls [GET /2/tweets/counts/all]()
+        Calls [GET /2/tweets/counts/all](https://developer.twitter.com/en/docs/twitter-api/tweets/counts/api-reference/get-tweets-counts-all)
 
         Args:
             query (str):
@@ -389,15 +445,13 @@ class Twarc2:
         Returns:
             generator[dict]: a generator, dict for each paginated response.
         """
-        url = "https://api.twitter.com/2/tweets/counts/all"
-
         return self._search(
-            url,
-            query,
-            since_id,
-            until_id,
-            start_time,
-            end_time,
+            url="https://api.twitter.com/2/tweets/counts/all",
+            query=query,
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
             max_results=None,
             expansions=None,
             tweet_fields=None,
@@ -405,11 +459,21 @@ class Twarc2:
             media_fields=None,
             poll_fields=None,
             place_fields=None,
+            next_token=next_token,
             granularity=granularity,
             sleep_between=1.05,
         )
 
-    def tweet_lookup(self, tweet_ids):
+    def tweet_lookup(
+        self,
+        tweet_ids,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+    ):
         """
         Lookup tweets, taking an iterator of IDs and returning pages of fully
         expanded tweet objects.
@@ -430,7 +494,14 @@ class Twarc2:
 
             url = "https://api.twitter.com/2/tweets"
 
-            params = EVERYTHING.copy()
+            params = self._prepare_params(
+                expansions=expansions,
+                tweet_fields=tweet_fields,
+                user_fields=user_fields,
+                media_fields=media_fields,
+                poll_fields=poll_fields,
+                place_fields=place_fields,
+            )
             params["ids"] = ",".join(tweet_id)
 
             resp = self.get(url, params=params)
@@ -453,7 +524,14 @@ class Twarc2:
         if tweet_id_batch:
             yield (lookup_batch(tweet_id_batch))
 
-    def user_lookup(self, users, usernames=False):
+    def user_lookup(
+        self,
+        users,
+        usernames=False,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+    ):
         """
         Returns fully populated user profiles for the given iterator of
         user_id or usernames. By default user_lookup expects user ids but if
@@ -478,7 +556,12 @@ class Twarc2:
             url = "https://api.twitter.com/2/users"
 
         def lookup_batch(users):
-            params = USER_EVERYTHING.copy()
+            params = self._prepare_params(
+                tweet_fields=tweet_fields,
+                user_fields=user_fields,
+            )
+            if expansions:
+                params["expansions"] = "pinned_tweet_id"
             if usernames:
                 params["usernames"] = ",".join(users)
             else:
@@ -504,7 +587,18 @@ class Twarc2:
 
     @catch_request_exceptions
     @requires_app_auth
-    def sample(self, event=None, record_keepalive=False):
+    def sample(
+        self,
+        event=None,
+        record_keepalive=False,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        backfill_minutes=None,
+    ):
         """
         Returns a sample of all publicly posted tweets.
 
@@ -525,7 +619,15 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/sample/stream"
-        params = EVERYTHING.copy()
+        params = self._prepare_params(
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            backfill_minutes=backfill_minutes,
+        )
         yield from self._stream(url, params, event, record_keepalive)
 
     @requires_app_auth
@@ -574,7 +676,18 @@ class Twarc2:
         return self.post(url, {"delete": {"ids": rule_ids}}).json()
 
     @requires_app_auth
-    def stream(self, event=None, record_keepalive=False):
+    def stream(
+        self,
+        event=None,
+        record_keepalive=False,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        backfill_minutes=None,
+    ):
         """
         Returns a stream of tweets matching the defined rules.
 
@@ -595,7 +708,15 @@ class Twarc2:
             generator[dict]: a generator, dict for each tweet.
         """
         url = "https://api.twitter.com/2/tweets/search/stream"
-        params = EVERYTHING.copy()
+        params = self._prepare_params(
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            backfill_minutes=backfill_minutes,
+        )
         yield from self._stream(url, params, event, record_keepalive)
 
     def _stream(self, url, params, event, record_keepalive, tries=30):
@@ -664,6 +785,13 @@ class Twarc2:
         exclude_retweets,
         exclude_replies,
         max_results=None,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
     ):
         """
         Helper function for user and mention timelines
@@ -686,23 +814,26 @@ class Twarc2:
 
         url = f"https://api.twitter.com/2/users/{user_id}/{timeline_type}"
 
-        params = EVERYTHING.copy()
-        params["max_results"] = max_results if max_results else 100
+        params = self._prepare_params(
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            pagination_token=pagination_token,
+        )
 
         excludes = []
         if exclude_retweets:
             excludes.append("retweets")
         if exclude_replies:
             excludes.append("replies")
-
-        if since_id:
-            params["since_id"] = since_id
-        if until_id:
-            params["until_id"] = until_id
-        if start_time:
-            params["start_time"] = _ts(start_time)
-        if end_time:
-            params["end_time"] = _ts(end_time)
         if len(excludes) > 0:
             params["exclude"] = ",".join(excludes)
 
@@ -726,6 +857,14 @@ class Twarc2:
         end_time=None,
         exclude_retweets=False,
         exclude_replies=False,
+        max_results=100,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
     ):
         """
         Retrieve up to the 3200 most recent tweets made by the given user.
@@ -740,20 +879,29 @@ class Twarc2:
             end_time (datetime): newest UTC timestamp from which the Tweets will be provided
             exclude_retweets (boolean): remove retweets from timeline results
             exclude_replies (boolean): remove replies from timeline results
+            max_results (int): the maximum number of Tweets to retrieve. Between 5 and 100.
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
-            user_id,
-            "tweets",
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            exclude_retweets,
-            exclude_replies,
+            user_id=user_id,
+            timeline_type="tweets",
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            exclude_retweets=exclude_retweets,
+            exclude_replies=exclude_replies,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            pagination_token=pagination_token,
         )
 
     def mentions(
@@ -765,6 +913,14 @@ class Twarc2:
         end_time=None,
         exclude_retweets=False,
         exclude_replies=False,
+        max_results=None,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
     ):
         """
         Retrieve up to the 800 most recent tweets mentioning the given user.
@@ -779,23 +935,45 @@ class Twarc2:
             end_time (datetime): newest UTC timestamp from which the Tweets will be provided
             exclude_retweets (boolean): remove retweets from timeline results
             exclude_replies (boolean): remove replies from timeline results
+            max_results (int): the maximum number of Tweets to retrieve. Between 5 and 100.
+
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user)
         return self._timeline(
-            user_id,
-            "mentions",
-            since_id,
-            until_id,
-            start_time,
-            end_time,
-            exclude_retweets,
-            exclude_replies,
+            user_id=user_id,
+            timeline_type="mentions",
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            exclude_retweets=exclude_retweets,
+            exclude_replies=exclude_replies,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            pagination_token=pagination_token,
         )
 
-    def following(self, user, user_id=None):
+    def following(
+        self,
+        user,
+        user_id=None,
+        max_results=1000,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
+    ):
         """
         Retrieve the user profiles of accounts followed by the given user.
 
@@ -808,12 +986,33 @@ class Twarc2:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user) if not user_id else user_id
-        params = USER_EVERYTHING.copy()
-        params["max_results"] = 1000
+        params = self._prepare_params(
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
+        )
+        if expansions:
+            params["expansions"] = "pinned_tweet_id"
         url = f"https://api.twitter.com/2/users/{user_id}/following"
         return self.get_paginated(url, params=params)
 
-    def followers(self, user, user_id=None):
+    def followers(
+        self,
+        user,
+        user_id=None,
+        max_results=1000,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
+    ):
         """
         Retrieve the user profiles of accounts following the given user.
 
@@ -826,8 +1025,17 @@ class Twarc2:
             generator[dict]: A generator, dict for each page of results.
         """
         user_id = self._ensure_user_id(user) if not user_id else user_id
-        params = USER_EVERYTHING.copy()
-        params["max_results"] = 1000
+        params = self._prepare_params(
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
+        )
+        if expansions:
+            params["expansions"] = "pinned_tweet_id"
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
         return self.get_paginated(url, params=params)
 
@@ -1134,9 +1342,7 @@ class Twarc2:
         if len(user) > 15 or (is_numeric and self._id_exists(user)):
             lookup = ensure_flattened(list(self.user_lookup([user])))
         else:
-            lookup = ensure_flattened(
-                list(self.user_lookup([user], usernames=True))
-            )
+            lookup = ensure_flattened(list(self.user_lookup([user], usernames=True)))
         if lookup:
             return lookup[-1]
         else:
