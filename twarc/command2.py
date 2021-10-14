@@ -696,14 +696,19 @@ def tweet(T, tweet_id, outfile, pretty):
 @click.option(
     "--limit",
     default=0,
-    help="Maximum number of followers to save. Increments of 1000.",
+    help="Maximum number of followers to save. Increments of 1000 or --max-results if set.",
+)
+@click.option(
+    "--max-results",
+    default=1000,
+    help="Maximum number of users per page. Default is 1000.",
 )
 @command_line_progressbar_option
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def followers(T, user, outfile, limit, hide_progress):
+def followers(T, user, outfile, limit, max_results, hide_progress):
     """
     Get the followers for a given user.
     """
@@ -720,7 +725,7 @@ def followers(T, user, outfile, limit, hide_progress):
         lookup_total = target_user["public_metrics"]["followers_count"]
 
     with tqdm(disable=hide_progress, total=lookup_total) as progress:
-        for result in T.followers(user, user_id=user_id):
+        for result in T.followers(user, user_id=user_id, max_results=max_results):
             _write(result, outfile)
             count += len(result["data"])
             progress.update(len(result["data"]))
@@ -731,14 +736,21 @@ def followers(T, user, outfile, limit, hide_progress):
 
 @twarc2.command("following")
 @click.option(
-    "--limit", default=0, help="Maximum number of friends to save. Increments of 1000."
+    "--limit",
+    default=0,
+    help="Maximum number of friends to save. Increments of 1000 or --max-results if set.",
+)
+@click.option(
+    "--max-results",
+    default=1000,
+    help="Maximum number of users per page. Default is 1000.",
 )
 @command_line_progressbar_option
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def following(T, user, outfile, limit, hide_progress):
+def following(T, user, outfile, limit, max_results, hide_progress):
     """
     Get the users that a given user is following.
     """
@@ -755,7 +767,7 @@ def following(T, user, outfile, limit, hide_progress):
         lookup_total = target_user["public_metrics"]["following_count"]
 
     with tqdm(disable=hide_progress, total=lookup_total) as progress:
-        for result in T.following(user, user_id=user_id):
+        for result in T.following(user, user_id=user_id, max_results=max_results):
             _write(result, outfile)
             count += len(result["data"])
             progress.update(len(result["data"]))
