@@ -685,7 +685,7 @@ def tweet(T, tweet_id, outfile, pretty):
     Look up a tweet using its tweet id or URL.
     """
     if "https" in tweet_id:
-        tweet_id = url_or_id.split("/")[-1]
+        tweet_id = tweet_id.split("/")[-1]
     if not re.match("^\d+$", tweet_id):
         click.echo(click.style("Please enter a tweet URL or ID", fg="red"), err=True)
     result = next(T.tweet_lookup([tweet_id]))
