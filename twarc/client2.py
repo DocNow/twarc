@@ -157,10 +157,12 @@ class Twarc2:
             )
 
         # Format start_time and end_time
-        if "start_time" in kwargs and kwargs["start_time"]:
+        if "start_time" in kwargs and kwargs["start_time"] and not isinstance(kwargs["start_time"], str):
+            print(type(kwargs["start_time"]), kwargs["start_time"])
             params["start_time"] = _ts(kwargs.pop("start_time"))
 
-        if "end_time" in kwargs and kwargs["end_time"]:
+        if "end_time" in kwargs and kwargs["end_time"] and not isinstance(kwargs["start_time"], str):
+            print(type(kwargs["start_time"]), kwargs["start_time"])
             params["end_time"] = _ts(kwargs.pop("end_time"))
 
         # Any other parameters passed as is,
