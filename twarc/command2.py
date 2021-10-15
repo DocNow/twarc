@@ -398,20 +398,44 @@ def _validate_max_results(context, parameter, value):
     """
     Validate and set appropriate max_results parameter.
     """
+
+    archive_set = "archive" in context.params and context.params["archive"]
+    no_context_annotations_set = (
+        "no_context_annotations" in context.params
+        and context.params["no_context_annotations"]
+    )
+    minimal_fields_set = (
+        "minimal_fields" in context.params and context.params["minimal_fields"]
+    )
+    has_context_annotations = (
+        "tweet_fields" in context.params
+        and "context_annotations" in context.params["tweet_fields"].split(",")
+    )
+
     if value:
-        if "archive" not in context.params and value > 100:
+
+        if not archive_set and value > 100:
             raise click.BadParameter(
                 "--max-results cannot be greater than 100 when using Standard Access. Specify --archive if you have Academic Access."
             )
         if value < 10 or value > 500:
             raise click.BadParameter("--max-results must be between 10 and 500")
-        else:
-            return value
-    elif "archive" in context.params and (
-        "no_context_annotations" in context.params or "minimal_fields" in context.params
-    ):
-        return 500
+        if value > 100 and has_context_annotations:
+            raise click.BadParameter(
+                "--max-results cannot be greater than 100 when using context annotations. Set --no-context-annotations to remove them, or don't specify them in --tweet-fields."
+            )
+
+        return value
+
     else:
+
+        if archive_set and (
+            no_context_annotations_set
+            or minimal_fields_set
+            or not has_context_annotations
+        ):
+            return 500
+
         return 100
 
 
