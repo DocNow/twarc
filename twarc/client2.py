@@ -157,13 +157,21 @@ class Twarc2:
             )
 
         # Format start_time and end_time
-        if "start_time" in kwargs and kwargs["start_time"] and not isinstance(kwargs["start_time"], str):
-            print(type(kwargs["start_time"]), kwargs["start_time"])
-            params["start_time"] = _ts(kwargs.pop("start_time"))
+        if "start_time" in kwargs:
+            start_time = kwargs["start_time"]
+            params["start_time"] = (
+                _ts(kwargs.pop("start_time"))
+                if start_time and not isinstance(start_time, str)
+                else start_time
+            )
 
-        if "end_time" in kwargs and kwargs["end_time"] and not isinstance(kwargs["start_time"], str):
-            print(type(kwargs["start_time"]), kwargs["start_time"])
-            params["end_time"] = _ts(kwargs.pop("end_time"))
+        if "end_time" in kwargs:
+            end_time = kwargs["end_time"]
+            params["end_time"] = (
+                _ts(kwargs.pop("end_time"))
+                if end_time and not isinstance(end_time, str)
+                else end_time
+            )
 
         # Any other parameters passed as is,
         # these include backfill_minutes, next_token, pagination_token
@@ -915,7 +923,7 @@ class Twarc2:
         end_time=None,
         exclude_retweets=False,
         exclude_replies=False,
-        max_results=None,
+        max_results=100,
         expansions=None,
         tweet_fields=None,
         user_fields=None,
