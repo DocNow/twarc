@@ -446,7 +446,7 @@ def command_line_search_archive_options(f):
     f = click.option("--limit", default=0, help="Maximum number of tweets to save")(f)
     f = click.option(
         "--max-results",
-        default=100,
+        default=None,
         help="Maximum number of tweets per API response",
         callback=_validate_max_results,
     )(f)
@@ -512,6 +512,7 @@ def command_line_expansions_options(f):
         "--tweet-fields",
         default=",".join(TWEET_FIELDS),
         type=click.STRING,
+        is_eager=True,
         help="Comma separated list of tweet fields to retrieve. Default is all available.",
         callback=_validate_expansions,
     )(f)
