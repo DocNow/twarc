@@ -25,7 +25,8 @@ nav:
     - twarc1 (sw): twarc1_sw_ke.md
     - twarc1 (zw): twarc1_zw_zh.md
   - Plugins: plugins.md
-  - Tutorials: tutorials.md
+  - Tutorial: tutorial.md
+  - Resources: resources.md
   - Twitter Developer Access: twitter-developer-access.md 
   - Windows 10: windows10.md
   - Library API:
