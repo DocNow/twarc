@@ -586,7 +586,7 @@ def _process_expansions_shortcuts(kwargs):
         ] = "id,username,name,pinned_tweet_id"  # pinned_tweet_id is the only extra one, id,username,name are always returned.
         kwargs["media_fields"] = "media_key"
         kwargs["poll_fields"] = "id"
-        kwargs["place_fields"] = "id"
+        kwargs["place_fields"] = "id,geo"
 
     if kwargs.pop("no_context_annotations", None):
         kwargs[
