@@ -580,8 +580,10 @@ def _process_expansions_shortcuts(kwargs):
         ] = "author_id,in_reply_to_user_id,referenced_tweets.id,referenced_tweets.id.author_id,attachments.poll_ids,attachments.media_keys,geo.place_id"
         kwargs[
             "tweet_fields"
-        ] = "author_id,conversation_id,id,in_reply_to_user_id,referenced_tweets"
-        kwargs["user_fields"] = "id,pinned_tweet_id,username"
+        ] = "id,conversation_id,author_id,in_reply_to_user_id,referenced_tweets"
+        kwargs[
+            "user_fields"
+        ] = "id,username,name,pinned_tweet_id"  # pinned_tweet_id is the only extra one, id,username,name are always returned.
         kwargs["media_fields"] = "media_key"
         kwargs["poll_fields"] = "id"
         kwargs["place_fields"] = "id"
@@ -764,20 +766,25 @@ def counts(
 
 
 @twarc2.command("tweet")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
 @click.option("--pretty", is_flag=True, default=False, help="Pretty print the JSON")
 @click.argument("tweet_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
 @cli_api_error
-def tweet(T, tweet_id, outfile, pretty):
+def tweet(T, tweet_id, outfile, pretty, **kwargs):
     """
     Look up a tweet using its tweet id or URL.
     """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
     if "https" in tweet_id:
         tweet_id = tweet_id.split("/")[-1]
     if not re.match("^\d+$", tweet_id):
         click.echo(click.style("Please enter a tweet URL or ID", fg="red"), err=True)
-    result = next(T.tweet_lookup([tweet_id]))
+    result = next(T.tweet_lookup([tweet_id], **kwargs))
     _write(result, outfile, pretty=pretty)
 
 
