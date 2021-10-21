@@ -443,12 +443,15 @@ def command_line_search_archive_options(f):
     """
     Decorator for specifying additional search API parameters.
     """
-    f = click.option("--limit", default=0, help="Maximum number of tweets to save")(f)
+    f = click.option(
+        "--limit", default=0, help="Maximum number of tweets to save", type=int
+    )(f)
     f = click.option(
         "--max-results",
         default=None,
         help="Maximum number of tweets per API response",
         callback=_validate_max_results,
+        type=int,
     )(f)
     f = click.option(
         "--archive",
@@ -783,11 +786,13 @@ def tweet(T, tweet_id, outfile, pretty):
     "--limit",
     default=0,
     help="Maximum number of followers to save. Increments of 1000 or --max-results if set.",
+    type=int,
 )
 @click.option(
     "--max-results",
     default=1000,
     help="Maximum number of users per page. Default is 1000.",
+    type=int,
 )
 @command_line_progressbar_option
 @click.argument("user", type=str)
@@ -825,11 +830,13 @@ def followers(T, user, outfile, limit, max_results, hide_progress):
     "--limit",
     default=0,
     help="Maximum number of friends to save. Increments of 1000 or --max-results if set.",
+    type=int,
 )
 @click.option(
     "--max-results",
     default=1000,
     help="Maximum number of users per page. Default is 1000.",
+    type=int,
 )
 @command_line_progressbar_option
 @click.argument("user", type=str)
