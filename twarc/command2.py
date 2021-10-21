@@ -1610,13 +1610,13 @@ def conversations(
 
             # get a specific conversation id
             line = line.strip()
-            if re.match(r"^\d+$", line):
+            if line and re.match(r"^\d+$", line):
                 if line in seen:
                     continue
                 conv_ids = [line]
 
             # generate all conversation_ids that are referenced in tweets input
-            else:
+            elif line:
 
                 def f():
                     for tweet in ensure_flattened(json.loads(line)):
