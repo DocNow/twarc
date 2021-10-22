@@ -1,7 +1,7 @@
 # twarc
 
-twarc is a command line tool and Python library for archiving Twitter JSON
-data. It has separate commands (twarc and twarc2) for working with the older
+twarc is a command line tool and Python library for collecting and archiving Twitter JSON
+data via the Twitter API. It has separate commands (twarc and twarc2) for working with the older
 v1.1 API and the newer v2 API and Academic Access (respectively). It also has an ecosystem of [plugins](plugins) for doing things with the collected data. 
 
 See the `twarc` documentation for running commands: [twarc2](twarc2_en_us.md) and [twarc1](twarc2_en_us.md) for using the v1.1 API. If you aren't sure about which one to use you'll want to start with twarc2 since the v1.1 is scheduled to be retired.
@@ -15,6 +15,7 @@ pip3 install twarc
 ```
 
 Once installed, you should be able to use the twarc and twarc2 command line utilities, or use it as a Python library - check the examples [here](api/library.md) for that.
+
 ## Other Tools
 
 Twarc is purpose build for working with the twitter API for archiving and studying digital trace data. It is not built as a general purpose API library for Twitter. While the primary use is academic, it works just as well with "Standard" v2 API and "Premium" v1.1 APIs.
