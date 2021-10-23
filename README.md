@@ -1,15 +1,25 @@
 # twarc
 
-
-
 [![DOI](https://zenodo.org/badge/7605723.svg)](https://zenodo.org/badge/latestdoi/7605723) [![Build Status](https://github.com/docnow/twarc/workflows/tests/badge.svg)](https://github.com/DocNow/twarc/actions/workflows/main.yml)
 
-Collect data at the command line from the Twitter API (v1.1 and v2).
+twarc is a command line tool and Python library for collecting and archiving Twitter JSON
+data via the Twitter API. It has separate commands (twarc and twarc2) for working with the older
+v1.1 API and the newer v2 API and Academic Access (respectively).
 
 * Read the [documentation](https://twarc-project.readthedocs.io)
 * Ask questions in [Slack](https://bit.ly/docnow-slack) or [Matrix](https://matrix.to/#/#docnow:matrix.org?via=matrix.org&via=petrichor.me&via=converser.eu)
 
+
 ## Contributing 
+
+New features are welcome and encouraged for twarc. However, to keep the core twarc library and command line tool sustainable we will look at new functionality with the following principles in mind:
+
+1. Purpose: twarc is for *collection* and *archiving* of Twitter data via the Twitter API.
+2. Sustainability: keeping the surface area of twarc and it's dependencies small enough to ensure high quality.
+3. Utility: what is exposed by twarc should be applicable to different people, projects and domains, and not specific use cases.
+4. API consistency: as much as sensible we aim to make twarc consistent with the Twitter API, and also aim to make twarc consistent with itself - so commands in core twarc should work similarly to each other, and twarc functionality should align towards the Twitter API.
+
+For features and approaches that fall outside of this, twarc enables external packages to hook into the twarc2 command line tool via [click-plugins](https://github.com/click-contrib/click-plugins). This means that if you want to propose new functionality, you can create your own package without coordinating with core twarc.
 
 ### Documentation
 

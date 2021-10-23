@@ -12,7 +12,7 @@ Create and or edit your Twitter profile to fit your person or organization, pref
 
 ## Step 1: Applying for a Developer Account
 
-Fill out the forms for a new developer Account here: <https://developer.twitter.com/en/apply-for-access>. Pay attention to the specifics of each question: especially about sharing data outside of your organization, and with other government entities. Wait for a reply. This may take a couple of weeks.
+Fill out the forms for a new Individual developer Account here: <https://developer.twitter.com/en/apply-for-access>. Team accounts are not supported with Academic Access, so do not apply for a Team account. Pay attention to the specifics of each question: especially about sharing data outside of your organization, and with other government entities. Wait for a reply. This may take a couple of weeks.
 
 ## Step 2: Apply for the special Academic Access v2 Endpoint
 
