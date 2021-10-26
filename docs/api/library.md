@@ -72,33 +72,54 @@ pip install twarc-csv
 
 This can also be used as a library, for example:
 
-```python
+If you have a bunch of data, and want a DataFrame:
+
+```
+from twarc_csv import DataFrameConverter
+
+json_objects = [...]
+
+df = DataFrameConverter.process(json_objects)
+```
+
+This doesn't save any files, and converts everything in memory.
+
+If you have a large file, you should use `CSVConverter` as before
+
+```
 from twarc_csv import CSVConverter
 
-with open("results.jsonl", "r") as infile:
-    with open("results.csv", "w") as outfile:
+with open("input.json", "r") as infile:
+    with open("output.csv", "w") as outfile:
         converter = CSVConverter(infile=infile, outfile=outfile)
         converter.process()
 ```
 
-Assuming `results.jsonl` already exists and contains 1 API response per line or 1 tweet per line. The `CSVConverter`. The other parameters and their defaults apart from `infile` and `outfile` are:
+or with additional options:
 
 ```
-json_encode_all=False,
-json_encode_lists=True,
-json_encode_text=False,
-inline_referenced_tweets=True,
-allow_duplicates=False,
-input_tweet_columns=True,
-input_users_columns=False,
-extra_input_columns="",
-output_columns="",
-batch_size=100
+from twarc_csv import CSVConverter, DataFrameConverter
+
+converter = DataFrameConverter(
+    input_data_type="tweets",
+    json_encode_all=False,
+    json_encode_text=False,
+    json_encode_lists=True,
+    inline_referenced_tweets=True,
+    merge_retweets=True,
+    allow_duplicates=False,
+)
+
+with open("results.jsonl", "r") as infile:
+    with open("results.csv", "w") as outfile:
+        converter = CSVConverter(infile=infile, outfile=outfile, converter=converter)
+        converter.process()
+
 ```
 
-And correspond to the command line options: https://github.com/DocNow/twarc-csv#extra-command-line-options
+`DataFrameConverter` parameters correspond to the command line options: https://github.com/DocNow/twarc-csv#extra-command-line-options
 
-The full list of valid `output_columns` are: https://github.com/DocNow/twarc-csv/blob/main/twarc_csv.py#L14-L106 when using `input_tweet_columns=True` and https://github.com/DocNow/twarc-csv/blob/main/twarc_csv.py#L111-L137 when using `input_users_columns=True`.
+The full list of valid `output_columns` are: https://github.com/DocNow/twarc-csv/blob/main/dataframe_converter.py#L13-L85 when using `input_data_type="tweets"` and https://github.com/DocNow/twarc-csv/blob/main/dataframe_converter.py#L90-L115 when using `input_data_type="users"`. Note that it won't extract users from tweets, these have to be already extracted from the JSON. `twarc-csv` can also process compliance output and counts output.
 
 ## Search and write results to CSV example
 
@@ -138,7 +159,7 @@ print("Converting to CSV...")
 # This assumes `results.jsonl` is finished writing.
 with open("dogs_results.jsonl", "r") as infile:
     with open("dogs_output.csv", "w") as outfile:
-        converter = CSVConverter(infile, outfile, json_encode_all=False, json_encode_lists=True, json_encode_text=False, inline_referenced_tweets=True, allow_duplicates=False, batch_size=1000)
+        converter = CSVConverter(infile, outfile)
         converter.process()
 
 print("Finished.")
