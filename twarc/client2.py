@@ -7,10 +7,9 @@ Support for the Twitter v2 API.
 import re
 import ssl
 import json
-import time
 import logging
-import datetime
 import requests
+import time
 
 from oauthlib.oauth2 import BackendApplicationClient
 from requests.exceptions import ConnectionError
@@ -24,8 +23,6 @@ from twarc.version import version
 
 
 log = logging.getLogger("twarc")
-
-TWITTER_EPOCH = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
 
 
 class Twarc2:
@@ -136,19 +133,17 @@ class Twarc2:
                 count += len(response['data'])
                 yield response
 
+                # Calculate the amount of time to sleep, accounting for any
+                # processing time used by the rest of the application.
+                # This is to satisfy the 1 request / 1 second rate limit
+                # on the search/all endpoint.
+
+                time.sleep(
+                    max(0, sleep_between - (time.monotonic() - made_call))
+                )
+                made_call = time.monotonic()
             else:
-                log.info(f'Retrieved an empty page of results.')
-
-            # Calculate the amount of time to sleep, accounting for any
-            # processing time used by the rest of the application.
-            # This is to satisfy the 1 request / 1 second rate limit
-            # on the search/all endpoint.
-            time.sleep(
-                max(0, sleep_between - (time.monotonic() - made_call))
-            )
-            made_call = time.monotonic()
-
-        log.info(f'No more results for search {query}.')
+                log.info(f'no more results for search')
 
     def search_recent(
             self, query, since_id=None, until_id=None, start_time=None,
@@ -211,13 +206,6 @@ class Twarc2:
             generator[dict]: a generator, dict for each paginated response.
         """
         url = "https://api.twitter.com/2/tweets/search/all"
-
-        # start time defaults to the beginning of Twitter to override the 
-        # default of the last month. Only do this if start_time is not already
-        # specified and since_id isn't being used
-        if start_time is None and since_id is None:
-            start_time = TWITTER_EPOCH
-
         return self._search(
             url, query, since_id, until_id, start_time, end_time, max_results,
             sleep_between=1.05
@@ -365,21 +353,6 @@ class Twarc2:
                             data = _append_metadata(data, resp.url)
                         yield data
 
-                        # Check for an operational disconnect error in the response
-                        if data.get("errors", []):
-                            for error in data["errors"]:
-                                if error.get("disconnect_type") == "OperationalDisconnect":
-                                    log.info(
-                                        "Received operational disconnect message: "
-                                        "This stream has fallen too far behind in "
-                                        "processing tweets. Some data may have been "
-                                        "lost."
-                                    )
-                                    # Sleep briefly, then break this get call and
-                                    # attempt to reconnect.
-                                    time.sleep(5)
-                                    break
-
             except requests.exceptions.HTTPError as e:
                 errors += 1
                 log.error("caught http error %s on %s try", e, errors)
@@ -524,9 +497,7 @@ class Twarc2:
                 count += len(response['data'])
                 yield response
             else:
-                log.info(f'Retrieved an empty page of results for timeline {user_id}')
-
-        log.info(f'No more results for timeline {user_id}.')
+                log.info(f'no more results for timeline')
 
     def timeline(
         self, user, since_id=None, until_id=None, start_time=None,
@@ -735,15 +706,13 @@ class Twarc2:
             self.client.close()
 
         if self.auth_type == "application" and self.bearer_token:
-            log.info('creating HTTP session headers for app auth.')
-            auth = f"Bearer {self.bearer_token}"
-            log.debug('authorization: %s', auth)
+            log.info('Creating HTTP session headers for app auth.')
             self.client = requests.Session()
-            self.client.headers.update({"Authorization": auth})
+            self.client.headers.update(
+                {"Authorization": f"Bearer {self.bearer_token}"}
+            )
         elif self.auth_type == "application":
-            log.info('creating app auth client via OAuth2')
-            log.debug('client_id: %s', self.consumer_key)
-            log.debug('client_secret: %s', self.consumer_secret)
+            log.info('Creating app auth client via OAuth2')
             client = BackendApplicationClient(client_id=self.consumer_key)
             self.client = OAuth2Session(client=client)
             self.client.fetch_token(
@@ -753,10 +722,6 @@ class Twarc2:
             )
         else:
             log.info('creating user auth client')
-            log.debug('client_id: %s', self.consumer_key)
-            log.debug('client_secret: %s', self.consumer_secret)
-            log.debug('resource_owner_key: %s', self.access_token)
-            log.debug('resource_owner_secret: %s', self.access_token_secret)
             self.client = OAuth1Session(
                 client_key=self.consumer_key,
                 client_secret=self.consumer_secret,

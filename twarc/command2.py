@@ -19,12 +19,10 @@ from pkg_resources import iter_entry_points
 
 from twarc.version import version
 from twarc.handshake import handshake
-from twarc.config import ConfigProvider 
 from twarc.decorators import cli_api_error
-from twarc.expansions import ensure_flattened
+from twarc.expansions import flatten as flat
 from click_config_file import configuration_option
 
-config_provider = ConfigProvider()
 
 @with_plugins(iter_entry_points('twarc.plugins'))
 @click.group()
@@ -44,25 +42,22 @@ config_provider = ConfigProvider()
     show_default=True,
 )
 @click.option('--log', default='twarc.log')
-@click.option('--verbose', is_flag=True, default=False)
 @click.option('--metadata/--no-metadata', default=True, show_default=True,
     help="Include/don't include metadata about when and how data was collected.")
-@configuration_option(cmd_name='twarc', config_file_name='config', provider=config_provider)
+@configuration_option(cmd_name='twarc')
 @click.pass_context
 def twarc2(
     ctx, consumer_key, consumer_secret, access_token, access_token_secret, bearer_token,
-    log, metadata, app_auth, verbose
+    log, metadata, app_auth
 ):
     """
     Collect data from the Twitter V2 API.
     """
     logging.basicConfig(
         filename=log,
-        level=logging.DEBUG if verbose else logging.INFO,
+        level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
-
-    logging.info("using config %s", config_provider.file_path)
 
     if bearer_token or (consumer_key and consumer_secret):
         if app_auth and (bearer_token or (consumer_key and consumer_secret)):
@@ -108,18 +103,14 @@ def configure(ctx):
     """
     Set up your Twitter app keys.
     """
-
-    config_file = config_provider.file_path
-    logging.info('creating config file: %s', config_file)
-
-    config_dir = pathlib.Path(config_file).parent
-    if not config_dir.is_dir():
-        logging.info('creating config directory: %s', config_dir)
-        config_dir.mkdir(parents=True)
- 
     keys = handshake()
     if keys is None:
         raise click.ClickException("Unable to authenticate")
+
+    config_dir = pathlib.Path(click.get_app_dir('twarc'))
+    if not config_dir.is_dir():
+        config_dir.mkdir(parents=True)
+    config_file = config_dir / 'config'
 
     config = configobj.ConfigObj(unrepr=True)
     config.filename = config_file
@@ -167,12 +158,14 @@ def get_version():
     help='Search the full archive (requires Academic Research track)')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
 @click.option('--max-results', default=0, help='Maximum number of tweets per API response')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
 @click.argument('query', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
 def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
-        max_results, archive):
+        max_results, archive, flatten):
     """
     Search for tweets.
     """
@@ -184,6 +177,12 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
         # default number of tweets per response 500 when not set otherwise
         if max_results == 0:
             max_results = 500
+
+        # if the user is searching the historical archive the assumption is that
+        # they want to search everything, and not just the previous month which
+        # is the default: https://github.com/DocNow/twarc/issues/434
+        if start_time == None and since_id == None:
+            start_time = datetime.datetime(2006, 3, 21, tzinfo=datetime.timezone.utc)
     else:
         if max_results == 0:
             max_results = 100
@@ -191,19 +190,21 @@ def search(T, query, outfile, since_id, until_id, start_time, end_time, limit,
 
     for result in search_method(query, since_id, until_id, start_time, end_time,
             max_results):
-        _write(result, outfile)
+        _write(result, outfile, flatten)
         count += len(result['data'])
         if limit != 0 and count >= limit:
             break
 
 @twarc2.command('tweet')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
 @click.option('--pretty', is_flag=True, default=False,
     help='Pretty print the JSON')
 @click.argument('tweet_id', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def tweet(T, tweet_id, outfile, pretty):
+def tweet(T, tweet_id, outfile, flatten, pretty):
     """
     Look up a tweet using its tweet id or URL.
     """
@@ -212,23 +213,25 @@ def tweet(T, tweet_id, outfile, pretty):
     if not re.match('^\d+$', tweet_id):
         click.echo(click.style("Please enter a tweet URL or ID", fg="red"), err=True)
     result = next(T.tweet_lookup([tweet_id]))
-    _write(result, outfile, pretty=pretty)
+    _write(result, outfile, flatten, pretty=pretty)
 
 
 @twarc2.command('followers')
 @click.option('--limit', default=0, help='Maximum number of followers to save')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with users, and one line per user')
 @click.argument('user', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def followers(T, user, outfile, limit):
+def followers(T, user, outfile, limit, flatten):
     """
     Get the followers for a given user.
     """
     count = 0
 
     for result in T.followers(user):
-        _write(result, outfile)
+        _write(result, outfile, flatten)
         count += len(result['data'])
         if limit != 0 and count >= limit:
             break
@@ -236,18 +239,20 @@ def followers(T, user, outfile, limit):
 
 @twarc2.command('following')
 @click.option('--limit', default=0, help='Maximum number of friends to save')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with users, and one line per user')
 @click.argument('userd', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def following(T, user, outfile, limit):
+def following(T, user, outfile, limit, flatten):
     """
     Get the users who are following a given user.
     """
     count = 0
 
     for result in T.following(user):
-        _write(result, outfile)
+        _write(result, outfile, flatten)
         count += len(result['data'])
         if limit != 0 and count >= limit:
             break
@@ -255,10 +260,12 @@ def following(T, user, outfile, limit):
 
 @twarc2.command('sample')
 @click.option('--limit', default=0, help='Maximum number of tweets to save')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet.')
 @click.argument('outfile', type=click.File('a+'), default='-')
 @click.pass_obj
 @cli_api_error
-def sample(T, outfile, limit):
+def sample(T, flatten, outfile, limit):
     """
     Fetch tweets from the sample stream.
     """
@@ -269,35 +276,38 @@ def sample(T, outfile, limit):
         count += 1
         if limit != 0 and count >= limit:
             event.set()
-        _write(result, outfile)
+        _write(result, outfile, flatten)
 
 
 @twarc2.command('hydrate')
 @click.argument('infile', type=click.File('r'), default='-')
 @click.argument('outfile', type=click.File('w'), default='-')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet.')
 @click.pass_obj
 @cli_api_error
-def hydrate(T, infile, outfile):
+def hydrate(T, infile, outfile, flatten):
     """
     Hydrate tweet ids.
     """
     for result in T.tweet_lookup(infile):
-        _write(result, outfile)
+        _write(result, outfile, flatten)
 
 
 @twarc2.command('users')
 @click.option('--usernames', is_flag=True, default=False)
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet.')
 @click.argument('infile', type=click.File('r'), default='-')
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def users(T, infile, outfile, usernames):
+def users(T, infile, outfile, usernames, flatten):
     """
     Get data for user ids or usernames.
     """
     for result in T.user_lookup(infile, usernames):
-        _write(result, outfile)
-
+        _write(result, outfile, flatten)
 
 @twarc2.command('mentions')
 @click.option('--since-id', type=int,
@@ -310,20 +320,20 @@ def users(T, infile, outfile, usernames):
 @click.option('--end-time',
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
     help='Match tweets sent before time (ISO 8601/RFC 3339)')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
 @click.argument('user_id', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
+def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time, flatten):
     """
     Retrieve the most recent tweets mentioning the given user.
     """
     for result in T.mentions(user_id, since_id, until_id, start_time, end_time):
-        _write(result, outfile)
-
+        _write(result, outfile, flatten)
 
 @twarc2.command('timeline')
-@click.option('--limit', default=0, help='Maximum number of tweets to return')
 @click.option('--since-id', type=int,
     help='Match tweets sent after tweet id')
 @click.option('--until-id', type=int,
@@ -334,183 +344,18 @@ def mentions(T, user_id, outfile, since_id, until_id, start_time, end_time):
 @click.option('--end-time',
     type=click.DateTime(formats=('%Y-%m-%d', '%Y-%m-%dT%H:%M:%S')),
     help='Match tweets sent before time (ISO 8601/RFC 3339)')
-@click.option('--use-search', is_flag=True, default=False,
-    help='Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
 @click.argument('user_id', type=str)
 @click.argument('outfile', type=click.File('w'), default='-')
 @click.pass_obj
 @cli_api_error
-def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time,
-        use_search, limit):
+def timeline(T, user_id, outfile, since_id, until_id, start_time, end_time, flatten):
     """
-    Retrieve recent tweets for the given user.
+    Retrieve the 3200 most recent tweets for the given user.
     """
-
-    if use_search:
-        q = f'from:{user_id}'
-        tweets = T.search_all(q, since_id, until_id, start_time, end_time)
-    else:
-        tweets = T.timeline(user_id, since_id, until_id, start_time, end_time)
-
-    count = 0
-    for result in tweets:
-        _write(result, outfile)
-
-        count += len(result['data'])
-        if limit != 0 and count >= limit:
-            break
-
-
-@twarc2.command('timelines')
-@click.option('--limit', default=0, help='Maximum number of tweets to return')
-@click.option('--timeline-limit', default=0,
-    help='Maximum number of tweets to return per-timeline')
-@click.option('--use-search', is_flag=True, default=False,
-    help='Use the search/all API endpoint which is not limited to the last 3200 tweets, but requires Academic Product Track access.')
-@click.argument('infile', type=click.File('r'), default='-')
-@click.argument('outfile', type=click.File('w'), default='-')
-@click.pass_obj
-def timelines(T, infile, outfile, limit, timeline_limit, use_search):
-    """
-    Fetch the timelines of every user in an input source of tweets. If
-    the input is a line oriented text file of user ids or usernames that will 
-    be used instead.
-    """
-    total_count = 0
-    seen = set()
-    for line in infile:
-        line = line.strip()
-        if line == "":
-            continue
-
-        users = []
-        try:
-            data = ensure_flattened(json.loads(line))
-            users = set([t['author']['id'] for t in ensure_flattened(data)])
-        except json.JSONDecodeError:
-            users = set([line])
-        except ValueError:
-            users = set([line])
-
-        for user in users:
-
-            # only process a given user once
-            if user in seen:
-                continue
-            seen.add(user)
-
-            # which api endpoint to use
-            if use_search and since_id:
-                tweets = T.search_all(f'from:{user}', since_id=since_id)
-            elif use_search:
-                tweets = T.search_all(f'from:{user}')
-            else:
-                tweets = T.timeline(user)
-
-            timeline_count = 0
-            for response in tweets:
-                _write(response, outfile)
-
-                timeline_count += len(response['data'])
-                if timeline_limit != 0 and timeline_count >= timeline_limit:
-                    break
-
-                total_count += len(response['data'])
-                if limit != 0 and total_count >= limit:
-                    return
-
-
-@twarc2.command('conversation')
-@click.option('--archive', is_flag=True, default=False,
-    help='Search the full archive (requires Academic Research track)')
-@click.argument('tweet_id', type=str)
-@click.argument('outfile', type=click.File('w'), default='-')
-@click.pass_obj
-@cli_api_error
-def conversation(T, tweet_id, archive, outfile):
-    """
-    Retrieve a conversation thread using the tweet id.
-    """
-    q = f'conversation_id:{tweet_id}'
-    if archive:
-        search = T.search_all(q)
-    else:
-        search = T.search_recent(q)
-    for resp in search:
-        _write(resp, outfile)
-
-
-@twarc2.command('conversations')
-@click.option('--limit', default=0, help='Maximum number of tweets to return')
-@click.option('--conversation-limit', default=0,
-    help='Maximum number of tweets to return per-conversation')
-@click.option('--archive', is_flag=True, default=False,
-    help='Use the Academic Research project track access to the full archive')
-@click.argument('infile', type=click.File('r'), default='-')
-@click.argument('outfile', type=click.File('w'), default='-')
-@click.pass_obj
-@cli_api_error
-def conversations(T, infile, outfile, archive, limit, conversation_limit):
-    """
-    Fetch the full conversation threads that the input tweets are a part of.
-    Alternatively the input can be a line oriented file of conversation ids.
-    """
-
-    # keep track of converstation ids that have been fetched so that they
-    # aren't fetched twice
-    seen = set()
-
-    # use the archive or recent search?
-    search = T.search_all if archive else T.search_recent
-
-    count = 0
-    stop = False
-    for line in infile:
-        conv_ids = []
-
-        # stop will get set when the total tweet limit has been met
-        if stop:
-            break
-
-        # get a specific conversation id
-        line = line.strip()
-        if re.match(r'^\d+$', line):
-            if line in seen:
-                continue
-            conv_ids = [line]
-
-        # generate all conversation_ids that are referenced in tweets input
-        else:
-            def f():
-                for tweet in ensure_flattened(json.loads(line)):
-                    yield tweet.get('conversation_id')
-            conv_ids = f()
-
-        # output results while paying attention to the set limits
-        conv_count = 0
-
-        for conv_id in conv_ids:
-
-            if conv_id in seen:
-                logging.info(f'already fetched conversation_id {conv_id}')
-            seen.add(conv_id)
-
-            conv_count = 0
-
-            logging.info(f'fetching conversation {conv_id}')
-            for result in search(f'conversation_id:{conv_id}'): 
-                _write(result, outfile, False)
-
-                count += len(result['data'])
-                if limit != 0 and count >= limit:
-                    logging.info(f'reached tweet limit of {limit}')
-                    stop = True
-                    break
-
-                conv_count += len(result['data'])
-                if conversation_limit !=0 and conv_count >= conversation_limit:
-                    logging.info(f'reached conversation limit {conversation_limit}')
-                    break
+    for result in T.timeline(user_id, since_id, until_id, start_time, end_time):
+        _write(result, outfile, flatten)
 
 
 @twarc2.command('flatten')
@@ -519,24 +364,25 @@ def conversations(T, infile, outfile, archive, limit, conversation_limit):
 @cli_api_error
 def flatten(infile, outfile):
     """
-    "Flatten" tweets, or move expansions inline with tweet objects and ensure
-    that each line of output is a single tweet.
+    "Flatten" tweets, or move expansions inline with tweet objects.
     """
     if (infile.name == outfile.name):
         click.echo(click.style(f"💔 Cannot flatten files in-place, specify a different output file!", fg='red'), err=True)
         return
 
     for line in infile:
-        for tweet in ensure_flattened(json.loads(line)):
-            _write(tweet, outfile, False)
+        result = json.loads(line)
+        _write(result, outfile, True)
 
 
 @twarc2.command('stream')
 @click.option('--limit', default=0, help='Maximum number of tweets to return')
+@click.option('--flatten', is_flag=True, default=False,
+    help='Include expansions inline with tweets, and one line per tweet')
 @click.argument('outfile', type=click.File('a+'), default='-')
 @click.pass_obj
 @cli_api_error
-def stream(T, outfile, limit):
+def stream(T, flatten, outfile, limit):
     """
     Fetch tweets from the live stream.
     """
@@ -552,7 +398,7 @@ def stream(T, outfile, limit):
         if limit != 0 and count == limit:
             logging.info(f'reached limit {limit}')
             event.set()
-        _write(result, outfile)
+        _write(result, outfile, flatten)
 
 
 @twarc2.group()
@@ -690,6 +536,17 @@ def _error_str(errors):
 
     return click.style("\n".join(parts), fg="red")
 
-def _write(results, outfile, pretty=False):
+def _write(results, outfile, flatten, pretty=False):
     indent = 2 if pretty else None
-    click.echo(json.dumps(results, indent=indent), file=outfile)
+    if 'data' in results:
+        if flatten:
+            if isinstance(results['data'], list):
+                for r in flat(results)['data']:
+                    click.echo(json.dumps(r, indent=indent), file=outfile)
+            else:
+                r = flat(results)['data']
+                click.echo(json.dumps(r, indent=indent), file=outfile)
+        else:
+            click.echo(json.dumps(results, indent=indent), file=outfile)
+    else:
+        click.echo(json.dumps(results, indent=indent), file=outfile)

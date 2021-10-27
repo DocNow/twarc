@@ -16,7 +16,7 @@ add it to this list):
 * [twarc-ids](https://pypi.org/project/twarc-ids/): extract tweet ids from tweets
 * [twarc-videos](https://pypi.org/project/twarc-videos): extract videos from tweets
 * [twarc-csv](https://pypi.org/project/twarc-csv/): export tweets to CSV
-* [twarc-timeline-archive](https://pypi.org/project/twarc-timeline-archive): routinely download tweet timelines for a list of users
+* [twarc-timelines](https://pypi.org/project/twarc-timelines): download tweet timelines for a list of users
 
 ## Writing a Plugin
 
