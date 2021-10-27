@@ -423,18 +423,83 @@ class TimestampProgressBar(tqdm):
 
 
 def _date2millis(dt):
+    """
+    Get millisecond timestamp from datetime object.
+    """
     return int(dt.timestamp() * 1000)
 
 
 def _millis2date(ms):
+    """
+    Get UTC date from millisecond timestamp
+    """
     return datetime.datetime.utcfromtimestamp(ms // 1000).replace(
         microsecond=ms % 1000 * 1000
     )
 
 
 def _snowflake2millis(snowflake_id):
+    """
+    Get millisecond timestamp from snowflake ID.
+    """
     return (snowflake_id >> 22) + 1288834974657
 
 
 def _millis2snowflake(ms):
+    """
+    Get snowflake ID from millisecond timestamp
+    """
     return (int(ms) - 1288834974657) << 22
+
+
+def _snowflake2date(snowflake_id):
+    """
+    Get DateTime from snowflake ID.
+    """
+    return _millis2date(_snowflake2millis(snowflake_id))
+
+
+def _date2snowflake(dt):
+    """
+    Get snowflake ID from date
+    """
+    return _millis2snowflake(_date2millis(dt))
+
+
+def _sample_windows(start_time, end_time, sample):
+    """
+    todo: Generate tuples of start and end snowflake ids between two timestamps
+
+    sample: type of random sample and millisecond range:
+        _1% "Spritzer" Sample   [657-666]
+        10% "Gardenhose" Sample [657-756]
+        10% "Enterprise" Sample [*0*]
+        _1% v2 Sample           [?]
+        _N% v2 Sample           [?]
+    """
+
+    sample = "spritzer"
+
+    # Round to the nearest second and iterate over the time range second by second:
+    start_millis = _date2millis(start_time) - _date2millis(start_time) % 1000
+    end_millis = _date2millis(end_time) - _date2millis(start_time) % 1000
+
+    for current_millis in range(start_millis, end_millis, 1000):
+
+        start_millis = current_millis + 657
+        start_snowflake = _millis2snowflake(start_millis)
+
+        end_millis = current_millis + 666
+        end_snowflake = _millis2snowflake(end_millis)
+
+        #print(f"Sampling using: {sample}, showing time, millis, snowflake:\n")
+        
+        log_message = (
+            f"Current Second.....: {_millis2date(current_millis)} {current_millis} {_millis2snowflake(current_millis)}\n"
+            + f"Sample Window Start: {_millis2date(start_millis)} {start_millis} {start_snowflake}\n"
+            + f"Sample Window End..: {_millis2date(end_millis)} {end_millis} {end_snowflake}\n"
+        )
+
+        #print(log_message)
+
+        yield (start_snowflake, end_snowflake)
