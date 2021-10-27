@@ -19,7 +19,6 @@ from requests_oauthlib import OAuth1Session, OAuth2Session
 
 from twarc import expansions
 from twarc.decorators import *
-from twarc.helpers import *
 from twarc.version import version
 
 
