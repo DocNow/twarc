@@ -285,4 +285,4 @@ Below is what you see when you run `twarc2 --help`.
 ::: mkdocs-click:
   :module: twarc.command2
   :command: twarc2
-  :depth: 2
+  :depth: 3
