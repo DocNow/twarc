@@ -632,7 +632,7 @@ def search(
     **kwargs,
 ):
     """
-    Search for tweets.
+    Search for tweets. For help on how to write a query see https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query
     """
 
     kwargs = _process_expansions_shortcuts(kwargs)

@@ -278,10 +278,11 @@ You can then use one of the ids in a search:
 
 You can also search by geo-coordinates (lat,lon) and IP address. If you would prefer to see the full JSON response with the bounding boxes use the `--json` option.
 
-# Command Line Usage
+## Command Line Usage
 
 Below is what you see when you run `twarc2 --help`.
 
 ::: mkdocs-click:
   :module: twarc.command2
   :command: twarc2
+  :depth: 1
