@@ -1513,9 +1513,10 @@ def searches(
                     if limit and (retrieved >= limit):
                         break
 
-            # make sure there's at least a second between calls when calling api_method in a loop.
-            time.sleep(max(0, 1.05 - (time.monotonic() - last_call)))
-            last_call = time.monotonic()
+            # make sure there's at least a second between calls when calling full archive in a loop.
+            if archive:
+                time.sleep(max(0, 1.05 - (time.monotonic() - last_call)))
+                last_call = time.monotonic()
 
         # Make sure to process the final batch of queries if using the combined strategy
         if combine_queries and (
