@@ -1662,9 +1662,10 @@ def conversations(
                         log.info(f"reached conversation limit {conversation_limit}")
                         break
 
-                # make sure there's at least a second between calls when calling search in a loop.
-                time.sleep(max(0, 1.05 - (time.monotonic() - last_call)))
-                last_call = time.monotonic()
+                # make sure there's at least a second between calls when calling full archive in a loop.
+                if archive:
+                    time.sleep(max(0, 1.05 - (time.monotonic() - last_call)))
+                    last_call = time.monotonic()
 
 
 @twarc2.command("flatten")
