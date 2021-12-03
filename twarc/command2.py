@@ -1255,12 +1255,19 @@ def timelines(
 
                 seen.add(user)
 
+                last_call = time.monotonic()
+
                 tweets = _timeline_tweets(
                     T,
                     use_search=use_search,
                     user_id=user,
                     **kwargs,
                 )
+
+                if use_search:
+                    # if using search, make sure there's at least a second between calls when calling _timeline_tweets in a loop.
+                    time.sleep(max(0, 1.05 - (time.monotonic() - last_call)))
+                    last_call = time.monotonic()
 
                 timeline_count = 0
                 for response in tweets:
@@ -1439,8 +1446,6 @@ def searches(
 
     # TODO: Validate the queries are all valid length before beginning and report errors
 
-    # TODO: Needs an inputlines progress bar instead, as the queries are variable
-    # size.
     with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
 
         merged_query = ""
@@ -1487,7 +1492,7 @@ def searches(
                 issue_query = query
 
             log.info(f'Beginning search for "{issue_query}"')
-
+            last_call = time.monotonic()
             response = api_method(issue_query, **kwargs)
 
             for result in response:
@@ -1507,6 +1512,10 @@ def searches(
 
                     if limit and (retrieved >= limit):
                         break
+
+            # make sure there's at least a second between calls when calling api_method in a loop.
+            time.sleep(max(0, 1.05 - (time.monotonic() - last_call)))
+            last_call = time.monotonic()
 
         # Make sure to process the final batch of queries if using the combined strategy
         if combine_queries and (
@@ -1636,6 +1645,8 @@ def conversations(
                 conv_count = 0
 
                 log.info(f"fetching conversation {conv_id}")
+                last_call = time.monotonic()
+
                 for result in search(f"conversation_id:{conv_id}", **kwargs):
                     _write(result, outfile, False)
 
@@ -1649,6 +1660,10 @@ def conversations(
                     if conversation_limit != 0 and conv_count >= conversation_limit:
                         log.info(f"reached conversation limit {conversation_limit}")
                         break
+
+                # make sure there's at least a second between calls when calling search in a loop.
+                time.sleep(max(0, 1.05 - (time.monotonic() - last_call)))
+                last_call = time.monotonic()
 
 
 @twarc2.command("flatten")
