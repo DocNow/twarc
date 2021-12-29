@@ -77,9 +77,13 @@ If you have a bunch of data, and want a DataFrame:
 ```
 from twarc_csv import DataFrameConverter
 
-json_objects = [...]
+# Default options for Dataframe converter
+converter = DataFrameConverter()
 
-df = DataFrameConverter.process(json_objects)
+# this can be a list or generator of individual tweets or pages or results.
+json_objects = [...] 
+
+df = converter.process(json_objects)
 ```
 
 This doesn't save any files, and converts everything in memory.
