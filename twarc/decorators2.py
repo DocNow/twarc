@@ -29,36 +29,63 @@ def rate_limit(f, tries=30):
                 errors = 0
                 return resp
             elif resp.status_code == 429:
-                reset = int(resp.headers["x-rate-limit-reset"])
-                now = time.time()
 
-                # The time to sleep depends on having an accurate system time,
-                # so check to see if there's something really bad happening
-                # to warn the user.
-                target_sleep_seconds = reset - now
+                # Check the headers, and try to infer why we're hitting the
+                # rate limit. Because the search/all endpoints also have a
+                # 1r/s rate limit that isn't obvious in the headers, we need
+                # to infer the reason for the rate limit. Note that this is
+                # included to help debug problems with multiple concurrent
+                # clients - this shouldn't be hit in normal of operation of a
+                # single twarc client.
+                remaining = int(resp.headers["x-rate-limit-remaining"])
 
-                # Never sleep longer than 15 minutes, as that is the basis for
-                # all of the read time based rate limits in the Twitter API
-                seconds = min(901, max(10, (target_sleep_seconds + 10)))
-
-                if target_sleep_seconds >= 900:
-                    # If we need to sleep for more than a rate limit period, the
-                    # system clock could be wrong.
+                # If we have a 429 rate limit, but there are remaining calls for
+                # this endpoint, we've probably hit the 1r/s limit.
+                if remaining:
                     log.warning(
-                        "Detected overlong sleep interval - is your system clock accurate? "
-                        "An accurate system time is needed to calculate how long to sleep for, "
-                        "and data collection might be slowed."
+                        "Hit the 1 request/second rate limit, sleeping for 10 seconds. "
+                        "This shouldn't happen with normal usage of twarc, and may indicate "
+                        "multiple clients interacting with the Twitter API at the "
+                        "same time."
                     )
-                elif target_sleep_seconds < 0:
-                    # If we need to sleep for negative time something weird might be up.
-                    log.warning(
-                        "Detected negative sleep interval - is your system clock accurate? "
-                        "If your system time is running fast, rate limiting may not be "
-                        "effective."
-                    )
+                    time.sleep(10)
+                    continue
 
-                log.warning("rate limit exceeded: sleeping %s secs", seconds)
-                time.sleep(seconds)
+                # Just a regular 15 minute window rate limit.
+                else:
+                    reset = int(resp.headers["x-rate-limit-reset"])
+                    now = time.time()
+
+                    # The time to sleep depends on having an accurate system time,
+                    # so check to see if there's something really bad happening
+                    # to warn the user.
+                    target_sleep_seconds = reset - now
+
+                    # Never sleep longer than 15 minutes, as that is the basis for
+                    # all of the read time based rate limits in the Twitter API
+                    seconds = min(901, max(10, (target_sleep_seconds + 10)))
+
+                    if target_sleep_seconds >= 900:
+                        # If we need to sleep for more than a rate limit period, the
+                        # system clock could be wrong.
+                        log.warning(
+                            "Detected overlong sleep interval - is your system clock accurate? "
+                            "An accurate system time is needed to calculate how long to sleep for, "
+                            "and data collection might be slowed. "
+                            f"The rate limit resets at {reset} and the current time is {now}."
+                        )
+                    elif target_sleep_seconds < 0:
+                        # If we need to sleep for negative time something weird might be up.
+                        log.warning(
+                            "Detected negative sleep interval - is your system clock accurate? "
+                            "If your system time is running fast, rate limiting may not be "
+                            "effective. "
+                            f"The rate limit resets at {reset} and the current time is {now}."
+                        )
+
+                    log.warning("rate limit exceeded: sleeping %s secs", seconds)
+                    time.sleep(seconds)
+
             elif resp.status_code >= 500:
                 errors += 1
                 if errors > tries:
