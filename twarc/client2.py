@@ -226,24 +226,21 @@ class Twarc2:
                 place_fields=place_fields,
             )
 
-        count = 0
-        made_call = time.monotonic()
-
         for response in self.get_paginated(url, params=params):
+
+            # Note that we're ensuring the appropriate amount of sleep is
+            # taken before yielding every item. This ensures that we won't
+            # exceed the rate limit even in cases where a response generator
+            # is not completely consumed. This might be more conservative
+            # than necessary.
+            time.sleep(sleep_between)
+
             # can't return without 'data' if there are no results
             if "data" in response:
-                count += len(response["data"])
                 yield response
 
             else:
                 log.info(f"Retrieved an empty page of results.")
-
-            # Calculate the amount of time to sleep, accounting for any
-            # processing time used by the rest of the application.
-            # This is to satisfy the 1 request / 1 second rate limit
-            # on the search/all endpoint.
-            time.sleep(max(0, sleep_between - (time.monotonic() - made_call)))
-            made_call = time.monotonic()
 
         log.info(f"No more results for search {query}.")
 
