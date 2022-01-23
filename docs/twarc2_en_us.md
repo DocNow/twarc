@@ -64,11 +64,11 @@ grant access to one or more Twitter accounts:
 
 Then try out a search:
 
-    twarc2 search blacklivesmatter search.jsonl
+    twarc2 search "blacklivesmatter" results.jsonl
 
 Or maybe you'd like to collect tweets as they happen?
 
-    twarc2 filter blacklivesmatter stream.jsonl
+    twarc2 filter "blacklivesmatter" results.jsonl
 
 See below for the details about these commands and more.
 
@@ -92,17 +92,17 @@ options (`--consumer-key`, `--consumer-secret`, `--access-token`,
 
 This uses Twitter's [tweets/search/recent](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-recent) and [tweets/search/all](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-all) endpoints to download *pre-existing* tweets matching a given query. This command will search for any tweets mentioning *blacklivesmatter* from the 7 days.
 
-    twarc2 search blacklivesmatter tweets.jsonl
+    twarc2 search "blacklivesmatter" results.jsonl
 
 If you have access to the [Academic Research Product Track](https://developer.twitter.com/en/products/twitter-api/academic-research) you can search the full archive of tweets by using the `--archive` option.
 
-    twarc2 search --archive blacklivesmatter tweets.jsonl 
+    twarc2 search --archive "blacklivesmatter" results.jsonl 
 
 The queries can be a lot more expressive than matching a single term. For
 example this query will search for tweets containing either `blacklivesmatter`
 or `blm` that were sent to the user \@deray. 
 
-    twarc2 search 'blacklivesmatter OR blm to:deray' tweets.jsonl
+    twarc2 search "(blacklivesmatter OR blm) to:deray" results.jsonl
 
 The best way to get familiar with Twitter's search syntax is to consult Twitter's [Building queries for Search Tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query) documentation. 
 
@@ -117,7 +117,7 @@ make readily apparent.
 Because there is a 500,000 tweet limit (5, or sometimes 10 million for Academic Research Track)
 you may want to limit the number of tweets you retrieve by using `--limit`:
 
-    twarc2 search --limit 5000 blacklivesmatter tweets.jsonl
+    twarc2 search --limit 5000 "blacklivesmatter" results.jsonl
 
 ### Time
 
