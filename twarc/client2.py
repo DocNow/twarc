@@ -1059,9 +1059,7 @@ class Twarc2:
         if expansions:
             params["expansions"] = "pinned_tweet_id"
 
-        for page in self.get_paginated(url, params=params):
-            if "data" in page:
-                yield page
+        return self.get_paginated(url, params=params)
 
     def liked_tweets(
         self,
@@ -1092,9 +1090,7 @@ class Twarc2:
             pagination_token=None,
         )
 
-        for page in self.get_paginated(url, params=params):
-            if "data" in page:
-                yield page
+        return self.get_paginated(url, params=params)
 
     def retweeted_by(
         self,
@@ -1121,9 +1117,7 @@ class Twarc2:
         if expansions:
             params["expansions"] = "pinned_tweet_id"
 
-        for page in self.get_paginated(url, params=params):
-            if "data" in page:
-                yield page
+        return self.get_paginated(url, params=params)
 
     @catch_request_exceptions
     @rate_limit
