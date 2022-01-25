@@ -1034,6 +1034,97 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/followers"
         return self.get_paginated(url, params=params)
 
+    def liking_users(
+        self,
+        tweet_id,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        max_results=100,
+        pagination_token=None,
+    ):
+        """
+        Retrieve the user profiles of accounts that have liked the given tweet.
+
+        """
+        url = f"https://api.twitter.com/2/tweets/{tweet_id}/liking_users"
+
+        params = self._prepare_params(
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
+        )
+
+        if expansions:
+            params["expansions"] = "pinned_tweet_id"
+
+        for page in self.get_paginated(url, params=params):
+            if "data" in page:
+                yield page
+
+    def liked_tweets(
+        self,
+        user_id,
+        max_results=100,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
+    ):
+        """
+        Retrieve the tweets liked by the given user_id.
+
+        """
+        url = f"https://api.twitter.com/2/users/{user_id}/liked_tweets"
+
+        params = self._prepare_params(
+            max_results=100,
+            expansions=None,
+            tweet_fields=None,
+            user_fields=None,
+            media_fields=None,
+            poll_fields=None,
+            place_fields=None,
+            pagination_token=None,
+        )
+
+        for page in self.get_paginated(url, params=params):
+            if "data" in page:
+                yield page
+
+    def retweeted_by(
+        self,
+        tweet_id,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        max_results=100,
+        pagination_token=None,
+    ):
+        """
+        Retrieve the user profiles of accounts that have retweeted the given tweet.
+
+        """
+        url = f"https://api.twitter.com/2/tweets/{tweet_id}/retweeted_by"
+
+        params = self._prepare_params(
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
+        )
+
+        if expansions:
+            params["expansions"] = "pinned_tweet_id"
+
+        for page in self.get_paginated(url, params=params):
+            if "data" in page:
+                yield page
+
     @catch_request_exceptions
     @rate_limit
     def get(self, *args, **kwargs):
@@ -1078,7 +1169,15 @@ class Twarc2:
 
         yield page
 
-        endings = ["mentions", "tweets", "following", "followers"]
+        endings = [
+            "mentions",
+            "tweets",
+            "following",
+            "followers",
+            "liked_tweets",
+            "liking_users",
+            "retweeted_by",
+        ]
 
         # The search endpoints only take a next_token, but the timeline
         # endpoints take a pagination_token instead - this is a bit of a hack,
