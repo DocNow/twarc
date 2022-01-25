@@ -876,6 +876,155 @@ def following(T, user, outfile, limit, max_results, hide_progress):
                 break
 
 
+@twarc2.command("liking_users")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of liking users to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of users (likes) per page. Default is and maximum is 100.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.argument("tweet_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def liking_users(T, tweet_id, outfile, limit, max_results, hide_progress):
+    """
+    Get the users that liked a specific tweet.
+
+    Note that the progress bar is approximate.
+
+    """
+    count = 0
+    lookup_total = 0
+
+    if not re.match("^\d+$", str(tweet_id)):
+        click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
+
+    if outfile is not None and (outfile.name == "<stdout>"):
+        hide_progress = True
+
+    if not hide_progress:
+        # TODO: we could probably do this everytime, and avoid doing any lookups
+        # for tweets that don't exist anymore.
+        target_tweet = list(T.tweet_lookup([tweet_id]))[0]
+        if "data" in target_tweet:
+            lookup_total = target_tweet["data"][0]["public_metrics"]["like_count"]
+
+    with tqdm(disable=hide_progress, total=lookup_total) as progress:
+        for result in T.liking_users(tweet_id, max_results=max_results):
+            _write(result, outfile)
+            count += len(result.get("data", []))
+            progress.update(len(result.get("data", [])))
+            if limit != 0 and count >= limit:
+                progress.desc = f"Set --limit of {limit} reached"
+                break
+
+
+@twarc2.command("retweeted_by")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of retweeting users to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of users (retweets) per page of results. Default and maximum is 100.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.argument("tweet_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def retweeted_by(T, tweet_id, outfile, limit, max_results, hide_progress):
+    """
+    Get the users that retweeted a specific tweet.
+
+    Note that the progress bar is approximate.
+
+    """
+    count = 0
+    lookup_total = 0
+
+    if not re.match("^\d+$", str(tweet_id)):
+        click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
+
+    if outfile is not None and (outfile.name == "<stdout>"):
+        hide_progress = True
+
+    if not hide_progress:
+        # TODO: we could probably do this everytime, and avoid doing any lookups
+        # for tweets that don't exist anymore.
+        target_tweet = list(T.tweet_lookup([tweet_id]))[0]
+        if "data" in target_tweet:
+            lookup_total = target_tweet["data"][0]["public_metrics"]["retweet_count"]
+
+    with tqdm(disable=hide_progress, total=lookup_total) as progress:
+        for result in T.retweeted_by(tweet_id, max_results=max_results):
+            _write(result, outfile)
+            count += len(result.get("data", []))
+            progress.update(len(result.get("data", [])))
+            if limit != 0 and count >= limit:
+                progress.desc = f"Set --limit of {limit} reached"
+                break
+
+
+@twarc2.command("liked_tweets")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of liked tweets to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of liked tweets per page of results. Default and maximum is 100.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.argument("user_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def liked_tweets(T, user_id, outfile, limit, max_results, hide_progress):
+    """
+    Get the tweets liked by a specific user_id.
+
+    Note that the progress bar is approximate.
+
+    """
+    count = 0
+    lookup_total = 0
+
+    if not re.match("^\d+$", str(user_id)):
+        click.echo(click.style("Please enter a user ID", fg="red"), err=True)
+
+    if outfile is not None and (outfile.name == "<stdout>"):
+        hide_progress = True
+
+    # NB: there doesn't appear to be anyway to get the total count of likes
+    # a user has made, so the progress bar isn't very useful in this case...
+
+    with tqdm(disable=hide_progress) as progress:
+        for result in T.liked_tweets(user_id, max_results=max_results):
+            _write(result, outfile)
+            count += len(result.get("data", []))
+            progress.update(len(result.get("data", [])))
+            if limit != 0 and count >= limit:
+                progress.desc = f"Set --limit of {limit} reached"
+                break
+
+
 @twarc2.command("sample")
 @command_line_expansions_shortcuts
 @command_line_expansions_options
