@@ -1059,7 +1059,13 @@ class Twarc2:
         if expansions:
             params["expansions"] = "pinned_tweet_id"
 
-        return self.get_paginated(url, params=params)
+        for page in self.get_paginated(url, params=params):
+            if "data" in page:
+                yield page
+            else:
+                log.info(
+                    f"Retrieved an empty page of results for liking_users of {tweet_id}"
+                )
 
     def liked_tweets(
         self,
@@ -1090,7 +1096,13 @@ class Twarc2:
             pagination_token=None,
         )
 
-        return self.get_paginated(url, params=params)
+        for page in self.get_paginated(url, params=params):
+            if "data" in page:
+                yield page
+            else:
+                log.info(
+                    f"Retrieved an empty page of results for liked_tweets of {user_id}"
+                )
 
     def retweeted_by(
         self,
@@ -1117,7 +1129,13 @@ class Twarc2:
         if expansions:
             params["expansions"] = "pinned_tweet_id"
 
-        return self.get_paginated(url, params=params)
+        for page in self.get_paginated(url, params=params):
+            if "data" in page:
+                yield page
+            else:
+                log.info(
+                    f"Retrieved an empty page of results for retweeted_by of {tweet_id}"
+                )
 
     @catch_request_exceptions
     @rate_limit
