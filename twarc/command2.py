@@ -876,7 +876,7 @@ def following(T, user, outfile, limit, max_results, hide_progress):
                 break
 
 
-@twarc2.command("liking_users")
+@twarc2.command("liking-users")
 @click.option(
     "--limit",
     default=0,
@@ -927,7 +927,7 @@ def liking_users(T, tweet_id, outfile, limit, max_results, hide_progress):
                 break
 
 
-@twarc2.command("retweeted_by")
+@twarc2.command("retweeted-by")
 @click.option(
     "--limit",
     default=0,
@@ -978,7 +978,7 @@ def retweeted_by(T, tweet_id, outfile, limit, max_results, hide_progress):
                 break
 
 
-@twarc2.command("liked_tweets")
+@twarc2.command("liked-tweets")
 @click.option(
     "--limit",
     default=0,
