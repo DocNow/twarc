@@ -227,6 +227,32 @@ conversation:
 
     twarc2 conversation 266031293945503744 > conversation.jsonl
 
+## Likes
+
+Twarc supports the two approaches that the Twitter API exposes for collecting likes via the `liked-tweets` and `liking-users` commands. 
+
+The `liked-tweets` command returns the tweets that have been liked by a specific account. The account is specified by the user ID of that account, in the following example is the account of Twitter's founder:
+
+    twarc2 liked-tweets 12 jacks-likes.jsonl
+
+In this case the output file contains all of the likes of publicly accessible tweets. Note that the order of likes is not guaranteed by the API, but is probably reverse chronological, or most recent likes by that account first. The underlying tweet objects contain no information about when the tweet was liked.
+
+The `liking-users` command returns the user profiles of the accounts that have liked a specific tweet (specified by the ID of the tweet):
+
+    twarc2 liking-users 1460417326130421765 liking-users.jsonl
+
+In this example the output file contains all of the user profiles of the publicly accessible accounts that have liked that specific tweet. Note that the order of profiles is not guaranteed by the API, but is probably reverse chronological, or the profile of the most recent like for that account first. The underlying profile objects contain no information about when the tweet was liked.
+
+Note that likes of tweets that are not publicly accessible, or likes by accounts that are protected will not be retrieved by either of these methods. Therefore, the metrics available on a tweet object (under the `public_metrics.like_count` field) will likely be higher than the number of likes you can retrieve via the Twitter API using these endpoints.
+
+## Retweets
+
+You can retrieve the user profiles of publicly accessible accounts that have retweeted a specific tweet, using the `retweeted_by` command and the ID of the tweet as an identifier. For example:
+
+    twarc2 retweeted-by 1460417326130421765 retweeting-users.jsonl
+
+Unfortunately this only returns the user profiles (presumably in reverse chronological order) of the retweeters of that tweet - this means that important information, like when the tweet was retweeted is not present in the returned object. 
+
 ## Dehydrate
 
 The `dehydrate` command generates an id list from a file of tweets:

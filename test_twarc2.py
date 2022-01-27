@@ -505,6 +505,54 @@ def test_ensure_user_id():
     assert T._ensure_user_id(1033441111677788160) == "1033441111677788160"
 
 
+def test_liking_users():
+
+    # This is one of @jack's tweets about the Twitter API
+    likes = T.liking_users(1460417326130421765)
+
+    like_count = 0
+
+    for page in likes:
+        assert "data" in page
+        # These should be user objects.
+        assert "description" in page["data"][0]
+        like_count += len(page["data"])
+        if like_count > 300:
+            break
+
+
+def test_retweeted_by():
+
+    # This is one of @jack's tweets about the Twitter API
+    retweet_users = T.retweeted_by(1460417326130421765)
+
+    retweet_count = 0
+
+    for page in retweet_users:
+        assert "data" in page
+        # These should be user objects.
+        assert "description" in page["data"][0]
+        retweet_count += len(page["data"])
+        if retweet_count > 150:
+            break
+
+
+def test_liked_tweets():
+
+    # What has @jack liked?
+    liked_tweets = T.liked_tweets(12)
+
+    like_count = 0
+
+    for page in liked_tweets:
+        assert "data" in page
+        # These should be tweet objects.
+        assert "text" in page["data"][0]
+        like_count += len(page["data"])
+        if like_count > 300:
+            break
+
+
 def test_twarc_metadata():
 
     # With metadata (default)
