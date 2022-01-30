@@ -24,7 +24,7 @@ from twarc.expansions import (
     ensure_flattened,
 )
 from twarc.decorators2 import *
-from twarc.version import version
+from twarc.version import version, user_agent
 
 
 log = logging.getLogger("twarc")
@@ -1270,6 +1270,9 @@ class Twarc2:
                 resource_owner_key=self.access_token,
                 resource_owner_secret=self.access_token_secret,
             )
+
+        if self.client:
+            self.client.headers.update({"User-Agent": user_agent(f"v2")})
 
     @requires_app_auth
     def compliance_job_list(self, job_type, status):
