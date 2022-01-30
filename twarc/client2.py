@@ -1272,7 +1272,7 @@ class Twarc2:
             )
 
         if self.client:
-            self.client.headers.update({"User-Agent": user_agent(f"v2")})
+            self.client.headers.update({"User-Agent": user_agent})
 
     @requires_app_auth
     def compliance_job_list(self, job_type, status):

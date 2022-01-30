@@ -941,7 +941,7 @@ class Twarc(object):
             self.client = oauth
 
         if self.client:
-            self.client.headers.update({"User-Agent": user_agent("v1.1")})
+            self.client.headers.update({"User-Agent": user_agent})
 
     def get_keys(self):
         """
