@@ -1,5 +1,4 @@
 import os
-import json
 import pytz
 import twarc
 import dotenv
@@ -8,7 +7,9 @@ import logging
 import pathlib
 import datetime
 import threading
+
 from unittest import TestCase
+from twarc.version import version, user_agent
 
 dotenv.load_dotenv()
 consumer_key = os.environ.get("CONSUMER_KEY")
@@ -33,7 +34,10 @@ T = twarc.Twarc2(
 def test_version():
     import setup
 
-    assert setup.version == twarc.version
+    assert setup.version == version
+
+    assert user_agent
+    assert f"twarc/{version}" in user_agent
 
 
 def test_auth_types_interaction():
