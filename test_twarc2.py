@@ -33,10 +33,11 @@ T = twarc.Twarc2(
 
 def test_version():
     import setup
+
     assert setup.version == version
 
     assert user_agent
-    assert f'twarc/{version}' in user_agent
+    assert f"twarc/{version}" in user_agent
 
 
 def test_auth_types_interaction():
