@@ -29,7 +29,7 @@ if __name__ == "__main__":
             "pytest-black",
             "python-dotenv",
             "pytz",
-            "tomli<2.0.0,>=0.2.6",
+            "tomli",
         ],
         entry_points={
             "console_scripts": [
