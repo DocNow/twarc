@@ -108,7 +108,7 @@ Twarc is a command line based application - to use twarc you type a command spec
 
 Let's open a terminal and get started - just like when installing twarc, you will want to use the `cmd` application on windows and the `Terminal` application on Mac.
 
-The first command we want to run is to check if everything in twarc is installed and working correctly. We'll use twarc's builtin help command for this:
+The first command we want to run is to check if everything in twarc is installed and working correctly. We'll use twarc's builtin `help` for this. Running the following command should show you a brief overview of the functionality that the twarc2 command provides and some of the options available:
 
 ```
 twarc2 --help
@@ -120,9 +120,7 @@ Twarc is structured like many other command line applications: there is a single
 
 Note also that often when reading commands out loud, the space in between words is not mentioned explicitly: the command above might be read as "twarc-two dash dash help".
 
-TODO: add a very small list of windows and mac useful commands for reference, then link to software carpentry shell materials for more info.
-
-TODO: add a note on what happened to twarc1
+Though we won't cover the command line outside of using Twarc in this tutorial, your operating systems command line functionality is extensive and can help you automate a lot of otherwise tedious tasks. If you're interested in learning more the [Software Carpentry lesson on the shell](https://swcarpentry.github.io/shell-novice/) is a good starting point.
 
 
 ### Configuring twarc with our bearer token
@@ -140,7 +138,9 @@ On running this command twarc will prompt us to paste our bearer token, as shown
 
 ## What Can We Do With the Twitter API?
 
-Start by outlining what a tweet is? Identify specific affordances.
+To start working with the Twitter API it's best to refresh our memory of what a tweet is. Most of the functionality available in the Twitter API focuses on finding and retrieving tweets, or the users who post them.
+
+![Annotated screenshot of a tweet showing affordances]()
 
 Tweet vs user focused
 
@@ -151,24 +151,61 @@ Tweet vs user focused
 - Different data types (primarily user focused/tweet focused endpoints)
 - Different entity types on the Twitter platforms (URLs, hashtags, mentions, conversations etc)
 
-Endpoints:
+Endpoints and a few examples:
 
 - search
 - timelines
 - followers/following
+- streaming
 
-Not covered in this tutorial: the streaming API's, probably want to mention them though.
+The rest of this tutorial is going to focus on using the Twitter search API to retrieve tweets containing content relevant to the research question. We've chosen to focus on this because:
 
+1. With the rich functionality available in the search API the data collection for many projects can be condensed down to a few carefully chosen searches.
+2. With the academic access track it's possible to search the entire Twitter archive, making search uniquely powerful among the endpoints Twitter supports. 
 
 ## Introduction to Twitter Search and Counts
+
+To tackle the research question we're interesting in we're going to use the search endpoint to retrieve tweets containing 
+
+Twitter search is powerful and provides many rich options. However it also functions a little differently to most other search engines, because Twitter search does not focus on _ranking_ tweets by relevance (like a web search engine does), but retrieving all matching tweets in chronological order. 
 
 - Twitter search is boolean search!
 - Overview of some useful operators and examples
 - count first, retrieve tweets later
 - End by actually collecting some data?
 
+(Probably worth mentioning that most of this can be tried on the web interface)
+
+### Search Operators
+
+Link to the search docs
+
+Mention key operators:
+
+	words
+	hashtags
+	from:username
+	mentions
+	url
+	retweets_of:
+
+### Recommended Starting Workflow
+
+Before actually retrieving tweets
+There are two key things 
+
 twarc2 search echidna echidna.json
 twarc2 search platypus platypus.json
+
+
+Start with echidna/platypus, do counts.
+Amend to focus only on the original tweets (exclude retweets), and also to exclude tweets mentioning both terms.
+Then perform the final search once we're happy with the result.
+
+To summarise this iterative workflow:
+
+1. Start in either 
+
 
 
 ## Understanding and Transforming Twitter JSON data
@@ -211,7 +248,7 @@ twarc2 csv --output-columns id,created_at,author_id,text,referenced_tweets.retwe
 ```
 
 
-## Which Monotreme is the Coolest?
+## Answering the Research Question: Which Monotreme is the Coolest?
 
 - Needs a better title
 - Actually come up with an answer/insight/direction for future work using the collected data to address the question
