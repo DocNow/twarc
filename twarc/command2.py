@@ -1053,7 +1053,8 @@ def sample(T, outfile, limit, **kwargs):
         if limit != 0 and count >= limit:
             event.set()
         _write(result, outfile)
-        if result:
+
+        if result and "data" in result:
             log.info("archived %s", result["data"]["id"])
 
 
@@ -1910,7 +1911,8 @@ def stream(T, outfile, limit, **kwargs):
             log.info(f"reached limit {limit}")
             event.set()
         _write(result, outfile)
-        if "data" in result:
+
+        if result and "data" in result:
             log.info("archived %s", result["data"]["id"])
 
 
