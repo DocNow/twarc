@@ -9,7 +9,8 @@ By the end of this tutorial, you will have:
 3. Constructed two Twitter search queries to address a specific research question
 4. Collected data for those two queries
 5. Processed the collected data into formats suitable for other analysis
-6. Performed a simple quantitative comparison of the two collections
+6. Performed a simple quantitative comparison of the two collections using Python
+7. Prepared a dataset of tweet identifiers that can be shared with other researchers
 
 
 ## Motivating Example
@@ -216,6 +217,8 @@ Now that we've collected some data, it's time to take a look at it. Let's start 
 
 You'll notice immediately that there is a *lot* of data in that file: tweets are rich objects, and we mentioned that twarc by default captures as much information as Twitter makes available. Further, the Twitter API provides data in a format that makes it convenient for machines to work with, but not so much for humans.
 
+## Making a CSV file from our collected tweets
+
 We don't recommend trying to manually parse this raw data unless you have specific needs that aren't covered by existing tools. So we're going to use the `twarc-csv` package that we installed earlier to do the heavy lifting of transforming the collected JSON into a more friendly comma-separated value ([CSV](https://en.wikipedia.org/wiki/Comma-separated_values)) file. CSV is a simple plaintext format, but unlike JSON format is easy to import or open with a spreadsheet. 
 
 The `twarc-csv` package lets us use a `csv` command to transform the files from twarc:
@@ -229,30 +232,57 @@ If we look at these files in our text editor again, we'll see a nice structure o
 
 ![Screenshot of the plaintext CSV file in notepad]()
 
-If we open these files directly in Excel though, you're going to notice one or more of the following problems:
-
-1. The ID columns are likely to be broken.
-2. Emoji may not appear correctly.
-3. Tweets may be broken up on newlines.
-4. Excel can only support 1,048,576 rows - it's very easy to collect tweet datasets bigger than this.
-
-![Screenshot of the broken CSV file opened directly in excel]()
-
-- End with a transformation or exploratory analysis that shows something worth looking into further.
-
-If you want to perform more detailed analysis in Python or R, you will likely want to consider creating the CSV with only the columns of interest. This will reduce the time and amount of RAM you need to load your dataset. For example, the following commands produce CSV files with a small number of fields: 
+Since we're going to do more analysis with the Pandas library to answer our question, we will want to create the CSV with only the columns of interest. This will reduce the time and amount of RAM you need to load your dataset. For example, the following commands produce CSV files with a small number of fields: 
 
 ```
 twarc2 csv --output-columns id,created_at,author_id,text,referenced_tweets.retweeted.id,public_metrics.like_count echidna.json echidna_minimal.csv
 twarc2 csv --output-columns id,created_at,author_id,text,referenced_tweets.retweeted.id,public_metrics.like_count platypus.json platypus_minimal.csv
 ```
 
+### The problem with Excel
 
-## Answering the Research Question: Which Monotreme is the Coolest?
+It's tempting to try to open these CSV files directly in Excel, but if you do you're probably going to notice one or more of the following problems, as illustrated below:
 
-- Needs a better title
-- Actually come up with an answer/insight/direction for future work using the collected data to address the question
+1. The ID columns are likely to be broken.
+2. Emoji and languages that don't use latin characters may not appear correctly.
+3. Tweets may be broken up on newlines.
+4. Excel can only support 1,048,576 rows - it's very easy to collect tweet datasets bigger than this.
 
+![Screenshot of the broken CSV file opened directly in excel]()
+
+If you save a file from Excel with any of those problems that file is no longer useful for most purposes (this is a common and longstanding problem with using spreadsheet software, that affects many fields. For example in genomics: https://www.nature.com/articles/d41586-021-02211-4). While it is possible to make Excel do the right thing with your data, it takes more work, and a single mistake can lead to loss of important data. Therefore our recommendation is, if possible, to avoid the use of spreadsheets for analysing Twitter data.
+
+### Working with Pandas
+
+To avoid the issues with Excel we're going to use the Python library [Pandas](https://pandas.pydata.org/). This is used to load and manipulate data like we have in our CSV file. Note that for this section we're going to run a very simple computation, the references will have links to more extensive resources for learning more.
+
+TODO: Decide whether to run as a script, or interactively.
+
+```python
+import pandas
+
+echidna = pandas.read_csv("echidna_minimal.csv")
+platypus = pandas.read_csv("platypus_minimal.csv")
+
+echidna_likes = echidna["public_metrics.like_count"].sum()
+platypus_likes = platypus["public_metrics.like_count"].sum()
+
+print(f"Total likes on echidna tweets: {echidna_likes}. Total likes on platypus tweets: {platypus_likes}.")
+```
+
+Run this script through Python to see which of the monotremes is the coolest:
+
+`python process_monotremes.py`
+
+### Answering the research question: which monotreme is the coolest?
+
+At the time of creating this tutorial, the above script run with the just collected data leads to the following result:
+
+`Total likes on echidna tweets: 1787652. Total likes on platypus tweets: 3462715.`
+
+On that basis, we can conclude that at the time of running this search the platypus is nearly twice as cool as measured by Twitter likes. 
+
+Of course this is a simplistic approach to answering this specific research question - we could have made many other choices. Even when using the choice of metrics and a simple quantitative approach: we could have looked at engagement counts like the number of retweets, or looked at the number of followers of the accounts tweeting about each animal (because a "cooler" account will have more followers). Much of the challenge in using Twitter for research is about asking both the right question, and also the right operationalisation of your question.
 
 ## Prepare a Dataset for Sharing / Using a Shared Dataset
 
