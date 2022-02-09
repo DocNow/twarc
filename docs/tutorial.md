@@ -1,7 +1,5 @@
 # Twarc Tutorial
 
-TODO: Sentence case for all of the titles.
-
 Twarc is a command line tool for collecting Twitter data via Twitter's web Application Programmer Interface (API). This tutorial is aimed at researchers who are new to collecting social media data, and who might be unfamiliar with command line interfaces.
 
 By the end of this tutorial, you will have:
@@ -37,7 +35,7 @@ TODO: Is this the right section? Maybe it should go in with the introduction to 
 
 ### What can you do with the Twitter API?
 
-To start working with the Twitter API it's best to refresh our memory of what a tweet is. Most of the functionality available in the Twitter API focuses on finding and retrieving tweets, or the users who post them.
+To start working with the Twitter API it's best to refresh our memory of what a tweet is. Most of the functionality available in the Twitter API focuses on finding and retrieving tweets, the users who post them, or interactions by users such as 'liking' a tweet or 'following' another account.
 
 ![Annotated screenshot of a tweet showing affordances]()
 
@@ -176,7 +174,7 @@ On running this command twarc will prompt us to paste our bearer token, as shown
 ![Redacted output of what twarc configure looks like]()
 
 
-## Introduction to Twitter Search and Counts
+## Introduction to Twitter search and counts
 
 To tackle the research question we're interesting in we're going to use the search endpoint to retrieve two sets of tweets: those using the word echidna, and those using the word platypus.
 
@@ -203,41 +201,56 @@ And we should see output like below. Note that the `--text` and `--granularity` 
 
 <table of results>
 
-Note that this is only the count for the last seven days - this is the level of search functionality available for all developers via the standard track of the Twitter API. If you have access to the Twitter Academic track (TODO: link), you can switch to searching the full Twitter archive from the `counts` and `search` commands by adding the `--archive` flag.
+Note that this is only the count for the last seven days - this is the level of search functionality available for all developers via the standard track of the Twitter API. If you have access to the [Twitter Academic track](https://developer.twitter.com/en/use-cases/do-research/academic-research), you can switch to searching the full Twitter archive from the `counts` and `search` commands by adding the `--archive` flag.
 
-Twitter search is powerful and provides many rich options. However it also functions a little differently to most other search engines, because Twitter search does not focus on _ranking_ tweets by relevance (like a web search engine does), but retrieving all matching tweets in chronological order. 
+Twitter search is powerful and provides many rich options. However it also functions a little differently to most other search engines, because Twitter search does not focus on _ranking_ tweets by relevance (like a web search engine does). Instead Twitter search via the API focuses on retrieving all matching tweets in chronological order. In other words, Twitter search uses the [Boolean model of searching](https://nlp.stanford.edu/IR-book/html/htmledition/boolean-retrieval-1.html), and returns the documents that match exactly what you provide and nothing else. 
 
-- Twitter search is boolean search!
-- Overview of some useful operators and examples
+Let's work through this example a little further, first we want to expand to capture more variant's of the word echidna - note that Twitter search via the API matches on the whole word, so `echidna` and `echidnas` are different. You can also see that we've added some double quotes around our - without these quotes the individual pieces of our query might be interpreted as additional arguments to our search command:
 
-(Probably worth mentioning that most of this can be tried on the web interface)
+`twarc2 counts "echidna echidna's echidnas" --granularity day --text`
 
-Progression of commands/ :
+<table of results>
 
+Suddenly we're retrieving very few results! By default, if you don't specify an operator, the Twitter API assumes you mean AND, or that all of the words should be present - we will need to explicitly say that we want any of these words using the OR operator:
 
-twarc2 counts "echidna echidna's echidnas" --granularity day --text # Problem solving: capture plurals, use quotes for complicated queries
-twarc2 counts "echidna OR echidna's OR echidnas" --granularity day --text # -operator excludes tweets that match this, so is:retweet is only retweets, -is:retweet excludes retweets. Default search combination is AND - no results unless we tell it otherwise
-twarc2 counts "echidna OR echidna's OR echidnas -is:retweet" --granularity day --text   # Need brackets otherwise the and is applied first, 
-twarc2 counts "(echidna OR echidna's OR echidnas) -is:retweet"
+`twarc2 counts "echidna OR echidna's OR echidnas" --granularity day --text`
 
-Then for platypus we could do the same thing:
-twarc2 counts "(platypus OR platpus's OR platypi OR platypusses) -is:retweet"
+<table of results>
 
-Or we could go even further, and make sure we exclude tweets that mention the other animal - we won't use this for this example but it might be important for some use cases.
-Lesson: you can build long and complicated queries for Twitter search.
-twarc2 counts "(platypus OR platpus's OR platypi OR platypusses) -(echidna OR echidna's OR echidnas) -is:retweet"
+We can also apply operators based on other content or properties of tweets (see more [search operators](https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query#list) in the Twitter API documentation). Because we're deciding to focus on the number of likes on tweets as our measure of coolness, we want to exclude retweets. If we don't exclude retweets, our like measure might be heavily influenced by one highly retweeted tweet.
 
-Actually perform the search!
-First run without the 
-twarc2 search "(echidna OR echidna's OR echidnas) -is:retweet" echidna.json
+We can do this using the `-` (minus) operator, which allows us to exclude tweets matching a criteria, in conjunction with the `is:retweet` operator, which filters on whether the tweet is a retweet or not. If we applied just the `is:retweet` operator we'd only see the retweets, the opposite of what we want.
 
+`twarc2 counts "echidna OR echidna's OR echidnas -is:retweet" --granularity day --text`
 
-### Recap
+<table of results>
 
-- search operators we used and brief mention that there are other options like hashtags aand urls, see twitter docs
-- the workflow/iterative steps we used
+There's one tiny gotcha from the Twitter API here, which is important to know about. AND operators are applied before OR operators, even if the AND is not specified by the user. The query we wrote above actually means something like below. We're only removing the retweets containing the word "echidnas", not all retweets:
 
-## Understanding and Transforming Twitter JSON data
+`echidna OR echidna's OR (echidnas AND -is:retweet)`
+
+We can make our intent explicit by adding parantheses to group terms. This is a good idea in general to make your meaning clear, even if you know all of the operator rules.
+
+`twarc2 counts "(echidna OR echidna's OR echidnas) -is:retweet" --granularity day --text`
+
+Now for the purposes of this tutorial we're going to stop exploring any further, but we could continue to refine and improve this query to match our research question. Twitter let's you build very long queries (up to 512 characters on the standard track and 1024 for the academic track) so you have plenty of scope to express yourself.
+
+If we apply the same kind of process to the platypus case, we might end up with something like the following. In this case it was necessary to use the [Twitter search web interface](https://twitter.com/explore) to find some of the variations in the word platypus:
+
+`twarc2 counts "(platypus OR platpus's OR platypi OR platypusses OR platypuses) -is:retweet" --granularity day --text`
+
+Having decided on the actual queries to run and examined the counts, now it's time to actually collect the tweets! We can take the queries we ran earlier, replace the `counts` command with the `search` and remove the `counts` specific arguments to get:
+
+`twarc2 search "(echidna OR echidna's OR echidnas) -is:retweet" echidna.json`
+`twarc2 search "(platypus OR platpus's OR platypi OR platypusses OR platypuses) -is:retweet" platypus.json`
+
+Running these two commands will save the tweets matching each of those searches to two files on our disk, which we will use for the next sessions. While saving the
+
+![Screenshot showing the progress of the tweets being downloaded]()
+
+TIP: if you're not sure where the files above have been saved, you can run the command `cd` on Windows, or `pwd` on Mac to have your shell print out the folder in the filesystem where twarc has been working.
+
+## Understanding and transforming twitter JSON data
 
 Now that we've collected some data, it's time to take a look at it. Let's start by viewing the collected data in it's plainest form: as a text file. Although we named the file with an extension of `.json`, this is just a convention: the actual file content is a plain text in the [JSON](https://en.wikipedia.org/wiki/JSON) format. Let's open this file with our inbuilt text editor (notepad on Windows, ... on Mac).
 
@@ -312,7 +325,7 @@ On that basis, we can conclude that at the time of running this search the platy
 
 Of course this is a simplistic approach to answering this specific research question - we could have made many other choices. Even using a simple quantitative approach looking at metrics: we could have chosen to look at other engagement counts like the number of retweets, or looked at the number of followers of the accounts tweeting about each animal (because a "cooler" account will have more followers). Much of the challenge in using Twitter for research is both about asking the right research question and also the choosing the right approach to the data to address that research question.
 
-## Prepare a Dataset for Sharing / Using a Shared Dataset
+## Prepare a dataset for sharing / using a shared dataset
 
 Having performed this analysis and come to a conclusion, it is good practice to share the underlying data so other people can reproduce these results (with some caveats). Noting that we want to preserve Twitter user's agency over the availability of their content, and Twitter's Developer Agreement, we can do this by creating a dataset of tweet IDs. Instead of sharing the content of the tweets, we can share the unique ID for that tweet, which allows others to `hydrate` the tweets by retrieving them again from the Twitter API.
 
@@ -335,6 +348,6 @@ twarc2 hydrate echidna_ids.txt echidna_hydrated.json
 Note that the hydrated files will include fewer tweets: tweets that have been deleted, or tweets by accounts that have been deleted, suspended, or protected, will not be included in the file. Note also that hydrating a dataset also means that engagement metrics like retweets and likes will be up to date for tweets that are still available.
 
 
-## Next Steps and Suggested Resources
+## Next steps and suggested resources
 
 TODO: Link to suggested "next tutorials" that lead on from this one, without tightly coupling them.
