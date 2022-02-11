@@ -347,6 +347,6 @@ twarc2 hydrate echidna_ids.txt echidna_hydrated.json
 Note that the hydrated files will include fewer tweets: tweets that have been deleted, or tweets by accounts that have been deleted, suspended, or protected, will not be included in the file. Note also that hydrating a dataset also means that engagement metrics like retweets and likes will be up to date for tweets that are still available.
 
 
-## Next steps and suggested resources
+## Suggested resources
 
-TODO: Link to suggested "next tutorials" that lead on from this one, without tightly coupling them.
+You can find some additional links and resources in the [resources section](/resources) of the twarc documentation.
