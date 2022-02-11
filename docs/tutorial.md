@@ -19,9 +19,8 @@ This tutorial is built around collecting data from Twitter to address the follow
 
 	Which monotreme is currently the coolest - the echidna or the platypus?
 
-We'll answer this question with a simple quantitative approach to analysing the collected data - we won't attempt to address all of the different ways that this question could be answered. At the end of this tutorial there are some additional links and resources that provide insight into different analytical approaches that can be taken.
+We'll answer this question with a simple quantitative approach to analysing the collected data, by counting the volume of likes that tweets mentioning each species of animal accrue. For the purposes of this tutorial, the species that gets the most likes on tweets is going to be considered the "coolest". Of course this is a very simplistic quantitative approach so that this tutorial can get you started on collecting and analysing data. To seriously study the relative coolness of monotremes there are a wide variety of more appropriate (but also more involved) methods.
 
-TODO: make this more concrete here: include how the "coolest" is being operationalised in this context via quantitative summation of like counts.
 
 ## Introduction to twarc and the Twitter API
 
