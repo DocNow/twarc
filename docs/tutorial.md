@@ -23,15 +23,11 @@ We'll answer this question with a simple quantitative approach to analysing the 
 
 TODO: make this more concrete here: include how the "coolest" is being operationalised in this context via quantitative summation of like counts.
 
-## Before we begin
-
-Before we dive into the details, it's worth mentioning some broader issues you will need to keep in mind when working with social media data. This is by no means an exhaustive list of issues and is intended as a starting point for further enquiry.
+## Introduction to twarc and the Twitter API
 
 ### What is an API?
 
 Brief explanation of an API, especially a web API. Also need to include a link to a primer somewhere else.
-
-TODO: Is this the right section? Maybe it should go in with the introduction to twarc so the explanation is in context?
 
 ### What can you do with the Twitter API?
 
@@ -70,6 +66,17 @@ The rest of this tutorial is going to focus on using the Twitter search API to r
 
 1. With the rich functionality available in the search API the data collection for many projects can be condensed down to a few carefully chosen searches.
 2. With the academic access track it's possible to search the entire Twitter archive, making search uniquely powerful among the endpoints Twitter supports. 
+
+### Introduction to twarc
+
+Twarc is at it's core an application for interacting with the Twitter API, reading results from the different functionality the API offers, and safely writing the collected data to your machine for further analysis. Twarc handles the mechanical details of interacting with the Twitter API like including information to authenticate yourself, making HTTP requests to the API, formatting data in the right way, and retrying when things on the internet fail. Your job is to work out 1.) Which endpoint you want to call on from the Twitter API 2.) Which data you want to retrieve from that endpoint.
+
+Twarc is a command line based application - to use twarc you type a command specifying a particular action, and the results of that command are shown as text on screen. If you haven't used a command line interface before, don't worry! Although there is a bit of a learning curve at the beginning, you will quickly get the hang of it - and because everything is a typed command, it is very easy to record and share _exactly_ how you collected data with other people. 
+
+
+## Considerations when using social media data for research
+
+Before we dive into the details, it's worth mentioning some broader issues you will need to keep in mind when working with social media data. This is by no means an exhaustive list of issues and is intended as a starting point for further enquiry.
 
 ### Ethical use of "public" communication
 
@@ -134,13 +141,6 @@ Once you have a terminal open we can run the following command to install the ne
 You should see output similar to the following:
 
 ![Screenshot showing the output of installing twarc and twarc-csv]()
-
-
-## Introduction to Twarc
-
-Twarc is at it's core an application for interacting with the Twitter API, reading results from the different functionality the API offers, and safely writing the collected data to your machine for further analysis. Twarc handles the mechanical details of interacting with the Twitter API like including information to authenticate yourself, making HTTP requests to the API, formatting data in the right way, and retrying when things on the internet fail. Your job is to work out 1.) Which endpoint you want to call on from the Twitter API 2.) Which data you want to retrieve from that endpoint.
-
-Twarc is a command line based application - to use twarc you type a command specifying a particular action, and the results of that command are shown as text on screen. If you haven't used a command line interface before, don't worry! Although there is a bit of a learning curve at the beginning, you will quickly get the hang of it - and because everything is a typed command, it is very easy to record and share _exactly_ how you collected data with other people. 
 
 ### Our first command/making sure everything is working
 
