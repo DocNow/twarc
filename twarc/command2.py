@@ -1174,6 +1174,39 @@ def users(T, infile, outfile, usernames, hide_progress, **kwargs):
                 progress.update_with_result(result, error_resource_type="user")
 
 
+@twarc2.command("user")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option("--username", is_flag=True, default=False)
+@click.pass_obj
+@cli_api_error
+def user(T, user, outfile, username, **kwargs):
+    """
+    Get data for a single user id or username.
+
+    By default, user expects a single numeric Twitter user_id, so the
+    following will return the user profile for Twitter's founder:
+
+        twarc2 user 12
+
+    If you have a username, provide the --username flag:
+
+        twarc2 user jack --username
+
+    """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    user_data = list(T.user_lookup([user], username, **kwargs))
+    _write(user_data, outfile)
+
+
 @twarc2.command("mentions")
 @command_line_search_options
 @command_line_expansions_shortcuts
