@@ -245,22 +245,31 @@ class Twarc2:
 
                     # can't return without 'data' if there are no results
                     if "data" in response:
-                        last_time_start = response["data"][-1]["start"]
+                        last_time_start = response["data"][0]["start"]
                         yield response
 
                     else:
                         log.info(f"Retrieved an empty page of results.")
 
                 # Check that we've actually reached the end, and restart if necessary.
+                # Note we need to exactly match the Twitter format, which is a little
+                # fiddly because Python doesn't let you specify milliseconds only for
+                # strftime.
                 if (
                     start_time is None
-                    or start_time.strftime("%Y-%m-%dT%H:%M:%SZ") == last_time_start
+                    or (start_time.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z")
+                    == last_time_start
                 ):
                     break
                 else:
                     # Note that we're passing the Twitter start_time straight
                     # back to it - this avoids parsing and reformatting the date.
                     params["end_time"] = last_time_start
+
+                    # Remove the next_token reference, we're restarting the search.
+                    if "next_token" in params:
+                        del params["next_token"]
+
                     log.info(
                         "Detected incomplete counts, restarting with "
                         f"{last_time_start} as the new end_time"
