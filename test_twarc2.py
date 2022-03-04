@@ -127,6 +127,10 @@ def test_counts_recent():
     assert 7 <= found_counts <= 8
 
 
+@pytest.mark.skipif(
+    os.environ.get("SKIP_ACADEMIC_PRODUCT_TRACK") != None,
+    reason="No Academic Research Product Track access",
+)
 def test_counts_empty_page():
 
     found_counts = 0
