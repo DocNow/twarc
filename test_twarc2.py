@@ -127,6 +127,26 @@ def test_counts_recent():
     assert 7 <= found_counts <= 8
 
 
+@pytest.mark.skipif(
+    os.environ.get("SKIP_ACADEMIC_PRODUCT_TRACK") != None,
+    reason="No Academic Research Product Track access",
+)
+def test_counts_empty_page():
+
+    found_counts = 0
+
+    for response_page in T.counts_all(
+        "beans",
+        start_time=datetime.datetime(2006, 3, 21),
+        end_time=datetime.datetime(2006, 6, 1),
+        granularity="day",
+    ):
+        counts = response_page["data"]
+        found_counts += len(counts)
+
+    assert found_counts == 72
+
+
 def test_search_times():
     found = False
     now = datetime.datetime.now(tz=pytz.timezone("Australia/Melbourne"))
