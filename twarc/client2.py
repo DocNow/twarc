@@ -215,6 +215,9 @@ class Twarc2:
         if granularity:
             # Do not specify anything else when calling counts endpoint
             params["granularity"] = granularity
+            # Mark that we're using counts, to workaround a limitation of the
+            # Twitter API with long running counts.
+            using_counts = True
         else:
             params = self._prepare_params(
                 **params,
@@ -225,22 +228,60 @@ class Twarc2:
                 poll_fields=poll_fields,
                 place_fields=place_fields,
             )
+            using_counts = False
 
-        for response in self.get_paginated(url, params=params):
+        # Workaround for observed odd behaviour in the Twitter counts
+        # functionality.
+        if using_counts:
+            while True:
+                for response in self.get_paginated(url, params=params):
 
-            # Note that we're ensuring the appropriate amount of sleep is
-            # taken before yielding every item. This ensures that we won't
-            # exceed the rate limit even in cases where a response generator
-            # is not completely consumed. This might be more conservative
-            # than necessary.
-            time.sleep(sleep_between)
+                    # Note that we're ensuring the appropriate amount of sleep is
+                    # taken before yielding every item. This ensures that we won't
+                    # exceed the rate limit even in cases where a response generator
+                    # is not completely consumed. This might be more conservative
+                    # than necessary.
+                    time.sleep(sleep_between)
 
-            # can't return without 'data' if there are no results
-            if "data" in response:
-                yield response
+                    # can't return without 'data' if there are no results
+                    if "data" in response:
+                        last_time_start = response["data"][-1]["start"]
+                        yield response
 
-            else:
-                log.info(f"Retrieved an empty page of results.")
+                    else:
+                        log.info(f"Retrieved an empty page of results.")
+
+                # Check that we've actually reached the end, and restart if necessary.
+                if (
+                    start_time is None
+                    or start_time.strftime("%Y-%m-%dT%H:%M:%SZ") == last_time_start
+                ):
+                    break
+                else:
+                    # Note that we're passing the Twitter start_time straight
+                    # back to it - this avoids parsing and reformatting the date.
+                    params["end_time"] = last_time_start
+                    log.info(
+                        "Detected incomplete counts, restarting with "
+                        f"{last_time_start} as the new end_time"
+                    )
+
+        else:
+            for response in self.get_paginated(url, params=params):
+
+                # Note that we're ensuring the appropriate amount of sleep is
+                # taken before yielding every item. This ensures that we won't
+                # exceed the rate limit even in cases where a response generator
+                # is not completely consumed. This might be more conservative
+                # than necessary.
+                time.sleep(sleep_between)
+
+                # can't return without 'data' if there are no results
+                if "data" in response:
+                    yield response
+
+                else:
+                    log.info(f"Retrieved an empty page of results.")
 
         log.info(f"No more results for search {query}.")
 
@@ -1200,6 +1241,7 @@ class Twarc2:
             token_param = "next_token"
 
         while "meta" in page and "next_token" in page["meta"]:
+
             if "params" in kwargs:
                 kwargs["params"][token_param] = page["meta"]["next_token"]
             else:
