@@ -294,6 +294,36 @@ class Twarc2:
 
         log.info(f"No more results for search {query}.")
 
+    def list_memberships(
+        self,
+        id,
+        expansions=None,
+        list_fields=None,
+        max_results=None,
+        pagination_token=None,
+        user=None
+        ):
+        user_id = self._ensure_user_id(id)
+
+        url = f"https://api.twitter.com/2/users/{user_id}/list_memberships"
+
+        params = self._prepare_params(
+        list_fields=list_fields,
+        max_results=max_results,
+        pagination_token=pagination_token,
+        user=user
+        )
+
+        if expansions:
+                params["expansions"] = "owner_id"
+
+        resp = self.get(url, params=params)
+        data = resp.json()
+
+        return data
+
+
+
     def search_recent(
         self,
         query,
@@ -1220,7 +1250,7 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-
+        
         resp = self.get(*args, **kwargs)
         page = resp.json()
 
