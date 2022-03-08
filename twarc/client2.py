@@ -1285,6 +1285,7 @@ class Twarc2:
 
         yield page
 
+        # Todo: Maybe this should be backwards.. check for `next_token`
         endings = [
             "mentions",
             "tweets",
@@ -1293,6 +1294,10 @@ class Twarc2:
             "liked_tweets",
             "liking_users",
             "retweeted_by",
+            "members",
+            "memberships",
+            "followed_lists",
+            "owned_lists",
         ]
 
         # The search endpoints only take a next_token, but the timeline
