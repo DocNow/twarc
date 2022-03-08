@@ -341,11 +341,9 @@ class Twarc2:
         if expansions:
             params["expansions"] = "owner_id"
 
-        count = 0
         for response in self.get_paginated(url, params=params):
             # can return without 'data' if there are no results
             if "data" in response:
-                count += len(response["data"])
                 yield response
             else:
                 log.info(
@@ -952,11 +950,9 @@ class Twarc2:
         if len(excludes) > 0:
             params["exclude"] = ",".join(excludes)
 
-        count = 0
         for response in self.get_paginated(url, params=params):
             # can return without 'data' if there are no results
             if "data" in response:
-                count += len(response["data"])
                 yield response
             else:
                 log.info(f"Retrieved an empty page of results for timeline {user_id}")
