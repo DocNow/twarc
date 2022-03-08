@@ -301,8 +301,21 @@ class Twarc2:
         list_fields=None,
         max_results=None,
         pagination_token=None,
-        user=None
+        user_field=None
         ):
+        """
+        Function allows to get all the membership list from an specific user ID
+
+        Calls [GET /2/users/:id/list_memberships](https://developer.twitter.com/en/docs/twitter-api/lists/list-members/introduction)
+
+        Args:
+            expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
+            list.fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100. 
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results. 
+            user.fields(	enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld): 
+                This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+        """
         user_id = self._ensure_user_id(id)
 
         url = f"https://api.twitter.com/2/users/{user_id}/list_memberships"
@@ -311,7 +324,7 @@ class Twarc2:
         list_fields=list_fields,
         max_results=max_results,
         pagination_token=pagination_token,
-        user=user
+        user_field=user_field
         )
 
         if expansions:
