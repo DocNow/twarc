@@ -331,14 +331,14 @@ class Twarc2:
             else:
                 log.info(f"Retrieved an empty page of results of lists for {url}")
 
-    def lists_followers(
+    def list_followers(
         self,
         list_id,
-        expansions,
-        max_results,
-        pagination_token,
-        tweet_fields,
-        user_fields,
+        expansions=None,
+        max_results=None,
+        pagination_token=None,
+        tweet_fields=None,
+        user_fields=None,
     ):
         """
         Returns a list of users who are followers of the specified List.
@@ -367,14 +367,14 @@ class Twarc2:
         url = f"https://api.twitter.com/2/lists/{list_id}/followers"
         return self.get_paginated(url, params=params)
 
-    def lists_members(
+    def list_members(
         self,
         list_id,
-        expansions,
-        max_results,
-        pagination_token,
-        tweet_fields,
-        user_fields,
+        expansions=None,
+        max_results=None,
+        pagination_token=None,
+        tweet_fields=None,
+        user_fields=None,
     ):
         """
         Returns a list of users who are members of the specified List.
@@ -513,7 +513,7 @@ class Twarc2:
         user_fields=None,
     ):
         """
-        Returns the Lists pinned by a specified user.
+        Returns the Lists pinned by the authenticating user. Does not work with a Bearer token.
 
         Calls [GET /2/users/:id/pinned_lists](https://developer.twitter.com/en/docs/twitter-api/lists/pinned-lists/api-reference/get-users-id-pinned_lists)
 
@@ -536,7 +536,7 @@ class Twarc2:
             url, expansions, list_fields, max_results, pagination_token, user_fields
         )
 
-    def list_lookup(self, list_id, expansions, list_fields, user_fields):
+    def list_lookup(self, list_id, expansions=None, list_fields=None, user_fields=None):
         """
         Returns the details of a specified List.
 
@@ -561,7 +561,7 @@ class Twarc2:
         if expansions:
             params["expansions"] = "owner_id"
         url = f"https://api.twitter.com/2/lists/{list_id}"
-        return self.get(url, params=params)
+        return self.get(url, params=params).json()
 
     def search_recent(
         self,
