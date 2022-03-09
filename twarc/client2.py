@@ -338,17 +338,38 @@ class Twarc2:
             user_fields=user_fields,
         )
 
-        if expansions:
-            params["expansions"] = "owner_id"
+    def pinned_lists(
+        self,
+        user,
+        expansions=None,
+        list_fields=None,
+        max_results=None,
+        pagination_token=None,
+        user_fields=None,
+    ):
+        """
+        Returns the Lists pinned by a specified user.
 
-        for response in self.get_paginated(url, params=params):
-            # can return without 'data' if there are no results
-            if "data" in response:
-                yield response
-            else:
-                log.info(
-                    f"Retrieved an empty page of results for list memberships of {user_id}"
-                )
+        Calls [GET /2/users/:id/pinned_lists](https://developer.twitter.com/en/docs/twitter-api/lists/pinned-lists/api-reference/get-users-id-pinned_lists)
+
+        Args:
+            user (int): ID of the user.
+            expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
+            list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
+            user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
+                This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
+        """
+        user_id = self._ensure_user_id(user)
+        url = f"https://api.twitter.com/2/users/{user_id}/pinned_lists"
+
+        return self._lists(
+            url, expansions, list_fields, max_results, pagination_token, user_fields
+        )
 
     def search_recent(
         self,
@@ -1298,6 +1319,7 @@ class Twarc2:
             "memberships",
             "followed_lists",
             "owned_lists",
+            "pinned_lists",
         ]
 
         # The search endpoints only take a next_token, but the timeline
