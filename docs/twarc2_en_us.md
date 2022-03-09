@@ -35,7 +35,7 @@ generate an access token and access token secret. With these four variables
 in hand you are ready to start using twarc.
 
 1. install [Python 3](http://python.org/download)
-2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc:
+2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc from a terminal (such as the Windows Command Prompt available in the "start" menu, or the [OSX Terminal application](https://support.apple.com/en-au/guide/terminal/apd5265185d-f365-44cb-8b09-71a064a42125/mac)):
 
 ```
 pip install --upgrade twarc
