@@ -618,6 +618,13 @@ def test_owned_lists():
     assert len(lists) >= 11
 
 
+def test_list_tweets():
+    response = next(T.list_tweets(715919216927322112))
+    assert "data" in response
+    tweets = twarc.expansions.flatten(response)
+    assert len(tweets) >= 90
+
+
 def test_twarc_metadata():
 
     # With metadata (default)

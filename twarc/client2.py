@@ -563,6 +563,42 @@ class Twarc2:
         url = f"https://api.twitter.com/2/lists/{list_id}"
         return self.get(url, params=params).json()
 
+    def list_tweets(
+        self,
+        list_id,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        max_results=None,
+        pagination_token=None,
+    ):
+        """
+        Returns Tweets from the specified List.
+
+        Calls [GET /2/lists/:id/tweets](https://developer.twitter.com/en/docs/twitter-api/lists/list-tweets/api-reference/get-lists-id-tweets)
+
+        Args:
+            list_id (int): ID of the list.
+            expansions enum (author_id): enable you to request additional data objects that relate to the originally returned List.
+            list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
+            user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
+                This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
+        """
+
+        params = self._prepare_params(
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            pagination_token=pagination_token,
+        )
+
+        url = f"https://api.twitter.com/2/lists/{list_id}/tweets"
+        return self.get_paginated(url, params=params)
+
     def search_recent(
         self,
         query,
