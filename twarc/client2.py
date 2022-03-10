@@ -307,18 +307,18 @@ class Twarc2:
         url,
         expansions=None,
         list_fields=None,
+        user_fields=None,
         max_results=None,
         pagination_token=None,
-        user_fields=None,
     ):
         """
         Paginates and returns lists
         """
         params = self._prepare_params(
             list_fields=list_fields,
+            user_fields=user_fields,
             max_results=max_results,
             pagination_token=pagination_token,
-            user_fields=user_fields,
         )
 
         if expansions:
@@ -335,10 +335,10 @@ class Twarc2:
         self,
         list_id,
         expansions=None,
-        max_results=None,
-        pagination_token=None,
         tweet_fields=None,
         user_fields=None,
+        max_results=None,
+        pagination_token=None,
     ):
         """
         Returns a list of users who are followers of the specified List.
@@ -371,10 +371,10 @@ class Twarc2:
         self,
         list_id,
         expansions=None,
-        max_results=None,
-        pagination_token=None,
         tweet_fields=None,
         user_fields=None,
+        max_results=None,
+        pagination_token=None,
     ):
         """
         Returns a list of users who are members of the specified List.
@@ -384,7 +384,8 @@ class Twarc2:
         Args:
             list_id (int): ID of the list.
             expansions enum (pinned_tweet_id): Expansions, include pinned tweets.
-            max_results (int): the maximum number of results to retrieve. Between 1 and 100. Default is 100.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
@@ -409,9 +410,9 @@ class Twarc2:
         user,
         expansions=None,
         list_fields=None,
+        user_fields=None,
         max_results=None,
         pagination_token=None,
-        user_fields=None,
     ):
         """
         Returns all Lists a specified user is a member of.
@@ -422,10 +423,10 @@ class Twarc2:
             user (int): ID of the user.
             expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
             list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
-            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
-            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
             user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
                 This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
@@ -434,7 +435,12 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/list_memberships"
 
         return self._lists(
-            url, expansions, list_fields, max_results, pagination_token, user_fields
+            url=url,
+            expansions=expansions,
+            list_fields=list_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
         )
 
     def followed_lists(
@@ -442,9 +448,9 @@ class Twarc2:
         user,
         expansions=None,
         list_fields=None,
+        user_fields=None,
         max_results=None,
         pagination_token=None,
-        user_fields=None,
     ):
         """
         Returns all Lists a specified user follows.
@@ -455,10 +461,10 @@ class Twarc2:
             user (int): ID of the user.
             expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
             list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
-            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
-            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
             user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
                 This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
@@ -467,7 +473,12 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/followed_lists"
 
         return self._lists(
-            url, expansions, list_fields, max_results, pagination_token, user_fields
+            url=url,
+            expansions=expansions,
+            list_fields=list_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
         )
 
     def owned_lists(
@@ -475,9 +486,9 @@ class Twarc2:
         user,
         expansions=None,
         list_fields=None,
+        user_fields=None,
         max_results=None,
         pagination_token=None,
-        user_fields=None,
     ):
         """
         Returns all Lists owned by the specified user.
@@ -488,10 +499,10 @@ class Twarc2:
             user (int): ID of the user.
             expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
             list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
-            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
-            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
             user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
                 This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
@@ -500,7 +511,12 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/owned_lists"
 
         return self._lists(
-            url, expansions, list_fields, max_results, pagination_token, user_fields
+            url=url,
+            expansions=expansions,
+            list_fields=list_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
         )
 
     def pinned_lists(
@@ -508,9 +524,9 @@ class Twarc2:
         user,
         expansions=None,
         list_fields=None,
+        user_fields=None,
         max_results=None,
         pagination_token=None,
-        user_fields=None,
     ):
         """
         Returns the Lists pinned by the authenticating user. Does not work with a Bearer token.
@@ -521,10 +537,10 @@ class Twarc2:
             user (int): ID of the user.
             expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
             list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
-            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
-            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
             user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
                 This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
 
         Returns:
             generator[dict]: A generator, dict for each page of results.
@@ -533,7 +549,12 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/pinned_lists"
 
         return self._lists(
-            url, expansions, list_fields, max_results, pagination_token, user_fields
+            url=url,
+            expansions=expansions,
+            list_fields=list_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
         )
 
     def list_lookup(self, list_id, expansions=None, list_fields=None, user_fields=None):
@@ -589,10 +610,10 @@ class Twarc2:
         """
 
         params = self._prepare_params(
-            max_results=max_results,
             expansions=expansions,
             tweet_fields=tweet_fields,
             user_fields=user_fields,
+            max_results=max_results,
             pagination_token=pagination_token,
         )
 
