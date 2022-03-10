@@ -35,6 +35,7 @@ from twarc.expansions import (
     MEDIA_FIELDS,
     POLL_FIELDS,
     PLACE_FIELDS,
+    LIST_FIELDS,
 )
 from click import command, option, Option, UsageError
 from click_config_file import configuration_option
@@ -1914,6 +1915,44 @@ def stream(T, outfile, limit, **kwargs):
 
         if result and "data" in result:
             log.info("archived %s", result["data"]["id"])
+
+
+@twarc2.group()
+@click.pass_obj
+def lists(T):
+    """
+    Lists API support.
+    """
+    pass
+
+
+@lists.command("lookup")
+@click.argument("list_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option("--pretty", is_flag=True, default=False, help="Pretty print the JSON")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.pass_obj
+@cli_api_error
+def lists_lookup(T, list_id, outfile, pretty, **kwargs):
+    """
+    Look up a list using its list id or URL.
+    """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
+    if "https" in list_id:
+        list_id = list_id.split("/")[-1]
+    if not re.match("^\d+$", list_id):
+        click.echo(click.style("Please enter a List URL or ID", fg="red"), err=True)
+    result = T.list_lookup(list_id, **kwargs)
+    _write(result, outfile, pretty=pretty)
 
 
 @twarc2.group()
