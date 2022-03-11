@@ -1942,7 +1942,7 @@ def lists(T):
 @cli_api_error
 def lists_lookup(T, list_id, outfile, pretty, **kwargs):
     """
-    Look up a list using its list id or URL.
+    Look up a single list using its list id or URL.
     """
 
     kwargs = _process_expansions_shortcuts(kwargs)
@@ -1953,6 +1953,42 @@ def lists_lookup(T, list_id, outfile, pretty, **kwargs):
         click.echo(click.style("Please enter a List URL or ID", fg="red"), err=True)
     result = T.list_lookup(list_id, **kwargs)
     _write(result, outfile, pretty=pretty)
+
+
+@lists.command("bulk-lookup")
+@command_line_input_output_file_arguments
+@command_line_progressbar_option
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.pass_obj
+@cli_api_error
+def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
+    """
+    Look up many lists given a file of IDs or URLs.
+    """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
+    with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
+        for list_id in infile:
+            progress.update()
+
+            if "https" in list_id:
+                list_id = list_id.split("/")[-1]
+            if not re.match("^\d+$", list_id):
+                click.echo(
+                    click.style("Skipping invalid List URL or ID: {line}", fg="red"),
+                    err=True,
+                )
+                continue
+            result = T.list_lookup(list_id.strip(), **kwargs)
+            _write(result, outfile)
 
 
 @twarc2.group()
