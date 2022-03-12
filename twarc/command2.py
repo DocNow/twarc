@@ -1174,6 +1174,40 @@ def users(T, infile, outfile, usernames, hide_progress, **kwargs):
                 progress.update_with_result(result, error_resource_type="user")
 
 
+@twarc2.command("user")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
+@click.argument("name-or-id", type=click.Choice(["name", "id"]))
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def user(T, name_or_id, user, outfile, **kwargs):
+    """
+    Get the profile data for a single user by either username or ID.
+
+    To look up a user by ID:
+
+        twarc2 user id 12
+
+    To look up a user by username:
+
+        twarc2 user name jack
+
+    """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    username = name_or_id == "name"
+
+    user_data = list(T.user_lookup([user], username, **kwargs))
+    _write(user_data, outfile)
+
+
 @twarc2.command("mentions")
 @command_line_search_options
 @command_line_expansions_shortcuts
