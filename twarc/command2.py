@@ -1991,6 +1991,74 @@ def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
             _write(result, outfile)
 
 
+def _lists_owned(T, user, **kwargs):
+    pass
+
+
+def _lists_subscribed(T, user, **kwargs):
+    pass
+
+
+@lists.command("all")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_all(T, user, outfile, hide_progress, **kwargs):
+    """
+    Get all Lists that a user created or is subscribed to.
+    """
+    pass
+
+@lists.command("owned")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_owned(T, user, outfile, hide_progress, **kwargs):
+    """
+    Get all Lists that a user created.
+    """
+    pass
+
+@lists.command("subscribed")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_subscribed(T, user, outfile, hide_progress, **kwargs):
+    """
+    Get all Lists that a user is subscribed to.
+    """
+
+
 @twarc2.group()
 @click.pass_obj
 def stream_rules(T):
