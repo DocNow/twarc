@@ -8,7 +8,7 @@ See the `twarc` documentation for running commands: [twarc2](twarc2_en_us.md) an
 
 ## Install
 
-If you have python installed, you can install twarc using:
+If you have python installed, you can install twarc from a terminal (such as the Windows Command Prompt available in the "start" menu, or the [OSX Terminal application](https://support.apple.com/en-au/guide/terminal/apd5265185d-f365-44cb-8b09-71a064a42125/mac)):
 
 ```
 pip3 install twarc
