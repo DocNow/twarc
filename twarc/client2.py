@@ -301,8 +301,8 @@ class Twarc2:
         list_fields=None,
         max_results=None,
         pagination_token=None,
-        user_field=None
-        ):
+        user_field=None,
+    ):
         """
         Function allows to get all the membership list from an specific user ID
 
@@ -311,9 +311,9 @@ class Twarc2:
         Args:
             expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
             list.fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
-            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100. 
-            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results. 
-            user.fields(	enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld): 
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
+            user.fields(	enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
                 This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
         """
         user_id = self._ensure_user_id(id)
@@ -321,21 +321,19 @@ class Twarc2:
         url = f"https://api.twitter.com/2/users/{user_id}/list_memberships"
 
         params = self._prepare_params(
-        list_fields=list_fields,
-        max_results=max_results,
-        pagination_token=pagination_token,
-        user_field=user_field
+            list_fields=list_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
+            user_field=user_field,
         )
 
         if expansions:
-                params["expansions"] = "owner_id"
+            params["expansions"] = "owner_id"
 
         resp = self.get(url, params=params)
         data = resp.json()
 
         return data
-
-
 
     def search_recent(
         self,
@@ -1263,7 +1261,7 @@ class Twarc2:
         Returns:
             generator[dict]: A generator, dict for each page of results.
         """
-        
+
         resp = self.get(*args, **kwargs)
         page = resp.json()
 
