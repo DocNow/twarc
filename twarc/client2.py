@@ -443,44 +443,6 @@ class Twarc2:
             pagination_token=pagination_token,
         )
 
-    def followed_lists(
-        self,
-        user,
-        expansions=None,
-        list_fields=None,
-        user_fields=None,
-        max_results=None,
-        pagination_token=None,
-    ):
-        """
-        Returns all Lists a specified user follows.
-
-        Calls [GET /2/users/:id/followed_lists](https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/get-users-id-followed_lists)
-
-        Args:
-            user (int): ID of the user.
-            expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
-            list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
-            user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
-                This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
-            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
-            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
-
-        Returns:
-            generator[dict]: A generator, dict for each page of results.
-        """
-        user_id = self._ensure_user_id(user)
-        url = f"https://api.twitter.com/2/users/{user_id}/followed_lists"
-
-        return self._lists(
-            url=url,
-            expansions=expansions,
-            list_fields=list_fields,
-            user_fields=user_fields,
-            max_results=max_results,
-            pagination_token=pagination_token,
-        )
-
     def owned_lists(
         self,
         user,
@@ -509,6 +471,44 @@ class Twarc2:
         """
         user_id = self._ensure_user_id(user)
         url = f"https://api.twitter.com/2/users/{user_id}/owned_lists"
+
+        return self._lists(
+            url=url,
+            expansions=expansions,
+            list_fields=list_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
+        )
+
+    def followed_lists(
+        self,
+        user,
+        expansions=None,
+        list_fields=None,
+        user_fields=None,
+        max_results=None,
+        pagination_token=None,
+    ):
+        """
+        Returns all Lists a specified user follows.
+
+        Calls [GET /2/users/:id/followed_lists](https://developer.twitter.com/en/docs/twitter-api/lists/list-follows/api-reference/get-users-id-followed_lists)
+
+        Args:
+            user (int): ID of the user.
+            expansions enum (owner_id): enable you to request additional data objects that relate to the originally returned List.
+            list_fields enum (created_at, follower_count, member_count, private, description, owner_id): This fields parameter enables you to select which specific List fields will deliver with each returned List objects.
+            user_fields enum (created_at, description, entities, id, location, name, pinned_tweet_id, profile_image_url, protected, public_metrics, url, username, verified, withheld):
+                This fields parameter enables you to select which specific user fields will deliver with the users object. Specify the desired fields in a comma-separated list without spaces between commas and fields.
+            max_results (int): The maximum number of results to be returned per page. This can be a number between 1 and 100.
+            pagination_token (string): Used to request the next page of results if all results weren't returned with the latest request, or to go back to the previous page of results.
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
+        """
+        user_id = self._ensure_user_id(user)
+        url = f"https://api.twitter.com/2/users/{user_id}/followed_lists"
 
         return self._lists(
             url=url,
