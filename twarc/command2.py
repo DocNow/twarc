@@ -2025,12 +2025,21 @@ def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
             _write(result, outfile)
 
 
-def _lists_owned(T, user, **kwargs):
-    pass
-
-
-def _lists_subscribed(T, user, **kwargs):
-    pass
+def _get_lists(func, user, outfile, limit, hide_progress, **kwargs):
+    """
+    Get owned or followed lists
+    """
+    count = 0
+    with tqdm(disable=hide_progress, total=1) as progress:
+        _lists = func(user, **kwargs)
+        for result in _lists:
+            _write(result, outfile)
+            count += len(result["data"])
+            if limit != 0 and count >= limit:
+                # Display message when stopped early
+                progress.desc = f"Set --limit of {limit} reached"
+                break
+            progress.update()
 
 
 @lists.command("all")
@@ -2044,14 +2053,23 @@ def _lists_subscribed(T, user, **kwargs):
     help="Comma separated list of tweet fields to retrieve. Default is all available.",
     callback=_validate_expansions,
 )
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
 @command_line_progressbar_option
 @click.pass_obj
 @cli_api_error
-def lists_all(T, user, outfile, hide_progress, **kwargs):
+def lists_all(T, user, outfile, limit, hide_progress, **kwargs):
     """
     Get all Lists that a user created or is subscribed to.
     """
-    pass
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+    _get_lists(T.owned_lists, user, outfile, limit, hide_progress, **kwargs)
+    _get_lists(T.followed_lists, user, outfile, limit, hide_progress, **kwargs)
+
 
 @lists.command("owned")
 @click.argument("user", type=str)
@@ -2064,16 +2082,24 @@ def lists_all(T, user, outfile, hide_progress, **kwargs):
     help="Comma separated list of tweet fields to retrieve. Default is all available.",
     callback=_validate_expansions,
 )
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
 @command_line_progressbar_option
 @click.pass_obj
 @cli_api_error
-def lists_owned(T, user, outfile, hide_progress, **kwargs):
+def lists_owned(T, user, outfile, limit, hide_progress, **kwargs):
     """
     Get all Lists that a user created.
     """
-    pass
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+    _get_lists(T.owned_lists, user, outfile, limit, hide_progress, **kwargs)
 
-@lists.command("subscribed")
+
+@lists.command("followed")
 @click.argument("user", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.option(
@@ -2084,13 +2110,21 @@ def lists_owned(T, user, outfile, hide_progress, **kwargs):
     help="Comma separated list of tweet fields to retrieve. Default is all available.",
     callback=_validate_expansions,
 )
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
 @command_line_progressbar_option
 @click.pass_obj
 @cli_api_error
-def lists_subscribed(T, user, outfile, hide_progress, **kwargs):
+def lists_followed(T, user, outfile, limit, hide_progress, **kwargs):
     """
-    Get all Lists that a user is subscribed to.
+    Get all Lists that a user is following.
     """
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+    _get_lists(T.followed_lists, user, outfile, limit, hide_progress, **kwargs)
 
 
 @twarc2.group()
