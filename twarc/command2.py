@@ -2025,12 +2025,12 @@ def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
             _write(result, outfile)
 
 
-def _get_lists(func, user, outfile, limit, hide_progress, **kwargs):
+def _get_lists(func, user, outfile, limit, hide_progress, default_total=1, **kwargs):
     """
     Get owned or followed lists
     """
     count = 0
-    with tqdm(disable=hide_progress, total=1) as progress:
+    with tqdm(disable=hide_progress, total=default_total) as progress:
         _lists = func(user, **kwargs)
         for result in _lists:
             _write(result, outfile)
@@ -2040,6 +2040,7 @@ def _get_lists(func, user, outfile, limit, hide_progress, **kwargs):
                 progress.desc = f"Set --limit of {limit} reached"
                 break
             progress.update()
+        progress.update(progress.total - progress.n)
 
 
 @lists.command("all")
@@ -2125,6 +2126,50 @@ def lists_followed(T, user, outfile, limit, hide_progress, **kwargs):
     """
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
     _get_lists(T.followed_lists, user, outfile, limit, hide_progress, **kwargs)
+
+
+@lists.command("memberships")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_memberships(T, user, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Lists that a user is following.
+    """
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+    user_object = T._ensure_user(user)
+    listed_count = 1
+    if "public_metrics" in user_object:
+        if (
+            "listed_count" in user_object["public_metrics"]
+            and user_object["public_metrics"]["listed_count"] > 0
+        ):
+            listed_count = user_object["public_metrics"]["listed_count"]
+    _get_lists(
+        T.list_memberships,
+        user,
+        outfile,
+        limit,
+        hide_progress,
+        default_total=listed_count,
+        **kwargs,
+    )
 
 
 @twarc2.group()
