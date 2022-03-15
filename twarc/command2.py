@@ -9,7 +9,6 @@ import json
 import time
 import twarc
 import click
-import inspect
 import logging
 import pathlib
 import datetime
@@ -2249,6 +2248,40 @@ def lists_members(T, list_id, outfile, limit, hide_progress, **kwargs):
         limit=limit,
         hide_progress=hide_progress,
         progress_total=lookup_total,
+        **kwargs,
+    )
+
+
+@lists.command("tweets")
+@click.argument("list-id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of tweets to save. Default and max is last 800.",
+    type=int,
+)
+@command_line_expansions_options
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_tweets(T, list_id, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Users that are members of a list.
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    _write_with_progress(
+        func=T.list_tweets,
+        list_id=list_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=800,
         **kwargs,
     )
 
