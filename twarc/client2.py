@@ -1457,6 +1457,7 @@ class Twarc2:
         Retrieve the tweets liked by the given user_id.
 
         """
+        user_id = self._ensure_user_id(user_id)
         url = f"https://api.twitter.com/2/users/{user_id}/liked_tweets"
 
         params = self._prepare_params(
