@@ -1255,9 +1255,7 @@ class Twarc2:
             if "data" in page:
                 yield page
             else:
-                log.info(
-                    f"Retrieved an empty page of results for quotes of {tweet_id}"
-                )
+                log.info(f"Retrieved an empty page of results for quotes of {tweet_id}")
 
     @catch_request_exceptions
     @rate_limit
