@@ -978,6 +978,55 @@ def retweeted_by(T, tweet_id, outfile, limit, max_results, hide_progress):
                 break
 
 
+@twarc2.command("quotes")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of retweeting users to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of users (retweets) per page of results. Default and maximum is 100.",
+    type=int,
+)
+@command_line_expansions_shortcuts
+@command_line_expansions_options
+@command_line_progressbar_option
+@click.argument("tweet_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def quotes(T, tweet_id, outfile, limit, max_results, hide_progress, **kwargs):
+    """
+    Get the tweets that quote tweet the given tweet.
+
+    Note that the progress bar is approximate.
+    """
+    count = 0
+    lookup_total = 0
+
+    if not re.match("^\d+$", str(tweet_id)):
+        click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
+
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+
+    if not hide_progress:
+        target_tweet = list(T.tweet_lookup([tweet_id]))[0]
+        if "data" in target_tweet:
+            lookup_total = target_tweet["data"][0]["public_metrics"]["quote_count"]
+
+    with tqdm(disable=hide_progress, total=lookup_total) as progress:
+        for result in T.quotes(tweet_id, max_results=max_results, **kwargs):
+            _write(result, outfile)
+            count += len(result.get("data", []))
+            progress.update(len(result.get("data", [])))
+            if limit != 0 and count >= limit:
+                progress.desc = f"Set --limit of {limit} reached"
+                break
+
+
 @twarc2.command("liked-tweets")
 @click.option(
     "--limit",
