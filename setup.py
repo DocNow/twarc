@@ -21,6 +21,10 @@ if __name__ == "__main__":
         description="Archive tweets from the command line",
         long_description=long_description,
         long_description_content_type="text/markdown",
+        license="MIT",
+        classifiers=[
+            "License :: OSI Approved :: MIT License",
+        ],
         python_requires=">=3.3",
         install_requires=dependencies,
         setup_requires=["pytest-runner"],
