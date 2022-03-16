@@ -1006,6 +1006,11 @@ def quotes(T, tweet_id, outfile, limit, max_results, hide_progress, **kwargs):
     """
     count = 0
     lookup_total = 0
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
 
     if not re.match("^\d+$", str(tweet_id)):
         click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
