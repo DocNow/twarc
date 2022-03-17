@@ -1987,14 +1987,14 @@ def lists_lookup(T, list_id, outfile, pretty, **kwargs):
     default=",".join(LIST_FIELDS),
     type=click.STRING,
     is_eager=True,
-    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    help="Comma separated list of fields about a list to retrieve. Default is all available.",
     callback=_validate_expansions,
 )
 @click.pass_obj
 @cli_api_error
 def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
     """
-    Look up many lists given a file of IDs or URLs.
+    Look up the details of many lists given a file of IDs or URLs.
     """
 
     kwargs = _process_expansions_shortcuts(kwargs)
