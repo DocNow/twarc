@@ -2038,6 +2038,11 @@ def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
 def lists_all(T, user, outfile, limit, hide_progress, **kwargs):
     """
     Get all Lists that a user created or is subscribed to.
+
+    You can use the `owned` or `followed` command to get just the lists
+    created by the user, or just the lists followed by the user
+    respectively.
+
     """
     kwargs = _process_expansions_shortcuts(kwargs)
     _write_with_progress(
@@ -2267,7 +2272,7 @@ def lists_members(T, list_id, outfile, limit, hide_progress, **kwargs):
 @cli_api_error
 def lists_tweets(T, list_id, outfile, limit, hide_progress, **kwargs):
     """
-    Get all Users that are members of a list.
+    Get up to the most recent 800 tweets posted by members of a list.
     """
     kwargs = _process_expansions_shortcuts(kwargs)
     # Also remove media poll and place from kwargs, these are not valid for this endpoint:
