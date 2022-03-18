@@ -1512,6 +1512,35 @@ class Twarc2:
                     f"Retrieved an empty page of results for retweeted_by of {tweet_id}"
                 )
 
+    def quotes(
+        self,
+        tweet_id,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        max_results=100,
+        pagination_token=None,
+    ):
+        """
+        Retrieve the tweets that quote tweet the given tweet.
+
+        """
+        url = f"https://api.twitter.com/2/tweets/{tweet_id}/quote_tweets"
+
+        params = self._prepare_params(
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            max_results=max_results,
+            pagination_token=pagination_token,
+        )
+
+        for page in self.get_paginated(url, params=params):
+            if "data" in page:
+                yield page
+            else:
+                log.info(f"Retrieved an empty page of results for quotes of {tweet_id}")
+
     @catch_request_exceptions
     @rate_limit
     def get(self, *args, **kwargs):
