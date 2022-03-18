@@ -92,6 +92,15 @@ PLACE_FIELDS = [
     "place_type",
 ]
 
+LIST_FIELDS = [
+    "owner_id",
+    "created_at",
+    "member_count",
+    "follower_count",
+    "private",
+    "description",
+]
+
 
 def extract_includes(response, expansion, _id="id"):
     if "includes" in response and expansion in response["includes"]:

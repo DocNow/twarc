@@ -577,6 +577,54 @@ def test_liked_tweets():
             break
 
 
+def test_list_lookup():
+    parks_list = T.list_lookup(715919216927322112)
+    assert "data" in parks_list
+    assert parks_list["data"]["name"] == "National-parks"
+
+
+def test_list_members():
+    response = list(T.list_members(715919216927322112))
+    assert len(response) == 1
+    members = twarc.expansions.flatten(response[0])
+    assert len(members) == 8
+
+
+def test_list_followers():
+    response = list(T.list_followers(715919216927322112))
+    assert len(response) >= 2
+    followers = twarc.expansions.flatten(response[0])
+    assert len(followers) > 50
+
+
+def test_list_memberships():
+    response = list(T.list_memberships("64flavors"))
+    assert len(response) == 1
+    lists = twarc.expansions.flatten(response[0])
+    assert len(lists) >= 9
+
+
+def test_followed_lists():
+    response = list(T.followed_lists("nasa"))
+    assert len(response) == 1
+    lists = twarc.expansions.flatten(response[0])
+    assert len(lists) >= 1
+
+
+def test_owned_lists():
+    response = list(T.owned_lists("nasa"))
+    assert len(response) >= 1
+    lists = twarc.expansions.flatten(response[0])
+    assert len(lists) >= 11
+
+
+def test_list_tweets():
+    response = next(T.list_tweets(715919216927322112))
+    assert "data" in response
+    tweets = twarc.expansions.flatten(response)
+    assert len(tweets) >= 90
+
+
 def test_twarc_metadata():
 
     # With metadata (default)
