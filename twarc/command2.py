@@ -1021,14 +1021,16 @@ def quotes(T, tweet_id, outfile, limit, max_results, hide_progress, **kwargs):
         if "data" in target_tweet:
             lookup_total = target_tweet["data"][0]["public_metrics"]["quote_count"]
 
-    with tqdm(disable=hide_progress, total=lookup_total) as progress:
-        for result in T.quotes(tweet_id, max_results=max_results, **kwargs):
-            _write(result, outfile)
-            count += len(result.get("data", []))
-            progress.update(len(result.get("data", [])))
-            if limit != 0 and count >= limit:
-                progress.desc = f"Set --limit of {limit} reached"
-                break
+    _write_with_progress(
+        func=T.quotes,
+        tweet_id=tweet_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        max_results=max_results,
+        **kwargs,
+    )
 
 
 @twarc2.command("liked-tweets")
