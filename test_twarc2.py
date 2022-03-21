@@ -1,5 +1,4 @@
 import os
-import json
 import pytz
 import twarc
 import dotenv
@@ -8,7 +7,9 @@ import logging
 import pathlib
 import datetime
 import threading
+
 from unittest import TestCase
+from twarc.version import version, user_agent
 
 dotenv.load_dotenv()
 consumer_key = os.environ.get("CONSUMER_KEY")
@@ -33,7 +34,10 @@ T = twarc.Twarc2(
 def test_version():
     import setup
 
-    assert setup.version == twarc.version
+    assert setup.version == version
+
+    assert user_agent
+    assert f"twarc/{version}" in user_agent
 
 
 def test_auth_types_interaction():
@@ -121,6 +125,26 @@ def test_counts_recent():
         break
 
     assert 7 <= found_counts <= 8
+
+
+@pytest.mark.skipif(
+    os.environ.get("SKIP_ACADEMIC_PRODUCT_TRACK") != None,
+    reason="No Academic Research Product Track access",
+)
+def test_counts_empty_page():
+
+    found_counts = 0
+
+    for response_page in T.counts_all(
+        "beans",
+        start_time=datetime.datetime(2006, 3, 21),
+        end_time=datetime.datetime(2006, 6, 1),
+        granularity="day",
+    ):
+        counts = response_page["data"]
+        found_counts += len(counts)
+
+    assert found_counts == 72
 
 
 def test_search_times():
@@ -503,6 +527,102 @@ def test_ensure_user_id():
 
     assert T._ensure_user_id("1033441111677788160") == "1033441111677788160"
     assert T._ensure_user_id(1033441111677788160) == "1033441111677788160"
+
+
+def test_liking_users():
+
+    # This is one of @jack's tweets about the Twitter API
+    likes = T.liking_users(1460417326130421765)
+
+    like_count = 0
+
+    for page in likes:
+        assert "data" in page
+        # These should be user objects.
+        assert "description" in page["data"][0]
+        like_count += len(page["data"])
+        if like_count > 300:
+            break
+
+
+def test_retweeted_by():
+
+    # This is one of @jack's tweets about the Twitter API
+    retweet_users = T.retweeted_by(1460417326130421765)
+
+    retweet_count = 0
+
+    for page in retweet_users:
+        assert "data" in page
+        # These should be user objects.
+        assert "description" in page["data"][0]
+        retweet_count += len(page["data"])
+        if retweet_count > 150:
+            break
+
+
+def test_liked_tweets():
+
+    # What has @jack liked?
+    liked_tweets = T.liked_tweets(12)
+
+    like_count = 0
+
+    for page in liked_tweets:
+        assert "data" in page
+        # These should be tweet objects.
+        assert "text" in page["data"][0]
+        like_count += len(page["data"])
+        if like_count > 300:
+            break
+
+
+def test_list_lookup():
+    parks_list = T.list_lookup(715919216927322112)
+    assert "data" in parks_list
+    assert parks_list["data"]["name"] == "National-parks"
+
+
+def test_list_members():
+    response = list(T.list_members(715919216927322112))
+    assert len(response) == 1
+    members = twarc.expansions.flatten(response[0])
+    assert len(members) == 8
+
+
+def test_list_followers():
+    response = list(T.list_followers(715919216927322112))
+    assert len(response) >= 2
+    followers = twarc.expansions.flatten(response[0])
+    assert len(followers) > 50
+
+
+def test_list_memberships():
+    response = list(T.list_memberships("64flavors"))
+    assert len(response) == 1
+    lists = twarc.expansions.flatten(response[0])
+    assert len(lists) >= 9
+
+
+def test_followed_lists():
+    response = list(T.followed_lists("nasa"))
+    assert len(response) == 1
+    lists = twarc.expansions.flatten(response[0])
+    assert len(lists) >= 1
+
+
+def test_owned_lists():
+    response = list(T.owned_lists("nasa"))
+    assert len(response) >= 1
+    lists = twarc.expansions.flatten(response[0])
+    assert len(lists) >= 11
+
+
+def test_list_tweets():
+    response = next(T.list_tweets(715919216927322112))
+    assert "data" in response
+    tweets = twarc.expansions.flatten(response)
+    assert len(tweets) >= 90
 
 
 def test_twarc_metadata():

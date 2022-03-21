@@ -35,6 +35,7 @@ from twarc.expansions import (
     MEDIA_FIELDS,
     POLL_FIELDS,
     PLACE_FIELDS,
+    LIST_FIELDS,
 )
 from click import command, option, Option, UsageError
 from click_config_file import configuration_option
@@ -810,26 +811,26 @@ def followers(T, user, outfile, limit, max_results, hide_progress):
     """
     Get the followers for a given user.
     """
-    count = 0
     user_id = None
-    lookup_total = 0
+    lookup_total = 1
 
-    if outfile is not None and (outfile.name == "<stdout>"):
-        hide_progress = True
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
 
     if not hide_progress:
         target_user = T._ensure_user(user)
         user_id = target_user["id"]
         lookup_total = target_user["public_metrics"]["followers_count"]
 
-    with tqdm(disable=hide_progress, total=lookup_total) as progress:
-        for result in T.followers(user, user_id=user_id, max_results=max_results):
-            _write(result, outfile)
-            count += len(result["data"])
-            progress.update(len(result["data"]))
-            if limit != 0 and count >= limit:
-                progress.desc = f"Set --limit of {limit} reached"
-                break
+    _write_with_progress(
+        func=T.followers,
+        user=user,
+        user_id=user_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        max_results=max_results,
+    )
 
 
 @twarc2.command("following")
@@ -854,26 +855,221 @@ def following(T, user, outfile, limit, max_results, hide_progress):
     """
     Get the users that a given user is following.
     """
-    count = 0
     user_id = None
-    lookup_total = 0
+    lookup_total = 1
 
-    if outfile is not None and (outfile.name == "<stdout>"):
-        hide_progress = True
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
 
     if not hide_progress:
         target_user = T._ensure_user(user)
         user_id = target_user["id"]
         lookup_total = target_user["public_metrics"]["following_count"]
 
-    with tqdm(disable=hide_progress, total=lookup_total) as progress:
-        for result in T.following(user, user_id=user_id, max_results=max_results):
-            _write(result, outfile)
-            count += len(result["data"])
-            progress.update(len(result["data"]))
-            if limit != 0 and count >= limit:
-                progress.desc = f"Set --limit of {limit} reached"
-                break
+    _write_with_progress(
+        func=T.following,
+        user=user,
+        user_id=user_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        max_results=max_results,
+    )
+
+
+@twarc2.command("liking-users")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of liking users to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of users (likes) per page. Default is and maximum is 100.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.argument("tweet_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def liking_users(T, tweet_id, outfile, limit, max_results, hide_progress):
+    """
+    Get the users that liked a specific tweet.
+
+    Note that the progress bar is approximate.
+
+    """
+    lookup_total = 1
+
+    if not re.match("^\d+$", str(tweet_id)):
+        click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
+
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+
+    if not hide_progress:
+        # TODO: we could probably do this everytime, and avoid doing any lookups
+        # for tweets that don't exist anymore.
+        target_tweet = list(T.tweet_lookup([tweet_id]))[0]
+        if "data" in target_tweet:
+            lookup_total = target_tweet["data"][0]["public_metrics"]["like_count"]
+
+    _write_with_progress(
+        func=T.liking_users,
+        tweet_id=tweet_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        max_results=max_results,
+    )
+
+
+@twarc2.command("retweeted-by")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of retweeting users to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of users (retweets) per page of results. Default and maximum is 100.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.argument("tweet_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def retweeted_by(T, tweet_id, outfile, limit, max_results, hide_progress):
+    """
+    Get the users that retweeted a specific tweet.
+
+    Note that the progress bar is approximate.
+
+    """
+    lookup_total = 0
+
+    if not re.match("^\d+$", str(tweet_id)):
+        click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
+
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+
+    if not hide_progress:
+        # TODO: we could probably do this everytime, and avoid doing any lookups
+        # for tweets that don't exist anymore.
+        target_tweet = list(T.tweet_lookup([tweet_id]))[0]
+        if "data" in target_tweet:
+            lookup_total = target_tweet["data"][0]["public_metrics"]["retweet_count"]
+
+    _write_with_progress(
+        func=T.retweeed_by,
+        tweet_id=tweet_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        max_results=max_results,
+    )
+
+
+@twarc2.command("quotes")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of retweeting users to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of users (retweets) per page of results. Default and maximum is 100.",
+    type=int,
+)
+@command_line_expansions_shortcuts
+@command_line_expansions_options
+@command_line_progressbar_option
+@click.argument("tweet_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def quotes(T, tweet_id, outfile, limit, max_results, hide_progress, **kwargs):
+    """
+    Get the tweets that quote tweet the given tweet.
+
+    Note that the progress bar is approximate.
+    """
+    count = 0
+    lookup_total = 0
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    if not re.match("^\d+$", str(tweet_id)):
+        click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
+
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+
+    if not hide_progress:
+        target_tweet = list(T.tweet_lookup([tweet_id]))[0]
+        if "data" in target_tweet:
+            lookup_total = target_tweet["data"][0]["public_metrics"]["quote_count"]
+
+    _write_with_progress(
+        func=T.quotes,
+        tweet_id=tweet_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        max_results=max_results,
+        **kwargs,
+    )
+
+
+@twarc2.command("liked-tweets")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of liked tweets to retrieve. Increments of 100 or --max-results if set.",
+    type=int,
+)
+@click.option(
+    "--max-results",
+    default=100,
+    help="Maximum number of liked tweets per page of results. Default and maximum is 100.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.argument("user_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def liked_tweets(T, user_id, outfile, limit, max_results, hide_progress):
+    """
+    Get the tweets liked by a specific user_id.
+
+    Note that the progress bar is approximate.
+
+    """
+
+    # NB: there doesn't appear to be anyway to get the total count of likes
+    # a user has made, so the progress bar isn't very useful in this case...
+    _write_with_progress(
+        func=T.liked_tweets,
+        user_id=user_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=1,
+        max_results=max_results,
+    )
 
 
 @twarc2.command("sample")
@@ -904,7 +1100,8 @@ def sample(T, outfile, limit, **kwargs):
         if limit != 0 and count >= limit:
             event.set()
         _write(result, outfile)
-        if result:
+
+        if result and "data" in result:
             log.info("archived %s", result["data"]["id"])
 
 
@@ -1024,6 +1221,40 @@ def users(T, infile, outfile, usernames, hide_progress, **kwargs):
                 progress.update_with_result(result, error_resource_type="user")
 
 
+@twarc2.command("user")
+@command_line_expansions_shortcuts
+@command_line_expansions_options
+@click.argument("name-or-id", type=click.Choice(["name", "id"]))
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.pass_obj
+@cli_api_error
+def user(T, name_or_id, user, outfile, **kwargs):
+    """
+    Get the profile data for a single user by either username or ID.
+
+    To look up a user by ID:
+
+        twarc2 user id 12
+
+    To look up a user by username:
+
+        twarc2 user name jack
+
+    """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    username = name_or_id == "name"
+
+    user_data = list(T.user_lookup([user], username, **kwargs))
+    _write(user_data, outfile)
+
+
 @twarc2.command("mentions")
 @command_line_search_options
 @command_line_expansions_shortcuts
@@ -1043,7 +1274,7 @@ def mentions(T, user_id, outfile, hide_progress, **kwargs):
     with tqdm(disable=hide_progress, total=800) as progress:
         for result in T.mentions(user_id, **kwargs):
             _write(result, outfile)
-            progress.update(len(result["data"]))
+            progress.update(len(result.get("data", [])))
         else:
             if progress.n > 800:
                 progress.desc = f"API limit reached with {progress.n} tweets"
@@ -1761,8 +1992,359 @@ def stream(T, outfile, limit, **kwargs):
             log.info(f"reached limit {limit}")
             event.set()
         _write(result, outfile)
-        if "data" in result:
+
+        if result and "data" in result:
             log.info("archived %s", result["data"]["id"])
+
+
+@twarc2.group()
+@click.pass_obj
+def lists(T):
+    """
+    Lists API support.
+    """
+    pass
+
+
+@lists.command("lookup")
+@click.argument("list_id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option("--pretty", is_flag=True, default=False, help="Pretty print the JSON")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.pass_obj
+@cli_api_error
+def lists_lookup(T, list_id, outfile, pretty, **kwargs):
+    """
+    Look up a single list using its list id or URL.
+    """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
+    if "https" in list_id:
+        list_id = list_id.split("/")[-1]
+    if not re.match("^\d+$", list_id):
+        click.echo(click.style("Please enter a List URL or ID", fg="red"), err=True)
+    result = T.list_lookup(list_id, **kwargs)
+    _write(result, outfile, pretty=pretty)
+
+
+@lists.command("bulk-lookup")
+@command_line_input_output_file_arguments
+@command_line_progressbar_option
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of fields about a list to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.pass_obj
+@cli_api_error
+def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
+    """
+    Look up the details of many lists given a file of IDs or URLs.
+    """
+
+    kwargs = _process_expansions_shortcuts(kwargs)
+
+    with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
+        for list_id in infile:
+            progress.update()
+
+            if "https" in list_id:
+                list_id = list_id.split("/")[-1]
+            if not re.match("^\d+$", list_id):
+                click.echo(
+                    click.style("Skipping invalid List URL or ID: {line}", fg="red"),
+                    err=True,
+                )
+                continue
+            result = T.list_lookup(list_id.strip(), **kwargs)
+            _write(result, outfile)
+
+
+@lists.command("all")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_all(T, user, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Lists that a user created or is subscribed to.
+
+    You can use the `owned` or `followed` command to get just the lists
+    created by the user, or just the lists followed by the user
+    respectively.
+
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    _write_with_progress(
+        func=T.owned_lists,
+        user=user,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=1,
+        **kwargs,
+    )
+    _write_with_progress(
+        func=T.followed_lists,
+        user=user,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=1,
+        **kwargs,
+    )
+
+
+@lists.command("owned")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_owned(T, user, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Lists that a user created.
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    _write_with_progress(
+        func=T.owned_lists,
+        user=user,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=1,
+        **kwargs,
+    )
+
+
+@lists.command("followed")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_followed(T, user, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Lists that a user is following.
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    _write_with_progress(
+        func=T.followed_lists,
+        user=user,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=1,
+        **kwargs,
+    )
+
+
+@lists.command("memberships")
+@click.argument("user", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--list-fields",
+    default=",".join(LIST_FIELDS),
+    type=click.STRING,
+    is_eager=True,
+    help="Comma separated list of tweet fields to retrieve. Default is all available.",
+    callback=_validate_expansions,
+)
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_memberships(T, user, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Lists that a user is a member of.
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    lookup_total = 1
+
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+
+    if not hide_progress:
+        target_user = T._ensure_user(user)
+        lookup_total = target_user["public_metrics"]["listed_count"]
+
+    _write_with_progress(
+        func=T.list_memberships,
+        user=user,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        **kwargs,
+    )
+
+
+@lists.command("followers")
+@click.argument("list-id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
+@command_line_expansions_options
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_followers(T, list_id, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Users that are following (subscribed) to a list.
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    _list = ensure_flattened(T.list_lookup(list_id))[-1]
+    list_id = _list["id"]
+    lookup_total = int(_list["follower_count"])
+
+    _write_with_progress(
+        func=T.list_followers,
+        list_id=list_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        **kwargs,
+    )
+
+
+@lists.command("members")
+@click.argument("list-id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of lists to save. Default is all.",
+    type=int,
+)
+@command_line_expansions_options
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_members(T, list_id, outfile, limit, hide_progress, **kwargs):
+    """
+    Get all Users that are members of a list.
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    _list = ensure_flattened(T.list_lookup(list_id))[-1]
+    list_id = _list["id"]
+    lookup_total = int(_list["member_count"])
+
+    _write_with_progress(
+        func=T.list_members,
+        list_id=list_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=lookup_total,
+        **kwargs,
+    )
+
+
+@lists.command("tweets")
+@click.argument("list-id", type=str)
+@click.argument("outfile", type=click.File("w"), default="-")
+@click.option(
+    "--limit",
+    default=0,
+    help="Maximum number of tweets to save. Default and max is last 800.",
+    type=int,
+)
+@command_line_expansions_options
+@command_line_progressbar_option
+@click.pass_obj
+@cli_api_error
+def lists_tweets(T, list_id, outfile, limit, hide_progress, **kwargs):
+    """
+    Get up to the most recent 800 tweets posted by members of a list.
+    """
+    kwargs = _process_expansions_shortcuts(kwargs)
+    # Also remove media poll and place from kwargs, these are not valid for this endpoint:
+    kwargs.pop("media_fields", None)
+    kwargs.pop("poll_fields", None)
+    kwargs.pop("place_fields", None)
+
+    _write_with_progress(
+        func=T.list_tweets,
+        list_id=list_id,
+        outfile=outfile,
+        limit=limit,
+        hide_progress=hide_progress,
+        progress_total=800,
+        **kwargs,
+    )
 
 
 @twarc2.group()
@@ -2363,3 +2945,26 @@ def _error_str(errors):
 def _write(results, outfile, pretty=False):
     indent = 2 if pretty else None
     click.echo(json.dumps(results, indent=indent), file=outfile)
+
+
+def _write_with_progress(
+    func, outfile, limit, hide_progress, progress_total=1, **kwargs
+):
+    """
+    Get results page by page and write them out with a progress bar
+    """
+    count = 0
+    hide_progress = True if (outfile.name == "<stdout>") else hide_progress
+
+    with tqdm(disable=hide_progress, total=progress_total) as progress:
+        results = func(**kwargs)
+        for result in results:
+            _write(result, outfile)
+            count += len(result.get("data", []))
+            progress.update(len(result.get("data", [])))
+            if limit != 0 and count >= limit:
+                # Display message when stopped early
+                progress.desc = f"Set --limit of {limit} reached"
+                break
+        # Finish the progress bar
+        progress.update(progress.total - progress.n)

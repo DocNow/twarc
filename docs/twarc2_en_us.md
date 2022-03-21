@@ -35,7 +35,7 @@ generate an access token and access token secret. With these four variables
 in hand you are ready to start using twarc.
 
 1. install [Python 3](http://python.org/download)
-2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc:
+2. [pip](https://pip.pypa.io/en/stable/installing/) install twarc from a terminal (such as the Windows Command Prompt available in the "start" menu, or the [OSX Terminal application](https://support.apple.com/en-au/guide/terminal/apd5265185d-f365-44cb-8b09-71a064a42125/mac)):
 
 ```
 pip install --upgrade twarc
@@ -64,11 +64,11 @@ grant access to one or more Twitter accounts:
 
 Then try out a search:
 
-    twarc2 search blacklivesmatter search.jsonl
+    twarc2 search "blacklivesmatter" results.jsonl
 
 Or maybe you'd like to collect tweets as they happen?
 
-    twarc2 filter blacklivesmatter stream.jsonl
+    twarc2 filter "blacklivesmatter" results.jsonl
 
 See below for the details about these commands and more.
 
@@ -92,17 +92,17 @@ options (`--consumer-key`, `--consumer-secret`, `--access-token`,
 
 This uses Twitter's [tweets/search/recent](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-recent) and [tweets/search/all](https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-all) endpoints to download *pre-existing* tweets matching a given query. This command will search for any tweets mentioning *blacklivesmatter* from the 7 days.
 
-    twarc2 search blacklivesmatter tweets.jsonl
+    twarc2 search "blacklivesmatter" results.jsonl
 
 If you have access to the [Academic Research Product Track](https://developer.twitter.com/en/products/twitter-api/academic-research) you can search the full archive of tweets by using the `--archive` option.
 
-    twarc2 search --archive blacklivesmatter tweets.jsonl 
+    twarc2 search --archive "blacklivesmatter" results.jsonl 
 
 The queries can be a lot more expressive than matching a single term. For
 example this query will search for tweets containing either `blacklivesmatter`
 or `blm` that were sent to the user \@deray. 
 
-    twarc2 search 'blacklivesmatter OR blm to:deray' tweets.jsonl
+    twarc2 search "(blacklivesmatter OR blm) to:deray" results.jsonl
 
 The best way to get familiar with Twitter's search syntax is to consult Twitter's [Building queries for Search Tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query) documentation. 
 
@@ -117,7 +117,7 @@ make readily apparent.
 Because there is a 500,000 tweet limit (5, or sometimes 10 million for Academic Research Track)
 you may want to limit the number of tweets you retrieve by using `--limit`:
 
-    twarc2 search --limit 5000 blacklivesmatter tweets.jsonl
+    twarc2 search --limit 5000 "blacklivesmatter" results.jsonl
 
 ### Time
 
@@ -226,6 +226,32 @@ You can retrieve a conversation thread using the tweet ID at the head of the
 conversation:
 
     twarc2 conversation 266031293945503744 > conversation.jsonl
+
+## Likes
+
+Twarc supports the two approaches that the Twitter API exposes for collecting likes via the `liked-tweets` and `liking-users` commands. 
+
+The `liked-tweets` command returns the tweets that have been liked by a specific account. The account is specified by the user ID of that account, in the following example is the account of Twitter's founder:
+
+    twarc2 liked-tweets 12 jacks-likes.jsonl
+
+In this case the output file contains all of the likes of publicly accessible tweets. Note that the order of likes is not guaranteed by the API, but is probably reverse chronological, or most recent likes by that account first. The underlying tweet objects contain no information about when the tweet was liked.
+
+The `liking-users` command returns the user profiles of the accounts that have liked a specific tweet (specified by the ID of the tweet):
+
+    twarc2 liking-users 1460417326130421765 liking-users.jsonl
+
+In this example the output file contains all of the user profiles of the publicly accessible accounts that have liked that specific tweet. Note that the order of profiles is not guaranteed by the API, but is probably reverse chronological, or the profile of the most recent like for that account first. The underlying profile objects contain no information about when the tweet was liked.
+
+Note that likes of tweets that are not publicly accessible, or likes by accounts that are protected will not be retrieved by either of these methods. Therefore, the metrics available on a tweet object (under the `public_metrics.like_count` field) will likely be higher than the number of likes you can retrieve via the Twitter API using these endpoints.
+
+## Retweets
+
+You can retrieve the user profiles of publicly accessible accounts that have retweeted a specific tweet, using the `retweeted_by` command and the ID of the tweet as an identifier. For example:
+
+    twarc2 retweeted-by 1460417326130421765 retweeting-users.jsonl
+
+Unfortunately this only returns the user profiles (presumably in reverse chronological order) of the retweeters of that tweet - this means that important information, like when the tweet was retweeted is not present in the returned object. 
 
 ## Dehydrate
 

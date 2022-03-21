@@ -37,6 +37,7 @@ jobs:
         ACCESS_TOKEN: ${{ secrets.access_token }}
         ACCESS_TOKEN_SECRET: ${{ secrets.access_token_secret }}
         BEARER_TOKEN: ${{ secrets.bearer_token }}
+        SKIP_ACADEMIC_PRODUCT_TRACK: true
       run: python setup.py test
 
     - name: Ensure packages can be built

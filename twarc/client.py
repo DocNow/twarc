@@ -14,6 +14,8 @@ from requests.exceptions import ConnectionError
 from requests.packages.urllib3.exceptions import ProtocolError
 
 from .decorators import *
+from twarc.version import version, user_agent
+
 from requests_oauthlib import OAuth1, OAuth1Session, OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
 
@@ -937,6 +939,9 @@ class Twarc(object):
                 client_secret=self.consumer_secret,
             )
             self.client = oauth
+
+        if self.client:
+            self.client.headers.update({"User-Agent": user_agent})
 
     def get_keys(self):
         """

@@ -631,6 +631,7 @@ def test_hydrate():
 @patch("twarc.client.OAuth1Session", autospec=True)
 def test_connection_error_get(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
+    mock_oauth1session.headers = {}
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.get.side_effect = requests.exceptions.ConnectionError
     t = twarc.Twarc(
@@ -650,6 +651,7 @@ def test_connection_error_get(oauth1session_class):
 @patch("twarc.client.OAuth1Session", autospec=True)
 def test_connection_error_post(oauth1session_class):
     mock_oauth1session = MagicMock(spec=OAuth1Session)
+    mock_oauth1session.headers = {}
     oauth1session_class.return_value = mock_oauth1session
     mock_oauth1session.post.side_effect = requests.exceptions.ConnectionError
     t = twarc.Twarc(
