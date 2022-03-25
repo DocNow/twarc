@@ -1675,6 +1675,8 @@ def searches(
     with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
 
         merged_query = ""
+        extended_query = None
+        query = None
 
         for query in infile:
             query = query.strip()
