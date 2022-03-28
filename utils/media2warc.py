@@ -251,11 +251,11 @@ def main():
 
     for i in range(threads):
         t = GetResource(q)
-        t.setDaemon(True)
+        t.daemon = True
         t.start()
 
     wt = WriteWarc(out_queue, os.path.join(args.archive_dir, "warc.warc"))
-    wt.setDaemon(True)
+    wt.daemon = True
     wt.start()
 
     q.join()
