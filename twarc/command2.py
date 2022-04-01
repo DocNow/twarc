@@ -967,7 +967,7 @@ def retweeted_by(T, tweet_id, outfile, limit, max_results, hide_progress):
             lookup_total = target_tweet["data"][0]["public_metrics"]["retweet_count"]
 
     _write_with_progress(
-        func=T.retweeed_by,
+        func=T.retweeted_by,
         tweet_id=tweet_id,
         outfile=outfile,
         limit=limit,
