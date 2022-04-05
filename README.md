@@ -9,7 +9,7 @@ v1.1 API and the newer v2 API and Academic Access (respectively).
 * Read the [documentation](https://twarc-project.readthedocs.io)
 * Ask questions here in [GitHub](https://github.com/DocNow/twarc/discussions), in [Slack](https://bit.ly/docnow-slack) or [Matrix](https://matrix.to/#/#docnow:matrix.org?via=matrix.org&via=petrichor.me&via=converser.eu)
 
-twarc has been developed with generous support from the [Mellon Foundation].
+twarc has been developed with generous support from the [Mellon Foundation](https://mellon.org/).
 
 ## Contributing 
 
@@ -55,3 +55,4 @@ Now run the tests:
     python setup.py test
 
 Add your code and some new tests, and send a pull request!
+
