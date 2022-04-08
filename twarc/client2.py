@@ -226,6 +226,18 @@ class Twarc2:
             # Mark that we're using counts, to workaround a limitation of the
             # Twitter API with long running counts.
             using_counts = True
+
+            # We need to use these as sentinel values, to differentiate
+            # between the count API returning zero prematurely, and queries
+            # like "from:<no longer existing user_id>". In the latter case
+            # instead of returning counts of 0 per day, it will just return
+            # an empty response with a total tweet count of zero. We can
+            # disambiguate the two cases by noting that the premature
+            # termination will already have counted some tweets correctly,
+            # while the latter will return immediately without any data
+            # rows.
+            time_periods_collected = 0
+            last_time_start = None
         else:
             params = self._prepare_params(
                 **params,
@@ -254,6 +266,7 @@ class Twarc2:
                     # can't return without 'data' if there are no results
                     if "data" in response:
                         last_time_start = response["data"][0]["start"]
+                        time_periods_collected += len(response["data"])
                         yield response
 
                     else:
@@ -264,9 +277,19 @@ class Twarc2:
                 # fiddly because Python doesn't let you specify milliseconds only for
                 # strftime.
                 if (
+                    # If there's no explicit start time we're getting the last
+                    # 30 days by default, so don't need to do the tricky
+                    # things.
                     start_time is None
-                    or (start_time.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z")
-                    == last_time_start
+                    # We've actually reached the specified start time
+                    or (
+                        (start_time.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z")
+                        == last_time_start
+                    )
+                    # Or, we've hit one of the special cases that returns no rows
+                    # of data, and immediately indicates zero tweets returned, like
+                    # searching for a tweet that doesn't exist.
+                    or (time_periods_collected == 0)
                 ):
                     break
                 else:
