@@ -22,7 +22,6 @@ from twarc.expansions import (
     POLL_FIELDS,
     PLACE_FIELDS,
     LIST_FIELDS,
-    ensure_flattened,
 )
 from twarc.decorators2 import *
 from twarc.version import version, user_agent
@@ -1883,11 +1882,12 @@ class Twarc2:
 
         lookup = []
         if len(user) > 15 or (is_numeric and self._id_exists(user)):
-            lookup = ensure_flattened(list(self.user_lookup([user])))
+            lookup = list(self.user_lookup([user]))[0]
         else:
-            lookup = ensure_flattened(list(self.user_lookup([user], usernames=True)))
-        if lookup:
-            return lookup[-1]
+            lookup = list(self.user_lookup([user], usernames=True))[0]
+
+        if "data" in lookup:
+            return lookup["data"][0]
         else:
             raise ValueError(f"No such user {user}")
 

@@ -625,6 +625,12 @@ def test_list_tweets():
     assert len(tweets) >= 90
 
 
+def test_user_lookup_non_existent():
+    with pytest.raises(ValueError):
+        # This user does not exist, and a value error should be raised
+        T._ensure_user("noasdfasdf")
+
+
 def test_twarc_metadata():
 
     # With metadata (default)
