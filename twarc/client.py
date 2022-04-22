@@ -332,10 +332,13 @@ class Twarc(object):
 
     def user_lookup(self, ids, id_type="user_id"):
         """
-        A generator that returns users for supplied user ids, screen_names,
+        A generator that returns users for supplied user ids (iterable), screen_names,
         or an iterator of user_ids of either. Use the id_type to indicate
         which you are supplying (user_id or screen_name)
         """
+
+        if isinstance(ids, str):
+            raise TypeError("ids must be an iterable other than a string")
 
         if id_type not in ["user_id", "screen_name"]:
             raise RuntimeError("id_type must be user_id or screen_name")
