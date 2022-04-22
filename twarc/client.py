@@ -332,10 +332,12 @@ class Twarc(object):
 
     def user_lookup(self, ids, id_type="user_id"):
         """
-        A generator that returns users for supplied user ids, screen_names,
-        or an iterator of user_ids of either. Use the id_type to indicate
-        which you are supplying (user_id or screen_name)
+        A generator that returns users for supplied iterator of user ids or screen_names. 
+        Use the id_type to indicate which you are supplying (user_id or screen_name).
         """
+
+        if isinstance(ids, str):
+            raise TypeError("ids must be an iterable other than a string")
 
         if id_type not in ["user_id", "screen_name"]:
             raise RuntimeError("id_type must be user_id or screen_name")
@@ -393,7 +395,7 @@ class Twarc(object):
                 retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
-                    log.info("no users matching %s", screen_name)
+                    log.info("no users matching %s", user)
                 raise e
             user_ids = resp.json()
             for user_id in user_ids["ids"]:

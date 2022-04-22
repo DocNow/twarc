@@ -955,6 +955,9 @@ class Twarc2:
             generator[dict]: a generator, dict for each batch of 100 users.
         """
 
+        if isinstance(users, str):
+            raise TypeError("users must be an iterable other than a string")
+
         if usernames:
             url = "https://api.twitter.com/2/users/by"
         else:
