@@ -395,7 +395,7 @@ class Twarc(object):
                 retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
-                    log.info("no users matching %s", screen_name)
+                    log.info("no users matching %s", user)
                 raise e
             user_ids = resp.json()
             for user_id in user_ids["ids"]:
