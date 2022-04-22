@@ -1178,7 +1178,7 @@ class Twarc2:
                     log.error(f"too many consecutive errors ({tries}). stopping")
                     return
                 else:
-                    secs = errors**2
+                    secs = errors ** 2
                     log.info("sleeping %s seconds before reconnecting", secs)
                     time.sleep(secs)
 

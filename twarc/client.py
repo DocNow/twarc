@@ -332,7 +332,7 @@ class Twarc(object):
 
     def user_lookup(self, ids, id_type="user_id"):
         """
-        A generator that returns users for supplied iterator of user ids or screen_names. 
+        A generator that returns users for supplied iterator of user ids or screen_names.
         Use the id_type to indicate which you are supplying (user_id or screen_name).
         """
 

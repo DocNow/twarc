@@ -91,7 +91,7 @@ def rate_limit(f, tries=30):
                 if errors > tries:
                     log.warning(f"too many errors ({tries}) from Twitter, giving up")
                     resp.raise_for_status()
-                seconds = errors**2
+                seconds = errors ** 2
                 log.warning(
                     "caught %s from Twitter API, sleeping %s", resp.status_code, seconds
                 )
@@ -142,7 +142,7 @@ def catch_request_exceptions(f, tries=30):
                 if errors > tries:
                     log.error(f"giving up, too many request exceptions: {tries}")
                     raise e
-                seconds = errors**2
+                seconds = errors ** 2
                 log.info("sleeping %s", seconds)
                 time.sleep(seconds)
                 self.connect()
