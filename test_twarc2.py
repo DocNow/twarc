@@ -509,6 +509,15 @@ def test_ensure_flattened():
         twarc.expansions.ensure_flattened([[{"data": {"fake": "list_of_lists"}}]])
 
 
+def test_ensure_flattened_errors():
+    """
+    Test that ensure_flattened doesn't return tweets only contain errors and
+    that lack content.
+    """
+    data = {"errors": ["fake error"]}
+    assert twarc.expansions.ensure_flattened(data) == []
+
+
 def test_ensure_user_id():
     """
     Test _ensure_user_id's ability to discriminate correctly between IDs and
