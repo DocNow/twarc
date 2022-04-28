@@ -511,8 +511,7 @@ def test_ensure_flattened():
 
 def test_ensure_flattened_errors():
     """
-    Test that ensure_flattened doesn't return tweets only contain errors and
-    that lack content.
+    Test that ensure_flattened doesn't return tweets for API responses that only contain errors.
     """
     data = {"errors": ["fake error"]}
     assert twarc.expansions.ensure_flattened(data) == []
