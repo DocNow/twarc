@@ -242,6 +242,15 @@ def ensure_flattened(data):
         log.warning(f"Unable to expand dictionary without includes: {data}")
         return flatten(data)
 
+    # If it's just an object with errors return an empty list
+    elif (
+        isinstance(data, dict)
+        and "data" not in data
+        and "includes" not in data
+        and "errors" in data
+    ):
+        return []
+
     # If it's a single response and both "includes" and "data" are missing, it is already flattened
     elif isinstance(data, dict) and "data" not in data and "includes" not in data:
         return [data]
