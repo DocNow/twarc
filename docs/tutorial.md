@@ -26,7 +26,35 @@ We'll answer this question with a simple quantitative approach to analysing the 
 
 ### What is an API?
 
-Brief explanation of an API, especially a web API. Also need to include a link to a primer somewhere else.
+An Application Programming Interface (API) is a common method for software applications and services
+to allow other systems or people to programmatically interact with their system. For example,
+Twitter has an API which allows external systems to make requests to Twitter for information or
+actions. Twitter (and many other web apps and services) use an HTTP REST API, meaning that to interact
+with Twitter through the API you can send an HTTP request to a specific URL (also known as an endpoint) provided by Twitter, and
+Twitter will respond with a bundle of information in JSON format for you. 
+
+Twarc acts as a tool or an intermediary for you to use so that you don't have to manage the details
+of how exactly to make requests to the Twitter API and handle Twitter's responses. Twarc commands
+correspond roughly with Twitter API endpoints. For example, when you use Twarc to fetch the timeline of a specific
+twitter account (we'll use @Twitter in this example), this is the sequence of events:
+
+1. You run `twarc2 timeline Twitter tweets.jsonl`
+2. twarc2 makes a request on your behalf to the [Twitter v2 user lookup API endpoint](https://developer.twitter.com/en/docs/twitter-api/users/lookup/introduction)
+    in order to find the user ID for the @Twitter account, and receives a response from the Twitter API server with that user ID
+3. twarc2 makes a request on your behalf to the [Twitter v2 timeline API endpoint](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/introduction),
+   using the user ID determined in step 2, and receives a response (or several responses) from the Twitter API server with @Twitter's tweets
+4. twarc2 consolidates the timeline responses from step 3 and outputs them according to your initial command, in this case as `tweets.jsonl`
+
+There are a great many resources on the internet to learn more about APIs more generally and how to use them in a 
+variety of contexts. Here are a few introductory articles:
+
+- [How to Geek: What is an API, and how do developers use them?](https://www.howtogeek.com/343877/what-is-an-api/)
+- [IBM: What is an API?](https://www.ibm.com/cloud/learn/api)
+
+More detailed information on APIs and working with them:
+
+- [Zapier: An introduction to APIs](https://zapier.com/learn/apis/)
+- [RealPython: Python and REST APIs: Interacting with web services](https://realpython.com/api-integration-in-python/)
 
 ### What can you do with the Twitter API?
 
@@ -198,7 +226,7 @@ Let's improve this by updating our command to:
 
 And we should see output like below. Note that the `--text` and `--granularity` are optional flags provided to the `twarc2 counts` command, we can see other options by running `twarc2 counts --help`. In this case `--text` returns a simplified text output for easier reading, and `--granularity day` is passed to the Twitter API to specify that we're interested only in daily counts of tweets, not the default hourly count.
 
-<table of results>
+<table of results />
 
 Note that this is only the count for the last seven days - this is the level of search functionality available for all developers via the standard track of the Twitter API. If you have access to the [Twitter Academic track](https://developer.twitter.com/en/use-cases/do-research/academic-research), you can switch to searching the full Twitter archive from the `counts` and `search` commands by adding the `--archive` flag.
 
@@ -208,13 +236,13 @@ Let's work through this example a little further, first we want to expand to cap
 
 `twarc2 counts "echidna echidna's echidnas" --granularity day --text`
 
-<table of results>
+<table of results />
 
 Suddenly we're retrieving very few results! By default, if you don't specify an operator, the Twitter API assumes you mean AND, or that all of the words should be present - we will need to explicitly say that we want any of these words using the OR operator:
 
 `twarc2 counts "echidna OR echidna's OR echidnas" --granularity day --text`
 
-<table of results>
+<table of results />
 
 We can also apply operators based on other content or properties of tweets (see more [search operators](https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query#list) in the Twitter API documentation). Because we're deciding to focus on the number of likes on tweets as our measure of coolness, we want to exclude retweets. If we don't exclude retweets, our like measure might be heavily influenced by one highly retweeted tweet.
 
@@ -222,7 +250,7 @@ We can do this using the `-` (minus) operator, which allows us to exclude tweets
 
 `twarc2 counts "echidna OR echidna's OR echidnas -is:retweet" --granularity day --text`
 
-<table of results>
+<table of results />
 
 There's one tiny gotcha from the Twitter API here, which is important to know about. AND operators are applied before OR operators, even if the AND is not specified by the user. The query we wrote above actually means something like below. We're only removing the retweets containing the word "echidnas", not all retweets:
 
