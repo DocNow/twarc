@@ -99,12 +99,13 @@ def test_sample():
     assert count == 11
 
 
-def test_search_recent():
+@pytest.mark.parametrize("sort_order", ["recency", "relevancy"])
+def test_search_recent(sort_order):
 
     found_tweets = 0
     pages = 0
 
-    for response_page in T.search_recent("#auspol"):
+    for response_page in T.search_recent("#auspol", sort_order=sort_order):
         pages += 1
         tweets = response_page["data"]
         found_tweets += len(tweets)
