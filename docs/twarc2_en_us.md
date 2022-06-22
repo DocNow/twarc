@@ -133,6 +133,13 @@ leave off the `--start-time`:
 
     twarc2 search --end-time 2014-07-24 '"eric garner"' tweets.jsonl 
 
+### Sort Order
+
+By default, Twitter returns the results ordered by their published date with the newest tweets being first.
+To alter this behavior, it is possible to specify the `--sort-order` parameter.
+Currently, it supports `recency` (the default) or `relevancy`.
+In the latter case, tweets are ordered based on what Twitter determines to be the best results for your query.
+
 ## Searches
 
 Searches works like the [search](#search) command, but instead of taking a single query, it reads from a file containing many queries. You can use the same limit and time options just like a single search command, but it will be applied to every query.
