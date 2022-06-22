@@ -680,7 +680,7 @@ class Twarc2:
                 Return all tweets before this time (UTC datetime).
             max_results (int):
                 The maximum number of results per request. Max is 100.
-            sort_order (string):
+            sort_order (str):
                 Order tweets based on relevancy or recency.
 
         Returns:
@@ -742,7 +742,7 @@ class Twarc2:
                 Return all tweets before this time (UTC datetime).
             max_results (int):
                 The maximum number of results per request. Max is 500.
-            sort_order (string):
+            sort_order (str):
                 Order tweets based on relevancy or recency.
 
         Returns:
@@ -804,8 +804,6 @@ class Twarc2:
             granularity (str):
                 Count aggregation level: `day`, `hour`, `minute`.
                 Default is `hour`.
-            sort_order (string):
-                Order tweets based on relevancy or recency.
 
         Returns:
             generator[dict]: a generator, dict for each paginated response.
