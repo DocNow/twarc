@@ -240,6 +240,7 @@ def _search(
     media_fields,
     poll_fields,
     place_fields,
+    sort_order,
 ):
     """
     Common function to Search for tweets.
@@ -281,6 +282,7 @@ def _search(
             media_fields=media_fields,
             poll_fields=poll_fields,
             place_fields=place_fields,
+            sort_order=sort_order,
         ):
             _write(result, outfile)
             tweet_ids = [t["id"] for t in result.get("data", [])]
@@ -617,6 +619,11 @@ def command_line_verbose_options(f):
 
 
 @twarc2.command("search")
+@click.option(
+    "--sort-order",
+    type=click.Choice(["recency", "relevancy"]),
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+)
 @command_line_search_options
 @command_line_search_archive_options
 @command_line_expansions_shortcuts
@@ -1290,6 +1297,11 @@ def mentions(T, user_id, outfile, hide_progress, **kwargs):
 @command_line_expansions_options
 @command_line_progressbar_option
 @click.option("--limit", default=0, help="Maximum number of tweets to return")
+@click.option(
+    "--sort-order",
+    type=click.Choice(["recency", "relevancy"]),
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+)
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
 @click.pass_obj
@@ -1307,6 +1319,7 @@ def timeline(
     exclude_retweets,
     exclude_replies,
     hide_progress,
+    sort_order,
     **kwargs,
 ):
     """
@@ -1363,6 +1376,7 @@ def timeline(
         end_time=end_time,
         exclude_retweets=exclude_retweets,
         exclude_replies=exclude_replies,
+        sort_order=sort_order,
         **kwargs,
     )
 
@@ -1394,6 +1408,11 @@ def timeline(
     default=0,
     help="Maximum number of tweets to return per-timeline",
 )
+@click.option(
+    "--sort-order",
+    type=click.Choice(["recency", "relevancy"]),
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+)
 @command_line_search_options
 @command_line_timelines_options
 @command_line_expansions_shortcuts
@@ -1408,6 +1427,7 @@ def timelines(
     limit,
     timeline_limit,
     use_search,
+    sort_order,
     hide_progress,
     **kwargs,
 ):
@@ -1489,6 +1509,7 @@ def timelines(
                 tweets = _timeline_tweets(
                     T,
                     use_search=use_search,
+                    sort_order=sort_order,
                     user_id=user,
                     **kwargs,
                 )
@@ -1516,6 +1537,7 @@ def _timeline_tweets(
     end_time,
     exclude_retweets,
     exclude_replies,
+    sort_order,
     **kwargs,
 ):
     if use_search:
@@ -1530,6 +1552,7 @@ def _timeline_tweets(
             until_id=until_id,
             start_time=start_time,
             end_time=end_time,
+            sort_order=sort_order,
             **kwargs,
         )
     else:
@@ -1549,6 +1572,11 @@ def _timeline_tweets(
 @twarc2.command("searches")
 @command_line_search_options
 @command_line_search_archive_options
+@click.option(
+    "--sort-order",
+    type=click.Choice(["recency", "relevancy"]),
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+)
 @click.option(
     "--counts-only",
     is_flag=True,
@@ -1591,6 +1619,7 @@ def searches(
     granularity,
     combine_queries,
     hide_progress,
+    sort_order,
     **kwargs,
 ):
     """
@@ -1641,6 +1670,7 @@ def searches(
         kwargs.pop("media_fields", None)
         kwargs.pop("poll_fields", None)
         kwargs.pop("place_fields", None)
+        kwargs.pop("sort_order", None)
         kwargs = {
             **kwargs,
             **{
@@ -1665,6 +1695,7 @@ def searches(
                 "start_time": start_time,
                 "end_time": end_time,
                 "max_results": max_results,
+                "sort_order": sort_order,
             },
         }
 
@@ -1768,6 +1799,11 @@ def searches(
 
 
 @twarc2.command("conversation")
+@click.option(
+    "--sort-order",
+    type=click.Choice(["recency", "relevancy"]),
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+)
 @command_line_search_options
 @command_line_search_archive_options
 @command_line_expansions_shortcuts
@@ -1803,6 +1839,11 @@ def conversation(
     "--conversation-limit",
     default=0,
     help="Maximum number of tweets to return per-conversation",
+)
+@click.option(
+    "--sort-order",
+    type=click.Choice(["recency", "relevancy"]),
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
 )
 @command_line_search_options
 @command_line_search_archive_options

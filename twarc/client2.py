@@ -181,7 +181,7 @@ class Twarc2:
             )
 
         # Any other parameters passed as is,
-        # these include backfill_minutes, next_token, pagination_token
+        # these include backfill_minutes, next_token, pagination_token, sort_order
         params = {**params, **{k: v for k, v in kwargs.items() if v is not None}}
 
         return params
@@ -201,6 +201,7 @@ class Twarc2:
         media_fields,
         poll_fields,
         place_fields,
+        sort_order,
         next_token=None,
         granularity=None,
         sleep_between=0,
@@ -217,6 +218,7 @@ class Twarc2:
             start_time=start_time,
             end_time=end_time,
             next_token=next_token,
+            sort_order=sort_order
         )
 
         if granularity:
@@ -657,6 +659,7 @@ class Twarc2:
         poll_fields=None,
         place_fields=None,
         next_token=None,
+        sort_order=None,
     ):
         """
         Search Twitter for the given query in the last seven days,
@@ -677,6 +680,8 @@ class Twarc2:
                 Return all tweets before this time (UTC datetime).
             max_results (int):
                 The maximum number of results per request. Max is 100.
+            sort_order (string):
+                Order tweets based on relevancy or recency.
 
         Returns:
             generator[dict]: a generator, dict for each paginated response.
@@ -696,6 +701,7 @@ class Twarc2:
             poll_fields=poll_fields,
             place_fields=place_fields,
             next_token=next_token,
+            sort_order=sort_order,
         )
 
     @requires_app_auth
@@ -714,6 +720,7 @@ class Twarc2:
         poll_fields=None,
         place_fields=None,
         next_token=None,
+        sort_order=None,
     ):
         """
         Search Twitter for the given query in the full archive,
@@ -735,6 +742,8 @@ class Twarc2:
                 Return all tweets before this time (UTC datetime).
             max_results (int):
                 The maximum number of results per request. Max is 500.
+            sort_order (string):
+                Order tweets based on relevancy or recency.
 
         Returns:
             generator[dict]: a generator, dict for each paginated response.
@@ -762,6 +771,7 @@ class Twarc2:
             place_fields=place_fields,
             next_token=next_token,
             sleep_between=1.05,
+            sort_order=sort_order,
         )
 
     @requires_app_auth
@@ -794,6 +804,8 @@ class Twarc2:
             granularity (str):
                 Count aggregation level: `day`, `hour`, `minute`.
                 Default is `hour`.
+            sort_order (string):
+                Order tweets based on relevancy or recency.
 
         Returns:
             generator[dict]: a generator, dict for each paginated response.
@@ -813,6 +825,7 @@ class Twarc2:
             poll_fields=None,
             place_fields=None,
             granularity=granularity,
+            sort_order=None,
         )
 
     @requires_app_auth
@@ -867,6 +880,7 @@ class Twarc2:
             next_token=next_token,
             granularity=granularity,
             sleep_between=1.05,
+            sort_order=None,
         )
 
     def tweet_lookup(
