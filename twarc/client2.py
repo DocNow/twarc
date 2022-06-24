@@ -218,7 +218,7 @@ class Twarc2:
             start_time=start_time,
             end_time=end_time,
             next_token=next_token,
-            sort_order=sort_order
+            sort_order=sort_order,
         )
 
         if granularity:

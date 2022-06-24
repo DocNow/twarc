@@ -622,7 +622,7 @@ def command_line_verbose_options(f):
 @click.option(
     "--sort-order",
     type=click.Choice(["recency", "relevancy"]),
-    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")',
 )
 @command_line_search_options
 @command_line_search_archive_options
@@ -1300,7 +1300,7 @@ def mentions(T, user_id, outfile, hide_progress, **kwargs):
 @click.option(
     "--sort-order",
     type=click.Choice(["recency", "relevancy"]),
-    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")',
 )
 @click.argument("user_id", type=str)
 @click.argument("outfile", type=click.File("w"), default="-")
@@ -1411,7 +1411,7 @@ def timeline(
 @click.option(
     "--sort-order",
     type=click.Choice(["recency", "relevancy"]),
-    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")',
 )
 @command_line_search_options
 @command_line_timelines_options
@@ -1575,7 +1575,7 @@ def _timeline_tweets(
 @click.option(
     "--sort-order",
     type=click.Choice(["recency", "relevancy"]),
-    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")',
 )
 @click.option(
     "--counts-only",
@@ -1802,7 +1802,7 @@ def searches(
 @click.option(
     "--sort-order",
     type=click.Choice(["recency", "relevancy"]),
-    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")',
 )
 @command_line_search_options
 @command_line_search_archive_options
@@ -1843,7 +1843,7 @@ def conversation(
 @click.option(
     "--sort-order",
     type=click.Choice(["recency", "relevancy"]),
-    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")'
+    help='Filter tweets based on their date ("recency") (default) or based on their relevance as indicated by Twitter ("relevancy")',
 )
 @command_line_search_options
 @command_line_search_archive_options
