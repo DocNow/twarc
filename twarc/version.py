@@ -1,5 +1,5 @@
 import platform
 
-version = "2.10.4"
+version = "2.11.0"
 
 user_agent = f"twarc/{version} ({platform.system()} {platform.machine()}) {platform.python_implementation()}/{platform.python_version()}"
