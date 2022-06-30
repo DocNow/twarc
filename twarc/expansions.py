@@ -208,10 +208,13 @@ def flatten(response):
         elif isinstance(data, dict):
             tweets = [expand_payload(response["data"])]
 
-        # Add the __twarc metadata to each tweet if it's a result set
+        # Add the __twarc metadata and matching rules to each tweet if it's a result set
         if "__twarc" in response:
             for tweet in tweets:
                 tweet["__twarc"] = response["__twarc"]
+        if "matching_rules" in response:
+            for tweet in tweets:
+                tweet["matching_rules"] = response["matching_rules"]
     else:
         raise ValueError(f"missing data stanza in response: {response}")
 
