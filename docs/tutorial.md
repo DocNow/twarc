@@ -58,36 +58,32 @@ More detailed information on APIs and working with them:
 
 ### What can you do with the Twitter API?
 
-To start working with the Twitter API it's best to refresh our memory of what a tweet is. Most of the functionality available in the Twitter API focuses on finding and retrieving tweets, the users who post them, or interactions by users such as 'liking' a tweet or 'following' another account.
+The Twitter API is very popular in academic communities for good reason - it is one of the most accessible and research-friendly of the popular social media platforms at present. The Twitter API is well-established and offers a broad range of possibilities for data collection.
 
-![Annotated screenshot of a tweet showing affordances]()
+Here are some examples of things you can do with the Twitter API:
 
-This will be a high level description of what you can do with the Twitter API - not endpoint by endpoint.
+- Find historical tweets containing words or phrases during a time window of interest
+- Collect live tweets as they are posted matching specific search criteria
+- Collect tweets using specific hashtags or mentioning particular users
+- Collect tweets made by a particular user account
+- Collect engagement metrics including likes and retweets for specific tweets of interest
+- Map Twitter account followers and followees within or around a group of users
+- Trace conversations and interactions around users or tweets of interest
 
-EG:
+Twitter API endpoints can be structured either around tweets or around user accounts. For example, the search endpoint provides lists of tweets - user information is included, but the data is focused on the tweets.
 
-- Historical tweets containing particular content like words or phrases
-- Live tweets matching ...
-- Tweets using hashtags or mentioning particular users
-- Tweets made by a particular user
-- likes/retweets
-- followers/followees
+The available endpoints and their details are evolving as Twitter develops and releases its API v2, for the most up to date information refer to [the Twitter API documentation](https://developer.twitter.com/en/docs/twitter-api). Some of the most used endpoints for research purposes are:
 
-Tweet vs user focused
+- [search](https://developer.twitter.com/en/docs/twitter-api/tweets/search/introduction): This is the endpoint used to search tweets, whether recent or historical.
+- [lookup](https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/introduction): The lookup endpoints are useful when you have IDs of tweets of interest and want to fetch further data about those tweets - known in the Twarc community as *hydrating* the tweets.
+- [follows](https://developer.twitter.com/en/docs/twitter-api/users/follows/introduction): The follows endpoint allows collecting information about who follows who on Twitter
 
-- Tour of Different API endpoints and how they map to platform affordances
-	+ search
-	+ users
-	+ hydrate an existing dataset
-- Different data types (primarily user focused/tweet focused endpoints)
-- Different entity types on the Twitter platforms (URLs, hashtags, mentions, conversations etc)
+With the Twitter API, you can get data related to all types of objects that make up the Twitter experience, including [tweets](https://developer.twitter.com/en/docs/twitter-api/data-dictionary/object-model/tweet) and [users](https://developer.twitter.com/en/docs/twitter-api/data-dictionary/object-model/user). The Twitter documentation provides full details, and these two pages are very useful to bookmark!
 
-Endpoints:
+The Twitter documentation also provides some useful tools for constructing searches and queries:
 
-- search
-- timelines
-- followers/following
-- streaming
+- [Twitter's v2 API Query Builder](https://developer.twitter.com/apitools/query?query=)
+- [Building high quality filters for getting Twitter data](https://developer.twitter.com/en/docs/tutorials/building-high-quality-filters)
 
 The rest of this tutorial is going to focus on using the Twitter search API to retrieve tweets containing content relevant to the research question. We've chosen to focus on this because:
 
@@ -322,9 +318,7 @@ If you save a file from Excel with any of those problems that file is no longer 
 
 ### Working with Pandas
 
-To avoid the issues with Excel we're going to use the Python library [Pandas](https://pandas.pydata.org/). This is used to load and manipulate data like we have in our CSV file. Note that for this section we're going to run a very simple computation, the references will have links to more extensive resources for learning more.
-
-TODO: Decide whether to run as a script, or interactively.
+If you are going to be using the scientific Python library [Pandas](https://pandas.pydata.org/) for any processing or analysis, you may wish use Pandas methods to load your data. This is used to load and manipulate data like we have in our CSV file. Note that for this section we're going to run a very simple computation, the references will have links to more extensive resources for learning more.
 
 ```python
 import pandas
