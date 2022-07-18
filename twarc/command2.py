@@ -423,7 +423,7 @@ def _validate_max_results(context, parameter, value):
             )
         if value < 10 or value > 500:
             raise click.BadParameter("--max-results must be between 10 and 500")
-        if value > 100 and has_context_annotations:
+        if value > 100 and (has_context_annotations and not no_context_annotations_set):
             raise click.BadParameter(
                 "--max-results cannot be greater than 100 when using context annotations. Set --no-context-annotations to remove them, or don't specify them in --tweet-fields."
             )
