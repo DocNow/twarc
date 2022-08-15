@@ -242,7 +242,7 @@ class FileLineProgressBar(tqdm):
         ] = "{l_bar}{bar}| Processed {n_fmt}/{total_fmt} lines of input file [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
 
         # Warn for large (> 1 GB) input files:
-        if (os.stat(infile.name).st_size / (1024 * 1024 * 1024)) > 1:
+        if not disable and (os.stat(infile.name).st_size / (1024 * 1024 * 1024)) > 1:
             click.echo(
                 click.style(
                     f"Input File Size is {os.stat(infile.name).st_size / (1024*1024):.2f} MB, it may take a while to process. CTRL+C to stop.",
@@ -252,10 +252,11 @@ class FileLineProgressBar(tqdm):
                 err=True,
             )
 
-        with open(infile.name, "r", encoding="utf-8", errors="ignore") as f:
-            total_lines = sum(1 for _ in f)
+        def total_lines():
+            with open(infile.name, "r", encoding="utf-8", errors="ignore") as f:
+                return sum(1 for _ in f)
 
-        kwargs["total"] = total_lines if not disable else 1
+        kwargs["total"] = total_lines() if not disable else 1
         super().__init__(**kwargs)
 
     def update_with_result(
