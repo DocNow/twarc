@@ -606,7 +606,13 @@ class Twarc2:
         if expansions:
             params["expansions"] = "owner_id"
         url = f"https://api.twitter.com/2/lists/{list_id}"
-        return self.get(url, params=params).json()
+        resp = self.get(url, params=params)
+        data = resp.json()
+
+        if self.metadata:
+            data = _append_metadata(data, resp.url)
+
+        return data
 
     def list_tweets(
         self,
