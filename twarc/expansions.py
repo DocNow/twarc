@@ -22,7 +22,9 @@ EXPANSIONS = [
     "attachments.poll_ids",
     "attachments.media_keys",
     "geo.place_id",
+    "edit_history_tweet_ids",
 ]
+
 
 USER_FIELDS = [
     "created_at",
@@ -62,6 +64,7 @@ TWEET_FIELDS = [
     "reply_settings",
     "source",
     "withheld",
+    "edit_controls",
 ]
 
 MEDIA_FIELDS = [
