@@ -8,4 +8,4 @@ tqdm>=4.62
 mkdocs>=1.2
 mkdocs-click>=0.4
 mkdocs-material>=7.2
-mkdocstrings>=0.15
+mkdocstrings[python]>=0.15
