@@ -92,7 +92,7 @@ The rest of this tutorial is going to focus on using the Twitter search API to r
 
 ### Introduction to twarc
 
-Twarc is at it's core an application for interacting with the Twitter API, reading results from the different functionality the API offers, and safely writing the collected data to your machine for further analysis. Twarc handles the mechanical details of interacting with the Twitter API like including information to authenticate yourself, making HTTP requests to the API, formatting data in the right way, and retrying when things on the internet fail. Your job is to work out 1.) Which endpoint you want to call on from the Twitter API 2.) Which data you want to retrieve from that endpoint.
+Twarc is at its core an application for interacting with the Twitter API, reading results from the different functionality the API offers, and safely writing the collected data to your machine for further analysis. Twarc handles the mechanical details of interacting with the Twitter API like including information to authenticate yourself, making HTTP requests to the API, formatting data in the right way, and retrying when things on the internet fail. Your job is to work out 1.) Which endpoint you want to call on from the Twitter API 2.) Which data you want to retrieve from that endpoint.
 
 Twarc is a command line based application - to use twarc you type a command specifying a particular action, and the results of that command are shown as text on screen. If you haven't used a command line interface before, don't worry! Although there is a bit of a learning curve at the beginning, you will quickly get the hang of it - and because everything is a typed command, it is very easy to record and share _exactly_ how you collected data with other people. 
 
@@ -179,7 +179,7 @@ twarc2 --help
 
 Twarc is structured like many other command line applications: there is a single main command, `twarc2`, to launch the application, and then you provide a subcommand, or additional arguments, or flags to provide additional context about what that command should actually do. In this case we're only launching the `twarc2` command, and providing a single _flag_ `--help` (the double-dash syntax is usually used for this). Most terminal applications will have a `--help` or `-h` flag that will provide some useful information about the application you're running. This often includes example usage, options, and a short description.
 
-Note also that often when reading commands out loud, the space in between words is not mentioned explicitly: the command above might be read as "twarc-two dash dash help".
+Note also that often when reading commands out loud, the space in between words is not mentioned explicitly: the command above (`twarc2 --help`) might be read as "twarc-two dash dash help".
 
 Though we won't cover the command line outside of using Twarc in this tutorial, your operating systems command line functionality is extensive and can help you automate a lot of otherwise tedious tasks. If you're interested in learning more the [Software Carpentry lesson on the shell](https://swcarpentry.github.io/shell-novice/) is a good starting point.
 
@@ -222,23 +222,23 @@ Let's improve this by updating our command to:
 
 And we should see output like below. Note that the `--text` and `--granularity` are optional flags provided to the `twarc2 counts` command, we can see other options by running `twarc2 counts --help`. In this case `--text` returns a simplified text output for easier reading, and `--granularity day` is passed to the Twitter API to specify that we're interested only in daily counts of tweets, not the default hourly count.
 
-<table of results />
+(table of results)
 
 Note that this is only the count for the last seven days - this is the level of search functionality available for all developers via the standard track of the Twitter API. If you have access to the [Twitter Academic track](https://developer.twitter.com/en/use-cases/do-research/academic-research), you can switch to searching the full Twitter archive from the `counts` and `search` commands by adding the `--archive` flag.
 
-Twitter search is powerful and provides many rich options. However it also functions a little differently to most other search engines, because Twitter search does not focus on _ranking_ tweets by relevance (like a web search engine does). Instead Twitter search via the API focuses on retrieving all matching tweets in chronological order. In other words, Twitter search uses the [Boolean model of searching](https://nlp.stanford.edu/IR-book/html/htmledition/boolean-retrieval-1.html), and returns the documents that match exactly what you provide and nothing else. 
+Twitter search is powerful and provides many rich options. However, it also functions a little differently to most other search engines, because Twitter search does not focus on _ranking_ tweets by relevance (like a web search engine does). Instead, Twitter search via the API focuses on retrieving all matching tweets in chronological order. In other words, Twitter search uses the [Boolean model of searching](https://nlp.stanford.edu/IR-book/html/htmledition/boolean-retrieval-1.html), and returns the documents that match exactly what you provide and nothing else. 
 
 Let's work through this example a little further, first we want to expand to capture more variant's of the word echidna - note that Twitter search via the API matches on the whole word, so `echidna` and `echidnas` are different. You can also see that we've added some double quotes around our - without these quotes the individual pieces of our query might be interpreted as additional arguments to our search command:
 
 `twarc2 counts "echidna echidna's echidnas" --granularity day --text`
 
-<table of results />
+(table of results)
 
 Suddenly we're retrieving very few results! By default, if you don't specify an operator, the Twitter API assumes you mean AND, or that all of the words should be present - we will need to explicitly say that we want any of these words using the OR operator:
 
 `twarc2 counts "echidna OR echidna's OR echidnas" --granularity day --text`
 
-<table of results />
+(table of results)
 
 We can also apply operators based on other content or properties of tweets (see more [search operators](https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query#list) in the Twitter API documentation). Because we're deciding to focus on the number of likes on tweets as our measure of coolness, we want to exclude retweets. If we don't exclude retweets, our like measure might be heavily influenced by one highly retweeted tweet.
 
@@ -246,7 +246,7 @@ We can do this using the `-` (minus) operator, which allows us to exclude tweets
 
 `twarc2 counts "echidna OR echidna's OR echidnas -is:retweet" --granularity day --text`
 
-<table of results />
+(table of results)
 
 There's one tiny gotcha from the Twitter API here, which is important to know about. AND operators are applied before OR operators, even if the AND is not specified by the user. The query we wrote above actually means something like below. We're only removing the retweets containing the word "echidnas", not all retweets:
 
@@ -256,7 +256,7 @@ We can make our intent explicit by adding parantheses to group terms. This is a 
 
 `twarc2 counts "(echidna OR echidna's OR echidnas) -is:retweet" --granularity day --text`
 
-Now for the purposes of this tutorial we're going to stop exploring any further, but we could continue to refine and improve this query to match our research question. Twitter let's you build very long queries (up to 512 characters on the standard track and 1024 for the academic track) so you have plenty of scope to express yourself.
+Now for the purposes of this tutorial we're going to stop exploring any further, but we could continue to refine and improve this query to match our research question. Twitter lets you build very long queries (up to 512 characters on the standard track and 1024 for the academic track) so you have plenty of scope to express yourself.
 
 If we apply the same kind of process to the platypus case, we might end up with something like the following. In this case it was necessary to use the [Twitter search web interface](https://twitter.com/explore) to find some of the variations in the word platypus:
 
