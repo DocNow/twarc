@@ -5,7 +5,7 @@ Twarc is a command line tool for collecting Twitter data via Twitter's web Appli
 By the end of this tutorial, you will have:
 
 1. Familiarised yourself with interacting with a command line application via a terminal
-2. Setup twarc so you can collect data from the Twitter API
+2. Setup twarc so you can collect data from the Twitter API (version 2)
 3. Constructed two Twitter search queries to address a specific research question
 4. Collected data for those two queries
 5. Processed the collected data into formats suitable for other analysis
@@ -69,6 +69,9 @@ Here are some examples of things you can do with the Twitter API:
 - Collect engagement metrics including likes and retweets for specific tweets of interest
 - Map Twitter account followers and followees within or around a group of users
 - Trace conversations and interactions around users or tweets of interest
+
+You may notice as you read about the Twitter API that there are two versions of the Twitter API - version 1.1 and version 2. At the time of writing,
+Twitter is providing both versions of the API, but at some unknown point in the future version 1.1 may be discontinued. Twarc can handle either API version: the `twarc` command uses version 1.1 of the Twitter API, the `twarc2` command uses version 2. Take care when reading documentation and tutorials as to which Twitter API version is being referenced. This tutorial uses version 2 of the Twitter API.
 
 Twitter API endpoints can be structured either around tweets or around user accounts. For example, the search endpoint provides lists of tweets - user information is included, but the data is focused on the tweets.
 
