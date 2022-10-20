@@ -105,7 +105,7 @@ def test_search_recent(sort_order):
     found_tweets = 0
     pages = 0
 
-    for response_page in T.search_recent("#auspol", sort_order=sort_order):
+    for response_page in T.search_recent("#politics", sort_order=sort_order):
         pages += 1
         tweets = response_page["data"]
         found_tweets += len(tweets)
