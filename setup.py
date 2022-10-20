@@ -25,7 +25,7 @@ if __name__ == "__main__":
         classifiers=[
             "License :: OSI Approved :: MIT License",
         ],
-        python_requires=">=3.3",
+        python_requires=">=3.6",
         install_requires=dependencies,
         setup_requires=["pytest-runner"],
         tests_require=[
