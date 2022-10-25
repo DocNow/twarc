@@ -110,10 +110,10 @@ def test_search_recent(sort_order):
         tweets = response_page["data"]
         found_tweets += len(tweets)
 
-        if pages == 3:
+        if pages == 2:
             break
 
-    assert 200 <= found_tweets <= 300
+    assert 100 <= found_tweets <= 200
 
 
 def test_counts_recent():
