@@ -30,6 +30,10 @@ from twarc.version import version, user_agent
 log = logging.getLogger("twarc")
 
 
+class RequestTruncatedException(requests.exceptions.RequestException):
+    pass
+
+
 class Twarc2:
     """
     A client for the Twitter v2 API.
@@ -1600,7 +1604,25 @@ class Twarc2:
         if not self.client:
             self.connect()
         log.info("getting %s %s", args, kwargs)
+
         r = self.last_response = self.client.get(*args, timeout=(3.05, 31), **kwargs)
+
+        # Check that the response is not silently truncated.
+        # This check is based on
+        # https://blog.petrzemek.net/2018/04/22/on-incomplete-http-reads-and-the-requests-library-in-python/
+        # Note that this can be removed when request 3.0 is released, as this
+        # will be the default behaviour.
+        expected_length = r.headers.get("Content-Length")
+        if expected_length is not None:
+            actual_length = r.raw.tell()
+            expected_length = int(expected_length)
+            if actual_length < expected_length:
+                raise RequestTruncatedException(
+                    "incomplete read ({} bytes read, {} more expected)".format(
+                        actual_length, expected_length - actual_length
+                    )
+                )
+
         return r
 
     def get_paginated(self, *args, **kwargs):
