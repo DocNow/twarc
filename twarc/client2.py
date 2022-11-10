@@ -44,6 +44,7 @@ class Twarc2:
         bearer_token=None,
         connection_errors=0,
         metadata=True,
+        user_auth=False,
     ):
         """
         Instantiate a Twarc2 instance to talk to the Twitter V2+ API.
@@ -80,10 +81,12 @@ class Twarc2:
         self.metadata = metadata
         self.bearer_token = None
 
-        if bearer_token:
+        if access_token and user_auth:
+            self.access_token = access_token
+            self.auth_type = "user"
+        elif bearer_token:
             self.bearer_token = bearer_token
             self.auth_type = "application"
-
         elif consumer_key and consumer_secret:
             if access_token and access_token_secret:
                 self.consumer_key = consumer_key
@@ -1328,6 +1331,136 @@ class Twarc2:
             pagination_token=pagination_token,
         )
 
+    def _timeline_reverse_chrono(
+        self,
+        user_id,
+        timeline_type,
+        since_id,
+        until_id,
+        start_time,
+        end_time,
+        exclude_retweets,
+        exclude_replies,
+        max_results=None,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
+    ):
+        """
+        Helper function for user and mention timelines
+
+        Calls [GET /2/users/:id/tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets)
+        or [GET /2/users/:id/mentions](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-mentions)
+
+        Args:
+            user_id (int): ID of the user.
+            timeline_type (str): timeline type: `tweets` or `mentions`
+            since_id (int): results with a Tweet ID greater than (newer) than specified
+            until_id (int): results with a Tweet ID less than (older) than specified
+            start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
+            end_time (datetime): newest UTC timestamp from which the Tweets will be provided
+            exclude_retweets (boolean): remove retweets from timeline
+            exlucde_replies (boolean): remove replies from timeline
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
+        """
+
+        url = (
+            f"https://api.twitter.com/2/users/{user_id}/timelines/reverse_chronological"
+        )
+
+        params = self._prepare_params(
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            pagination_token=pagination_token,
+        )
+
+        excludes = []
+        if exclude_retweets:
+            excludes.append("retweets")
+        if exclude_replies:
+            excludes.append("replies")
+        if len(excludes) > 0:
+            params["exclude"] = ",".join(excludes)
+
+        for response in self.get_paginated(url, params=params):
+            # can return without 'data' if there are no results
+            if "data" in response:
+                yield response
+            else:
+                log.info(f"Retrieved an empty page of results for timeline {user_id}")
+
+        log.info(f"No more results for timeline {user_id}.")
+
+    def timeline_reverse_chrono(
+        self,
+        user,
+        since_id=None,
+        until_id=None,
+        start_time=None,
+        end_time=None,
+        exclude_retweets=False,
+        exclude_replies=False,
+        max_results=100,
+        expansions=None,
+        tweet_fields=None,
+        user_fields=None,
+        media_fields=None,
+        poll_fields=None,
+        place_fields=None,
+        pagination_token=None,
+    ):
+        """
+        Retrieve up to the 3200 most recent tweets made by the given user.
+
+        Calls [GET /2/users/:id/tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets)
+
+        Args:
+            user (int): ID of the user.
+            since_id (int): results with a Tweet ID greater than (newer) than specified
+            until_id (int): results with a Tweet ID less than (older) than specified
+            start_time (datetime): oldest UTC timestamp from which the Tweets will be provided
+            end_time (datetime): newest UTC timestamp from which the Tweets will be provided
+            exclude_retweets (boolean): remove retweets from timeline results
+            exclude_replies (boolean): remove replies from timeline results
+            max_results (int): the maximum number of Tweets to retrieve. Between 5 and 100.
+
+        Returns:
+            generator[dict]: A generator, dict for each page of results.
+        """
+        user_id = self._ensure_user_id(user)
+        return self._timeline_reverse_chrono(
+            user_id=user_id,
+            timeline_type="tweets",
+            since_id=since_id,
+            until_id=until_id,
+            start_time=start_time,
+            end_time=end_time,
+            exclude_retweets=exclude_retweets,
+            exclude_replies=exclude_replies,
+            max_results=max_results,
+            expansions=expansions,
+            tweet_fields=tweet_fields,
+            user_fields=user_fields,
+            media_fields=media_fields,
+            poll_fields=poll_fields,
+            place_fields=place_fields,
+            pagination_token=pagination_token,
+        )
+
     def mentions(
         self,
         user,
@@ -1712,6 +1845,10 @@ class Twarc2:
                 client_id=self.consumer_key,
                 client_secret=self.consumer_secret,
             )
+        elif self.auth_type == "user" and self.access_token:
+            self.client = requests.Session()
+            auth = f"Bearer {self.access_token}"
+            self.client.headers.update({"Authorization": auth})
         else:
             log.info("creating user auth client")
             log.debug("client_id: %s", self.consumer_key)
