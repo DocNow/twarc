@@ -59,6 +59,8 @@ class Twarc2:
         3. If `consumer_key`, `consumer_secret`, `access_token` and
         `access_token_secret` are all passed, then user authentication
         is used instead.
+        4. If `access_token` and `user_auth=True` are passed, then user
+        authentication (OauthV2) is used instead.
 
         Args:
             consumer_key (str):
@@ -75,6 +77,8 @@ class Twarc2:
                 Number of retries for GETs
             metadata (bool):
                 Append `__twarc` metadata to results.
+            user_auth (bool): 
+                Use user authentication (OauthV2) with user acess_token instead of app authentication
         """
         self.api_version = "2"
         self.connection_errors = connection_errors
