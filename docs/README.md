@@ -26,4 +26,4 @@ For `R` there is [academictwitteR](https://cran.r-project.org/web/packages/acade
 
 ## Getting Help
 
-Check the [tutorials](tutorials.md) to get started, or follow along with this [recorded stream](https://tube.nocturlab.fr/videos/watch/1d98d20e-a4fd-4594-aa94-9b1b1301cead) introducing twarc. If you run into trouble, feel free to make a post on the [Twarc Repository](https://github.com/DocNow/twarc/issues) or on the [Twitter Developer Forums](https://twittercommunity.com/c/academic-research/62).
+Check out the [tutorial](tutorial.md) to get started, or follow along with this [recorded stream](https://tube.nocturlab.fr/videos/watch/1d98d20e-a4fd-4594-aa94-9b1b1301cead) introducing twarc. You can also find additional resources linked from [resources](resources.md). If you run into trouble, feel free to make a post on the [Twarc Repository](https://github.com/DocNow/twarc/issues) or on the [Twitter Developer Forums](https://twittercommunity.com/c/academic-research/62).
