@@ -15,7 +15,7 @@ def rate_limit(f):
     issue the API call again.
     """
 
-    def new_f(*args, **kwargs):
+    def new_f(*args, max_server_error_retries=30, **kwargs):
         errors = 0
         while True:
             resp = f(*args, **kwargs)
@@ -56,7 +56,7 @@ def rate_limit(f):
                 resp.url.startswith("https://api.twitter.com/2/tweets/search/all")
             ):
                 errors += 1
-                if errors > 30:
+                if errors > max_server_error_retries:
                     log.warning("too many errors from Twitter, giving up")
                     resp.raise_for_status()
                 # Shorter wait time than other endpoints for this specific case. Also
@@ -76,7 +76,7 @@ def rate_limit(f):
                 time.sleep(seconds)
             elif resp.status_code >= 500:
                 errors += 1
-                if errors > 30:
+                if errors > max_server_error_retries:
                     log.warning("too many errors from Twitter, giving up")
                     resp.raise_for_status()
                 seconds = 60 * errors
