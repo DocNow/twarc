@@ -18,7 +18,6 @@ EXPANSIONS = [
     "in_reply_to_user_id",
     "referenced_tweets.id",
     "referenced_tweets.id.author_id",
-    "edit_history_tweet_ids"
     "entities.mentions.username",
     "attachments.poll_ids",
     "attachments.media_keys",
@@ -66,6 +65,7 @@ TWEET_FIELDS = [
     "source",
     "withheld",
     "edit_controls",
+    "edit_history_tweet_ids",
 ]
 
 MEDIA_FIELDS = [
@@ -98,6 +98,8 @@ PLACE_FIELDS = [
 ]
 
 LIST_FIELDS = [
+    "id",
+    "name",
     "owner_id",
     "created_at",
     "member_count",
