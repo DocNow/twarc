@@ -76,6 +76,7 @@ MEDIA_FIELDS = [
     "type",
     "url",
     "width",
+    "variants",
     # "non_public_metrics", # private
     # "organic_metrics", # private
     # "promoted_metrics", # private
