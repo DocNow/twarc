@@ -29,6 +29,7 @@ The documentation is managed at ReadTheDocs. If you would like to improve the do
 To view your documentation locally you should be able to:
 
     pip install -r requirements-mkdocs.txt
+    pip install -e .
     mkdocs serve
     open http://127.0.0.1:8000/
 
