@@ -37,3 +37,7 @@ Uses both `twarc` and `twarc2`
 <https://github.com/jeffcsauer/twarc-v2-tutorials/blob/master/twarc_fas.md>
 
 An example of using `twarc2` search, but be sure to install twarc using `pip install twarc` not the link to the v2 branch zip.
+
+## Short video demonstration of twarc by the Australian Digital Observatory
+
+A six minute video by the [Australian Digital Observatory](https://www.digitalobservatory.net.au/) that shows some of the functionality of `twarc2` search, as well as how to use [Twitter's Query Builder](https://developer.twitter.com/apitools/query?query=) in conjunction with twarc.
