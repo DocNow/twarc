@@ -433,4 +433,4 @@ Note that the hydrated files will include fewer tweets: tweets that have been de
 
 ## Suggested resources
 
-You can find some additional links and resources in the [resources section](/resources) of the twarc documentation.
+You can find some additional links and resources in the [resources section](https://twarc-project.readthedocs.io/en/latest/resources/) of the twarc documentation.
