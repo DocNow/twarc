@@ -30,6 +30,7 @@ if __name__ == "__main__":
         setup_requires=["pytest-runner"],
         tests_require=[
             "pytest",
+            "black",
             "pytest-black",
             "python-dotenv",
             "pytz",
