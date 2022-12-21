@@ -337,7 +337,6 @@ def test_follower_ids_with_user_id():
 
 
 def test_follower_ids_max_pages():
-
     ids = list(T.follower_ids(813286, max_pages=1))
     assert 0 < len(ids) <= 5000
     ids = list(T.follower_ids(813286, max_pages=2))
@@ -363,7 +362,6 @@ def test_friend_ids_with_user_id():
 
 
 def test_friend_ids_max_pages():
-
     ids = list(T.friend_ids(27260086, max_pages=1))
     assert 0 < len(ids) <= 5000
     ids = list(T.friend_ids(27260086, max_pages=2))
@@ -799,7 +797,6 @@ def test_csv_retweet():
 
 
 def test_csv_retweet_hashtag():
-
     toplevel_hashtags = 0
     rt_hashtags = 0
 

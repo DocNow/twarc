@@ -101,7 +101,6 @@ def test_sample():
 
 @pytest.mark.parametrize("sort_order", ["recency", "relevancy"])
 def test_search_recent(sort_order):
-
     found_tweets = 0
     pages = 0
 
@@ -117,7 +116,6 @@ def test_search_recent(sort_order):
 
 
 def test_counts_recent():
-
     found_counts = 0
 
     for response_page in T.counts_recent("twitter is:verified", granularity="day"):
@@ -133,7 +131,6 @@ def test_counts_recent():
     reason="No Academic Research Product Track access",
 )
 def test_counts_empty_page():
-
     found_counts = 0
 
     for response_page in T.counts_all(
@@ -174,7 +171,6 @@ def test_user_ids_lookup():
     users_not_found = 0
 
     for response in T.user_lookup(range(1, 1000)):
-
         for profile in response["data"]:
             users_found += 1
 
@@ -199,12 +195,10 @@ def test_usernames_lookup():
 
 
 def test_tweet_lookup():
-
     tweets_found = 0
     tweets_not_found = 0
 
     for response in T.tweet_lookup(range(1000, 2000)):
-
         for tweet in response["data"]:
             tweets_found += 1
 
@@ -539,7 +533,6 @@ def test_ensure_user_id():
 
 
 def test_liking_users():
-
     # This is one of @jack's tweets about the Twitter API
     likes = T.liking_users(1460417326130421765)
 
@@ -555,7 +548,6 @@ def test_liking_users():
 
 
 def test_retweeted_by():
-
     # This is one of @jack's tweets about the Twitter API
     retweet_users = T.retweeted_by(1460417326130421765)
 
@@ -571,7 +563,6 @@ def test_retweeted_by():
 
 
 def test_liked_tweets():
-
     # What has @jack liked?
     liked_tweets = T.liked_tweets(12)
 
@@ -641,7 +632,6 @@ def test_user_lookup_non_existent():
 
 
 def test_twarc_metadata():
-
     # With metadata (default)
     event = threading.Event()
     for i, response in enumerate(T.sample(event=event)):
