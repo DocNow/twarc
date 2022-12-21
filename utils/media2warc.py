@@ -76,7 +76,6 @@ class WriteWarc(threading.Thread):
         self.dedup = Dedup()
 
     def run(self):
-
         with open(self.warcfile, "ab") as output:
             while True:
                 self.lock.acquire()
@@ -157,7 +156,6 @@ def parse_extended_entities(extended_entities_dict):
 
     if "media" in extended_entities_dict.keys():
         for item in extended_entities_dict["media"]:
-
             # add static image
             urls.append(item["media_url_https"])
 

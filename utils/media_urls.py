@@ -22,7 +22,6 @@ for line in fileinput.input(openhook=fileinput.hook_encoded("utf8")):
 
     if "extended_entities" in tweet and "media" in tweet["extended_entities"]:
         for media in tweet["extended_entities"]["media"]:
-
             if media["type"] == "animated_gif":
                 print(id, media["media_url_https"])
 

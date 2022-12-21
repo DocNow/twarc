@@ -139,7 +139,6 @@ class Twarc(object):
         reached_end = False
 
         while True:
-
             # note: max_id changes as results are retrieved
             if max_id:
                 params["max_id"] = max_id
@@ -724,7 +723,6 @@ class Twarc(object):
         tweet_id = tweet["id_str"]
         log.info("looking for replies to: %s", tweet_id)
         for reply in self.search("to:%s" % screen_name, since_id=tweet_id):
-
             if reply["in_reply_to_status_id_str"] != tweet_id:
                 continue
 
