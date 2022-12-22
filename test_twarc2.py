@@ -301,6 +301,20 @@ def atest_timeline():
     assert found >= 200
 
 
+def atest_home_timeline_reverse_chrono():
+    """
+    Test the user timeline endpoints.
+
+    """
+    # get @jack's first pages of tweets and mentions
+    found = 0
+    for pages, tweets in enumerate(T.timeline_reverse_chrono(12)):
+        found += len(tweets["data"])
+        if pages == 3:
+            break
+    assert found >= 200
+
+
 def atest_timeline_username():
     """
     Test the user timeline endpoints with username.
