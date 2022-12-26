@@ -416,7 +416,6 @@ def _validate_max_results(context, parameter, value):
     )
 
     if value:
-
         if not archive_set and value > 100:
             raise click.BadParameter(
                 "--max-results cannot be greater than 100 when using Standard Access. Specify --archive if you have Academic Access."
@@ -431,7 +430,6 @@ def _validate_max_results(context, parameter, value):
         return value
 
     else:
-
         if archive_set and (
             no_context_annotations_set
             or minimal_fields_set
@@ -1490,7 +1488,6 @@ def timelines(
                 break
 
             for user in users:
-
                 # only process a given user once
                 if user in seen:
                     log.info("already processed %s, skipping", user)
@@ -1704,7 +1701,6 @@ def searches(
     # TODO: Needs an inputlines progress bar instead, as the queries are variable
     # size.
     with FileLineProgressBar(infile, outfile, disable=hide_progress) as progress:
-
         merged_query = ""
         extended_query = None
         query = None
@@ -1755,7 +1751,6 @@ def searches(
             response = api_method(issue_query, **kwargs)
 
             for result in response:
-
                 if counts_only:
                     for r in result["data"]:
                         click.echo(
@@ -1780,7 +1775,6 @@ def searches(
             response = api_method(merged_query, **kwargs)
 
             for result in response:
-
                 if counts_only:
                     for r in result["data"]:
                         click.echo(
@@ -1902,7 +1896,6 @@ def conversations(
             conv_count = 0
 
             for conv_id in conv_ids:
-
                 if conv_id in seen:
                     log.info(f"already fetched conversation_id {conv_id}")
                 seen.add(conv_id)
@@ -2805,7 +2798,6 @@ def _wait_for_job(T, job, hide_progress=False):
         disable=hide_progress,
         bar_format="{l_bar}{bar}| Waiting {n_time}/{total_time}{postfix}",
     ) as pbar:
-
         while True:
             try:
                 pbar.refresh()

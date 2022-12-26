@@ -9,7 +9,6 @@ from urllib.parse import parse_qs
 
 
 def handshake():
-
     # Default empty keys
     consumer_key = ""
     consumer_secret = ""

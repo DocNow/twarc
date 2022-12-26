@@ -119,7 +119,6 @@ def extract(json_object, args, csv_writer):
             found = found1
 
     for row in found:
-
         csv_writer.writerow(row)
     return len(found)
 

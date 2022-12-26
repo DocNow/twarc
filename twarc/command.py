@@ -291,7 +291,6 @@ def main():
     line_count = 0
     file_count = 0
     for thing in things:
-
         # rotate the files if necessary
         if args.output and args.split and line_count % args.split == 0:
             file_count += 1

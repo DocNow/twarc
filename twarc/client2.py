@@ -256,7 +256,6 @@ class Twarc2:
         if using_counts:
             while True:
                 for response in self.get_paginated(url, params=params):
-
                     # Note that we're ensuring the appropriate amount of sleep is
                     # taken before yielding every item. This ensures that we won't
                     # exceed the rate limit even in cases where a response generator
@@ -309,7 +308,6 @@ class Twarc2:
 
         else:
             for response in self.get_paginated(url, params=params):
-
                 # Note that we're ensuring the appropriate amount of sleep is
                 # taken before yielding every item. This ensures that we won't
                 # exceed the rate limit even in cases where a response generator
@@ -914,7 +912,6 @@ class Twarc2:
         """
 
         def lookup_batch(tweet_id):
-
             url = "https://api.twitter.com/2/tweets"
 
             params = self._prepare_params(
@@ -1653,7 +1650,6 @@ class Twarc2:
             token_param = "next_token"
 
         while "meta" in page and "next_token" in page["meta"]:
-
             if "params" in kwargs:
                 kwargs["params"][token_param] = page["meta"]["next_token"]
             else:

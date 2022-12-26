@@ -29,7 +29,6 @@ def rate_limit(f, tries=30):
                 errors = 0
                 return resp
             elif resp.status_code == 429:
-
                 # Check the headers, and try to infer why we're hitting the
                 # rate limit. Because the search/all endpoints also have a
                 # 1r/s rate limit that isn't obvious in the headers, we need
@@ -132,7 +131,6 @@ def catch_request_exceptions(f, tries=30):
                 errors = 0
                 return resp
             except (requests.exceptions.RequestException, ConnectionError) as e:
-
                 # don't catch any HTTP errors since those are handled separately
                 if isinstance(e, requests.exceptions.HTTPError):
                     raise e

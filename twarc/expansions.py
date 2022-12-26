@@ -65,6 +65,7 @@ TWEET_FIELDS = [
     "source",
     "withheld",
     "edit_controls",
+    "edit_history_tweet_ids",
 ]
 
 MEDIA_FIELDS = [
@@ -76,6 +77,7 @@ MEDIA_FIELDS = [
     "type",
     "url",
     "width",
+    "variants",
     # "non_public_metrics", # private
     # "organic_metrics", # private
     # "promoted_metrics", # private
@@ -96,6 +98,8 @@ PLACE_FIELDS = [
 ]
 
 LIST_FIELDS = [
+    "id",
+    "name",
     "owner_id",
     "created_at",
     "member_count",

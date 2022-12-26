@@ -31,7 +31,7 @@ T = twarc.Twarc2(
 )
 
 
-def atest_version():
+def test_version():
     import setup
 
     assert setup.version == version
@@ -40,7 +40,7 @@ def atest_version():
     assert f"twarc/{version}" in user_agent
 
 
-def atest_auth_types_interaction():
+def test_auth_types_interaction():
     """
     Test the various options for configuration work as expected.
     """
@@ -81,7 +81,7 @@ def atest_auth_types_interaction():
         tw.sample()
 
 
-def atest_sample():
+def test_sample():
     # event to tell the filter stream to close
     event = threading.Event()
 
@@ -101,7 +101,6 @@ def atest_sample():
 
 @pytest.mark.parametrize("sort_order", ["recency", "relevancy"])
 def test_search_recent(sort_order):
-
     found_tweets = 0
     pages = 0
 
@@ -116,8 +115,7 @@ def test_search_recent(sort_order):
     assert 100 <= found_tweets <= 200
 
 
-def atest_counts_recent():
-
+def test_counts_recent():
     found_counts = 0
 
     for response_page in T.counts_recent("twitter is:verified", granularity="day"):
@@ -132,8 +130,7 @@ def atest_counts_recent():
     os.environ.get("SKIP_ACADEMIC_PRODUCT_TRACK") != None,
     reason="No Academic Research Product Track access",
 )
-def atest_counts_empty_page():
-
+def test_counts_empty_page():
     found_counts = 0
 
     for response_page in T.counts_all(
@@ -148,7 +145,7 @@ def atest_counts_empty_page():
     assert found_counts == 72
 
 
-def atest_search_times():
+def test_search_times():
     found = False
     now = datetime.datetime.now(tz=pytz.timezone("Australia/Melbourne"))
     # twitter api doesn't resolve microseconds so strip them for comparison
@@ -169,12 +166,11 @@ def atest_search_times():
     assert found
 
 
-def atest_user_ids_lookup():
+def test_user_ids_lookup():
     users_found = 0
     users_not_found = 0
 
     for response in T.user_lookup(range(1, 1000)):
-
         for profile in response["data"]:
             users_found += 1
 
@@ -189,7 +185,7 @@ def atest_user_ids_lookup():
     assert users_found + users_not_found == 999
 
 
-def atest_usernames_lookup():
+def test_usernames_lookup():
     users_found = 0
     usernames = ["jack", "barackobama", "rihanna"]
     for response in T.user_lookup(usernames, usernames=True):
@@ -198,13 +194,11 @@ def atest_usernames_lookup():
     assert users_found == 3
 
 
-def atest_tweet_lookup():
-
+def test_tweet_lookup():
     tweets_found = 0
     tweets_not_found = 0
 
     for response in T.tweet_lookup(range(1000, 2000)):
-
         for tweet in response["data"]:
             tweets_found += 1
 
@@ -227,7 +221,7 @@ def atest_tweet_lookup():
     os.environ.get("GITHUB_ACTIONS") != None,
     reason="stream() seems to throw a 400 error under GitHub Actions?!",
 )
-def atest_stream():
+def test_stream():
     # remove any active stream rules
     rules = T.get_stream_rules()
     if "data" in rules and len(rules["data"]) > 0:
@@ -280,7 +274,7 @@ def atest_stream():
     assert "data" not in rules
 
 
-def atest_timeline():
+def test_timeline():
     """
     Test the user timeline endpoints.
 
@@ -301,7 +295,7 @@ def atest_timeline():
     assert found >= 200
 
 
-def atest_timeline_username():
+def test_timeline_username():
     """
     Test the user timeline endpoints with username.
 
@@ -322,12 +316,12 @@ def atest_timeline_username():
     assert found >= 200
 
 
-def atest_missing_timeline():
+def test_missing_timeline():
     results = T.timeline(1033441111677788160)
     assert len(list(results)) == 0
 
 
-def atest_follows():
+def test_follows():
     """
     Test followers and and following.
 
@@ -349,7 +343,7 @@ def atest_follows():
     assert found >= 1000
 
 
-def atest_follows_username():
+def test_follows_username():
     """
     Test followers and and following by username.
 
@@ -371,7 +365,7 @@ def atest_follows_username():
     assert found >= 1000
 
 
-def atest_flattened():
+def test_flattened():
     """
     This test uses the search API to test response flattening. It will look
     at each tweet to find evidence that all the expansions have worked. Once it
@@ -457,7 +451,7 @@ def atest_flattened():
     assert found_referenced_tweets, "found referenced tweets"
 
 
-def atest_ensure_flattened():
+def test_ensure_flattened():
     resp = next(T.search_recent("twitter", max_results=20))
 
     # flatten a response
@@ -510,7 +504,7 @@ def atest_ensure_flattened():
         twarc.expansions.ensure_flattened([[{"data": {"fake": "list_of_lists"}}]])
 
 
-def atest_ensure_flattened_errors():
+def test_ensure_flattened_errors():
     """
     Test that ensure_flattened doesn't return tweets for API responses that only contain errors.
     """
@@ -518,7 +512,7 @@ def atest_ensure_flattened_errors():
     assert twarc.expansions.ensure_flattened(data) == []
 
 
-def atest_ensure_user_id():
+def test_ensure_user_id():
     """
     Test _ensure_user_id's ability to discriminate correctly between IDs and
     screen names.
@@ -538,8 +532,7 @@ def atest_ensure_user_id():
     assert T._ensure_user_id(1033441111677788160) == "1033441111677788160"
 
 
-def atest_liking_users():
-
+def test_liking_users():
     # This is one of @jack's tweets about the Twitter API
     likes = T.liking_users(1460417326130421765)
 
@@ -554,8 +547,7 @@ def atest_liking_users():
             break
 
 
-def atest_retweeted_by():
-
+def test_retweeted_by():
     # This is one of @jack's tweets about the Twitter API
     retweet_users = T.retweeted_by(1460417326130421765)
 
@@ -570,8 +562,7 @@ def atest_retweeted_by():
             break
 
 
-def atest_liked_tweets():
-
+def test_liked_tweets():
     # What has @jack liked?
     liked_tweets = T.liked_tweets(12)
 
@@ -586,62 +577,61 @@ def atest_liked_tweets():
             break
 
 
-def atest_list_lookup():
+def test_list_lookup():
     parks_list = T.list_lookup(715919216927322112)
     assert "data" in parks_list
     assert parks_list["data"]["name"] == "National-parks"
 
 
-def atest_list_members():
+def test_list_members():
     response = list(T.list_members(715919216927322112))
     assert len(response) == 1
     members = twarc.expansions.flatten(response[0])
     assert len(members) == 8
 
 
-def atest_list_followers():
+def test_list_followers():
     response = list(T.list_followers(715919216927322112))
     assert len(response) >= 2
     followers = twarc.expansions.flatten(response[0])
     assert len(followers) > 50
 
 
-def atest_list_memberships():
+def test_list_memberships():
     response = list(T.list_memberships("64flavors"))
     assert len(response) == 1
     lists = twarc.expansions.flatten(response[0])
     assert len(lists) >= 9
 
 
-def atest_followed_lists():
+def test_followed_lists():
     response = list(T.followed_lists("nasa"))
     assert len(response) == 1
     lists = twarc.expansions.flatten(response[0])
     assert len(lists) >= 1
 
 
-def atest_owned_lists():
+def test_owned_lists():
     response = list(T.owned_lists("nasa"))
     assert len(response) >= 1
     lists = twarc.expansions.flatten(response[0])
     assert len(lists) >= 11
 
 
-def atest_list_tweets():
+def test_list_tweets():
     response = next(T.list_tweets(715919216927322112))
     assert "data" in response
     tweets = twarc.expansions.flatten(response)
     assert len(tweets) >= 90
 
 
-def atest_user_lookup_non_existent():
+def test_user_lookup_non_existent():
     with pytest.raises(ValueError):
         # This user does not exist, and a value error should be raised
         T._ensure_user("noasdfasdf")
 
 
-def atest_twarc_metadata():
-
+def test_twarc_metadata():
     # With metadata (default)
     event = threading.Event()
     for i, response in enumerate(T.sample(event=event)):
@@ -667,7 +657,7 @@ def atest_twarc_metadata():
     T.metadata = True
 
 
-def atest_docs_requirements():
+def test_docs_requirements():
     """
     Make sure that the mkdocs requirements has everything that is in the
     twarc requirements so the readthedocs build doesn't fail.
@@ -678,7 +668,7 @@ def atest_docs_requirements():
     assert twarc_reqs.issubset(mkdocs_reqs)
 
 
-def atest_geo():
+def test_geo():
     print(T.geo(query="Silver Spring"))
 
 
