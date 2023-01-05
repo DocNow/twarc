@@ -40,6 +40,7 @@ USER_FIELDS = [
     "url",
     "username",
     "verified",
+    "verified_type",
     "withheld",
 ]
 
