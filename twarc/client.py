@@ -118,6 +118,7 @@ class Twarc(object):
             "count": 100,
             "q": q,
             "include_ext_alt_text": "true",
+            "include_ext_is_blue_verified": "true",
             "include_entities": "true",
         }
 
@@ -278,7 +279,12 @@ class Twarc(object):
         else:
             url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
 
-        params = {"count": 200, id_type: id, "include_ext_alt_text": "true"}
+        params = {
+            "count": 200,
+            id_type: id,
+            "include_ext_alt_text": "true",
+            "include_ext_is_blue_verified": "true",
+        }
 
         retrieved_pages = 0
         reached_end = False
@@ -352,7 +358,10 @@ class Twarc(object):
             ids_str = ",".join(lookup_ids)
             log.info("looking up users %s", ids_str)
             url = "https://api.twitter.com/1.1/users/lookup.json"
-            params = {id_type: ids_str}
+            params = {
+                id_type: ids_str,
+                "include_ext_is_blue_verified": "true",
+            }
             try:
                 resp = self.get(url, params=params, allow_404=True)
             except requests.exceptions.HTTPError as e:
@@ -462,7 +471,11 @@ class Twarc(object):
             locations = locations.replace("\\", "")
 
         url = "https://stream.twitter.com/1.1/statuses/filter.json"
-        params = {"stall_warning": True, "include_ext_alt_text": True}
+        params = {
+            "stall_warning": True,
+            "include_ext_alt_text": True,
+            "include_ext_is_blue_verified": "true",
+        }
         if track:
             params["track"] = track
         if follow:
@@ -611,6 +624,7 @@ class Twarc(object):
                     data={
                         "id": ",".join(ids),
                         "include_ext_alt_text": "true",
+                        "include_ext_is_blue_verified": "true",
                         "include_entities": "true",
                         "trim_user": trim_user,
                     },
@@ -629,6 +643,7 @@ class Twarc(object):
                 data={
                     "id": ",".join(ids),
                     "include_ext_alt_text": "true",
+                    "include_ext_is_blue_verified": "true",
                     "include_entities": "true",
                     "trim_user": trim_user,
                 },
