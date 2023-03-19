@@ -32,10 +32,16 @@ ORIGINAL_USER_DELETED = "ORIGINAL_USER_DELETED"
 ORIGINAL_USER_PROTECTED = "ORIGINAL_USER_PROTECTED"
 ORIGINAL_USER_SUSPENDED = "ORIGINAL_USER_SUSPENDED"
 
-t = twarc.Twarc()
+# twarc instance
+t = None
 
+def main(files, enhance_tweet=False, print_results=True, profile=None):
+    global t
+    if profile is not None:
+        t = twarc.Twarc(profile=profile)
+    else:
+        t = twarc.Twarc()
 
-def main(files, enhance_tweet=False, print_results=True):
     counts = collections.Counter()
     for count, line in enumerate(fileinput.input(files=files)):
         if count % 10000 == 0:
@@ -192,6 +198,10 @@ if __name__ == "__main__":
         help="Skip outputting delete reason summary",
     )
     parser.add_argument(
+        "--profile",
+        help="The twarc API profile to use"
+    )
+    parser.add_argument(
         "files",
         metavar="FILE",
         nargs="*",
@@ -203,4 +213,5 @@ if __name__ == "__main__":
         args.files if len(args.files) > 0 else ("-",),
         enhance_tweet=args.enhance,
         print_results=not args.skip_results and not args.enhance,
+        profile=args.profile,
     )
