@@ -131,6 +131,7 @@ def test_geocode():
     assert found
 
 
+@pytest.mark.skip(reason="v1.1 filter API disabled March 2023")
 def test_track():
     tweet = next(T.filter(track="obama"))
     json_str = json.dumps(tweet)
@@ -141,6 +142,7 @@ def test_track():
     T.connect()
 
 
+@pytest.mark.skip(reason="v1.1 filter API disabled March 2023")
 def test_keepalive():
     for event in T.filter(track="abcdefghiklmno", record_keepalive=True):
         if event == "keep-alive":
@@ -150,6 +152,7 @@ def test_keepalive():
     T.connect()
 
 
+@pytest.mark.skip(reason="v1.1 filter API disabled March 2023")
 def test_follow():
     user_ids = [
         "87818409",  # @guardian
@@ -187,6 +190,7 @@ def test_follow():
     T.connect()
 
 
+@pytest.mark.skip(reason="v1.1 filter API disabled March 2023")
 def test_locations():
     # look for tweets from New York ; the bounding box is larger than NYC
     # so hopefully we'll find one from New York in the first 100?
@@ -207,6 +211,7 @@ def test_locations():
     T.connect()
 
 
+@pytest.mark.skip(reason="v1.1 filter API disabled March 2023")
 def test_languages():
     count = 0
     ok = True
@@ -679,6 +684,7 @@ def test_http_error_sample():
         next(t.sample())
 
 
+@pytest.mark.skip(reason="v1.1 filter API disabled March 2023")
 def test_http_error_filter():
     t = twarc.Twarc(
         "consumer_key",
@@ -814,6 +820,7 @@ def test_csv_retweet_hashtag():
         assert False
 
 
+@pytest.mark.skip(reason="v1.1 filter API disabled March 2023")
 def test_truncated_text():
     for tweet in T.filter("tweet"):
         if tweet["truncated"] == True:
