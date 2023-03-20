@@ -35,6 +35,7 @@ ORIGINAL_USER_SUSPENDED = "ORIGINAL_USER_SUSPENDED"
 # twarc instance
 t = None
 
+
 def main(files, enhance_tweet=False, print_results=True, profile=None):
     global t
     if profile is not None:
@@ -197,10 +198,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Skip outputting delete reason summary",
     )
-    parser.add_argument(
-        "--profile",
-        help="The twarc API profile to use"
-    )
+    parser.add_argument("--profile", help="The twarc API profile to use")
     parser.add_argument(
         "files",
         metavar="FILE",
