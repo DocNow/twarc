@@ -51,6 +51,7 @@ class Twarc(object):
         access_token_secret=None,
         connection_errors=0,
         http_errors=0,
+        max_server_error_retries=30,
         config=None,
         profile="",
         protected=False,
@@ -76,6 +77,7 @@ class Twarc(object):
         self.access_token_secret = access_token_secret
         self.connection_errors = connection_errors
         self.http_errors = http_errors
+        self.max_server_error_retries = max_server_error_retries
         self.profile = profile
         self.client = None
         self.last_response = None
@@ -144,7 +146,11 @@ class Twarc(object):
             if max_id:
                 params["max_id"] = max_id
 
-            resp = self.get(url, params=params)
+            resp = self.get(
+                url,
+                params=params,
+                max_server_error_retries=self.max_server_error_retries,
+            )
 
             retrieved_pages += 1
             statuses = resp.json()["statuses"]
@@ -237,7 +243,11 @@ class Twarc(object):
         count = 0
         stop = False
         while not stop:
-            resp = self.get(url, params=params)
+            resp = self.get(
+                url,
+                params=params,
+                max_server_error_retries=self.max_server_error_retries,
+            )
             if resp.status_code == 200:
                 data = resp.json()
                 for tweet in data["results"]:
@@ -298,7 +308,12 @@ class Twarc(object):
                 params["max_id"] = max_id
 
             try:
-                resp = self.get(url, params=params, allow_404=True)
+                resp = self.get(
+                    url,
+                    params=params,
+                    allow_404=True,
+                    max_server_error_retries=self.max_server_error_retries,
+                )
                 retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
@@ -363,7 +378,12 @@ class Twarc(object):
                 "include_ext_is_blue_verified": "true",
             }
             try:
-                resp = self.get(url, params=params, allow_404=True)
+                resp = self.get(
+                    url,
+                    params=params,
+                    allow_404=True,
+                    max_server_error_retries=self.max_server_error_retries,
+                )
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
                     log.warning("no users matching %s", ids_str)
@@ -399,7 +419,12 @@ class Twarc(object):
 
         while params["cursor"] != 0:
             try:
-                resp = self.get(url, params=params, allow_404=True)
+                resp = self.get(
+                    url,
+                    params=params,
+                    allow_404=True,
+                    max_server_error_retries=self.max_server_error_retries,
+                )
                 retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
@@ -432,7 +457,12 @@ class Twarc(object):
 
         while params["cursor"] != 0:
             try:
-                resp = self.get(url, params=params, allow_404=True)
+                resp = self.get(
+                    url,
+                    params=params,
+                    allow_404=True,
+                    max_server_error_retries=self.max_server_error_retries,
+                )
                 retrieved_pages += 1
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
@@ -672,7 +702,12 @@ class Twarc(object):
                 tweet_id
             )
             try:
-                resp = self.get(url, params={"count": 100}, allow_404=True)
+                resp = self.get(
+                    url,
+                    params={"count": 100},
+                    allow_404=True,
+                    max_server_error_retries=self.max_server_error_retries,
+                )
                 for tweet in resp.json():
                     yield tweet
             except requests.exceptions.HTTPError as e:
@@ -685,7 +720,7 @@ class Twarc(object):
         """
         url = "https://api.twitter.com/1.1/trends/available.json"
         try:
-            resp = self.get(url)
+            resp = self.get(url, max_server_error_retries=self.max_server_error_retries)
         except requests.exceptions.HTTPError as e:
             raise e
         return resp.json()
@@ -701,7 +736,12 @@ class Twarc(object):
         if exclude:
             params["exclude"] = exclude
         try:
-            resp = self.get(url, params=params, allow_404=True)
+            resp = self.get(
+                url,
+                params=params,
+                allow_404=True,
+                max_server_error_retries=self.max_server_error_retries,
+            )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 log.info("no region matching WOEID %s", woeid)
@@ -715,7 +755,11 @@ class Twarc(object):
         url = "https://api.twitter.com/1.1/trends/closest.json"
         params = {"lat": lat, "long": lon}
         try:
-            resp = self.get(url, params=params)
+            resp = self.get(
+                url,
+                params=params,
+                max_server_error_retries=self.max_server_error_retries,
+            )
         except requests.exceptions.HTTPError as e:
             raise e
         return resp.json()
@@ -802,7 +846,12 @@ class Twarc(object):
 
         while params["cursor"] != 0:
             try:
-                resp = self.get(url, params=params, allow_404=True)
+                resp = self.get(
+                    url,
+                    params=params,
+                    allow_404=True,
+                    max_server_error_retries=self.max_server_error_retries,
+                )
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
                     log.error("no matching list")
@@ -826,7 +875,9 @@ class Twarc(object):
         url = "https://publish.twitter.com/oembed"
 
         params["url"] = tweet_url
-        resp = self.get(url, params=params)
+        resp = self.get(
+            url, params=params, max_server_error_retries=self.max_server_error_retries
+        )
 
         return resp.json()
 
@@ -1023,7 +1074,7 @@ class Twarc(object):
                 # Need to explicitly reconnect to confirm the current creds
                 # are used in the session object.
                 self.connect()
-                self.get(url)
+                self.get(url, max_server_error_retries=self.max_server_error_retries)
                 return True
             except requests.HTTPError as e:
                 if e.response.status_code == 401:
