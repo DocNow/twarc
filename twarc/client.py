@@ -335,6 +335,81 @@ class Twarc(object):
 
             max_id = str(int(status["id_str"]) - 1)
 
+    def likes(
+        self, user_id=None, screen_name=None, max_id=None, since_id=None, max_pages=None
+    ):
+        """
+        Returns a collection of the most recent tweets posted
+        by the user indicated by the user_id or screen_name parameter.
+        Provide a user_id or screen_name.
+        """
+
+        if user_id and screen_name:
+            raise ValueError("only user_id or screen_name may be passed")
+
+        # Strip if screen_name is prefixed with '@'
+        if screen_name:
+            screen_name = screen_name.lstrip("@")
+        id = screen_name or str(user_id)
+        id_type = "screen_name" if screen_name else "user_id"
+        log.info("starting user timeline for user %s", id)
+
+        if screen_name or user_id:
+            url = "https://api.twitter.com/1.1/favorites/list.json"
+        else:
+            url = "https://api.twitter.com/1.1/favorites/list.json"
+
+        params = {"count": 200, id_type: id, "include_ext_alt_text": "true"}
+
+        retrieved_pages = 0
+        reached_end = False
+
+        while True:
+            if since_id:
+                # Make the since_id inclusive, so we can avoid retrieving
+                # an empty page of results in some cases
+                params["since_id"] = str(int(since_id) - 1)
+            if max_id:
+                params["max_id"] = max_id
+
+            try:
+                resp = self.get(url, params=params, allow_404=True)
+                retrieved_pages += 1
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    log.warn("no timeline available for %s", id)
+                    break
+                elif e.response.status_code == 401:
+                    log.warn("protected account %s", id)
+                    break
+                raise e
+
+            statuses = resp.json()
+
+            if len(statuses) == 0:
+                log.info("no new tweets matching %s", params)
+                break
+
+            for status in statuses:
+                # We've certainly reached the end of new results
+                if since_id is not None and status["id_str"] == str(since_id):
+                    reached_end = True
+                    break
+                # If you request an invalid user_id, you may still get
+                # results so need to check.
+                if not user_id or id == status.get("user", {}).get("id_str"):
+                    yield status
+
+            if reached_end:
+                log.info("no new tweets matching %s", params)
+                break
+
+            if max_pages is not None and retrieved_pages == max_pages:
+                log.info("reached max page limit for %s", params)
+                break
+
+            max_id = str(int(status["id_str"]) - 1)
+
     def user_lookup(self, ids, id_type="user_id"):
         """
         A generator that returns users for supplied iterator of user ids or screen_names.
