@@ -67,6 +67,7 @@ TWEET_FIELDS = [
     "withheld",
     "edit_controls",
     "edit_history_tweet_ids",
+    "note_tweet",
 ]
 
 MEDIA_FIELDS = [
