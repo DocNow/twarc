@@ -11,3 +11,4 @@ twarc.egg-info
 .vscode
 .env
 site
+uv.lock

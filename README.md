@@ -1,6 +1,10 @@
 # twarc
 
-[![DOI](https://zenodo.org/badge/7605723.svg)](https://zenodo.org/badge/latestdoi/7605723) [![Build Status](https://github.com/docnow/twarc/workflows/tests/badge.svg)](https://github.com/DocNow/twarc/actions/workflows/main.yml) [![Standard](https://img.shields.io/endpoint?url=https%3A%2F%2Ftwbadges.glitch.me%2Fbadges%2Fstandard)](https://developer.twitter.com/en/docs/twitter-api) [![Premium](https://img.shields.io/endpoint?url=https%3A%2F%2Ftwbadges.glitch.me%2Fbadges%2Fpremium)](https://developer.twitter.com/) [![v2](https://img.shields.io/endpoint?url=https%3A%2F%2Ftwbadges.glitch.me%2Fbadges%2Fv2)](https://developer.twitter.com/en/docs/twitter-api)
+**Note: twarc is no longer actively supported after changes to Twitter's API quotas made it unusable.**
+
+---
+
+[![DOI](https://zenodo.org/badge/7605723.svg)](https://zenodo.org/badge/latestdoi/7605723)
 
 twarc is a command line tool and Python library for collecting and archiving Twitter JSON
 data via the Twitter API. It has separate commands (twarc and twarc2) for working with the older
@@ -41,7 +45,6 @@ If you are interested in adding functionality to twarc or fixing something that'
 
     git clone https://github.com/docnow/twarc
     cd twarc
-    pip install -r requirements.txt
 
 Create a .env file that included Twitter App keys to use during testing:
 
@@ -53,7 +56,7 @@ Create a .env file that included Twitter App keys to use during testing:
 
 Now run the tests:
 
-    python setup.py test
+    uv run pytest
 
 Add your code and some new tests, and send a pull request!
 

@@ -2,7 +2,6 @@
 The command line interfact to the Twitter v2 API.
 """
 
-from itertools import filterfalse
 import os
 import re
 import json
@@ -22,7 +21,7 @@ from tqdm.utils import CallbackIOWrapper
 
 from datetime import timezone
 from click_plugins import with_plugins
-from pkg_resources import iter_entry_points
+from importlib.metadata import entry_points
 
 from twarc.version import version
 from twarc.handshake import handshake
@@ -37,7 +36,7 @@ from twarc.expansions import (
     PLACE_FIELDS,
     LIST_FIELDS,
 )
-from click import command, option, Option, UsageError
+from click import Option, UsageError
 from click_config_file import configuration_option
 from twarc.decorators2 import (
     cli_api_error,
@@ -53,7 +52,7 @@ config_provider = ConfigProvider()
 log = logging.getLogger("twarc")
 
 
-@with_plugins(iter_entry_points("twarc.plugins"))
+@with_plugins(entry_points(group="twarc.plugins"))
 @click.group()
 @click.option(
     "--consumer-key",
@@ -788,7 +787,7 @@ def tweet(T, tweet_id, outfile, pretty, **kwargs):
 
     if "https" in tweet_id:
         tweet_id = tweet_id.split("/")[-1]
-    if not re.match("^\d+$", tweet_id):
+    if not re.match(r"^\d+$", tweet_id):
         click.echo(click.style("Please enter a tweet URL or ID", fg="red"), err=True)
     result = next(T.tweet_lookup([tweet_id], **kwargs))
     _write(result, outfile, pretty=pretty)
@@ -909,7 +908,7 @@ def liking_users(T, tweet_id, outfile, limit, max_results, hide_progress):
     """
     lookup_total = 1
 
-    if not re.match("^\d+$", str(tweet_id)):
+    if not re.match(r"^\d+$", str(tweet_id)):
         click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
@@ -959,7 +958,7 @@ def retweeted_by(T, tweet_id, outfile, limit, max_results, hide_progress):
     """
     lookup_total = 0
 
-    if not re.match("^\d+$", str(tweet_id)):
+    if not re.match(r"^\d+$", str(tweet_id)):
         click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
@@ -1016,7 +1015,7 @@ def quotes(T, tweet_id, outfile, limit, max_results, hide_progress, **kwargs):
     kwargs.pop("poll_fields", None)
     kwargs.pop("place_fields", None)
 
-    if not re.match("^\d+$", str(tweet_id)):
+    if not re.match(r"^\d+$", str(tweet_id)):
         click.echo(click.style("Please enter a tweet ID", fg="red"), err=True)
 
     hide_progress = True if (outfile.name == "<stdout>") else hide_progress
@@ -2065,7 +2064,7 @@ def lists_lookup(T, list_id, outfile, pretty, **kwargs):
 
     if "https" in list_id:
         list_id = list_id.split("/")[-1]
-    if not re.match("^\d+$", list_id):
+    if not re.match(r"^\d+$", list_id):
         click.echo(click.style("Please enter a List URL or ID", fg="red"), err=True)
     result = T.list_lookup(list_id, **kwargs)
     _write(result, outfile, pretty=pretty)
@@ -2097,7 +2096,7 @@ def lists_bulk_lookup(T, infile, outfile, hide_progress, **kwargs):
 
             if "https" in list_id:
                 list_id = list_id.split("/")[-1]
-            if not re.match("^\d+$", list_id):
+            if not re.match(r"^\d+$", list_id):
                 click.echo(
                     click.style("Skipping invalid List URL or ID: {line}", fg="red"),
                     err=True,
