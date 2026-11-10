@@ -114,7 +114,11 @@ def extract_includes(response, expansion, _id="id"):
     if "includes" in response and expansion in response["includes"]:
         return defaultdict(
             lambda: {},
-            {include[_id]: include for include in response["includes"][expansion]},
+            {
+                include[_id]: include
+                for include in response["includes"][expansion]
+                if _id in include
+            },
         )
     else:
         return defaultdict(lambda: {})
